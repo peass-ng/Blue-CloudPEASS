@@ -8006,6 +8006,10 @@ class AwsModel(Model):
             out = {}
             functions = {row.get("FunctionArn"): row for _, row in items(self.snapshot, "lambda_function")
                          if isinstance(row, dict) and isinstance(row.get("FunctionArn"), str)}
+            profile_status = inventory_status(self.snapshot, "signer_profile")
+            profiles = {(scope, row.get("profileVersionArn")): row
+                        for scope, row in items(self.snapshot, "signer_profile")
+                        if isinstance(row, dict) and isinstance(row.get("profileVersionArn"), str)}
             for tid, role in candidates.items():
                 missing = bool(source.incomplete)
                 for arn in self.hosts.get(tid, {}).get("lambda_function", ()):
@@ -8058,6 +8062,19 @@ class AwsModel(Model):
                         start = self.check(source, {"action": "signer:StartSigningJob",
                             "request_context": {"signer:ProfileVersion": version}}, profile_arn)
                         if start is not None:
+                            parts = profile_arn.split(":", 5)
+                            profile_scope = f"{parts[4]}/{parts[3]}"
+                            if parts[4] != source.scope or profile_status.get(profile_scope) not in ("collected", "empty"):
+                                missing = True
+                                continue
+                            profile = profiles.get((profile_scope, version_arn))
+                            if profile is None:
+                                continue
+                            if profile.get("arn") != profile_arn or profile.get("profileVersion") != version:
+                                missing = True
+                                continue
+                            if profile.get("status") != "ACTIVE" or not str(profile.get("platformId") or "").startswith("AWSLambda-"):
+                                continue
                             out[tid] = ("unknown", "lambda_signer_profile_and_artifact_execution_not_verified")
                             break
                     if tid in out:

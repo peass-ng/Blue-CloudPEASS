@@ -388,13 +388,17 @@ def test_lambda_signer_route_joins_exact_profile_and_config_without_wildcard_gra
             "CodeSigningConfigArn": config_arn,
             "CodeSigningPolicies": {"UntrustedArtifactOnDeployment": "Enforce"},
             "AllowedPublishers": {"SigningProfileVersionArns": [profile + "/1"]}}}}
-    def run(profile_resource, version="1", config_resource=config_arn):
+    def run(profile_resource, version="1", config_resource=config_arn, profile_state="ACTIVE"):
         signer = {"Effect": "Allow", "Action": "signer:StartSigningJob",
                   "Resource": profile_resource,
                   "Condition": {"StringEquals": {"signer:ProfileVersion": version}}}
         source = user("alice", allow("lambda:UpdateFunctionCode", function_arn),
                       allow("lambda:GetCodeSigningConfig", config_resource), signer)
-        return privesc.analyze(aws_snap([source], [target], [("lambda_function", SCOPE, [function])]),
+        profile_row = {"profileName": "release", "profileVersion": "1",
+                       "profileVersionArn": profile + "/1", "arn": profile,
+                       "platformId": "AWSLambda-SHA384-ECDSA", "status": profile_state}
+        facts = [("lambda_function", SCOPE, [function]), ("signer_profile", SCOPE, [profile_row])]
+        return privesc.analyze(aws_snap([source], [target], facts),
                                entries=[technique], include_unknown=True)
 
     matching = run(profile)
@@ -404,6 +408,7 @@ def test_lambda_signer_route_joins_exact_profile_and_config_without_wildcard_gra
     assert edges(run(profile + "-other"), ALICE) == []
     assert edges(run(profile, "2"), ALICE) == []
     assert edges(run(profile, config_resource=config_arn + "-other"), ALICE) == []
+    assert edges(run(profile, profile_state="CANCELED"), ALICE) == []
 
     from peaso.privesc import versioned_catalog
     old = {"schema": versioned_catalog.BINDING_SCHEMA,
