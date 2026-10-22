@@ -7764,17 +7764,28 @@ class AwsModel(Model):
                 return None
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             simulator = f"arn:{partition}:braket:::device/quantum-simulator/amazon/sv1"
-            allowed = (self.cached_check(source, {"action": "braket:CreateJob"}, simulator)
-                       if partition == "aws" else None)
-            if allowed is not None:
-                verdict = (("unknown", "braket_device_permission_conditional") if allowed.confidence == "unknown"
-                           else ("conditional", "braket_known_device_authorized_job_execution_pending"))
-                return {tid: verdict for tid in candidates}
             allows, _ = self._statements(source, "braket:createjob")
-            possible_device = any(st.notresource or st.variables or any(
-                resource == "*" or ":device/" in resource for resource in st.resources)
-                for st in allows)
-            if possible_device:
+            regions = {scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                       if isinstance(scope, str) and scope.startswith(source.scope + "/")}
+            # SV1 is a documented device in these Regions. A CreateJob request
+            # authorizes both its device and its service-generated job ARN.
+            for region in sorted(regions & {"us-east-1", "us-west-1", "us-west-2", "eu-west-2"}):
+                job = (f"arn:{partition}:braket:{region}:{source.scope}:job/"
+                       "00000000-0000-4000-8000-000000000000")
+                broad_job = any(not st.notresource and not st.variables and any(
+                    pattern == "*" or (pattern.endswith(":job/*") and _resource_glob(pattern, job))
+                    for pattern in st.resources) for st in allows)
+                context = {"aws:RequestedRegion": region}
+                device_grant = self.cached_check(source, {"action": "braket:CreateJob",
+                    "request_context": context}, simulator)
+                job_grant = self.cached_check(source, {"action": "braket:CreateJob",
+                    "request_context": context}, job)
+                if (partition == "aws" and broad_job and device_grant is not None
+                        and job_grant is not None and device_grant.confidence == job_grant.confidence == "derived"
+                        and not source.incomplete):
+                    return {tid: ("conditional", "braket_device_and_generated_job_authorized_execution_pending")
+                            for tid in candidates}
+            if allows:
                 return {tid: ("unknown", "braket_device_scope_or_availability_not_verified")
                         for tid in candidates}
             return {}

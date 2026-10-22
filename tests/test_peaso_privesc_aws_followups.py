@@ -1407,18 +1407,23 @@ def test_braket_createjob_requires_device_authorization():
     passrole = allow("iam:PassRole", resource=role_arn("job"))
     known_device = "arn:aws:braket:::device/quantum-simulator/amazon/sv1"
 
-    def evaluate(resource, *, include_unknown=False):
-        snap = aws_snap([user("alice", passrole, allow("braket:CreateJob", resource=resource))],
+    job_scope = f"arn:aws:braket:{REGION}:{ACCOUNT}:job/*"
+
+    def evaluate(resources, *, include_unknown=False):
+        grants = [allow("braket:CreateJob", resource=resource) for resource in resources]
+        snap = aws_snap([user("alice", passrole, *grants)],
                         [role("job", "braket.amazonaws.com")])
         return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
                  include_unknown=include_unknown).run() if reach.source.id == ALICE]
 
-    assert evaluate(f"arn:aws:braket:{REGION}:{ACCOUNT}:job/*") == []
+    assert evaluate([job_scope]) == []
     assert [{target: grant.confidence for target, grant in row.items()}
-            for row in evaluate(known_device)] == [{role_arn("job"): "conditional"}]
+            for row in evaluate([known_device, job_scope])] == [{role_arn("job"): "conditional"}]
+    assert evaluate([known_device]) == []
+    assert evaluate([known_device, f"arn:aws:braket:us-west-2:{ACCOUNT}:job/*"]) == []
     restricted_device = f"arn:aws:braket:us-west-2:*:device/qpu/*"
-    assert evaluate(restricted_device) == []
-    unresolved = evaluate(restricted_device, include_unknown=True)
+    assert evaluate([restricted_device, job_scope]) == []
+    unresolved = evaluate([restricted_device, job_scope], include_unknown=True)
     assert len(unresolved) == 1
     assert all(target.startswith("unresolved:") and grant.confidence == "unknown"
                for target, grant in unresolved[0].items())
