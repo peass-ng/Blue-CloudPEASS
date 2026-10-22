@@ -937,6 +937,27 @@ def test_createaccount_reaches_principalorgid_trusts_from_management_account():
     assert set(reached(real(snap, CREATE_ACCOUNT), ALICE)) == {role_arn("shared", OTHER)}
 
 
+def test_createaccount_needs_generated_access_role_grant_not_target_role_grant():
+    shared = role("shared", org_trust(), account=OTHER)
+    only_target = user("alice", allow("organizations:CreateAccount"),
+                       allow("sts:AssumeRole", resource=shared["Arn"]))
+    snap = aws_snap([only_target], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared])])
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert shared["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+    generated_role = user("alice", allow("organizations:CreateAccount"),
+                          allow("sts:AssumeRole",
+                                resource="arn:aws:iam::*:role/OrganizationAccountAccessRole"))
+    snap = aws_snap([generated_role], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared])])
+    assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+    custom_role = user("alice", allow("organizations:CreateAccount"),
+                       allow("sts:AssumeRole", resource="arn:aws:iam::*:role/ChosenAccessRole"))
+    snap = aws_snap([custom_role], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared])])
+    assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+
 def test_createaccount_does_not_override_explicit_role_trust_deny():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     denied = role("denied", [*org_trust(), {"Effect": "Deny", "Principal": "*",

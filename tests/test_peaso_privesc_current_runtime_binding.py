@@ -36,6 +36,24 @@ def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
     assert len(catalog._verified_stepfunctions_passrole_689_previous()) == 689
 
 
+def test_organizations_generated_access_role_binding_preserves_previous_catalog():
+    ident = "aws-organizations-createaccount-principalorgid-trust"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["requires"]["all_of"] == [
+        {"action": "organizations:CreateAccount", "resource": "*"}]
+    assert "created_org_access_role_assumable" in current[ident]["preconditions"]
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.ORG_ACCESS_ROLE_689_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.ORG_ACCESS_ROLE_689_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert any(req["action"] == "sts:AssumeRole"
+               for req in previous[ident]["requires"]["all_of"])
+    assert len(catalog._verified_org_access_role_689_previous()) == 689
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

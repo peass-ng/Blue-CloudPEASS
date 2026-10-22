@@ -10909,6 +10909,43 @@ class AwsModel(Model):
             if not self._org_known():
                 return {tid: ("unknown", "organization_accounts_not_collected") for tid in candidates}
             return dict.fromkeys(candidates) if source.scope == self.org_management else {}
+        if pid == "created_org_access_role_assumable":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            allows, _ = self._statements(source, "sts:assumerole")
+            # The new account ID is unknown until CreateAccount finishes. An
+            # existing target-role grant does not authorize this intermediary.
+            # Require a grant for every possible new account ID. CreateAccount
+            # can select a custom role name, so accept a valid exact name too.
+            names = set()
+            for st in allows:
+                if st.notresource or st.variables:
+                    continue
+                for resource in st.resources:
+                    if resource == "*":
+                        names.add("OrganizationAccountAccessRole")
+                        continue
+                    parts = resource.split(":", 5)
+                    if len(parts) != 6 or parts[:5] != ["arn", partition, "iam", "", "*"]:
+                        continue
+                    role_pattern = parts[5]
+                    if glob_match(role_pattern, "role/OrganizationAccountAccessRole", False):
+                        names.add("OrganizationAccountAccessRole")
+                    if role_pattern.startswith("role/"):
+                        name = role_pattern.removeprefix("role/")
+                        if (re.fullmatch(r"[A-Za-z0-9_+=,.@-]{1,64}", name) and
+                                not name.startswith("AWSServiceRoleFor")):
+                            names.add(name)
+            grant = None
+            for name in sorted(names):
+                probe = f"arn:{partition}:iam::000000000000:role/{name}"
+                grant = self._check_action(source, "sts:assumerole", probe)
+                if grant is not None:
+                    break
+            verdict = (("conditional", "new_member_account_creation_pending") if grant is not None else
+                       ("unknown", "new_member_access_role_assume_grant_unverified"))
+            return dict.fromkeys(candidates, verdict)
         if pid == "emr_cluster_session_runtime_role":
             if source is None:
                 return None
