@@ -8010,6 +8010,102 @@ class AwsModel(Model):
             profiles = {(scope, row.get("profileVersionArn")): row
                         for scope, row in items(self.snapshot, "signer_profile")
                         if isinstance(row, dict) and isinstance(row.get("profileVersionArn"), str)}
+
+            def artifact_ready(function_arn):
+                if self._check_action(source, "lambda:invokefunction", function_arn) is None:
+                    return False
+                if source.attrs.get("boundary"):
+                    return False
+                if any(st.effect == "deny" for level in self._scp_levels(source.scope)[0]
+                       for policy in self.rcp_by_target.get(level, ()) for st in policy.statements):
+                    return False
+                if source.scope != self.org_management:
+                    scp_state = self.scp_status.get(source.scope, "not_collected")
+                    if scp_state == "collected":
+                        levels, complete = self._scp_levels(source.scope)
+                        if not complete:
+                            return False
+                        for level in levels:
+                            policies = (self.scp.get(source.scope, ()) if level == source.scope
+                                        else self.scp_by_target.get(level, ()))
+                            if not policies or any(st.effect == "deny" for p in policies for st in p.statements):
+                                return False
+                            if not any(st.effect == "allow" and not st.conditional and not st.notaction and
+                                       not st.notresource and any(action in ("*", "*:*") for action in st.actions)
+                                       and "*" in st.resources for p in policies for st in p.statements):
+                                return False
+                    elif scp_state != "empty":
+                        return False
+                put, put_denies = self._statements(source, "s3:putobject")
+                get, get_denies = self._statements(source, "s3:getobject")
+                if put_denies or get_denies:
+                    return False
+                for scope, bucket in items(self.snapshot, "bucket"):
+                    if scope != f"{source.scope}/global" or not isinstance(bucket, dict):
+                        continue
+                    name = bucket.get("Name")
+                    location = bucket.get("Location") or {}
+                    versioning = bucket.get("Versioning") or {}
+                    policy = bucket.get("Policy") or {}
+                    encryption = bucket.get("Encryption") or {}
+                    ownership = bucket.get("OwnershipControls") or {}
+                    if (not isinstance(name, str) or not name or
+                            location.get("collection_status") != "collected" or
+                            versioning.get("collection_status") != "collected" or
+                            versioning.get("Status") != "Enabled" or
+                            policy.get("collection_status") not in ("collected", "empty") or
+                            encryption.get("collection_status") not in ("collected", "empty") or
+                            ownership.get("collection_status") != "collected"):
+                        continue
+                    controls = ownership.get("OwnershipControls") or {}
+                    rules = controls.get("Rules") if isinstance(controls, dict) else None
+                    if not isinstance(rules, list) or not any(
+                            isinstance(rule, dict) and rule.get("ObjectOwnership") == "BucketOwnerEnforced"
+                            for rule in rules):
+                        continue
+                    region = location.get("LocationConstraint") or "us-east-1"
+                    if region == "EU":
+                        region = "eu-west-1"
+                    if region != function_arn.split(":")[3]:
+                        continue
+                    if encryption.get("collection_status") == "collected":
+                        rules = (encryption.get("ServerSideEncryptionConfiguration") or {}).get("Rules")
+                        if not isinstance(rules, list) or any(
+                            (rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm") != "AES256"
+                            for rule in rules if isinstance(rule, dict)):
+                            continue
+                    document = policy.get("Policy") or {}
+                    if isinstance(document, dict) and any(
+                            str(statement.get("Effect", "")).lower() == "deny"
+                            for statement in as_list(document.get("Statement")) if isinstance(statement, dict)):
+                        continue
+                    bucket_arn = f"arn:{function_arn.split(':')[1]}:s3:::{name}"
+                    prefixes = set()
+                    for statement in put:
+                        if statement.notresource or statement.conditional:
+                            continue
+                        for resource in statement.resources:
+                            if resource == "*" or resource == bucket_arn + "/*":
+                                prefixes.add(bucket_arn + "/")
+                            elif (resource.startswith(bucket_arn + "/") and resource.endswith("/*") and
+                                  not any(char in resource[:-1] for char in ("*", "?"))):
+                                prefixes.add(resource[:-1])
+                    for prefix in sorted(prefixes):
+                        if not any(not statement.notresource and not statement.conditional and any(
+                            resource == "*" or resource == bucket_arn + "/*" or
+                            (resource.startswith(bucket_arn + "/") and resource.endswith("/*") and
+                             not any(char in resource[:-1] for char in ("*", "?")) and
+                             prefix.startswith(resource[:-1])) for resource in statement.resources)
+                            for statement in get):
+                            continue
+                        unsigned = prefix + "source.zip"
+                        signed = prefix + "signed/0000000000000000.zip"
+                        if all(self._check_action(source, action, resource) is not None for action, resource in (
+                            ("s3:putobject", unsigned), ("s3:getobjectversion", unsigned),
+                            ("s3:listbucket", bucket_arn), ("s3:putobject", signed),
+                            ("s3:getobject", signed))):
+                            return True
+                return False
             for tid, role in candidates.items():
                 missing = bool(source.incomplete)
                 for arn in self.hosts.get(tid, {}).get("lambda_function", ()):
@@ -8075,7 +8171,9 @@ class AwsModel(Model):
                                 continue
                             if profile.get("status") != "ACTIVE" or not str(profile.get("platformId") or "").startswith("AWSLambda-"):
                                 continue
-                            out[tid] = ("unknown", "lambda_signer_profile_and_artifact_execution_not_verified")
+                            out[tid] = (("conditional", "lambda_signer_job_and_function_invocation_pending")
+                                        if artifact_ready(arn) else
+                                        ("unknown", "lambda_signer_versioned_artifact_or_invocation_not_verified"))
                             break
                     if tid in out:
                         break

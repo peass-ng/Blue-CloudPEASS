@@ -388,16 +388,33 @@ def test_lambda_signer_route_joins_exact_profile_and_config_without_wildcard_gra
             "CodeSigningConfigArn": config_arn,
             "CodeSigningPolicies": {"UntrustedArtifactOnDeployment": "Enforce"},
             "AllowedPublishers": {"SigningProfileVersionArns": [profile + "/1"]}}}}
-    def run(profile_resource, version="1", config_resource=config_arn, profile_state="ACTIVE"):
+    def run(profile_resource, version="1", config_resource=config_arn, profile_state="ACTIVE",
+            bucket_ready=False, bucket_versioning="Enabled", object_prefix="/*",
+            owner_enforced=True, invoke=True, source_version_read=True):
         signer = {"Effect": "Allow", "Action": "signer:StartSigningJob",
                   "Resource": profile_resource,
                   "Condition": {"StringEquals": {"signer:ProfileVersion": version}}}
+        bucket_arn = f"arn:aws:s3:::signed-code-{ACCOUNT}"
+        extra = ([allow(["s3:PutObject", "s3:GetObject"] +
+                        (["s3:GetObjectVersion"] if source_version_read else []), bucket_arn + object_prefix),
+                  allow("s3:ListBucket", bucket_arn)] if bucket_ready else [])
+        if bucket_ready and invoke:
+            extra.append(allow("lambda:InvokeFunction", function_arn))
         source = user("alice", allow("lambda:UpdateFunctionCode", function_arn),
-                      allow("lambda:GetCodeSigningConfig", config_resource), signer)
+                      allow("lambda:GetCodeSigningConfig", config_resource), signer, *extra)
         profile_row = {"profileName": "release", "profileVersion": "1",
                        "profileVersionArn": profile + "/1", "arn": profile,
                        "platformId": "AWSLambda-SHA384-ECDSA", "status": profile_state}
         facts = [("lambda_function", SCOPE, [function]), ("signer_profile", SCOPE, [profile_row])]
+        if bucket_ready:
+            facts.append(("bucket", f"{ACCOUNT}/global", [{"Name": f"signed-code-{ACCOUNT}",
+                "Location": {"collection_status": "collected", "LocationConstraint": None},
+                "Versioning": {"collection_status": "collected", "Status": bucket_versioning},
+                "Policy": {"collection_status": "empty"},
+                "Encryption": {"collection_status": "empty"},
+                "OwnershipControls": {"collection_status": "collected",
+                    "OwnershipControls": {"Rules": [{"ObjectOwnership":
+                        "BucketOwnerEnforced" if owner_enforced else "ObjectWriter"}]}}}]))
         return privesc.analyze(aws_snap([source], [target], facts),
                                entries=[technique], include_unknown=True)
 
@@ -409,6 +426,12 @@ def test_lambda_signer_route_joins_exact_profile_and_config_without_wildcard_gra
     assert edges(run(profile, "2"), ALICE) == []
     assert edges(run(profile, config_resource=config_arn + "-other"), ALICE) == []
     assert edges(run(profile, profile_state="CANCELED"), ALICE) == []
+    assert reached(run(profile, bucket_ready=True), ALICE)[target["Arn"]] == "conditional"
+    assert reached(run(profile, bucket_ready=True, object_prefix="/release/*"), ALICE)[target["Arn"]] == "conditional"
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, bucket_versioning="Suspended"), ALICE)
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, owner_enforced=False), ALICE)
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, invoke=False), ALICE)
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, source_version_read=False), ALICE)
 
     from peaso.privesc import versioned_catalog
     old = {"schema": versioned_catalog.BINDING_SCHEMA,
