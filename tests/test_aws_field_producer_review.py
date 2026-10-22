@@ -43,6 +43,21 @@ def test_every_current_active_aws_id_has_an_explicit_field_review(ledger):
             assert kind in ledger['producers']
 
 
+def test_exact_dict_image_reviews_keep_the_tracing_limit_visible(ledger):
+    rows = {row['id']: row for row in ledger['checks']}
+    assert audit.EXACT_DICT_IMAGE_EVALUATORS == {
+        'aws.review.ecr.selected_image_vulnerabilities',
+        'aws.review.ecr_public.selected_image_high_vulnerabilities',
+        'aws.review.ecr_public.selected_image_secret_indicators',
+        'aws.review.workload.selected_image_secret_indicators',
+    }
+    for cid in audit.EXACT_DICT_IMAGE_EVALUATORS:
+        row = rows[cid]
+        assert row['direct_dict_instrumentation'] == 'exact_dict_native_predicate'
+        assert row['fixture_outcomes'] == {'pass': 'PASS', 'fail': 'FAIL', 'unknown': 'UNKNOWN'}
+        assert any('dict-subclass read tracing' in blocker for blocker in row['blockers'])
+
+
 def test_sdk_member_presence_is_not_enough_when_projection_is_custom(ledger):
     # RDS has a parameter enrichment callback; API shape alone cannot prove its
     # output. The real callback must run before these paths receive credit.

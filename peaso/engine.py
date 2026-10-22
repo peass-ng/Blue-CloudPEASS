@@ -348,8 +348,8 @@ def _request(request):
             raise ValueError('Selected Function settings require Azure provider')
         function_targets, _ = function_settings_preflight(content_options, connector.get('scopes', []), function_named)
         if function_targets:
-            from .checks.azure_function_settings_runtime_admission_20261020 import reviewed_inputs as function_reviewed_inputs
-            function_reviewed_inputs()
+            from .rawv2_private_source_successor_20261021 import install_admission
+            install_admission('azure_function_settings_runtime_admission_20261020')
     if connector['provider'] == 'aws':
         from .collectors.aws_lambda_environment_secret_indicators import selected_targets as lambda_environment_targets, KIND as LAMBDA_ENV_KIND, CHECK as LAMBDA_ENV_CHECK, OPTION as LAMBDA_ENV_OPTION
         from .collectors.aws_selected_configuration_secret_indicators import selected_targets as configuration_content_targets, KIND as CONFIG_CONTENT_KIND, CHECK as CONFIG_CONTENT_CHECK, OPTION as CONFIG_CONTENT_OPTION

@@ -51,7 +51,9 @@ def pytest_skips(path: Path):
     out = []
     for case in ET.parse(path).getroot().iter('testcase'):
         skipped = case.find('skipped')
-        if skipped is not None:
+        # pytest reports an expected failure as a JUnit <skipped> element with
+        # this distinct type. The assertion still ran and failed as expected.
+        if skipped is not None and skipped.get('type') != 'pytest.xfail':
             ident = f"{case.get('classname', '')}::{case.get('name', '')}"
             out.append((ident, f"{skipped.get('message', '')} {skipped.text or ''}".strip()))
     return out

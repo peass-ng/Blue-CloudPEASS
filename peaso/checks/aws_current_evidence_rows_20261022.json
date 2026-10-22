@@ -1,0 +1,275 @@
+{
+  "aws.iam.group_inline_policies_have_members": {
+    "purpose": "Group policies may grant their permissions to recorded members.",
+    "label": "IAM group inline policies have current user members",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "inline_policies",
+        "label": "Inline policies",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "member_identities",
+        "label": "User members",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.iam.identity_center.permission_set_has_consumer_all_accounts": {
+    "purpose": "Assignments and provisioning may make permissions available to users in recorded accounts.",
+    "label": "Identity Center permission set has account consumers",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "consumer_accounts",
+        "label": "Consumer accounts",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "assignments",
+        "label": "Assignments",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.iam.oidc_provider_has_role_consumer": {
+    "purpose": "A declared role trust may allow federated users to request its permissions.",
+    "label": "OIDC provider has an IAM role trust consumer",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "role_consumers",
+        "label": "Role consumers",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.iam.saml_provider_has_role_consumer": {
+    "purpose": "A declared role trust may allow federated users to request its permissions.",
+    "label": "SAML provider has an IAM role trust consumer",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "role_consumers",
+        "label": "Role consumers",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.network.internet_gateway_attached": {
+    "purpose": "A recorded attachment may support network paths used by services.",
+    "label": "Internet gateway has a VPC attachment",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "associations",
+        "label": "VPC attachments",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.network.route_table_associated": {
+    "purpose": "A recorded association may determine network paths used by services.",
+    "label": "Route table has an association",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "associations",
+        "label": "Route associations",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.network.target_group_has_load_balancer": {
+    "purpose": "A recorded load balancer may route service traffic to this target group.",
+    "label": "Target group has a load balancer association",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "load_balancer_arns",
+        "label": "Load balancers",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.network.vpn_gateway_attached": {
+    "purpose": "A recorded attachment may support private network paths used by services.",
+    "label": "VPN gateway has a VPC attachment",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "associations",
+        "label": "VPC attachments",
+        "types": [
+          "list"
+        ]
+      }
+    ]
+  },
+  "aws.review.build_deployment.referenced_source_secret_indicators": {
+    "purpose": "A likely secret in selected source content could expose related accounts or data.",
+    "label": "Selected build or deployment source has no likely secrets",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "secret_leaks",
+        "label": "Likely secrets",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "complete",
+        "label": "Content complete",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  "aws.review.ecr.selected_image_vulnerabilities": {
+    "purpose": "A package flaw in the selected immutable image could affect services using it.",
+    "label": "Selected ECR image has no high severity package findings",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "Vulnerabilities",
+        "label": "Package findings",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "Coverage",
+        "label": "Coverage",
+        "types": [
+          "text"
+        ]
+      }
+    ]
+  },
+  "aws.review.ecr_public.selected_image_high_vulnerabilities": {
+    "purpose": "A package flaw in the selected public image could affect services using it.",
+    "label": "Selected ECR Public image has no high severity package findings",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "vulnerabilities",
+        "label": "Package findings",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "complete",
+        "label": "Content complete",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  "aws.review.ecr_public.selected_image_secret_indicators": {
+    "purpose": "A likely secret in the selected public image could expose related accounts or data.",
+    "label": "Selected ECR Public image has no likely secrets",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "secret_leaks",
+        "label": "Likely secrets",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "complete",
+        "label": "Content complete",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  "aws.review.ecs.selected_environment_file_secret_indicators": {
+    "purpose": "A likely secret in the referenced environment file could expose related accounts or data.",
+    "label": "Selected ECS environment file has no likely secrets",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "secret_leaks",
+        "label": "Likely secrets",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "complete",
+        "label": "Content complete",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  "aws.review.workload.referenced_source_secret_indicators": {
+    "purpose": "A likely secret in the referenced source could expose related accounts or data.",
+    "label": "Selected workload source has no likely secrets",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "secret_leaks",
+        "label": "Likely secrets",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "complete",
+        "label": "Content complete",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  "aws.review.workload.selected_image_secret_indicators": {
+    "purpose": "A likely secret in the referenced image could expose related accounts or data.",
+    "label": "Selected workload image has no likely secrets",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "secret_leaks",
+        "label": "Likely secrets",
+        "types": [
+          "list"
+        ]
+      },
+      {
+        "key": "source_complete",
+        "label": "Source complete",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  }
+}

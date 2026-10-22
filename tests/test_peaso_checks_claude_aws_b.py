@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from peaso.checks import CHECKS
+from peaso.checks import CHECKS, CHECK_ALIASES
 from peaso.checks.fixtures import CASES
 from peaso.checks import claude_aws_b
 from peaso.checks.claude_aws_b_common import IDS, ROWS, CONTEXT, is_policy_public, policy_document, sg_rule_open, add_months, turbot_public_statements
@@ -14,6 +14,9 @@ from peaso.checks.claude_aws_b_common import IDS, ROWS, CONTEXT, is_policy_publi
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = {check.id: check for check in CHECKS}
 HACKTRICKS = "HackTricks Cloud Best Practices"
+RETIRED_SNS_SOURCE = "aws-perimeter.control.sns_topic_policy_prohibit_public_access"
+RETIRED_SNS_ID = "aws.cb.sns.policy_prohibit_public_access_perimeter"
+ACTIVE_SNS_ID = "aws.cb.sns.policy_no_unrestricted_wildcard"
 
 
 def _evaluate(cid, name):
@@ -63,7 +66,9 @@ def test_partition_dispositions_are_complete():
     partition = json.loads((ROOT / "peaso/rulepacks/port_partitions_claude.json").read_text())["partitions"]["claude_aws_b"]["check_ids"]
     expected = set(partition)
     dispositions = claude_aws_b.dispositions()
-    assert set(dispositions) == expected
+    assert expected - set(dispositions) == {RETIRED_SNS_SOURCE}
+    assert set(dispositions) == expected - {RETIRED_SNS_SOURCE}
+    assert CHECK_ALIASES[RETIRED_SNS_ID] == ACTIVE_SNS_ID
     ported = {row for rows in ROWS.values() for row in rows}
     assert ported <= expected
     for row, (kind, _target) in dispositions.items():
@@ -99,7 +104,6 @@ def test_named_fixtures(cid, key):
 
 
 @pytest.mark.parametrize("cid,key", [
-    ("aws.cb.sns.policy_prohibit_public_access_perimeter", "not_applicable"),
     ("aws.cb.sns.policy_no_unrestricted_wildcard", "no_policy"),
     ("aws.cb.sns.policy_no_public_publish", "no_policy"),
     ("aws.cb.sns.policy_no_public_subscribe", "no_policy"),
@@ -112,11 +116,23 @@ def test_omitted_sns_policy_does_not_prove_absence(cid,key):
     assert item==before and index==before_index
 
 
+def test_retired_sns_perimeter_source_keeps_its_historical_receipt():
+    reviewed = json.loads((ROOT / "peaso/rulepacks/reviewed_claude_aws_b.json").read_text())
+    historical = reviewed[RETIRED_SNS_SOURCE]
+    assert historical["native_checks"] == [RETIRED_SNS_ID]
+    assert historical["reviewed_source"]["sha256"] == "fc479f89040fe7f5f4426111fa7229cef32f9e7ac909aa955a1a51d6e12ae0d6"
+    assert CHECK_ALIASES[RETIRED_SNS_ID] == ACTIVE_SNS_ID
+    assert _evaluate(ACTIVE_SNS_ID, "no_policy") == "UNKNOWN"
+
+
 def test_shards_match_dispositions():
     reviewed = json.loads((ROOT / "peaso/rulepacks/reviewed_claude_aws_b.json").read_text())
     manual = json.loads((ROOT / "peaso/rulepacks/reviewed_claude_aws_b_manual.json").read_text())
     dispositions = claude_aws_b.dispositions()
-    assert set(reviewed) | set(manual) == set(dispositions) and not set(reviewed) & set(manual)
+    assert set(reviewed) | set(manual) == set(dispositions) | {RETIRED_SNS_SOURCE}
+    assert not set(reviewed) & set(manual)
+    assert reviewed[RETIRED_SNS_SOURCE]["native_checks"] == [RETIRED_SNS_ID]
+    assert reviewed[RETIRED_SNS_SOURCE]["reviewed_source"]["sha256"] == "fc479f89040fe7f5f4426111fa7229cef32f9e7ac909aa955a1a51d6e12ae0d6"
     for row, (kind, target) in dispositions.items():
         if kind == "manual":
             entry = manual[row]

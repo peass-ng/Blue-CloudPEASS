@@ -28,6 +28,37 @@ sys.path.insert(0, str(ROOT))
 from scripts import audit_aws_native_contracts as native
 
 
+# Current admitted AWS evaluators outside peaso.checks are finite and source
+# reviewed. Keep this list exact so unrelated application functions cannot be
+# mistaken for registered AWS predicate helpers.
+CURRENT_AWS_EVALUATOR_MODULES = frozenset({
+    'peaso.unused_iam_aws_activity',
+    'peaso.unused_iam_aws_completion',
+    'peaso.unused_iam_aws_federation_consumers',
+    'peaso.unused_iam_aws_inline',
+    'peaso.unused_network_aws',
+})
+
+
+def _reviewed_evaluator_module_name(module):
+    return module == 'peaso.checks' or module.startswith('peaso.checks.') or module in CURRENT_AWS_EVALUATOR_MODULES
+
+
+def _reviewed_evaluator_module(function):
+    return _reviewed_evaluator_module_name(function.__module__)
+
+
+# These native image predicates require exact dict instances for sealed proof.
+# Profiling still compares complete normal/instrumented verdict and evidence,
+# but dict-subclass read interception cannot be used on their input objects.
+EXACT_DICT_IMAGE_EVALUATORS = frozenset({
+    'aws.review.ecr.selected_image_vulnerabilities',
+    'aws.review.ecr_public.selected_image_high_vulnerabilities',
+    'aws.review.ecr_public.selected_image_secret_indicators',
+    'aws.review.workload.selected_image_secret_indicators',
+})
+
+
 @lru_cache(maxsize=None)
 def function_tree(fn):
     try:
@@ -49,7 +80,7 @@ def callback_graph(check):
         if id(fn) in seen or not inspect.isfunction(fn):
             continue
         seen.add(id(fn))
-        if not fn.__module__.startswith('peaso.checks'):
+        if not _reviewed_evaluator_module(fn):
             continue
         output.append(fn)
         mapping = fn.__globals__.get('EVALUATORS', {})
@@ -68,7 +99,7 @@ def callback_graph(check):
                 helper = fn.__globals__.get(call.func.id)
                 if call.func.id == '_bound_kms' and not check.id.startswith('aws.review.kms.enclave_'):
                     continue  # The admitted facade gates this branch on this ID.
-                if inspect.isfunction(helper) and helper.__module__.startswith('peaso.checks'):
+                if inspect.isfunction(helper) and _reviewed_evaluator_module(helper):
                     # Accessors are represented as reads, not recursively expanded.
                     if helper.__module__ != 'peaso.checks.facts':
                         queue.append(helper)
@@ -408,7 +439,8 @@ class ReadTrackedDict(dict):
     """Instrument input reads only; retain dict behavior and never record values."""
     def _record(self, key, accessor):
         frame = sys._getframe(2)
-        if isinstance(key, str) and '/peaso/checks/' in frame.f_code.co_filename and not frame.f_code.co_filename.endswith('/facts.py'):
+        if (isinstance(key, str) and _reviewed_evaluator_module_name(frame.f_globals.get('__name__', ''))
+                and not frame.f_code.co_filename.endswith('/facts.py')):
             self._record_read(self, key, accessor)
 
     def get(self, key, default=None):
@@ -461,7 +493,8 @@ def fixture_reads(check, cases):
             baseline = check.evaluate(deepcopy(data), deepcopy(index))
         except Exception as exc:
             baseline = ('ERROR:' + type(exc).__name__, {})
-        data, index = tracked_input([data, index], record)
+        if check.id not in EXACT_DICT_IMAGE_EVALUATORS:
+            data, index = tracked_input([data, index], record)
         def walk(value, kind, path='', depth=0):
             if depth > 24:
                 return
@@ -905,6 +938,8 @@ def build(additional_receipts=()):
             blockers.append('Dynamic accessor arguments need additional branch-specific tracing.')
         if not witnesses:
             blockers.append('No attributed accessor read from the bounded saved-fixture walk.')
+        if check.id in EXACT_DICT_IMAGE_EVALUATORS:
+            blockers.append('Exact-dict native image proof prevents dict-subclass read tracing; complete verdict and evidence equality was replayed under the accessor-call profiler, with direct reads left for static source review.')
         rows.append({'id': check.id, 'kind': check.kind, 'dependencies': list(check.dependencies),
                      'status': status, 'callback_contract': graph_id,
                      'fields': fields, 'fixture_outcomes': outcomes,
@@ -912,6 +947,7 @@ def build(additional_receipts=()):
                          'reason': 'no modeled or accepted SDK emission receipt for this exact attributed path',
                          'required_accessor_observed': f.get('required_accessor_observed', False)} for f in unresolved],
                      'unvisited_static_reads': unvisited_static,
+                     'direct_dict_instrumentation': 'exact_dict_native_predicate' if check.id in EXACT_DICT_IMAGE_EVALUATORS else 'tracked_dict',
                      'branch_completeness_proven': False,
                      'semantic_completeness_proven': False, 'live_verified': False,
                      'blockers': blockers})

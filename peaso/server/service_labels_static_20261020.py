@@ -3,9 +3,9 @@
 Generated from the two source hashes below. Tests preserve all four service
 projection ASTs and compare the complete registered-check/label cross product.
 """
-SOURCE_SHA256 = '8d193e3a36e49e419be2a3985f4d1355a9116e546086f7361c467419d19b4fc0'
+SOURCE_SHA256 = '012ddc04cf1d43b1c7e8140a882a3d4c8747a972be0d1effa9327f9e038d6827'
 NETWORK_SOURCE_SHA256 = '4d7925af412ee580445ce49b1e6f0c44f7a8d5534a6d02c550338a4ece952f09'
-MANIFEST_SHA256 = '0dbbd4c36aba0c6e7fab4527c2ef45e8e9e50c61b359a8fe51a6468d6406bf8e'
+MANIFEST_SHA256 = '7a927e4511750cd215da9dd7474fde6e030f77b72589f1d81f8814f750f52831'
 from functools import lru_cache
 import json
 import hashlib
@@ -63,7 +63,7 @@ SERVICE_ALIASES = {
         "waf-regional": "waf",
         "wafv2": "waf",
     },
-    "gcp": {"iam/cloudasset": "iam"},
+    "gcp": {"iam/cloudasset": "iam", "iam.googleapis.com": "iam", "recommender.googleapis.com": "recommender"},
 }
 
 # Exposure and network analysis can emit findings for supporting inventories

@@ -5,13 +5,35 @@ import inspect
 import json
 from pathlib import Path
 import pytest
-from peaso.checks import CHECKS
+from peaso.checks import CHECKS, CHECK_ALIASES
 from peaso.checks.fixtures import CASES
 from peaso.checks.aws_remaining_clarity_reviewed import ROWS,_digest,description,remediation,severity_review
 from peaso.checks.aws_remaining_finding_summary import evidence_summary
 
 ROOT=Path(__file__).resolve().parents[1]
 CHECK_BY_ID={c.id:c for c in CHECKS}
+RETIRED_SNS='aws.cb.sns.policy_prohibit_public_access_perimeter'
+ACTIVE_SNS='aws.cb.sns.policy_no_unrestricted_wildcard'
+
+
+def _current_id(cid):
+    if cid == RETIRED_SNS:
+        assert CHECK_ALIASES[cid] == ACTIVE_SNS
+        return ACTIVE_SNS
+    return cid
+
+
+def _retired_sns_source():
+    old = ROWS[RETIRED_SNS]['reviewed_binding']
+    current = ROWS[ACTIVE_SNS]['reviewed_binding']
+    relative = 'tests/fixtures/aws_retired_sns_perimeter_source_20261022.py.txt'
+    source = (ROOT / relative).read_bytes()
+    assert old['module'] == current['module'] == 'peaso.checks.claude_aws_b_messaging'
+    assert old['source_qualname'] == 'sns_public_x' and current['source_qualname'] == 'sns_public_c'
+    assert hashlib.sha256(source).hexdigest() == old['predicate_sources'][old['module'] + '.sns_public_x']
+    for name, digest in old['predicate_sources'].items():
+        if name != old['module'] + '.sns_public_x':
+            assert current['predicate_sources'][name] == digest
 
 @pytest.fixture(scope='module')
 def originals():
@@ -121,7 +143,10 @@ def _reviewed_predicate_digest(key, function):
 
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_actual_predicate_delegates_tuples_constants_and_severity_stay_reviewed(cid):
-    c=CHECK_BY_ID[cid];binding=ROWS[cid]['reviewed_binding'];f=inspect.unwrap(c.evaluate)
+    if cid == RETIRED_SNS:
+        _retired_sns_source()
+    native_id=_current_id(cid)
+    c=CHECK_BY_ID[native_id];binding=ROWS[native_id]['reviewed_binding'];f=inspect.unwrap(c.evaluate)
     assert binding['kind']==c.kind
     assert binding['module']==f.__module__ and binding['source_qualname']==f.__qualname__
     closure=inspect.getclosurevars(f).nonlocals
@@ -147,7 +172,7 @@ def _cases(cid):
         return {'pass':{'PolicyDocument':{'Statement':[]}},'fail':{'PolicyDocument':{'Statement':[{'Effect':'Allow','Action':'*','Resource':'*'}]}}}
     if cid=='aws.ec2.restrict_internet_ingress':
         return {'pass':{'IpPermissions':[]},'fail':{'IpPermissions':[{'IpProtocol':'tcp','FromPort':22,'ToPort':22,'IpRanges':[{'CidrIp':'0.0.0.0/0'}]}]}}
-    return CASES[cid]
+    return CASES[_current_id(cid)]
 
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_registered_positive_negative_or_explicit_review_branches(cid):
@@ -156,7 +181,7 @@ def test_registered_positive_negative_or_explicit_review_branches(cid):
     if cid in {'aws.b.acm.pending_validation_review','aws.claude2_a.config.aggregation_authorization_trusted','aws.claude2_a.dlm.snapshot_sharing_trusted_accounts'}:
         branches=['pass','manual']
     for branch in branches:
-        status,evidence=CHECK_BY_ID[cid].evaluate(deepcopy(cases[branch]),deepcopy(cases.get(branch+'_index',cases.get('index',{}))))
+        status,evidence=CHECK_BY_ID[_current_id(cid)].evaluate(deepcopy(cases[branch]),deepcopy(cases.get(branch+'_index',cases.get('index',{}))))
         expected='UNKNOWN' if cid=='aws.c2b.ecs.container_instance_in_vpc' and branch=='fail' else branch.upper()
         assert status==expected,(cid,branch,status,evidence)
         finding={'provider':'aws','status':status,'check_id':cid,'evidence':evidence};before=deepcopy(finding)
@@ -212,5 +237,5 @@ def test_incomplete_or_malformed_facts_do_not_get_static_failure_claims(cid,evid
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_native_positive_evidence_relabelled_fail_does_not_invent_weakness(cid):
     fixture=_cases(cid)
-    status,evidence=CHECK_BY_ID[cid].evaluate(deepcopy(fixture['pass']),deepcopy(fixture.get('pass_index',fixture.get('index',{}))))
+    status,evidence=CHECK_BY_ID[_current_id(cid)].evaluate(deepcopy(fixture['pass']),deepcopy(fixture.get('pass_index',fixture.get('index',{}))))
     if status=='PASS':assert evidence_summary({'provider':'aws','status':'FAIL','check_id':cid,'evidence':evidence}) is None

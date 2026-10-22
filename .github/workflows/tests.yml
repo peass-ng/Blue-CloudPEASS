@@ -93,6 +93,20 @@ jobs:
           "$RUNNER_TEMP/trivy-cli/trivy" --version | grep -Fx 'Version: 0.68.1'
           python peaso/trivy_database_20261021.py refresh \
             --cache-root "$RUNNER_TEMP/trivy-db" --trivy "$RUNNER_TEMP/trivy-cli/trivy"
+          # The stale-DB negative witness uses this historical local path. Link the
+          # verified DB bytes and make only its test metadata stale; no second DB download.
+          python - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+          source = Path(os.environ['RUNNER_TEMP']) / 'trivy-db/current/db'
+          stale = Path.home() / 'Library/Caches/trivy/db'
+          stale.mkdir(parents=True, exist_ok=True)
+          os.link(source / 'trivy.db', stale / 'trivy.db')
+          metadata = json.loads((source / 'metadata.json').read_text())
+          metadata['NextUpdate'] = metadata['UpdatedAt']
+          (stale / 'metadata.json').write_text(json.dumps(metadata))
+          PYTHON
           echo "$RUNNER_TEMP/trivy-cli" >> "$GITHUB_PATH"
           echo "PEASO_TEST_TRIVY_DB=$RUNNER_TEMP/trivy-db/current" >> "$GITHUB_ENV"
           echo "PEASO_TEST_TRIVY_CLI=$RUNNER_TEMP/trivy-cli/trivy" >> "$GITHUB_ENV"
@@ -123,6 +137,47 @@ jobs:
           assert revisions and all(re.fullmatch(r'[0-9a-f]{40}', rev) for rev in revisions)
           subprocess.run(['git', '-C', '.hacktricks-cloud', 'fetch', '--no-tags', '--depth=1', 'origin', *revisions], check=True)
           PYTHON
+      - name: Locate the interpreter portability tests
+        id: portability
+        run: |
+          python - <<'PYTHON' >> "$GITHUB_OUTPUT"
+          from pathlib import Path
+          from scripts.pytest_shard import partition, test_files
+          shards = partition(test_files(), 8)
+          selected = Path('tests/test_k8s_annotation_native_admission_portable_20261020.py') in shards[${{ matrix.shard }}]
+          print(f"selected={str(selected).lower()}")
+          PYTHON
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        with:
+          python-version: '3.15'
+          allow-prereleases: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        with:
+          python-version: '3.12'
+      - name: Verify every supported interpreter is available
+        if: ${{ steps.portability.outputs.selected == 'true' }}
+        run: |
+          for version in 3.10 3.11 3.12 3.13 3.14 3.15; do
+            "python$version" --version
+          done
       - name: Run the performance gate in isolation
         id: benchmark
         if: ${{ matrix.shard == 0 }}
@@ -148,7 +203,7 @@ jobs:
         # Each shard collects only its assigned files; loadfile keeps module fixtures on one worker.
         run: >-
           python scripts/pytest_shard.py --shard ${{ matrix.shard }} --shards 8 --
-          -q -p no:cacheprovider -n auto --dist loadfile -rs
+          -q -p no:cacheprovider -n auto --dist loadfile -rs --durations=25
           --ignore=tests/test_peaso_perf_benchmark.py
           --deselect=tests/test_peaso_privesc.py::test_perf_10k_principals
           --deselect=tests/test_peaso_privesc.py::test_perf_10k_principals_gcp_k8s_azure
@@ -159,6 +214,17 @@ jobs:
       - name: Fail on unexpected skips
         if: ${{ !cancelled() }}
         run: python scripts/check_test_skips.py pytest pytest-report.xml
+      - name: Upload bounded Python test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: python-shard-${{ matrix.shard }}-junit
+          path: |
+            pytest-report.xml
+            benchmark-report.xml
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 9
   python:
     name: Python test suite
     if: ${{ always() }}

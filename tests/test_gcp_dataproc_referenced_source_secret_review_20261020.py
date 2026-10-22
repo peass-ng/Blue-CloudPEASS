@@ -429,9 +429,17 @@ def test_unregistered_and_scope_of_declarations():
 def test_source_bound_proposal_and_native_fixture_verdicts():
     import gzip
     from peaso.checks import gcp_dataproc_referenced_source_proposal_20261020 as proposal
-    data = proposal.validate_proposal()
+    from peaso.rawv2_private_source_successor_20261021 import install_admission
+    with pytest.raises(ValueError, match='^proposal file changed: peaso/collectors/gcp_dataproc_referenced_source_secret_indicators.py$'):
+        proposal.validate_proposal()
+    install_admission('gcp_dataproc_source_runtime_admission_20261020')
+    data = json.loads(proposal.RECEIPT.read_bytes())
     assert data['registration'] == 'unregistered_proposal_only'
-    assert data['declarations'] == consumer.DECLARATIONS
+    assert len(data['declarations']) == len(consumer.DECLARATIONS) == 2
+    for historical, current in zip(data['declarations'], consumer.DECLARATIONS):
+        assert {key: value for key, value in historical.items() if key != 'coverage'} == {key: value for key, value in current.items() if key != 'coverage'}
+        assert historical['coverage'] == 'Selected captured referenced plain source only; original executed bytes are not established.'
+        assert current['coverage'] == 'Selected captured source or indexed PySpark ZIP/.egg dependency only; original executed bytes are not established.'
     frozen = json.loads(gzip.decompress(Path('peaso/checks/gcp_dataproc_referenced_source_native_cases_20261020.json.gz').read_bytes()))
     for cid, outcomes in frozen['cases'].items():
         assert set(outcomes) == {'PASS', 'FAIL', 'UNKNOWN'}

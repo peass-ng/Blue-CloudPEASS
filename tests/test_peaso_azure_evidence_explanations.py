@@ -11,11 +11,13 @@ import re
 import pytest
 
 from peaso.checks import CHECKS
+from peaso.checks.fixtures import CASES as NATIVE_CASES
 from peaso.checks.catalog import description_for
 from peaso.checks.azure_evidence_explanations import ROWS, evidence_summary, reviewed_explanation
 from peaso.checks.azure_native_evidence_observations import evidence_summary as native_observation
 from tests.test_gcp_current_source_reconciliation_20261020 import _bound_functions
 from tests.azure_native_successor_inputs_20261020 import _native_rows
+from tests.test_native_admission_cpu_successor_20261020 import REVIEWED_CURRENT_CHANGES, EPOCH, EPOCH_SHA256
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK_BY_ID = {check.id: check for check in CHECKS if check.provider == 'azure'}
@@ -24,6 +26,69 @@ CASES = json.loads(gzip.decompress((ROOT / 'tests/fixtures/azure_evidence_review
 ASSESSMENT_SUCCESSOR_RAW = (ROOT / 'docs/check-review/azure-defender-assessment-four-current-binding-20261021.json').read_bytes()
 assert hashlib.sha256(ASSESSMENT_SUCCESSOR_RAW).hexdigest() == '495d31b83d1586a453b4aa325d4f287d694c950a389e0fa0fdbde6a27f6fe02d'
 ASSESSMENT_SUCCESSOR = json.loads(ASSESSMENT_SUCCESSOR_RAW)
+CURRENT_RELEASE_BINDINGS = json.loads((ROOT / 'docs/evidence-reviews/azure-current-22-binding-20261022.json').read_text())
+CURRENT_SOURCE_BINDINGS = CURRENT_RELEASE_BINDINGS['source_bindings']
+CURRENT_WITNESS_SUCCESSORS = CURRENT_RELEASE_BINDINGS['witness_successors']
+CURRENT_NATIVE_OUTCOMES = CURRENT_RELEASE_BINDINGS['current_native_outcomes']
+assert CURRENT_RELEASE_BINDINGS['schema_version'] == 1
+assert CURRENT_RELEASE_BINDINGS['staged_tree'] == '373efff118667cce912309e31681160eae8ef7cd'
+assert set(CURRENT_SOURCE_BINDINGS) == {
+    'azure.aks.api_server_restricted',
+    *(f'azure.claude.activity_log_alert_{kind}_{action}'
+      for kind in ('nsg', 'policy_assignment', 'public_ip', 'security_solution', 'sql_firewall_rule')
+      for action in ('delete', 'write')),
+    'azure.claude.activity_log_alert_subscription_security_solution_delete',
+    'azure.claude.activity_log_alert_subscription_security_solution_write',
+    'azure.claude.entra_user_recent_sign_in',
+    'azure.review.acr.selected_image_secret_indicators',
+    'azure.review.databricks.selected_notebook_source_secret_indicators',
+    'azure.review.machine_learning.selected_code_file_secret_indicators',
+    'azure.review.machine_learning.selected_command_job_secret_indicators',
+    'azure.review.machine_learning.selected_environment_conda_secret_indicators',
+    'azure_storage_account_10_3_4_7_02943e9',
+}
+assert set(CURRENT_NATIVE_OUTCOMES) == {
+    'azure.claude.activity_log_alert_subscription_security_solution_delete',
+    'azure.claude.activity_log_alert_subscription_security_solution_write',
+    'azure.claude.entra_user_recent_sign_in',
+    'azure_storage_account_10_3_4_7_02943e9',
+}
+assert set(CURRENT_WITNESS_SUCCESSORS) == {
+    cid + '|' + str(number) for cid in CURRENT_NATIVE_OUTCOMES for number in range(len(CASES[cid]))
+}
+
+RELEASE_ADDED_AZURE_IDS = frozenset({
+    'azure.iam.application_credentials_recent_activity',
+    'azure.iam.custom_arm_role_has_declared_consumers',
+    'azure.iam.custom_directory_role_has_declared_consumers',
+    'azure.iam.service_principal_credentials_recent_activity',
+    'azure.iam.service_principal_recent_activity',
+    'azure.iam.single_tenant_application_has_consumer',
+    'azure.iam.static_group_has_members',
+    'azure.network.load_balancer_backend_pools_have_declaration_or_consumer',
+    'azure.network.nic_has_owner_reference',
+    'azure.network.public_ip_has_network_reference',
+    'azure.network.route_table_has_subnet_reference',
+    'azure.network.subnet_has_consumer_or_reservation_reference',
+    'azure.review.acr.selected_image_high_critical_vulnerabilities',
+    'azure.review.aks.selected_pod_image_high_vulnerabilities',
+    'azure.review.aks.selected_pod_image_secret_indicators',
+    'azure.review.app_service.runtime_support_declared',
+    'azure.review.function.configured_deployment_container_archives_secret_indicators',
+    'azure.review.synapse.selected_notebook_source_secret_indicators',
+})
+RELEASE_RETIRED_AZURE_IDS = frozenset({'azure.claude.aks_authorized_ip_ranges'})
+RELEASE_SOURCE_SHA256 = {
+    'peaso/checks/azure_acr_image_vulnerabilities_20261021.py': '0b4efed475ae3ca0ef193e0e55fd53085bb6e3387d0de6ea6738dbead13df0ca',
+    'peaso/checks/azure_flex_deployment_archives_review_20261021.py': '04654eb038e8198385714093e6111a5692b5d8f2f9fc8983b75572b66b79f04b',
+    'peaso/checks/azure_selected_aks_image_review_20261021.py': 'fe55e2cde5ba2a542a2fb8aca460aa9a65f5d5592c2d1aa79b1aede0f6c1ecd5',
+    'peaso/checks/azure_synapse_selected_notebook_secret_review_20261021.py': '65bc8db47e617f13d22de4548e8eb4dffc447e10fbd70b1232a0c6799f322f77',
+    'peaso/checks/provider_group_install_20261021.py': '8808e19137ef31c10ca5fc6df2805a95d41b79b27c5396c7d55e0a8692808710',
+    'peaso/unused_iam_azure.py': '23a89805c07a6ef8bc28f5b60f95b1f71779304599e183526b885c5213683be6',
+    'peaso/unused_iam_azure_arm_roles.py': '3a67ae42f5b29a12ea65350e477e2b04597625361f87db643948f1fd4c5d2674',
+    'peaso/unused_iam_azure_roles.py': '282d9d380c5cd7c9b20cd964351ef65a57a202ec0e24b802548e74bbf3bfffd8',
+    'peaso/unused_network_azure_20261021.py': '03475b39ddf03d96a2707d96700a0689190399e3c4683a9829c597dd62161a19',
+}
 
 
 def _digest(value):
@@ -39,11 +104,20 @@ def _checked_json(path):
 @pytest.fixture(scope='module', autouse=True)
 def _preserve_all_successor_sources_and_historical_inputs():
     def verify():
+        archive = (ROOT / EPOCH).read_bytes()
+        assert hashlib.sha256(archive).hexdigest() == EPOCH_SHA256
+        predecessors = json.loads(gzip.decompress(archive))['files']
         for path, expected in PINNED_SUCCESSOR_INPUTS.items():
-            current = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            raw = (ROOT / path).read_bytes()
+            current = hashlib.sha256(raw).hexdigest()
             if path == ASSESSMENT_SUCCESSOR['evaluator_source']:
                 assert expected == ASSESSMENT_SUCCESSOR['evaluator_predecessor_sha256']
                 assert current == ASSESSMENT_SUCCESSOR['evaluator_current_sha256']
+            elif current != expected:
+                change = REVIEWED_CURRENT_CHANGES[path]
+                assert set(change) == {'before_sha256', 'after_sha256', 'after_size'}
+                assert expected == predecessors[path]['sha256'] == change['before_sha256']
+                assert current == change['after_sha256'] and len(raw) == change['after_size']
             else:
                 assert current == expected, path
         for path, expected in ASSESSMENT_SUCCESSOR['immutable_predecessor_files_sha256'].items():
@@ -55,6 +129,17 @@ def _preserve_all_successor_sources_and_historical_inputs():
 
 def _reviewed_source_digest(cid, function):
     row = LEDGER[cid]
+    if cid in CURRENT_SOURCE_BINDINGS:
+        binding = CURRENT_SOURCE_BINDINGS[cid]
+        assert binding['historical_source_sha256'] == row.get('source_sha256')
+        assert binding['historical_predicate_sha256'] == row.get('predicate_sha256')
+        assert binding['historical_description_sha256'] == row.get('description_contract_sha256')
+        assert Path(inspect.getsourcefile(function)).resolve().relative_to(ROOT).as_posix() == binding['source']
+        assert hashlib.sha256((ROOT / binding['source']).read_bytes()).hexdigest() == binding['current_source_sha256']
+        assert hashlib.sha256(inspect.getsource(function).encode()).hexdigest() == binding['current_evaluator_sha256']
+        assert _digest(ROWS[cid]) == binding['current_observed_text_sha256']
+        assert _digest(description_for(cid)) == binding['current_description_sha256']
+        return binding['current_evaluator_sha256']
     if cid in ASSESSMENT_SUCCESSOR['records']:
         update = ASSESSMENT_SUCCESSOR['records'][cid]
         assert row['predicate_sha256'] == update['historical_body_sha256']
@@ -98,6 +183,8 @@ def _reviewed_source_digest(cid, function):
 
 
 def _reviewed_description_digest(cid, description):
+    if cid in CURRENT_SOURCE_BINDINGS:
+        return CURRENT_SOURCE_BINDINGS[cid]['current_description_sha256']
     if cid not in CURRENT_DESCRIPTION_CONTRACTS:
         return LEDGER[cid]['description_contract_sha256']
     successor = CURRENT_DESCRIPTION_CONTRACTS[cid]
@@ -107,6 +194,22 @@ def _reviewed_description_digest(cid, description):
 
 
 def _current_case(cid, number, historical):
+    witness = CURRENT_WITNESS_SUCCESSORS.get(cid + '|' + str(number))
+    if witness is not None:
+        assert _digest(historical) == witness['historical_case_sha256']
+        assert historical['status'] == witness['historical_status']
+        branch = witness['native_branch']
+        if witness['input_source'] == 'registered_native_cases':
+            assert branch in {'pass', 'fail'}
+            native = NATIVE_CASES[cid]
+            item = native[branch]
+            index = native.get(branch + '_index', native.get('index', {}))
+        else:
+            assert witness['input_source'] == 'historical_fixture' and branch is None
+            item, index = historical['item'], historical['index']
+        assert _digest({'item': item, 'index': index}) == witness['current_input_sha256']
+        return {'item': item, 'index': index, 'status': witness['current_status'],
+                'expected_evidence_sha256': witness['current_evidence_sha256']}
     if cid in ASSESSMENT_SUCCESSOR['records']:
         update = ASSESSMENT_SUCCESSOR['historical_fixture_successors'].get(cid + '|' + str(number))
         if update is not None:
@@ -154,9 +257,28 @@ def _current_case(cid, number, historical):
 
 def test_every_registered_azure_check_has_a_reviewed_explicit_explanation_and_fixtures():
     assert len(CASES) == 969
-    assert len(CHECK_BY_ID) == 969 + len(ADMITTED_DESCRIPTOR_CONTRACTS) == 1002
+    assert len(ADMITTED_DESCRIPTOR_CONTRACTS) == 33
     assert not CASES.keys() & ADMITTED_DESCRIPTOR_CONTRACTS.keys()
-    assert set(ROWS) == set(CHECK_BY_ID) == set(LEDGER) == CASES.keys() | ADMITTED_DESCRIPTOR_CONTRACTS.keys()
+    assert set(ROWS) == set(LEDGER) == CASES.keys() | ADMITTED_DESCRIPTOR_CONTRACTS.keys()
+    assert len(ROWS) == 1002
+    assert set(ROWS) - set(CHECK_BY_ID) == RELEASE_RETIRED_AZURE_IDS
+    assert set(CHECK_BY_ID) - set(ROWS) == RELEASE_ADDED_AZURE_IDS
+    assert set(CHECK_BY_ID) == (set(ROWS) - RELEASE_RETIRED_AZURE_IDS) | RELEASE_ADDED_AZURE_IDS
+    used_sources = set()
+    for cid in RELEASE_ADDED_AZURE_IDS:
+        check = CHECK_BY_ID[cid]
+        function = inspect.unwrap(check.evaluate)
+        source = Path(inspect.getsourcefile(function)).resolve().relative_to(ROOT).as_posix()
+        assert function.__module__ == source.removesuffix('.py').replace('/', '.')
+        assert function.__globals__ is vars(__import__(function.__module__, fromlist=['']))
+        assert hashlib.sha256((ROOT / source).read_bytes()).hexdigest() == RELEASE_SOURCE_SHA256[source]
+        used_sources.add(source)
+        assert description_for(cid)
+        cases = NATIVE_CASES[cid]
+        for branch, expected in (('pass', 'PASS'), ('fail', 'FAIL')):
+            index = cases.get(branch + '_index', cases.get('index', {}))
+            assert check.evaluate(deepcopy(cases[branch]), deepcopy(index))[0] == expected
+    assert used_sources == set(RELEASE_SOURCE_SHA256)
     for cid, row in ROWS.items():
         if cid in ADMITTED_DESCRIPTOR_CONTRACTS:
             assert row == ADMITTED_DESCRIPTOR_CONTRACTS[cid]
@@ -180,6 +302,12 @@ def test_every_registered_azure_check_has_a_reviewed_explicit_explanation_and_fi
 
 @pytest.mark.parametrize('cid', sorted(CHECK_BY_ID))
 def test_each_explanation_is_bound_to_the_current_exact_evaluator_and_contract(cid):
+    if cid in RELEASE_ADDED_AZURE_IDS:
+        function = inspect.unwrap(CHECK_BY_ID[cid].evaluate)
+        source = Path(inspect.getsourcefile(function)).resolve().relative_to(ROOT).as_posix()
+        assert hashlib.sha256((ROOT / source).read_bytes()).hexdigest() == RELEASE_SOURCE_SHA256[source]
+        assert description_for(cid) and cid in NATIVE_CASES
+        return
     function = inspect.unwrap(CHECK_BY_ID[cid].evaluate)
     assert hashlib.sha256(inspect.getsource(function).encode()).hexdigest() == _reviewed_source_digest(cid, function)
     encoded = json.dumps(description_for(cid), sort_keys=True, separators=(',', ':')).encode()
@@ -188,7 +316,26 @@ def test_each_explanation_is_bound_to_the_current_exact_evaluator_and_contract(c
     assert LEDGER[cid]['evidence_limit'] == ROWS[cid]['limit']
 
 
-@pytest.mark.parametrize('cid', sorted(CASES))
+def test_retired_aks_authorized_ranges_archive_and_active_alias():
+    from peaso.checks import CHECK_ALIASES
+    from peaso.engine import _selection
+    retired, = RELEASE_RETIRED_AZURE_IDS
+    active = 'azure.aks.api_server_restricted'
+    assert CHECK_ALIASES[retired] == active and retired not in CHECK_BY_ID
+    for path in ('docs/evidence-reviews/azure.json', 'tests/fixtures/azure_evidence_review.json.gz'):
+        assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == PINNED_SUCCESSOR_INPUTS[path]
+    assert LEDGER[retired]['source'] == 'peaso/checks/claude_azure_identity.py'
+    assert LEDGER[retired]['source_sha256'] == '478f1dd3f0ca38ecabed31c4b4772ea3ffbc0b584bee165cb93d87f1577ce5fc'
+    assert {row['status'] for row in CASES[retired]} == {'PASS', 'FAIL', 'UNKNOWN', 'NOT_APPLICABLE'}
+    assert ROWS[retired]['purpose'] == LEDGER[retired]['interpretation']
+    _, selected = _selection('azure', None, [retired], None)
+    assert [check.id for check in selected] == [active]
+    case = NATIVE_CASES[active]
+    for branch, expected in (('pass', 'PASS'), ('fail', 'FAIL'), ('unknown', 'UNKNOWN')):
+        assert CHECK_BY_ID[active].evaluate(deepcopy(case[branch]), deepcopy(case.get(branch + '_index', case.get('index', {}))))[0] == expected
+
+
+@pytest.mark.parametrize('cid', sorted(CASES.keys() - RELEASE_RETIRED_AZURE_IDS))
 def test_actual_native_positive_negative_unknown_manual_and_inapplicable_witnesses(cid, monkeypatch):
     if cid == 'azure.claude.storage_access_keys_rotated_90':
         # Replay the retained ages at their capture date, rather than letting
@@ -200,6 +347,20 @@ def test_actual_native_positive_negative_unknown_manual_and_inapplicable_witness
                 captured = datetime(2026, 10, 19, 12, tzinfo=timezone.utc)
                 return captured.astimezone(tz) if tz else captured.replace(tzinfo=None)
         monkeypatch.setattr(claude_azure_data, 'datetime', CapturedClock)
+    if cid in CURRENT_NATIVE_OUTCOMES:
+        for branch, expected in CURRENT_NATIVE_OUTCOMES[cid].items():
+            if cid == 'azure_storage_account_10_3_4_7_02943e9':
+                from tests.test_peaso_azure_storage_recovery_metadata_native import capture
+                finding, _, _ = capture('storage', branch, options={})
+                status, evidence = finding['status'], finding['evidence']
+            else:
+                native = NATIVE_CASES[cid]
+                item = native[branch]
+                index = native.get(branch + '_index', native.get('index', {}))
+                assert _digest({'item': item, 'index': index}) == expected['input_sha256']
+                status, evidence = CHECK_BY_ID[cid].evaluate(deepcopy(item), deepcopy(index))
+            assert status == expected['status'], (cid, branch, status, evidence)
+            assert _digest(evidence) == expected['evidence_sha256']
     for number, historical in enumerate(CASES[cid]):
         case = _current_case(cid, number, historical)
         item, index = deepcopy((case['item'], case['index']))

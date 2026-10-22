@@ -23,6 +23,17 @@ ROOT = Path(__file__).resolve().parents[1]
 PROBE = Path(__file__).with_name('k8s_annotation_portable_probe_20261020.py')
 
 
+def current_reviewed_inputs():
+    from peaso.checks import k8s_annotation_native_source_successor_20261021 as successor
+    successor._self_proof()
+    current, _ = successor._source_proofs()
+    successor._current_functions(current)
+    successor._helper_proof()
+    private = sys.modules[successor._PRIVATE_NAME]
+    assert isinstance(private, types.ModuleType) and private.__file__ == str(successor.GUARD)
+    return private._reviewed_inputs()
+
+
 @pytest.fixture(autouse=True)
 def offline(monkeypatch):
     def forbidden(*args, **kwargs):
@@ -116,7 +127,7 @@ def test_complete_source_is_compiled_without_executing_top_level_code():
 
 
 def test_portable_receipt_contains_source_ast_closures_instead_of_saved_bytecode():
-    receipt, _ = guard._reviewed_inputs()
+    receipt, _ = current_reviewed_inputs()
     assert receipt['schema_version'] == 2
     assert receipt['python_bytecode'] == 'compare_to_trusted_source_compiled_on_current_interpreter'
     serialized = json.dumps(receipt)
@@ -158,7 +169,7 @@ def test_new_portable_receipt_cannot_drop_or_forge_source_proofs(monkeypatch, mu
 
 
 def test_predecessor_receipt_helper_and_report_exact_bytes_retained():
-    receipt, _ = guard._reviewed_inputs()
+    receipt, _ = current_reviewed_inputs()
     for row in receipt['lineage']['retained_predecessors']:
         stored = ROOT / row['retained_gzip']
         assert hashlib.sha256(stored.read_bytes()).hexdigest() == row['gzip_sha256']
@@ -178,7 +189,7 @@ def test_predecessor_receipt_helper_and_report_exact_bytes_retained():
 @pytest.mark.parametrize('cid', guard.IDS)
 @pytest.mark.parametrize('tag,expected', [('pass', 'PASS'), ('fail', 'FAIL'), ('unknown', 'UNKNOWN')])
 def test_native_five_statuses_and_historical_cases_remain(cid, tag, expected):
-    receipt, fixtures = guard._reviewed_inputs()
+    receipt, fixtures = current_reviewed_inputs()
     original = deepcopy(CASES[cid])
     assert check(cid).evaluate(deepcopy(fixtures[cid][tag]), deepcopy(fixtures[cid][tag + '_index']))[0] == expected
     assert CASES[cid] == original
