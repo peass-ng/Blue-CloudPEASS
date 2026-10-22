@@ -5651,6 +5651,69 @@ class AwsModel(Model):
                     unknown = True
         return ("unknown", "cloudformation_new_stack_name_or_permission_not_verified") if unknown else None
 
+    def _cloudformation_role_template_effect(self, source, role, operation, stack_arn=None):
+        """Accept only a fresh, reviewed template operation performed with this role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for scope, row in items(self.snapshot, "iam_role")
+                     if scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        technique = (self.current_entry or {}).get("id")
+        collection_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        for scope in self.snapshot.get("scopes", ()):
+            if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                continue
+            rows = [c for c in self.snapshot.get("collections", ())
+                    if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+            if len(rows) != 1 or rows[0].get("status") != "collected":
+                continue
+            proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                      if proof_scope == scope and collection_status.get(scope) == "collected" and
+                      row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                      row.get("TargetKind") == "aws_role" and row.get("TargetId") == role.id]
+            if len(proofs) != 1:
+                continue
+            proof = proofs[0]
+            observed_stack = proof.get("StackArn")
+            prefix = f"arn:{role.id.split(':', 2)[1]}:cloudformation:{scope.split('/', 1)[1]}:{role.scope}:stack/"
+            action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+            if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                    proof.get("TemplateControlledBySource") is not True or
+                    proof.get("RoleOperationUsed") is not True or
+                    proof.get("TemplateEffectSucceeded") is not True or
+                    proof.get("EffectUsefulToSource") is not True or
+                    proof.get("CloudFormationOperation") != operation or
+                    (operation == "CreateChangeSet" and (proof.get("ChangeSetExecuted") is not True or
+                                                          proof.get("ChangeSetType") != "CREATE")) or
+                    proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                    not isinstance(observed_stack, str) or not observed_stack.startswith(prefix) or
+                    (stack_arn is not None and observed_stack != stack_arn) or
+                    not isinstance(action, str) or
+                    re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                    not isinstance(resource, str) or not resource or
+                    not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                continue
+            try:
+                witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                if (witnessed.tzinfo is None or expires.tzinfo is None or
+                        not 0 <= (now - witnessed).total_seconds() <= 900 or
+                        not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                    continue
+            except (KeyError, TypeError, ValueError):
+                continue
+            permitted = self.check(role, {"action": action}, resource)
+            already = self.check(source, {"action": action}, resource)
+            if permitted is not None and permitted.confidence == "derived" and already is None:
+                return True
+        return False
+
     def _cloudformation_stackset_route(self, source, pivot, target):
         """Require one new or existing self-managed StackSet route to the target account."""
         if target.kind != "aws_role" or target.attrs.get("path") not in (None, "/"):
@@ -11623,6 +11686,9 @@ class AwsModel(Model):
             changeset = pid == "cloudformation_new_changeset_with_role"
             for tid, role in candidates.items():
                 verdict = self._cloudformation_new_stack_route(source, role, changeset)
+                if verdict and verdict[0] == "conditional" and not self._cloudformation_role_template_effect(
+                        source, role, "CreateChangeSet" if changeset else "CreateStack"):
+                    verdict = ("unknown", "cloudformation_role_template_effect_not_verified")
                 if verdict:
                     out[tid] = verdict
             return out
@@ -11667,9 +11733,13 @@ class AwsModel(Model):
                             {"request_context": {"cloudformation:RoleArn": role.id}},
                             lambda: self._check_action(source, "cloudformation:updatestack", arn), source)
                     if grant is not None:
-                        out[tid] = (("conditional", "stack_policy_and_template_effects_not_collected")
-                                    if grant.confidence == "derived" else
-                                    ("unknown", "cloudformation_stack_operation_permission_conditional"))
+                        if grant.confidence != "derived":
+                            out[tid] = ("unknown", "cloudformation_stack_operation_permission_conditional")
+                        elif attached or self._cloudformation_role_template_effect(
+                                source, role, "UpdateStack", arn):
+                            out[tid] = ("conditional", "stack_policy_and_template_effects_not_collected")
+                        else:
+                            out[tid] = ("unknown", "cloudformation_role_template_effect_not_verified")
                         break
                 if tid not in out and unknown:
                     out[tid] = ("unknown", "cloudformation_updatable_stack_or_permission_not_verified")

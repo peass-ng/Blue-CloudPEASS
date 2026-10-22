@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'f3ed89fd4e4884b3e526ddbcf04fd202b3c56be995f97bf46cc9d4fd35bdae95'
+CURRENT_MANIFEST = 'd9a85c3da367de77a3dcf10ef968edbd918119346efab80e8f94bec62c9e7b91'
+CFN_TEMPLATE_EFFECT_691_PREVIOUS_MANIFEST = 'f3ed89fd4e4884b3e526ddbcf04fd202b3c56be995f97bf46cc9d4fd35bdae95'
+CFN_TEMPLATE_EFFECT_691_PREVIOUS_TREE = 'd8a6d6eecd5a1549e40e7b5844b0d7a73c5c83d84c9b5eff5460bda963ed0f8b'
+CFN_TEMPLATE_EFFECT_691_PREVIOUS_ARCHIVE_SHA256 = '2f3a3ff201aceaa530fc66f593a279bc3a4cb228e0b9f5149b4a7e457e07f99d'
+CFN_TEMPLATE_EFFECT_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-cfn-template-effect-source-manifest.json'
+CFN_TEMPLATE_EFFECT_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-cfn-template-effect-catalog.tar.gz'
 TESTSTATE_ROLE_EFFECT_691_PREVIOUS_MANIFEST = 'f0586639b1ad4837cac0dc5b12806d0ced42bb2fb0c4aa1328e3f2afb7e88fb7'
 TESTSTATE_ROLE_EFFECT_691_PREVIOUS_TREE = '363415fa117bdacb6974de883392d7a6a1da3b54eb4f06bc8ace64714003671a'
 TESTSTATE_ROLE_EFFECT_691_PREVIOUS_ARCHIVE_SHA256 = '3b17dbdb69bf3ab6a2f8ec64211e94a6109bda3d8d8d0396fbd5f8c38f9b6c10'
@@ -492,7 +497,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'd8a6d6eecd5a1549e40e7b5844b0d7a73c5c83d84c9b5eff5460bda963ed0f8b'
+CURRENT_TREE = '558fe51a5c9922b03131ec96f4c917ab73d54b179c87c033b948ae3d0c3e35b4'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3737
@@ -614,6 +619,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_cfn_template_effect_691_previous():
+    """Keep the exact catalog before CloudFormation required witnessed role effects."""
+    return _verified_archived_current(
+        CFN_TEMPLATE_EFFECT_691_PREVIOUS_MANIFEST_PATH, CFN_TEMPLATE_EFFECT_691_PREVIOUS_ARCHIVE,
+        CFN_TEMPLATE_EFFECT_691_PREVIOUS_MANIFEST, CFN_TEMPLATE_EFFECT_691_PREVIOUS_ARCHIVE_SHA256,
+        CFN_TEMPLATE_EFFECT_691_PREVIOUS_TREE, 691, 3737)
 
 
 @lru_cache(maxsize=1)
@@ -1442,6 +1456,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == CFN_TEMPLATE_EFFECT_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == CFN_TEMPLATE_EFFECT_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "cfn_template_effect_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == TESTSTATE_ROLE_EFFECT_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == TESTSTATE_ROLE_EFFECT_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1817,6 +1835,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "cfn_template_effect_691_previous":
+            previous = _verified_cfn_template_effect_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "teststate_role_effect_691_previous":
             previous = _verified_teststate_role_effect_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

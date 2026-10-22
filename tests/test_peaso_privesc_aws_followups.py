@@ -909,6 +909,72 @@ def test_stepfunctions_teststate_prior_binding_keeps_previous_route():
     assert "stepfunctions_teststate_privileged_task_unverified" in new[ident]["preconditions"]
 
 
+def test_cloudformation_passrole_requires_a_reviewed_template_effect():
+    techniques = {
+        "aws-cloudformation-passrole-createstack": "CreateStack",
+        "aws-cloudformation-passrole-changeset": "CreateChangeSet",
+        "aws-cloudformation-passrole-updatestack": "UpdateStack",
+    }
+    target_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("cfn", "cloudformation.amazonaws.com", allow("s3:PutObject", resource=target_arn))
+    target["RoleId"] = "AROACFN1234567890123"
+    stack_arn = (f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stack/Existing/"
+                 "01234567-89ab-4def-8123-456789abcdef")
+    stack = {"StackId": stack_arn, "StackName": "Existing", "StackStatus": "UPDATE_COMPLETE",
+             "RoleARN": target["Arn"]}
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "cloudformation.amazonaws.com"}}
+
+    def result(technique, evidence=None, *, role_row=target, extra_caller=()):
+        caller = user("alice", passed, allow("cloudformation:CreateStack",
+                                             "cloudformation:CreateChangeSet",
+                                             "cloudformation:ExecuteChangeSet",
+                                             "cloudformation:UpdateStack"), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("cloudformation_stack", [stack]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    for technique, operation in techniques.items():
+        proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+                 "StackArn": stack_arn, "CloudFormationOperation": operation,
+                 "Status": "verified", "VerifiedPreconditions": True,
+                 "TemplateControlledBySource": True, "RoleOperationUsed": True,
+                 "TemplateEffectSucceeded": True, "EffectUsefulToSource": True,
+                 "ChangeSetExecuted": True, "ChangeSetType": "CREATE",
+                 "RoleAction": "s3:PutObject", "RoleResource": target_arn,
+                 "EvidenceRef": "reviewed-stack-operation",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        assert target["Arn"] in reached(result(technique, proof), ALICE, technique)
+        no_proof = result(technique)
+        assert target["Arn"] not in reached(no_proof, ALICE, technique)
+        assert_unresolved(no_proof, ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, [proof, dict(proof)]), ALICE, technique)
+        for changed in ({"TargetRoleId": "AROADIFFERENT"}, {"RoleOperationUsed": False},
+                        {"TemplateEffectSucceeded": False}, {"EffectUsefulToSource": False},
+                        {"RoleAction": "s3:DeleteObject"}, {"CloudFormationOperation": "DeleteStack"},
+                        {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"},
+                        {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                        {"StackArn": stack_arn.replace(ACCOUNT, OTHER)}):
+            assert target["Arn"] not in reached(result(technique, dict(proof, **changed)), ALICE, technique)
+        if operation == "CreateChangeSet":
+            assert target["Arn"] not in reached(result(technique, dict(proof, ChangeSetExecuted=False)),
+                                                ALICE, technique)
+            assert target["Arn"] not in reached(result(technique, dict(proof, ChangeSetType="UPDATE")),
+                                                ALICE, technique)
+        if operation == "UpdateStack":
+            assert target["Arn"] not in reached(result(technique, dict(proof, StackArn=stack_arn + "-other")),
+                                                ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof,
+            extra_caller=[allow("s3:PutObject", resource=target_arn)]), ALICE, technique)
+        readonly = role("cfn", "cloudformation.amazonaws.com", allow("s3:GetObject", resource=target_arn))
+        readonly["RoleId"] = target["RoleId"]
+        assert target["Arn"] not in reached(result(technique, proof, role_row=readonly), ALICE, technique)
+
+
 def test_new_iam_user_routes_do_not_reuse_an_existing_exact_name():
     technique = "aws-iam-createuser-policy-accesskey"
     existing = user("reserved")
