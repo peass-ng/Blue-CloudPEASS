@@ -100,6 +100,7 @@ from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch
 from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_sagemaker_space_lcc import normalize_aws_sagemaker_space_lcc
+from .aws_migration_strategy_inventory import correlate_aws_migration_strategy_inventory
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
 from .aws_customer_profiles_read_next import normalize as normalize_aws_customer_profiles_read
@@ -972,6 +973,7 @@ def detect_aws_events(
     lex_hook_batch137_records: list[Mapping[str, Any]] = []
     route53_profiles_batch139_records: list[Mapping[str, Any]] = []
     frauddetector_event_records: list[Mapping[str, Any]] = []
+    migration_strategy_inventory_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -980,6 +982,8 @@ def detect_aws_events(
                 continue
             if record.get("eventSource") == "frauddetector.amazonaws.com" and record.get("eventName") == "SendEvent":
                 frauddetector_event_records.append(record)
+            if record.get("eventSource") == "migrationhub-strategy.amazonaws.com":
+                migration_strategy_inventory_records.append(record)
             if record.get("eventSource") == "monitoring.amazonaws.com":
                 cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
@@ -1215,6 +1219,7 @@ def detect_aws_events(
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
     correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
+    correlated += correlate_aws_migration_strategy_inventory(migration_strategy_inventory_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
