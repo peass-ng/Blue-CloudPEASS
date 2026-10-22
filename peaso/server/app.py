@@ -999,7 +999,13 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return defaults.get(name, missing) if isinstance(defaults, dict) else missing
 
         def selected(finding, ignore_status=False):
-            if finding_type and field(finding, "finding_type") != finding_type:
+            if finding_type == "detected_leaks":
+                # Canonical per-secret rows are emitted only by the offline
+                # TruffleHog/Kingfisher deduplicator, not configuration checks.
+                fingerprint = finding.get("secret_fingerprint")
+                if not isinstance(fingerprint, str) or not fingerprint or finding.get("id") != "secret-" + fingerprint:
+                    return False
+            elif finding_type and field(finding, "finding_type") != finding_type:
                 return False
             for name, choices in filters.items():
                 if choices is not None and not (ignore_status and name == "status"):
@@ -1351,6 +1357,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             candidates = sorted(candidates, key=lambda c: c.get("label", c["principal"]).casefold(), reverse=sort_order == "desc")
         page = candidates[offset:offset + limit]
         return {"items": page, "total": len(candidates), "offset": offset,
+            "recommendation_total": sum(card.get("recommendation_count", 0) for card in candidates),
             "next_offset": offset + len(page) if offset + len(page) < len(candidates) else None,
             "coverage": projection["coverage"]}
 

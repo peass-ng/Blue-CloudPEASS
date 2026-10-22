@@ -68,8 +68,14 @@ function ImagesFindingsPage({ scanId, demo }: { scanId: string; demo: boolean })
   const [loaded, setLoaded] = useState<ImageFindingsReport>();
   const query = useApi<ImageFindingsReport>(imageFindingsPath(scanId, offset), demo, !!scanId);
   useEffect(() => {
-    if (query.data) setLoaded((previous) => mergeImageFindingPages(previous, query.data!));
-  }, [query.data]);
+    if (query.data) {
+      setLoaded((previous) => mergeImageFindingPages(previous, query.data!));
+      // The report is capped at 5,000 rows. Finish bounded pagination so grouping
+      // covers the assessment, while retaining partial positives on an error.
+      const next = query.data.next_offset;
+      if (next != null && next > offset && next < 5000) setOffset(next);
+    }
+  }, [query.data, offset]);
   if (!scanId) return <p className="images-findings-state" role="status">Select a completed assessment to view image findings.</p>;
   const report = loaded || query.data;
   const presentation = report ? imageFindingsPresentation(report) : undefined;

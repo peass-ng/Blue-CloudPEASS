@@ -84,7 +84,7 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
       </div>
       {!scanId ? <State empty title="Select a scan to review identities" /> :
         <State loading={page.isPending} error={page.error} onRetry={() => void page.refetch()}>
-          {rows.length ? <div className="least-list" role="list" aria-label="Principals with access to review">
+          {rows.length ? <div className="least-list table-scroll" tabIndex={0} role="list" aria-label="Principals with access to review">
             {rows.map((principal) => <button type="button" role="listitem" className="least-row" key={principal.id}
               onClick={() => { setSelected(principal); setPermissionSearch(""); }}>
               <span className="least-provider"><ProviderIcon provider={principal.provider} size={22} /></span>

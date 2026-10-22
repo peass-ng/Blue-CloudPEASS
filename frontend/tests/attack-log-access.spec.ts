@@ -14,7 +14,7 @@ test('S3 access steps use consistent type and generate separate identity and buc
   await setup(page, { provider: 'aws', onboarding: { target_role_arns: ['arn:aws:iam::123456789012:role/LogReader'] } });
   await expect(page.getByRole('combobox', { name: 'Detection rules', exact: true })).toHaveValue('latest');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Beta');
-  await expect(page.getByRole('button', { name: 'Attack Analysis', exact: true })).toContainText('Beta');
+  await expect(page.getByRole('button', { name: 'Attack Detection', exact: true })).toContainText('Beta');
   await page.getByRole('combobox', { name: 'Audit source', exact: true }).selectOption('aws_cloudtrail_s3');
   const guide = page.locator('.attack-permissions');
   await expect(guide.getByRole('listitem')).toHaveCount(5);
