@@ -7296,6 +7296,12 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "deadline_fleet_worker_binding_unverified":
+            # A passable fleet role and broad API grants do not identify a
+            # customer-managed fleet or a worker the source can register and
+            # use. Keep the possible route visible without inventing an edge.
+            return {tid: ("unknown", "deadline_fleet_worker_and_role_binding_not_verified")
+                    for tid in candidates}
         if pid == "datapipeline_existing_customer_role_pair_and_runnable_ec2":
             # IAM grants on their own neither establish legacy customer
             # eligibility nor bind the separately passed pipeline role and
