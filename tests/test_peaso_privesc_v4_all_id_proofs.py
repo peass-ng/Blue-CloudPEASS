@@ -29,7 +29,7 @@ NEW = tuple({key: value for key, value in entry.items() if key != "_file"}
             for entry in _ARCHIVED.values()
             if entry["id"] not in set(_HISTORY["legacy_ids"]) and entry["id"] not in BOUNDED and entry["id"] not in EXACT_PRINCIPAL and entry["id"] not in SCOPED_IDS and entry["id"] not in DISCLOSURES)
 POD_ID = "gcp-container-pods-update-running-ksa"
-STANDARD = tuple(entry for entry in NEW if entry["id"] != POD_ID)
+LAMBDA_EVENTBRIDGE_ID = "aws-lambda-passrole-createfunction-eventbridge-trigger"
 
 _AZURE_CREDENTIAL_RESOURCES = {
     "azure-apim-gateway-config-credential": "Microsoft.ApiManagement/service",
@@ -39,6 +39,8 @@ _AZURE_CREDENTIAL_RESOURCES = {
     "azure-acr-layer-credential": "Microsoft.ContainerRegistry/registries",
     "azure-storage-blob-content-credential": "Microsoft.Storage/storageAccounts",
 }
+DEDICATED = {POD_ID, LAMBDA_EVENTBRIDGE_ID, *_AZURE_CREDENTIAL_RESOURCES}
+STANDARD = tuple(entry for entry in NEW if entry["id"] not in DEDICATED)
 
 
 def _actions(entry):
@@ -162,9 +164,10 @@ def _fixture(entry):
 
 def test_every_new_id_has_an_explicit_proof_disposition():
     current={entry["id"] for entry in privesc.load_catalog()["entries"]}
-    assert len(NEW) == 48
-    assert len({entry["id"] for entry in NEW}) == 48
-    assert len(STANDARD) == 47
+    assert len(NEW) == 50
+    assert len({entry["id"] for entry in NEW}) == 50
+    assert len(STANDARD) == 42
+    assert DEDICATED <= {entry["id"] for entry in NEW}
     assert sum(entry["id"] == POD_ID for entry in NEW) == 1
     assert len(current.intersection(entry["id"] for entry in NEW)) < len(NEW)
 
