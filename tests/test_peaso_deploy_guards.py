@@ -8,6 +8,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import subprocess
 import sys
@@ -660,7 +661,9 @@ class DeploymentGuards(unittest.TestCase):
     def test_backend_guard(self):
         expected = {"bucket": "example-deployment-state", "key": "cspm/terraform.tfstate",
                     "region": "us-east-1", "encrypt": True, "use_lockfile": True}
-        with tempfile.TemporaryDirectory() as folder, patch.object(deploy, "INFRA", Path(folder)):
+        with tempfile.TemporaryDirectory() as folder, patch.object(deploy, "INFRA", Path(folder)), \
+                patch.object(deploy.deployment, "backend", return_value=expected), \
+                patch.object(deploy, "ACCOUNT", "111122223333"):
             metadata = Path(folder) / ".terraform/terraform.tfstate"
             metadata.parent.mkdir()
             metadata.write_text(json.dumps({"backend": {"type": "s3", "config": expected}}))
@@ -966,6 +969,13 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
     """Real Terraform 1.14 saved-plan shapes, isolated artifacts and SDK stubs."""
     @classmethod
     def setUpClass(cls):
+        cls.account_patches = []
+        if not re.fullmatch(r'[0-9]{12}', deploy.ACCOUNT):
+            cls.account_patches = [patch.object(deploy, 'ACCOUNT', '111122223333'),
+                patch.object(deploy, 'REPOSITORY',
+                    '111122223333.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker')]
+            for account_patch in cls.account_patches:
+                account_patch.start()
         cls.folder = tempfile.TemporaryDirectory()
         cls.root = (Path(cls.folder.name) / "authored").resolve()
         cls.root.mkdir()
@@ -985,6 +995,9 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
                          "account_id": deploy.ACCOUNT,
                          "cognito_pool_id": "us-east-1_example", "cognito_client_id": "example-client",
                          "stripe_secret_arn": "", "stripe_price_id": "", "codex_token_secret_arn": ""}
+        cls.fixture_deployment_values = {key: cls.variables[key] for key in (
+            "account_id", "cognito_pool_id", "cognito_client_id", "stripe_secret_arn",
+            "stripe_price_id", "codex_token_secret_arn")}
         cls.backend = cls.infra / ".terraform/terraform.tfstate"
         cls.backend.parent.mkdir()
         cls.backend.write_text(json.dumps({"backend": {"type": "s3", "config": {
@@ -994,10 +1007,18 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.folder.cleanup()
+        for account_patch in reversed(cls.account_patches):
+            account_patch.stop()
 
     def setUp(self):
         self.patches = [patch.object(deploy, key, value) for key, value in
                         (("ROOT", self.root), ("INFRA", self.infra), ("BUILD", self.build))]
+        original_value = deploy.deployment.value
+        self.patches.append(patch.object(deploy.deployment, "value",
+            side_effect=lambda key: self.fixture_deployment_values[key]
+                if key in self.fixture_deployment_values else original_value(key)))
+        expected_backend = json.loads(self.backend.read_text())["backend"]["config"]
+        self.patches.append(patch.object(deploy.deployment, "backend", return_value=expected_backend))
         for p in self.patches:
             p.start()
             self.addCleanup(p.stop)
@@ -1012,15 +1033,27 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
                            "after": dict(size, family="hacktricks-cspm-" + stage),
                            "after_unknown": {"container_definitions": True}}})
         code_hash = base64.b64encode(hashlib.sha256((self.build / "api.zip").read_bytes()).digest()).decode()
+        package_key = deploy.api_package_key(code_hash)
+        package_bucket = f"hacktricks-cspm-artifacts-{deploy.ACCOUNT}"
+        package_kms_key = f"arn:aws:kms:us-east-1:{deploy.ACCOUNT}:key/00000000-0000-0000-0000-000000000000"
         for name, memory, timeout in (("api", 512, 28), ("scheduler", 256, 60)):
             self.data["resource_changes"].append({"address": "aws_lambda_function." + name,
                 "type": "aws_lambda_function", "name": name, "mode": "managed",
                 "change": {"actions": ["create"], "before": None, "after_unknown": {"environment": [{"variables": True}]},
                            "after": {"environment": [{}], "function_name": "hacktricks-cspm-" + name,
-                                     "filename": self.variables["api_zip"], "source_code_hash": code_hash,
+                                     "filename": None, "s3_bucket": package_bucket, "s3_key": package_key,
+                                     "source_code_hash": code_hash,
                                      "memory_size": memory, "timeout": timeout, "runtime": "python3.12",
                                      "handler": "peaso.server." + ("lambda_handler" if name == "api" else "scheduler_handler") + ".handler",
                                      "architectures": ["x86_64"]}}})
+        self.data["resource_changes"].append({"address": "aws_s3_object.api_zip",
+            "type": "aws_s3_object", "name": "api_zip", "mode": "managed",
+            "change": {"actions": ["no-op"], "before": None,
+                       "after": {"id": package_bucket + "/" + package_key,
+                                 "bucket": package_bucket, "key": package_key,
+                                 "source": self.variables["api_zip"], "source_hash": code_hash,
+                                 "metadata": {"sha256": hashlib.sha256((self.build / "api.zip").read_bytes()).hexdigest()},
+                                 "server_side_encryption": "aws:kms", "kms_key_id": package_kms_key}}})
 
     def write_plan(self, corruption=None):
         with zipfile.ZipFile(self.plan, "w") as archive:
@@ -1141,14 +1174,24 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
                     PEASO_ARTIFACT_BUCKET=bucket, PEASO_CREDENTIAL_SECRET_ARN=secret, PEASO_WORKFLOW_ARN=workflow,
                     PEASO_AI_CREDENTIAL_SECRET_ARN=f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234")}}
         session = Mock()
-        clients = {name: Mock() for name in ("sts", "stepfunctions", "ecs", "lambda")}
+        clients = {name: Mock() for name in ("sts", "stepfunctions", "ecs", "lambda", "s3")}
         session.client.side_effect = clients.__getitem__
         clients["sts"].get_caller_identity.return_value = {"Account": deploy.ACCOUNT}
         clients["stepfunctions"].describe_state_machine.return_value = {"definition": json.dumps({"States": states})}
         clients["ecs"].describe_task_definition.side_effect = lambda taskDefinition: {"taskDefinition": self.tasks[taskDefinition]}
         clients["lambda"].get_function_configuration.side_effect = lambda FunctionName: self.functions[FunctionName]
+        package = next(row["change"]["after"] for row in self.data["resource_changes"]
+                       if row["address"] == "aws_s3_object.api_zip")
+        clients["s3"].head_object.return_value = {"Metadata": package["metadata"],
+            "ServerSideEncryption": "aws:kms", "SSEKMSKeyId": package["kms_key_id"],
+            "ContentLength": (self.build / "api.zip").stat().st_size}
         self.states_client = clients["stepfunctions"]
         def terraform(*args, **kwargs):
+            if args == ("show", "-json"):
+                resources = [{"address": row["address"], "values": row["change"]["after"]}
+                             for row in self.data["resource_changes"] if row["address"] in {
+                                 "aws_s3_object.api_zip", "aws_lambda_function.api", "aws_lambda_function.scheduler"}]
+                return SimpleNamespace(stdout=json.dumps({"values": {"root_module": {"resources": resources}}}))
             return SimpleNamespace(stdout=json.dumps(outputs if args[0] == "output" else self.data))
         return session, terraform
 
@@ -1250,6 +1293,9 @@ class CloudFrontRecoveryGuards(unittest.TestCase):
         contract = deploy.deployment_expectations(self.data, self.plan)
         self.state = {"version": 4, "lineage": "offline-cspm-lineage", "serial": 5, "resources": []}
         for r in self.data["resource_changes"]:
+            if r["address"] == "aws_s3_object.api_zip":
+                r["change"]["before"] = copy.deepcopy(r["change"]["after"])
+                continue
             after = r["change"]["after"]
             if r["type"] == "aws_ecs_task_definition":
                 env = dict(contract["worker_environments"][r["index"]])
@@ -1312,7 +1358,7 @@ class CloudFrontRecoveryGuards(unittest.TestCase):
             for r in self.data["resource_changes"] if r["change"]["before"] is not None]}}}
         initial = copy.deepcopy(self.data)
         for r in initial["resource_changes"]:
-            if r["change"]["actions"] != ["no-op"]:
+            if r["change"]["actions"] != ["no-op"] or r["address"] == "aws_s3_object.api_zip":
                 r["change"]["actions"], r["change"]["before"] = ["create"], None
         prior = self.build / "failed.tfplan"
         prior.write_bytes(self.plan.read_bytes())
@@ -1809,14 +1855,23 @@ if __name__ == "__main__":
 
 def test_two_hour_runtime_successor_reconstructs_the_deployed_configuration():
     current = (deploy.INFRA / 'variables.tf').read_bytes()
-    assert hashlib.sha256(current).hexdigest() == deploy.RUNTIME_LIMITS_CURRENT_SHA256
+    digest = hashlib.sha256(current).hexdigest()
+    approved = {deploy.RUNTIME_LIMITS_CURRENT_SHA256}
+    if hasattr(deploy, 'WORKER_SIZING_CURRENT_SHA256'):
+        approved.add(deploy.WORKER_SIZING_CURRENT_SHA256)
+    assert digest in approved
     restored = current
+    if digest != deploy.RUNTIME_LIMITS_CURRENT_SHA256:
+        for successor, predecessor in deploy.WORKER_SIZING_REVERSE:
+            assert restored.count(successor) == 1
+            restored = restored.replace(successor, predecessor, 1)
+        assert hashlib.sha256(restored).hexdigest() == deploy.RUNTIME_LIMITS_CURRENT_SHA256
     for before, after in deploy.RUNTIME_LIMITS_EXACT_REPLACEMENTS:
         assert restored.count(after) == 1
         restored = restored.replace(after, before, 1)
     assert hashlib.sha256(restored).hexdigest() == deploy.RUNTIME_LIMITS_PREDECESSOR_SHA256
     assert deploy.RUNTIME_CONFIG_SHA256['variables.tf'] == '2824bc1ff26a1cb2bdc97109bd911d301ee1df29688253d5c2cd22236b928a58'
-    assert hashlib.sha256(current + b'\n# unreviewed change\n').hexdigest() != deploy.RUNTIME_LIMITS_CURRENT_SHA256
+    assert hashlib.sha256(current + b'\n# unreviewed change\n').hexdigest() not in approved
 
 
 def test_fresh_checkout_applies_explicit_operator_template_and_runtime_config(tmp_path, monkeypatch):
