@@ -6,6 +6,7 @@ that can carry credentials are discarded before any snapshot construction.
 """
 from __future__ import annotations
 import copy
+from concurrent.futures import ThreadPoolExecutor
 import json
 import re
 
@@ -454,6 +455,18 @@ FETCHERS = {
 
 def _enricher(kind):
     def enrich(requests, session, region, items):
+        if kind == "ecs_task_definition" and len(items) > 1:
+            # Each immutable revision has an independent DescribeTaskDefinition
+            # read. Keep the SDK request/cache budget in Requests and preserve
+            # list order while overlapping the network waits.
+            def definition(original):
+                item = copy.deepcopy(original)
+                item["Definition"] = _detail(requests, session, region, "ecs", "describe_task_definition",
+                    taskDefinition=item["taskDefinitionArn"])
+                return _metadata(item)
+
+            with ThreadPoolExecutor(max_workers=min(4, requests.workers), thread_name_prefix="aws-ecs-definition") as pool:
+                return list(pool.map(definition, items))
         output = []
         for item in items:
             item = copy.deepcopy(item)
