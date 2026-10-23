@@ -220,6 +220,7 @@ def test_network_review_shares_parallel_limit_and_finishes_before_priorities(env
     data, inventory, output = network_fixture()
     monkeypatch.setattr('peaso.snapshot.resources', lambda _: inventory)
     monkeypatch.setenv('PEASO_AI_MAX_CONCURRENCY', '2')
+    monkeypatch.setattr(pipeline, 'available_memory', lambda: 4 * 1024**3)
     network_started, release_network, reviews_finished, priorities_started = (threading.Event() for _ in range(4))
     completed = []
     active = peak = 0
@@ -256,6 +257,8 @@ def test_network_review_shares_parallel_limit_and_finishes_before_priorities(env
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(pipeline.review_scan, data, {}, {}, tenant='alice', artifacts=environment[2])
         try:
+            # This tests queue overlap, independently of cold evidence imports.
+            assert network_started.wait(30)
             assert reviews_finished.wait(2)
             assert not priorities_started.is_set() and not future.done()
         finally:
@@ -555,9 +558,16 @@ def test_worker_persists_captured_access_with_separate_key(provider, environment
     from peaso.worker import _process
     settings, _, artifacts = environment
     def collect(_):
-        access.bearer(provider, 'fixture-audience', 'captured-session-token')
-        return make_snapshot(provider, ['fixture'], [{'type': 'fixture', 'scope': 'fixture', 'status': 'collected', 'items': [{'id': 'one'}]}])
+        scope = '123456789012/us-east-1' if provider == 'aws' else 'fixture'
+        if provider == 'aws':
+            access.remember('aws', '123456789012', {'format': 'aws-session', 'account_id': '123456789012',
+                            'aws_session_token': 'captured-session-token'})
+        else:
+            access.bearer(provider, 'fixture-audience', 'captured-session-token')
+        return make_snapshot(provider, [scope], [{'type': 'fixture', 'scope': scope, 'status': 'collected', 'items': [{'id': 'one'}]}])
     monkeypatch.setattr('peaso.engine.collect_snapshot', collect)
+    # This fixture exercises captured-key persistence, not live AWS identity.
+    monkeypatch.setattr('peaso.worker._verify_aws_credentials', lambda connector: None)
     context = multiprocessing.get_context('fork')
     parent, child = context.Pipe(duplex=False)
     request = {'artifact_config': {'mode': 'file', 'root': str(artifacts.root)}, 'tenant_id': 'alice', 'scan_id': 'a' * 32,
@@ -570,9 +580,15 @@ def test_worker_persists_captured_access_with_separate_key(provider, environment
         success, reference, *rest = parent.recv()
         assert success, rest
         snapshot = artifacts.get('alice', reference)
+        if provider == 'aws':
+            # Shared AWS identities are deliberately excluded from shell agents.
+            assert 'ai_access_reference' not in snapshot.get('metadata', {})
+            assert 'captured-session-token' not in json.dumps(snapshot)
+            return
         sealed = artifacts.get('alice', snapshot['metadata']['ai_access_reference'])['sealed']
         entries = AICipher(settings.identity_dir).decrypt(sealed)['entries']
-        assert entries[0]['provider'] == provider and entries[0]['token'] == 'captured-session-token'
+        assert entries[0]['provider'] == provider
+        assert entries[0]['token'] == 'captured-session-token'
         assert 'captured-session-token' not in json.dumps(snapshot)
     finally:
         process.join(timeout=2)

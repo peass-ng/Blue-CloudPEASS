@@ -510,10 +510,10 @@ class SQLiteAttackHistoryStore:
             unique_ids = {event_id for event_id, _ in event_hashes if event_id not in existing_events}
             for chunk in saved["finding_chunks"]:
                 try:
-                    findings = self.ledger.get_finding_chunk(tenant, job_id, chunk)
+                    finding_events = self.ledger.get_finding_event_ids(tenant, job_id, chunk)
                 except ValueError:
                     raise AttackHistoryError(409, "CloudTrail finding chunk is invalid") from None
-                if any(item["event_id"] not in unique_ids for item in findings):
+                if any(event_id not in unique_ids for event_id in finding_events):
                     raise AttackHistoryError(409, "Finding refers to a duplicate or foreign event")
             db.execute("""INSERT INTO attack_cloudtrail_objects
                 (job_id,partition_id,object_key,etag,size,object_sha256,checkpoint_ref,

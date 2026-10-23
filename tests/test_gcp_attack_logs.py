@@ -13,6 +13,7 @@ from peaso.server.gcp_attack_logs import (
 
 PROJECT = "customer-demo-123"
 SETTINGS = SimpleNamespace(gcp_platform_sa_secret_arn="secret")
+HTTP_SESSIONS = []
 
 
 class Response:
@@ -47,13 +48,25 @@ class Credentials:
 def setup(monkeypatch, responses):
     calls = []
     Credentials.created = []
+    HTTP_SESSIONS.clear()
     monkeypatch.setattr("peaso.server.gcp_attack_logs.Credentials", Credentials)
 
     def request(method, url, **kwargs):
         calls.append((method, url, kwargs))
         return responses[len(calls) - 1]
 
-    monkeypatch.setattr("peaso.server.gcp_attack_logs.requests.request", request)
+    class Session:
+        def __init__(self):
+            self.closed = False
+            HTTP_SESSIONS.append(self)
+
+        def request(self, *args, **kwargs):
+            return request(*args, **kwargs)
+
+        def close(self):
+            self.closed = True
+
+    monkeypatch.setattr("peaso.server.gcp_attack_logs.requests.Session", Session)
     return calls
 
 
@@ -136,6 +149,15 @@ def test_gke_cluster_filter_and_bounded_pagination(monkeypatch):
     assert calls[1][2]["json"]["pageToken"] == "next"
     assert 'resource.labels.cluster_name="customer-cluster"' in calls[0][2]["json"]["filter"]
     assert Credentials.created[0].closed
+    assert len(HTTP_SESSIONS) == 1 and HTTP_SESSIONS[0].closed
+
+
+def test_http_connection_pools_do_not_cross_source_operations(monkeypatch):
+    setup(monkeypatch, [Response({'entries': []}), Response({'entries': []})])
+    for _ in range(2):
+        check_gcp_source({'method': 'token', 'token': 'x'}, [PROJECT], {}, SETTINGS, source())
+    assert len(HTTP_SESSIONS) == 2 and HTTP_SESSIONS[0] is not HTTP_SESSIONS[1]
+    assert all(session.closed for session in HTTP_SESSIONS)
 
 
 def test_gke_requires_exact_cluster_name(monkeypatch):

@@ -242,6 +242,8 @@ def _process(role, request, connection):
                 # Scope labels do not restrict AWS or shared GCP credentials.
                 ai_access.begin(allow_live=ai_access.may_capture_live(connector))
             from peaso.secret_evidence import capture, checks_for_request
+            from peaso.private_evidence_checkpoint import PrivateEvidenceCheckpoint
+            private_checkpoint = PrivateEvidenceCheckpoint()
             evidence_cipher = CredentialCipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir))
             with capture(evidence_cipher, tenant=tenant, scan_id=ident, options=connector.get('options'),
                          selected_checks=checks_for_request(request)) as secret_capture:
@@ -276,7 +278,7 @@ def _process(role, request, connection):
                     # overwrite the latest encrypted private document.
                     with checkpoint_lock:
                         with private_evidence_lock:
-                            document = secret_capture.document()
+                            document = private_checkpoint.document(secret_capture)
                         artifacts.put_secret_evidence(tenant, ident, document)
                         snapshot_ref = artifacts.put(tenant, ident, "snapshot", snapshot)
                         if report is not None:
@@ -345,7 +347,7 @@ def _process(role, request, connection):
             # Separate encrypted per-scan object; no reference or value enters
             # the native snapshot, public report, supervisor pipe or AI context.
             snapshot = secret_capture.public_snapshot(snapshot)
-            artifacts.put_secret_evidence(tenant, ident, secret_capture.document())
+            artifacts.put_secret_evidence(tenant, ident, private_checkpoint.document(secret_capture))
             if request.get("ai_enabled", True) and ai_credentials:
                 try:
                     ai_credentials = ai_access.bind_targets(ai_credentials, snapshot)

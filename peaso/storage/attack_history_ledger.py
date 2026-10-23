@@ -14,8 +14,11 @@ import os
 from pathlib import Path
 import re
 import stat
+import sys
+import threading
 import uuid
 from collections.abc import Iterable, Mapping
+from collections import OrderedDict
 
 from peaso.attack_detection.history_s3 import CloudTrailObject, DayManifest
 from .attack_history_artifacts import sanitized_result
@@ -68,6 +71,10 @@ class LocalAttackHistoryLedger:
     def __init__(self, root: Path):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        self._manifest_cache = None
+        self._manifest_lock = threading.Lock()
+        self._finding_events = OrderedDict()
+        self._finding_event_bytes = 0
 
     def _path(self, tenant: str, job_id: str, kind: str, reference: str, digest: str) -> Path:
         _id(tenant)
@@ -107,7 +114,7 @@ class LocalAttackHistoryLedger:
             temporary.unlink(missing_ok=True)
         return LedgerRef(reference, digest)
 
-    def get(self, tenant: str, job_id: str, kind: str, reference: str, digest: str) -> dict:
+    def _verified_body(self, tenant: str, job_id: str, kind: str, reference: str, digest: str) -> bytes:
         path = self._path(tenant, job_id, kind, reference, digest)
         try:
             fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
@@ -115,11 +122,18 @@ class LocalAttackHistoryLedger:
                 metadata = os.fstat(stream.fileno())
                 if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > _MAX_BLOB[kind]:
                     raise ValueError("Attack ledger blob invalid")
-                body = stream.read(_MAX_BLOB[kind] + 1)
+                # Buffered read(size) can reserve the entire 64 MiB ceiling
+                # even for a small manifest. One byte beyond the observed
+                # size still detects growth without that allocation.
+                body = stream.read(metadata.st_size + 1)
         except (FileNotFoundError, IsADirectoryError, OSError):
             raise ValueError("Attack ledger blob unavailable") from None
         if hashlib.sha256(body).hexdigest() != digest:
             raise ValueError("Attack ledger digest mismatch")
+        return body
+
+    @staticmethod
+    def _decoded_body(body: bytes) -> dict:
         try:
             decoded = json.loads(body)
         except (TypeError, ValueError, UnicodeDecodeError):
@@ -127,6 +141,9 @@ class LocalAttackHistoryLedger:
         if not isinstance(decoded, dict) or _canonical(decoded) != body:
             raise ValueError("Attack ledger JSON noncanonical")
         return decoded
+
+    def get(self, tenant: str, job_id: str, kind: str, reference: str, digest: str) -> dict:
+        return self._decoded_body(self._verified_body(tenant, job_id, kind, reference, digest))
 
     def put_manifest(self, tenant: str, job_id: str, manifest: DayManifest) -> LedgerRef:
         if not isinstance(manifest, DayManifest) or len(manifest.objects) > 100_000:
@@ -147,7 +164,15 @@ class LocalAttackHistoryLedger:
         return self.put(tenant, job_id, "manifest", value)
 
     def get_manifest(self, tenant: str, job_id: str, reference: str, digest: str) -> DayManifest:
-        value = self.get(tenant, job_id, "manifest", reference, digest)
+        # Always verify the live file, including type/size/symlink checks. A
+        # digest match permits reuse of its immutable parsed representation.
+        body = self._verified_body(tenant, job_id, "manifest", reference, digest)
+        key = tenant, job_id, reference, digest
+        with self._manifest_lock:
+            cached = self._manifest_cache
+            if cached is not None and cached[0] == key:
+                return cached[1]
+        value = self._decoded_body(body)
         if set(value) != {"schema_version", "bucket", "prefix", "account", "region", "day",
                           "listed_at", "pages", "objects"} or value["schema_version"] != 1:
             raise ValueError("CloudTrail manifest shape invalid")
@@ -165,6 +190,18 @@ class LocalAttackHistoryLedger:
                            or not item.etag or type(item.size) is not int or item.size < 1
                            for item in objects)):
                 raise ValueError("CloudTrail manifest order invalid")
+            # One entry and a conservative object-memory budget. Oversized
+            # manifests still use the complete existing validation path.
+            size = sys.getsizeof(manifest) + sys.getsizeof(objects)
+            size += sum(sys.getsizeof(item) + sys.getsizeof(vars(item))
+                        + sys.getsizeof(item.key) + sys.getsizeof(item.etag)
+                        + sys.getsizeof(item.size) for item in objects)
+            size += sum(sys.getsizeof(getattr(manifest, field)) for field in
+                        ('bucket', 'prefix', 'account', 'region', 'day', 'pages', 'listed_at'))
+            with self._manifest_lock:
+                immutable = all(type(getattr(manifest, field)) is str for field in
+                                ('bucket', 'prefix', 'account', 'region', 'day', 'listed_at'))
+                self._manifest_cache = (key, manifest) if immutable and size <= 4 * 1024 * 1024 else None
             return manifest
         except (TypeError, ValueError, AttributeError):
             raise ValueError("CloudTrail manifest invalid") from None
@@ -215,7 +252,38 @@ class LocalAttackHistoryLedger:
                                               ("schema_version", "summary", "detections")})
         if selected != value or len(value["detections"]) != descriptor["count"]:
             raise ValueError("Finding chunk count mismatch")
+        identifiers = tuple(item['event_id'] for item in value['detections'])
+        key = tenant, job_id, descriptor['ref'], descriptor['sha256'], descriptor['count']
+        weight = (sys.getsizeof(identifiers) + sum(sys.getsizeof(item) for item in identifiers)
+                  + sys.getsizeof(key) + sum(sys.getsizeof(item) for item in key) + 512)
+        if weight <= 1024 * 1024:
+            with self._manifest_lock:
+                previous = self._finding_events.pop(key, None)
+                if previous is not None:
+                    self._finding_event_bytes -= previous[1]
+                self._finding_events[key] = identifiers, weight
+                self._finding_event_bytes += weight
+                while self._finding_event_bytes > 1024 * 1024:
+                    _, (_, removed) = self._finding_events.popitem(last=False)
+                    self._finding_event_bytes -= removed
         return value["detections"]
+
+    def get_finding_event_ids(self, tenant: str, job_id: str, descriptor: Mapping) -> tuple[str, ...]:
+        """Reuse validation prepared before commit, after rechecking live bytes.
+
+        Only immutable event identities are retained, never finding dictionaries.
+        On a cold/missing receipt the complete normal validator remains in use.
+        """
+        if set(descriptor) != {'ref', 'sha256', 'count'} or type(descriptor['count']) is not int:
+            raise ValueError('Invalid finding chunk descriptor')
+        self._verified_body(tenant, job_id, 'findings', descriptor['ref'], descriptor['sha256'])
+        key = tenant, job_id, descriptor['ref'], descriptor['sha256'], descriptor['count']
+        with self._manifest_lock:
+            cached = self._finding_events.get(key)
+            if cached is not None:
+                self._finding_events.move_to_end(key)
+                return cached[0]
+        return tuple(item['event_id'] for item in self.get_finding_chunk(tenant, job_id, descriptor))
 
     def put_object_checkpoint(self, tenant: str, job_id: str, partition_id: str,
                               obj: CloudTrailObject, object_sha256: str,
@@ -253,7 +321,7 @@ class LocalAttackHistoryLedger:
         _sha(value["events_digest"])
         if type(value["event_count"]) is not int or type(value["finding_count"]) is not int:
             raise ValueError("CloudTrail object checkpoint count invalid")
-        if sum(len(self.get_finding_chunk(tenant, job_id, item))
+        if sum(len(self.get_finding_event_ids(tenant, job_id, item))
                for item in value["finding_chunks"]) != value["finding_count"]:
             raise ValueError("CloudTrail object finding count mismatch")
         return value

@@ -248,19 +248,19 @@ def review_credentials(entries, provider, findings, context):
     """
     from .access import scopes_overlap
     selected = [entry for entry in entries if entry.get('provider') == provider]
-    references = list(referenced_strings([findings, context.get('resources', [])]))
     requested_scopes = {row.get('scope') for row in findings + context.get('resources', []) if isinstance(row.get('scope'), str)}
     accounts = set()
-    for value in references:
-        match = re.match(r'^(?:arn:[^:]+:[^:]*:[^:]*:)?([0-9]{12})(?:/|:|$)', value)
-        if match:
-            accounts.add(match.group(1))
-    out = []
-    for entry in selected:
-        if provider == 'aws' and entry.get('account_id') not in accounts:
-            continue
-        if provider == 'k8s' and entry.get('cluster_id'):
-            clusters = set()
+    if provider == 'aws':
+        account_reference = re.compile(r'^(?:arn:[^:]+:[^:]*:[^:]*:)?([0-9]{12})(?:/|:|$)')
+        for value in referenced_strings([findings, context.get('resources', [])]):
+            match = account_reference.match(value)
+            if match:
+                accounts.add(match.group(1))
+    clusters = set()
+    selected_clusters = set()
+    if provider == 'k8s':
+        selected_clusters = {entry.get('cluster_id') for entry in selected if entry.get('cluster_id')}
+        if selected_clusters:
             def collect_clusters(value):
                 if isinstance(value, dict):
                     if isinstance(value.get('cluster_id'), str):
@@ -273,9 +273,14 @@ def review_credentials(entries, provider, findings, context):
                 elif isinstance(value, str) and value.startswith('k8s://'):
                     clusters.add(unquote(value[6:].split('/', 1)[0]))
             collect_clusters([findings, context.get('resources', [])])
+    out = []
+    for entry in selected:
+        if provider == 'aws' and entry.get('account_id') not in accounts:
+            continue
+        if provider == 'k8s' and entry.get('cluster_id'):
             if clusters and entry['cluster_id'] not in clusters:
                 continue
-            if not clusters and len({e.get('cluster_id') for e in selected if e.get('cluster_id')}) > 1:
+            if not clusters and len(selected_clusters) > 1:
                 continue  # Namespace alone cannot identify one of several clusters.
         if 'target_scopes' not in entry:
             # Compatibility for old captured artifacts before target bindings.

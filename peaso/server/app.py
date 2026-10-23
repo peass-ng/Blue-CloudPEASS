@@ -18,7 +18,7 @@ import uuid
 from typing import Literal
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from peaso.auth import Authenticator, CredentialCipher, Identity, redact
 from peaso.auth.api_keys import ApiKeyCreate, MAX_LIST_PAGE, active as active_api_key, matches as matches_api_key, mint_key, parse_key, public as public_api_key, valid_key_id
@@ -1019,6 +1019,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             reference = grouped_download_reference(user.tenant_id, row["id"], row["report"], format)
             if hasattr(artifacts, "presign"):
                 return signed_download(user.tenant_id, reference, format, filename)
+            if (format == 'json' and isinstance(artifacts, FileArtifacts)
+                    and type(artifacts).get is FileArtifacts.get
+                    and artifacts.size(user.tenant_id, reference) >= 256 * 1024):
+                from peaso.storage.artifacts import check_reference
+                check_reference(user.tenant_id, reference)
+                return FileResponse(artifacts.root / reference, media_type='application/json', filename=filename)
             content = artifacts.get_text(user.tenant_id, reference) if format == "markdown" else json.dumps(artifacts.get(user.tenant_id, reference))
             return Response(content, media_type="text/markdown" if format == "markdown" else "application/json",
                 headers={"Content-Disposition": f'attachment; filename="{filename}"'})

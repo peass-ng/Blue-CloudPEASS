@@ -12,6 +12,92 @@ from peaso.storage.report_reuse import ReusableReportArtifacts
 TENANT, IDENT = 'workspace', 'd'*32
 
 
+def test_batches_reuse_durable_and_preencoded_artifacts():
+    class Client:
+        def __init__(self):
+            self.writes = []
+
+        def put_object(self, **value):
+            self.writes.append(value)
+
+    client = Client()
+    artifacts = ReusableReportArtifacts(S3Artifacts('offline', client), TENANT, IDENT)
+    refs = []
+    for _ in range(2):
+        with artifacts.batch() as writer:
+            detail = writer.put(TENANT, IDENT, 'findings', {'items': ['é']})
+            assert writer._put_json_bytes(TENANT, IDENT, 'findings', b'{"items":["\xc3\xa9"]}') == detail
+            text = writer.put_text(TENANT, IDENT, 'markdown', '# Exact\n')
+            refs.append(writer.put(TENANT, IDENT, 'manifest', {'detail': detail, 'text': text}))
+    assert refs[0] == refs[1]
+    assert len(client.writes) == 3
+
+
+def test_failed_batch_does_not_cache_pending_references():
+    class Client:
+        def put_object(self, **value):
+            raise OSError('failed durable write')
+
+    artifacts = ReusableReportArtifacts(S3Artifacts('offline', Client()), TENANT, IDENT)
+    with pytest.raises(OSError):
+        with artifacts.batch() as writer:
+            writer.put(TENANT, IDENT, 'findings', {'items': []})
+    assert not artifacts.entries
+
+
+def test_batch_rejects_cross_tenant_even_when_cached():
+    class Client:
+        def put_object(self, **value):
+            pass
+
+    artifacts = ReusableReportArtifacts(S3Artifacts('offline', Client()), TENANT, IDENT)
+    with artifacts.batch() as writer:
+        writer.put(TENANT, IDENT, 'findings', {'items': []})
+    with artifacts.batch() as writer:
+        with pytest.raises(ValueError):
+            writer.put('other', IDENT, 'findings', {'items': []})
+
+
+def test_cached_manifest_still_waits_for_new_uploads_and_closed_writer_rejects():
+    class Client:
+        fail = False
+
+        def put_object(self, **value):
+            if self.fail:
+                raise OSError('new upload failed')
+
+    client = Client()
+    artifacts = ReusableReportArtifacts(S3Artifacts('offline', client), TENANT, IDENT)
+    with artifacts.batch() as writer:
+        writer.put(TENANT, IDENT, 'manifest', {'same': True})
+    with pytest.raises(RuntimeError, match='closed'):
+        writer.put(TENANT, IDENT, 'manifest', {'same': True})
+    client.fail = True
+    with pytest.raises(OSError):
+        with artifacts.batch() as writer:
+            writer.put(TENANT, IDENT, 'findings', {'new': True})
+            writer.put(TENANT, IDENT, 'manifest', {'same': True})
+
+
+def test_deletion_during_batch_cannot_repopulate_reference_cache():
+    class Client:
+        def put_object(self, **value):
+            pass
+
+        def get_paginator(self, operation):
+            return self
+
+        def paginate(self, **arguments):
+            return []
+
+    artifacts = ReusableReportArtifacts(S3Artifacts('offline', Client()), TENANT, IDENT)
+    with pytest.raises(RuntimeError, match='deleted'):
+        with artifacts.batch() as writer:
+            writer.put(TENANT, IDENT, 'findings', {'new': True})
+            artifacts.delete_job(TENANT, IDENT)
+    assert not artifacts.entries
+
+
 class MeasuredFiles(FileArtifacts):
     writes = 0
     def _write(self, *args, **kwargs):

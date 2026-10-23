@@ -226,6 +226,34 @@ def test_grouped_downloads_include_all_assets_for_old_and_new_reports(live):
     assert "log-124" in markdown.text and "log-0" in markdown.text
 
 
+def test_large_local_grouped_download_streams_exact_owned_artifact(live, monkeypatch):
+    from peaso.server import app as application
+    client, scan, original = live
+    artifacts, store = client.app.state.artifacts, client.app.state.store
+    report = deepcopy(original)
+    for row in report['findings']:
+        row['evidence']['recorded_configuration'] = 'synthetic configuration ' * 200
+    reference = artifacts.put('alice', scan, 'report', report)
+    with store.transaction() as db:
+        db.execute('UPDATE jobs SET report=? WHERE id=?', (reference, scan))
+    streamed = []
+    response_type = application.FileResponse
+
+    def file_response(path, **kwargs):
+        streamed.append(path)
+        return response_type(path, **kwargs)
+
+    monkeypatch.setattr(application, 'FileResponse', file_response)
+    path = f'/api/scans/{scan}/report?aggregation=check'
+    response = client.get(path)
+    assert response.status_code == 200
+    assert len(streamed) == 1 and response.json() == json.loads(streamed[0].read_text())
+    assert response.headers['cache-control'] == 'no-store'
+    assert sum(len(group['observations']) for group in response.json()['findings']) == len(original['findings'])
+    client.headers['Authorization'] = 'Bearer bob'
+    assert client.get(path, headers={'Range': 'bytes=0-15'}).status_code == 404
+
+
 def test_summary_failed_category_count_excludes_passed_controls(live):
     client, scan, report = live
     changed = deepcopy(report)

@@ -6,6 +6,7 @@ No live deployment is implied by this adapter; cloud validation is documented.
 from decimal import Decimal
 import hashlib
 import json
+import os
 import time
 import uuid
 from boto3.dynamodb.types import TypeSerializer, TypeDeserializer
@@ -38,7 +39,7 @@ class DynamoStore:
     public_job = staticmethod(SQLiteStore.public_job)
     public_schedule = staticmethod(SQLiteStore.public_schedule)
 
-    def __init__(self, table, client=None):
+    def __init__(self, table, client=None, *, work_state_index=None, schedule_time_index=None):
         if client is None:
             import boto3
             client = boto3.client("dynamodb")
@@ -46,6 +47,9 @@ class DynamoStore:
         self.claims = {}
         self.claim_attempts = {}
         self.clock = time.time
+        self.work_state_index = os.getenv('PEASO_WORK_STATE_INDEX', '') if work_state_index is None else work_state_index
+        self.schedule_time_index = os.getenv('PEASO_SCHEDULE_TIME_INDEX', '') if schedule_time_index is None else schedule_time_index
+        self._batch_reads_available = True
 
     def key(self, tenant, kind, ident):
         return {"PK": "tenant/" + tenant, "SK": kind + "/" + ident}
@@ -61,6 +65,44 @@ class DynamoStore:
     def _workspace_get(self, key):
         item = self.client.get_item(TableName=self.table, Key=attrs(key), ConsistentRead=True).get("Item")
         return row(item) if item else None
+
+    def _get_many(self, keys):
+        keys = list({(key['PK'], key['SK']): key for key in keys}.values())
+        found = {}
+        for offset in range(0, len(keys), 100):
+            if not self._batch_reads_available:
+                for key in keys[offset:]:
+                    value = self._workspace_get(key)
+                    if value:
+                        found[key['PK'], key['SK']] = value
+                return found
+            pending = [attrs(key) for key in keys[offset:offset + 100]]
+            for attempt in range(8):
+                try:
+                    page = self.client.batch_get_item(RequestItems={self.table: {
+                        'Keys': pending, 'ConsistentRead': True}})
+                except ClientError as exc:
+                    if exc.response['Error']['Code'] != 'AccessDeniedException':
+                        raise
+                    # Existing deployments may roll code before the additional
+                    # batch permission. Preserve the original strong reads.
+                    self._batch_reads_available = False
+                    for key in keys[offset:]:
+                        value = self._workspace_get(key)
+                        if value:
+                            found[key['PK'], key['SK']] = value
+                    return found
+                for item in page.get('Responses', {}).get(self.table, []):
+                    value = row(item)
+                    found[value['PK'], value['SK']] = value
+                pending = page.get('UnprocessedKeys', {}).get(self.table, {}).get('Keys', [])
+                if not pending:
+                    break
+                if attempt < 7:
+                    time.sleep(min(0.025 * 2**attempt, 0.5))
+            else:
+                raise StoreError(503, 'Metadata reads temporarily unavailable')
+        return found
 
     def _workspace_query(self, partition, prefix):
         arguments = {"TableName": self.table, "ConsistentRead": True,
@@ -83,10 +125,14 @@ class DynamoStore:
 
     def workspaces(self, user_id):
         refs = self._workspace_query("user/" + user_id, "workspace/")
+        values = self._get_many(
+            self._workspace_key(ref['workspace_id'], kind, ident)
+            for ref in refs for kind, ident in (('meta', 'current'), ('member', user_id)))
         result = []
         for ref in refs:
-            workspace = self.workspace(ref["workspace_id"])
-            role = self.workspace_role(ref["workspace_id"], user_id) if workspace else None
+            workspace = values.get(('workspace/' + ref['workspace_id'], 'meta/current'))
+            member = values.get(('workspace/' + ref['workspace_id'], 'member/' + user_id))
+            role = member.get('role') if workspace and member else None
             if role:
                 result.append({"id": workspace["id"], "name": workspace["name"], "owner": workspace["owner"], "role": role})
         return sorted(result, key=lambda item: item["name"].casefold())
@@ -124,9 +170,10 @@ class DynamoStore:
 
     def workspace_invitations(self, user_id):
         refs = self._workspace_query("user/" + user_id, "invite/")
+        values = self._get_many(self._workspace_key(ref['workspace_id'], 'meta', 'current') for ref in refs)
         result = []
         for ref in refs:
-            workspace = self.workspace(ref["workspace_id"])
+            workspace = values.get(('workspace/' + ref['workspace_id'], 'meta/current'))
             if workspace:
                 result.append({k: ref[k] for k in ("workspace_id", "email", "role", "invited_by", "created")} | {"name": workspace["name"]})
         return sorted(result, key=lambda item: item["created"], reverse=True)
@@ -297,6 +344,39 @@ class DynamoStore:
             if not page.get("LastEvaluatedKey"):
                 return result
             arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+
+    def _index_candidates(self, index, expression, names, values, kind):
+        """Indexes nominate keys; strongly consistent base reads grant authority."""
+        arguments = dict(TableName=self.table, IndexName=index,
+                         KeyConditionExpression=expression,
+                         ExpressionAttributeNames=names,
+                         ExpressionAttributeValues=attrs(values))
+        result = []
+        while True:
+            page = self.client.query(**arguments)
+            keys = [row(item) for item in page.get('Items', [])]
+            keys = [{'PK': item['PK'], 'SK': item['SK']} for item in keys
+                    if item['PK'].startswith('tenant/') and item['SK'].startswith(kind + '/')]
+            result.extend(self._get_many(keys).values())
+            if not page.get('LastEvaluatedKey'):
+                return result
+            arguments['ExclusiveStartKey'] = page['LastEvaluatedKey']
+
+    def _work_jobs(self, statuses):
+        if not self.work_state_index:
+            return [item for item in self._scan('job') if item['status'] in statuses]
+        found = {}
+        try:
+            for status in statuses:
+                for item in self._index_candidates(self.work_state_index, '#status=:status',
+                                                  {'#status': 'status'}, {':status': status}, 'job'):
+                    if item.get('kind') == 'job' and item['status'] in statuses:
+                        found[item['PK'], item['SK']] = item
+        except ClientError as exc:
+            if exc.response['Error']['Code'] not in ('AccessDeniedException', 'ResourceNotFoundException', 'ValidationException'):
+                raise
+            return [item for item in self._scan('job') if item['status'] in statuses]
+        return list(found.values())
 
     def create_api_key(self, tenant, record):
         """Store the hash under the tenant and a hash-free random-ID lookup pointer."""
@@ -922,8 +1002,10 @@ class DynamoStore:
                 return out
             arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
 
-    def queued_jobs(self):
-        return sorted((item for item in self._scan("job") if item["status"] == "queued"), key=lambda item: (item.get("queued_at", item["created"]), item["id"]))
+    def queued_jobs(self, *, authoritative=False):
+        candidates = ([item for item in self._scan('job') if item['status'] == 'queued']
+                      if authoritative else self._work_jobs(('queued',)))
+        return sorted(candidates, key=lambda item: (item.get("queued_at", item["created"]), item["id"]))
 
     @staticmethod
     def _reservation_key(tenant, ident, attempt=0):
@@ -973,7 +1055,9 @@ class DynamoStore:
             return False
         # Scheduler walks this list in order; this check also prevents a new API
         # request from jumping ahead of an older waiting scan.
-        waiting = [item for item in self.queued_jobs() if item.get("admitted_at") is None and item["deadline"] > now]
+        # GSI visibility can lag an older waiter. Admission fairness still
+        # requires the existing strong scan; indexes only nominate dispatches.
+        waiting = [item for item in self.queued_jobs(authoritative=True) if item.get("admitted_at") is None and item["deadline"] > now]
         if waiting and (waiting[0]["tenant"], waiting[0]["id"]) != (tenant, ident):
             return False
         attempt = int(job.get("resume_attempt") or 0)
@@ -1025,7 +1109,9 @@ class DynamoStore:
 
     def expire(self, now=None):
         now = time.time() if now is None else now
-        for job in self._scan("job"):
+        candidates = (self._work_jobs(('queued', 'collecting', 'collected', 'analyzing'))
+                      if self.work_state_index else self._scan('job'))
+        for job in candidates:
             self._expire_job(job, now)
 
     def expire_job(self, tenant, ident, now=None):
@@ -1062,7 +1148,9 @@ class DynamoStore:
             raise ValueError("Tenant required for targeted claim")
         now = time.time() if now is None else now
         ready, active = ("queued", "collecting") if role == "collector" else ("collected", "analyzing")
-        candidates = [self.job(tenant, ident)] if ident is not None else self._scan("job")
+        candidates = ([self.job(tenant, ident)] if ident is not None else
+                      self._work_jobs(('queued', 'collecting', 'collected', 'analyzing'))
+                      if self.work_state_index else self._scan('job'))
         for job in sorted(candidates, key=lambda x: (x.get("queued_at", x["created"]), x["id"])):
             if job["deadline"] <= now:
                 self._expire_job(job, now)
@@ -1182,7 +1270,16 @@ class DynamoStore:
 
     def due_schedules(self, now=None):
         now = time.time() if now is None else now
-        return [value for value in self._scan("schedule") if value["enabled"] and value["next_run"] <= now]
+        try:
+            candidates = (self._index_candidates(self.schedule_time_index, '#kind=:kind AND #next<=:now',
+                          {'#kind': 'kind', '#next': 'next_run'}, {':kind': 'schedule', ':now': now}, 'schedule')
+                          if self.schedule_time_index else self._scan('schedule'))
+        except ClientError as exc:
+            if exc.response['Error']['Code'] not in ('AccessDeniedException', 'ResourceNotFoundException', 'ValidationException'):
+                raise
+            candidates = self._scan('schedule')
+        return [value for value in candidates if (not self.schedule_time_index or value.get('kind') == 'schedule')
+                and value["enabled"] and value["next_run"] <= now]
 
     def pause_schedule(self, tenant, ident, *, reason="Schedule disabled: identity is no longer eligible"):
         try:

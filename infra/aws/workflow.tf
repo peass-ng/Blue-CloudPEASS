@@ -11,6 +11,8 @@ locals {
     PEASO_COGNITO_CLIENT_ID        = local.client_id
     PEASO_STORAGE                  = "dynamodb"
     PEASO_DYNAMODB_TABLE           = aws_dynamodb_table.metadata.name
+    PEASO_WORK_STATE_INDEX         = "work-state"
+    PEASO_SCHEDULE_TIME_INDEX      = "schedule-time"
     PEASO_ARTIFACT_BUCKET          = aws_s3_bucket.artifacts.id
     PEASO_SCAN_TIMEOUT_SECONDS     = tostring(var.scan_runtime_limits.workflow_seconds)
     PEASO_COLLECTOR_VCPU           = tostring(var.worker_resources.collector.cpu / 1024)

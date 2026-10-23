@@ -89,9 +89,10 @@ def _json_response(response, content):
         raise GcpLogAccessError("invalid_log_response") from None
 
 
-def _request(method, url, headers, *, params=None, body=None):
+def _request(method, url, headers, *, params=None, body=None, session=None):
     try:
-        response = requests.request(method, url, headers=headers, params=params, json=body,
+        request = requests.request if session is None else session.request
+        response = request(method, url, headers=headers, params=params, json=body,
                                     timeout=10, stream=True, allow_redirects=False)
     except requests.RequestException:
         raise GcpLogAccessError("log_read_unavailable") from None
@@ -110,7 +111,7 @@ def _request(method, url, headers, *, params=None, body=None):
         response.close()
 
 
-def _verify_project(auth, headers, project):
+def _verify_project(auth, headers, project, *, session=None):
     # For hosted platform credentials, the connector-specific approval label is
     # mandatory even when a caller selected an explicit project scope.
     if auth.get("method") != "platform-service-account":
@@ -119,7 +120,7 @@ def _verify_project(auth, headers, project):
     if not isinstance(label, str):
         raise GcpLogAccessError("customer_project_not_approved")
     try:
-        value = _request("GET", f"https://cloudresourcemanager.googleapis.com/v3/projects/{project}", headers)
+        value = _request("GET", f"https://cloudresourcemanager.googleapis.com/v3/projects/{project}", headers, session=session)
     except GcpLogAccessError:
         raise GcpLogAccessError("customer_project_not_approved") from None
     if value.get("projectId") != project or not approved_project(value, label):
@@ -137,7 +138,7 @@ def _filter(kind, cluster, after):
             f'AND resource.labels.cluster_name="{cluster}" AND protoPayload.serviceName="k8s.io"')
 
 
-def _entries(headers, kind, project, cluster, *, max_pages):
+def _entries(headers, kind, project, cluster, *, max_pages, session=None):
     after = datetime.now(timezone.utc) - WINDOW
     filter_text = _filter(kind, cluster, after)
     token = None
@@ -148,7 +149,7 @@ def _entries(headers, kind, project, cluster, *, max_pages):
                 "orderBy": "timestamp desc", "pageSize": PAGE_SIZE}
         if token:
             body["pageToken"] = token
-        page = _request("POST", "https://logging.googleapis.com/v2/entries:list", headers, body=body)
+        page = _request("POST", "https://logging.googleapis.com/v2/entries:list", headers, body=body, session=session)
         rows = page.get("entries", [])
         if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
             raise GcpLogAccessError("invalid_log_response")
@@ -170,19 +171,25 @@ def _entries(headers, kind, project, cluster, *, max_pages):
 def _run(auth, scopes, options, settings, source, *, analyze, rules=None):
     kind, project, cluster = _source(auth, scopes, options, source)
     credentials = None
+    session = None
     try:
         credentials = Credentials(_auth(auth, settings), timeout=10)
         headers = credentials.headers()
-        _verify_project(auth, headers, project)
+        session = requests.Session()
+        _verify_project(auth, headers, project, session=session)
         events, truncated = _entries(headers, kind, project, cluster,
-                                     max_pages=MAX_PAGES if analyze else 1)
+                                     max_pages=MAX_PAGES if analyze else 1, session=session)
     except GcpLogAccessError:
         raise
     except Exception:
         raise GcpLogAccessError("log_read_unavailable") from None
     finally:
-        if credentials is not None:
-            credentials.close()
+        try:
+            if session is not None:
+                session.close()
+        finally:
+            if credentials is not None:
+                credentials.close()
     if not analyze:
         return {"project_id": project, "source_status": "accessible",
                 "coverage": ("Cloud Logging accepted the read, but no matching audit entry was found in the last 24 hours. "

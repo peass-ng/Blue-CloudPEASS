@@ -34,6 +34,24 @@ def finding(index: int) -> dict:
             "legitimate_context": ["Reviewed maintenance may cause this event."]}
 
 
+def test_prepared_event_receipts_are_immutable_bound_and_live_verified(tmp_path, monkeypatch):
+    ledger = LocalAttackHistoryLedger(tmp_path)
+    chunk = ledger.put_finding_chunks('tenant', 'job', [finding(1)])[0]
+    rows = ledger.get_finding_chunk('tenant', 'job', chunk)
+    rows[0]['event_id'] = 'caller-mutated'
+    monkeypatch.setattr(ledger, 'get_finding_chunk', lambda *args: pytest.fail('prepared chunk was parsed again'))
+    assert ledger.get_finding_event_ids('tenant', 'job', chunk) == ('event-1',)
+    with pytest.raises(ValueError):
+        ledger.get_finding_event_ids('other', 'job', chunk)
+    with pytest.raises(ValueError):
+        ledger.get_finding_event_ids('tenant', 'job', dict(chunk, count=True))
+    path = ledger._path('tenant', 'job', 'findings', chunk['ref'], chunk['sha256'])
+    raw = path.read_bytes()
+    path.write_bytes(raw.replace(b'event-1', b'event-2'))
+    with pytest.raises(ValueError, match='digest mismatch'):
+        ledger.get_finding_event_ids('tenant', 'job', chunk)
+
+
 def test_manifest_content_address_and_tenant_job_binding(tmp_path: Path) -> None:
     ledger = LocalAttackHistoryLedger(tmp_path)
     selected = manifest()
@@ -48,6 +66,27 @@ def test_manifest_content_address_and_tenant_job_binding(tmp_path: Path) -> None
     path.write_text("{}")
     with pytest.raises(ValueError, match="digest mismatch"):
         ledger.get_manifest("tenant-a", "job-a", pointer.ref, pointer.sha256)
+
+
+def test_warm_manifest_skips_decoding_but_rechecks_live_file(tmp_path, monkeypatch):
+    ledger = LocalAttackHistoryLedger(tmp_path)
+    selected = manifest()
+    pointer = ledger.put_manifest('tenant', 'job', selected)
+    first = ledger.get_manifest('tenant', 'job', pointer.ref, pointer.sha256)
+
+    def unexpected_decode(body):
+        raise AssertionError('unchanged verified bytes should not be parsed again')
+
+    monkeypatch.setattr(ledger, '_decoded_body', unexpected_decode)
+    assert ledger.get_manifest('tenant', 'job', pointer.ref, pointer.sha256) is first
+    path = ledger._path('tenant', 'job', 'manifest', pointer.ref, pointer.sha256)
+    raw = path.read_bytes()
+    path.write_bytes(raw[:-1] + b' ')
+    with pytest.raises(ValueError, match='digest mismatch'):
+        ledger.get_manifest('tenant', 'job', pointer.ref, pointer.sha256)
+    path.unlink()
+    with pytest.raises(ValueError, match='unavailable'):
+        ledger.get_manifest('tenant', 'job', pointer.ref, pointer.sha256)
 
 
 def test_more_than_ten_thousand_findings_chunk_without_truncation(tmp_path: Path) -> None:

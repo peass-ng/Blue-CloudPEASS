@@ -11,6 +11,8 @@ locals {
     PEASO_COGNITO_CLIENT_ID                 = local.client_id
     PEASO_STORAGE                           = "dynamodb"
     PEASO_DYNAMODB_TABLE                    = aws_dynamodb_table.metadata.name
+    PEASO_WORK_STATE_INDEX                  = "work-state"
+    PEASO_SCHEDULE_TIME_INDEX               = "schedule-time"
     PEASO_ARTIFACT_BUCKET                   = aws_s3_bucket.artifacts.id
     PEASO_CREDENTIAL_SECRET_ARN             = aws_secretsmanager_secret.credentials.arn
     PEASO_GCP_PLATFORM_SA_SECRET_ARN        = var.gcp_platform_sa_secret_arn
@@ -40,13 +42,13 @@ resource "aws_cloudwatch_log_group" "scheduler" {
   retention_in_days = 7
 }
 resource "aws_lambda_function" "api" {
-  function_name                  = "${local.name}-api"
-  role                           = aws_iam_role.api.arn
-  runtime                        = "python3.12"
-  architectures                  = ["x86_64"]
-  handler                        = "peaso.server.lambda_handler.handler"
-  filename                       = var.api_zip
-  source_code_hash               = filebase64sha256(var.api_zip)
+  function_name    = "${local.name}-api"
+  role             = aws_iam_role.api.arn
+  runtime          = "python3.12"
+  architectures    = ["x86_64"]
+  handler          = "peaso.server.lambda_handler.handler"
+  filename         = var.api_zip
+  source_code_hash = filebase64sha256(var.api_zip)
   # Catalog data and native finding hydration can coexist in a warm API process.
   memory_size                    = 1792
   timeout                        = 28

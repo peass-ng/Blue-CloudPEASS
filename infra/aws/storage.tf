@@ -154,6 +154,34 @@ resource "aws_dynamodb_table" "metadata" {
     name = "SK"
     type = "S"
   }
+  attribute {
+    name = "status"
+    type = "S"
+  }
+  attribute {
+    name = "created"
+    type = "N"
+  }
+  attribute {
+    name = "kind"
+    type = "S"
+  }
+  attribute {
+    name = "next_run"
+    type = "N"
+  }
+  global_secondary_index {
+    name            = "work-state"
+    hash_key        = "status"
+    range_key       = "created"
+    projection_type = "KEYS_ONLY"
+  }
+  global_secondary_index {
+    name            = "schedule-time"
+    hash_key        = "kind"
+    range_key       = "next_run"
+    projection_type = "KEYS_ONLY"
+  }
   ttl {
     attribute_name = "expires_at"
     enabled        = true
