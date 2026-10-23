@@ -1441,6 +1441,97 @@ class K8sModel(ExactEvidenceMixin, Model):
             return ("unknown", "target_rbac_rules_incomplete")
         return False
 
+    def target_gain_required(self):
+        return (self.current_entry or {}).get("id") in {
+            "k8s-rbac-impersonate-users", "k8s-rbac-impersonate-groups",
+            "k8s-rbac-impersonate-serviceaccounts"}
+
+    def target_gain(self, source, target):
+        if self.target_gain_required():
+            return self._plain_impersonation_gain(source, target)
+        return None
+
+    def _plain_impersonation_gain(self, source, target):
+        """A user, group, or ServiceAccount impersonation must add an RBAC right."""
+        if (target.kind not in ("k8s_user", "k8s_group", "k8s_service_account") or
+                source.attrs.get("cluster") != target.attrs.get("cluster")):
+            return False
+        complete = all(self._complete(kind) for kind in
+                       ("role", "clusterrole", "rolebinding", "clusterrolebinding"))
+        cluster = target.attrs["cluster"]
+        known_namespaces = sorted(ns for ns in self.namespaces.get(cluster, ()) if ns)
+        uncertain = False
+        checked = 0
+        if target.kind == "k8s_service_account":
+            # Impersonate-User does not itself authorize Impersonate-Group headers.
+            # A ServiceAccount's group bindings are reachable only when the source
+            # can impersonate that exact group as well.
+            keys = [f"sa:{target.attrs['namespace']}:{target.attrs['name']}",
+                    f"user:{target.attrs['user']}", "group:system:authenticated"]
+            for group in target.attrs.get("groups") or ():
+                if group == "system:authenticated":
+                    continue
+                grant = self.check(source, {"verb": "impersonate", "resource": "groups",
+                                            "namespace": "*", "resource_name": group},
+                                   ("*", group, None))
+                if grant is not None and grant.confidence == "derived":
+                    keys.append(f"group:{group}")
+                elif grant is not None:
+                    uncertain = True
+            bound = [item for key in keys for item in self.bindings.get((cluster, key), ())]
+            rules = ((ns, rule, evidence) for ns, role_key, evidence in bound
+                     for rule in (self.roles.get(role_key) or {}).get("rules", ()))
+            if any(role_key not in self.roles for _, role_key, _ in bound):
+                uncertain = True
+        else:
+            rules = self._rules(target)
+        for bound_ns, rule, _ in rules:
+            if rule is None:
+                uncertain = True
+                continue
+            verbs = [str(v) for v in as_list(rule.get("verbs"))]
+            groups = [str(g) for g in as_list(rule.get("apiGroups"))]
+            resources = [str(r) for r in as_list(rule.get("resources"))]
+            names = [str(n) for n in as_list(rule.get("resourceNames"))] or [None]
+            if not verbs or not groups or not resources:
+                uncertain = uncertain or bool(rule.get("nonResourceURLs"))
+                continue
+            if "*" in verbs or "*" in groups or "*" in resources:
+                uncertain = True
+                verbs = [v for v in verbs if v != "*"] or ["get", "create", "update"]
+                groups = [g for g in groups if g != "*"] or ["", "apps", "rbac.authorization.k8s.io"]
+                resources = [r for r in resources if r != "*"] or ["secrets", "pods", "clusterroles"]
+            for verb in verbs:
+                for group in groups:
+                    for resource in resources:
+                        base, _, sub = resource.partition("/")
+                        namespaces = (["*"] if base in CLUSTER_SCOPED else
+                                      [bound_ns] if bound_ns else known_namespaces)
+                        if not namespaces:
+                            uncertain = True
+                        for ns in namespaces:
+                            for name in names:
+                                checked += 1
+                                if checked > 256:
+                                    return ("unknown", "impersonated_user_rule_probe_limit")
+                                req = {"verb": verb, "api_group": group, "resource": base,
+                                       "_rbac_only": True, **({"subresource": sub} if sub else {})}
+                                ref = (ns, name, None)
+                                target_grant = self.check(target, req, ref)
+                                if target_grant is None:
+                                    continue
+                                if target_grant.confidence != "derived":
+                                    uncertain = True
+                                    continue
+                                source_grant = self.check(source, req, ref)
+                                if source_grant is None:
+                                    return None if complete else ("conditional", "source_rbac_inventory_incomplete")
+                                if source_grant.confidence != "derived":
+                                    return ("conditional", "source_direct_permission_not_fully_resolved")
+        if not complete:
+            return ("unknown", "impersonated_user_rbac_inventory_incomplete")
+        return ("unknown", "impersonated_user_right_not_fully_probed") if uncertain else False
+
     def _dangling_sa_binding_gain(self, source, target):
         """A missing SA name is useful only when its direct binding adds a right."""
         if source is None or target.kind != "k8s_service_account" or source.attrs.get("cluster") != target.attrs.get("cluster"):
