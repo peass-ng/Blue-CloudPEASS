@@ -21,7 +21,11 @@ from peaso.collectors import aws
 
 ACCOUNT, FOREIGN, REGION = '123456789012', '999999999999', 'us-east-1'
 SCOPE = ACCOUNT + '/' + REGION
-NOW = datetime(2026, 10, 19, 12, tzinfo=timezone.utc)
+NOW = datetime.now(timezone.utc).replace(microsecond=0)
+
+
+def days_ago(days):
+    return (NOW - timedelta(days=days)).isoformat().replace('+00:00', 'Z')
 REGISTRY = {c.id: c for c in engine._registry()}
 INPUT = json.loads(Path('docs/aws-review/identity-closure-review.json').read_text())
 INPUT_IDS = [r['id'] for r in INPUT['checks'] if r['disposition'] == 'unproved_contract']
@@ -69,9 +73,9 @@ def gaad(action='s3:GetObject', *, account=ACCOUNT, attached=True, inline=True, 
 
 
 def csv_content(**changes):
-    row = {'user': 'review', 'arn': f'arn:aws:iam::{ACCOUNT}:user/review', 'user_creation_time': '2026-10-01T00:00:00Z',
-           'password_enabled': 'true', 'password_last_used': '2026-10-18T00:00:00Z',
-           'password_last_changed': '2026-10-01T00:00:00Z', 'password_next_rotation': 'N/A', 'mfa_active': 'true',
+    row = {'user': 'review', 'arn': f'arn:aws:iam::{ACCOUNT}:user/review', 'user_creation_time': days_ago(730),
+           'password_enabled': 'true', 'password_last_used': days_ago(1),
+           'password_last_changed': days_ago(18), 'password_next_rotation': 'N/A', 'mfa_active': 'true',
            'cert_1_active': 'false', 'cert_1_last_rotated': 'N/A', 'cert_2_active': 'false', 'cert_2_last_rotated': 'N/A'}
     for n in (1, 2):
         row.update({f'access_key_{n}_active': 'false', f'access_key_{n}_last_rotated': 'N/A',
@@ -85,7 +89,7 @@ def csv_content(**changes):
 class Native:
     def __init__(self, monkeypatch):
         # SDK responses below are dated at NOW. Capture on that same timeline
-        # so the one-day root-use contract does not expire as wall time passes.
+        # so native report reads and the scan clock describe one interval.
         original_init = aws.Requests.__init__
         def captured_init(requests, *args, **kwargs):
             original_init(requests, *args, **kwargs)
@@ -308,7 +312,7 @@ CREDENTIAL_ORDINARY = [cid for cid in CREDENTIAL_IDS if not cid.endswith(('conso
 
 
 def credential_changes(cid, unsafe):
-    old, recent = '2025-01-01T00:00:00Z', '2026-10-18T00:00:00Z'
+    old, recent = days_ago(700), days_ago(1)
     changes = {}
     if cid.endswith(('report_all_mfa', 'report_console_mfa', 'root_mfa')):
         changes['mfa_active'] = 'false' if unsafe else 'true'
@@ -356,7 +360,7 @@ def test_public_credential_csv_field_contract(native, cid, state):
 @pytest.mark.parametrize('configured', [False, True])
 def test_public_credential_rotation_does_not_invent_setup_creation(native, configured):
     native.add('iam', 'get_credential_report', {'Content': csv_content(access_key_1_active='true' if configured else 'false',
-        access_key_1_last_rotated='2026-10-01T00:00:00Z' if configured else 'N/A'), 'ReportFormat': 'text/csv', 'GeneratedTime': NOW})
+        access_key_1_last_rotated=days_ago(18) if configured else 'N/A'), 'ReportFormat': 'text/csv', 'GeneratedTime': NOW})
     cid = 'aws.a.iam.console_key_created_at_setup'
     statuses = evaluate(native.collect(['iam_credential_report']), [cid], 'credential_setup_'+str(configured), native)
     assert statuses[cid] == ['UNKNOWN' if configured else 'PASS']
@@ -453,7 +457,9 @@ def test_public_role_trust_and_last_used(native, cid, unsafe):
         if not unsafe: trust['Statement'][0]['Condition'] = {'StringEquals': {'aws:SourceAccount': ACCOUNT}}
         elif 'service_trust' in cid: trust['Statement'][0]['Condition'] = {'StringEquals': {'aws:SourceIp': '192.0.2.1'}}
         role['AssumeRolePolicyDocument'] = quote(json.dumps(trust))
-    if 'role_used' in cid: role['RoleLastUsed']['LastUsedDate'] = datetime(2025, 1, 1, tzinfo=timezone.utc) if unsafe else NOW
+    if 'role_used' in cid:
+        role['CreateDate'] = NOW - timedelta(days=90)
+        role['RoleLastUsed']['LastUsedDate'] = NOW - timedelta(days=75) if unsafe else NOW
     native.iam(body)
     assert evaluate(native.collect(IAM_KINDS), [cid], 'role_'+str(unsafe)+'_'+cid, native)[cid] == ['FAIL' if unsafe else 'PASS']
 
