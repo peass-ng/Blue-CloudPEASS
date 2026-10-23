@@ -1171,7 +1171,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "native_requirement_review": "The native precondition checks global CreateResource, PassRole on the exact CloudFormation role, and that role’s ability to create one administrator user."
     },
     "aws-cloudformation-changeset-attached-role": {
       "provider": "aws",
@@ -2781,7 +2782,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "native_requirement_review": "The native precondition checks every resource in one RunInstances request and PassRole on the exact instance-profile role."
     },
     "aws-ec2-requestspotinstances-passrole": {
       "provider": "aws",
@@ -2807,7 +2809,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "native_requirement_review": "The native precondition checks every resource in one Spot request and PassRole on the exact instance-profile role."
     },
     "aws-ecs-ecscape-agent-impersonation": {
       "provider": "aws",
