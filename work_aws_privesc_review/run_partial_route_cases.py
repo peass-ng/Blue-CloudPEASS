@@ -45,8 +45,10 @@ def main():
     args.junit.parent.mkdir(parents=True, exist_ok=True)
     args.basetemp.parent.mkdir(parents=True, exist_ok=True)
     command = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
-               "-n", str(args.workers), "--dist", "loadfile",
-               "--junitxml", str(args.junit), "--basetemp", str(args.basetemp), *refs]
+               "--junitxml", str(args.junit), "--basetemp", str(args.basetemp)]
+    if args.workers > 1:
+        command.extend(("-n", str(args.workers), "--dist", "loadfile"))
+    command.extend(refs)
     raise SystemExit(subprocess.call(command, cwd=ROOT))
 
 
