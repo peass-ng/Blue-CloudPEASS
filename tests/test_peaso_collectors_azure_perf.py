@@ -100,9 +100,9 @@ def broad_handler(index):
         if path == "/subscriptions/sub-a/resources":
             return index()
         if path == "/subscriptions/sub-a/providers/Microsoft.Network/virtualNetworks":
-            return {"value": [{"id": "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v", "properties": {"subnets": []}}]}
+            return {"value": [{"id": "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v", "type": "Microsoft.Network/virtualNetworks", "properties": {"subnets": []}}]}
         if path == "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v":
-            return {"id": path, "properties": {"subnets": []}}
+            return {"id": path, "type": "Microsoft.Network/virtualNetworks", "properties": {"subnets": []}}
         return {"value": []}
     return handler
 
