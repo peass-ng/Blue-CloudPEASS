@@ -42,16 +42,15 @@ resource "aws_cloudwatch_log_group" "scheduler" {
   retention_in_days = 7
 }
 resource "aws_lambda_function" "api" {
-  function_name     = "${local.name}-api"
-  role              = aws_iam_role.api.arn
-  runtime           = "python3.12"
-  architectures     = ["x86_64"]
-  handler           = "peaso.server.lambda_handler.handler"
-  filename          = null
-  s3_bucket         = aws_s3_object.api_zip.bucket
-  s3_key            = aws_s3_object.api_zip.key
-  s3_object_version = aws_s3_object.api_zip.version_id
-  source_code_hash  = filebase64sha256(var.api_zip)
+  function_name    = "${local.name}-api"
+  role             = aws_iam_role.api.arn
+  runtime          = "python3.12"
+  architectures    = ["x86_64"]
+  handler          = "peaso.server.lambda_handler.handler"
+  filename         = null
+  s3_bucket        = aws_s3_object.api_zip.bucket
+  s3_key           = aws_s3_object.api_zip.key
+  source_code_hash = filebase64sha256(var.api_zip)
   # Catalog data and native finding hydration can coexist in a warm API process.
   memory_size                    = 1792
   timeout                        = 28
@@ -68,7 +67,6 @@ resource "aws_lambda_function" "scheduler" {
   filename                       = null
   s3_bucket                      = aws_s3_object.api_zip.bucket
   s3_key                         = aws_s3_object.api_zip.key
-  s3_object_version              = aws_s3_object.api_zip.version_id
   source_code_hash               = filebase64sha256(var.api_zip)
   memory_size                    = 256
   timeout                        = 60

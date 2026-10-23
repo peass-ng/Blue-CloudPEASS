@@ -103,7 +103,12 @@ def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     assert "Default" not in template["Parameters"]["CollectorRoleArn"]
     assert trust["Condition"]["StringEquals"]["sts:ExternalId"] == {"Ref": "ExternalId"}
     storage = (root / "infra/aws/storage.tf").read_text()
-    assert deploy.RUNTIME_CONFIG_SHA256["storage.tf"] == hashlib.sha256(storage.encode()).hexdigest()
+    assert deploy.API_DELIVERY_SOURCE["storage.tf"][2] == hashlib.sha256(storage.encode()).hexdigest()
+    predecessor = storage.encode()
+    for after, before in deploy.API_DELIVERY_CONTENT_REVERSE["storage.tf"]:
+        assert predecessor.count(after) == 1
+        predecessor = predecessor.replace(after, before, 1)
+    assert hashlib.sha256(predecessor).hexdigest() == deploy.API_DELIVERY_SOURCE["storage.tf"][1]
     assert 'resource "aws_s3_bucket" "templates"' in storage
     assert 'count  = var.enable_public_customer_role_template ? 1 : 0' in storage
     assert 'bucket = "${local.name}-templates-${local.account_id}"' in storage
