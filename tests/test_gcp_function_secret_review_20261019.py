@@ -10,7 +10,9 @@ from peaso import secret_scanning as scanning
 from peaso.secret_findings import deduplicate_secret_findings
 from peaso.collectors import gcp
 from peaso.collectors import gcp_function_secret_indicators as projection
+from peaso.collectors import gcp_function_secret_pairs_20261020 as paired_projection
 from peaso.checks import gcp_function_secret_review_20261019 as check
+from peaso.checks import CHECKS
 
 SCOPE = 'projects/review'
 NAME = SCOPE + '/locations/us-central1/functions/worker'
@@ -47,6 +49,12 @@ def projected(row, **kwargs):
 def index(row, status='collected'):
     return {'context': {'provider': 'gcp', 'scope': SCOPE},
             'collections': {'function': [{'scope': SCOPE, 'status': status, 'items': [row]}]}}
+
+
+def current_check():
+    matching = [entry for entry in CHECKS if entry.id == check.CHECK_ID]
+    assert len(matching) == 1
+    return matching[0]
 
 
 @pytest.fixture
@@ -238,7 +246,9 @@ def test_actual_transport_installed_hook_keeps_cache_evidence_and_serialization_
     item = first['functions'][0]
     assert item['serviceConfig']['environmentVariableNames'] == ['SETTING']
     assert 'environmentVariables' not in item['serviceConfig']
-    assert check.evaluate(item, index(item))[0] == ('FAIL' if enabled else 'UNKNOWN')
+    if enabled:
+        assert item[paired_projection.MARKER]['schema'] == paired_projection.SCHEMA
+    assert current_check().evaluate(item, index(item))[0] == ('FAIL' if enabled else 'UNKNOWN')
     safe_cache = [entry['data'] for entry in transport.cache.values()]
     serialized = json.dumps([first, repeated, safe_cache, transport.evidence]) + str(capsys.readouterr())
     assert TOKEN not in serialized and TOKEN not in repr(scanning._RESULTS)
@@ -269,6 +279,8 @@ def test_installed_transport_to_collector_pipeline_keeps_names_and_safe_indicato
         assert method == 'GET'
         calls.append(url)
         if url == URL: return Response({'functions': [raw({'SETTING': TOKEN}, {'BUILD_SETTING': TOKEN})]})
+        if url == 'https://cloudfunctions.googleapis.com/v2/' + SCOPE + '/locations':
+            return Response({'locations': []})
         assert url == 'https://cloudfunctions.googleapis.com/v2/' + NAME + ':getIamPolicy'
         return Response({'bindings': []})
     transport = instrumented_transport()(SimpleNamespace(headers=lambda: {}, close=lambda: None),
@@ -283,9 +295,15 @@ def test_installed_transport_to_collector_pipeline_keeps_names_and_safe_indicato
     row, = envelope['items']
     assert row['serviceConfig']['environmentVariableNames'] == ['SETTING']
     assert row['buildConfig']['environmentVariableNames'] == ['BUILD_SETTING']
-    assert check.evaluate(row, index(row))[0] == ('FAIL' if enabled else 'UNKNOWN')
+    if enabled:
+        assert row[paired_projection.MARKER]['schema'] == paired_projection.SCHEMA
+    assert current_check().evaluate(row, index(row))[0] == ('FAIL' if enabled else 'UNKNOWN')
     assert TOKEN not in json.dumps(snapshot) + json.dumps(transport.evidence)
-    assert len(calls) == 2
+    assert sorted(calls) == sorted([
+        URL,
+        'https://cloudfunctions.googleapis.com/v2/' + NAME + ':getIamPolicy',
+        'https://cloudfunctions.googleapis.com/v2/' + SCOPE + '/locations',
+    ])
 
 
 def test_detected_value_repeated_in_names_and_freeform_metadata_is_redacted(installed_engines):
