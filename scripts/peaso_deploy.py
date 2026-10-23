@@ -39,6 +39,7 @@ ACCOUNT = deployment.value("account_id")
 REPOSITORY = f"{ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
 ZERO_IMAGE = REPOSITORY + "@sha256:" + "0" * 64
 CUSTOMER_ROLE_DOWNLOAD_KEY = "aws/customer-role.json"
+API_PACKAGE_KEY = "runtime-packages/api.zip"
 # Immutable data consumed by the source-bound native registry at import time.
 RUNTIME_ADMISSION_INPUTS = {
     "tests/fixtures/azure_nsp_query_cmk_metadata_proposal_20261020.json.gz":
@@ -1806,6 +1807,44 @@ CURRENT_IAM_RUNTIME_SHA256 = "a20b4d6d6fa5698cb55ab0fc0bed420859fe12163373c93589
 PREVIOUS_WORKFLOW_RUNTIME_SHA256 = "caed9a12c8d11c12e14d87cb74d1fdef83567648287c1d654f926114cd227d64"
 CURRENT_WORKFLOW_RUNTIME_SHA256 = "ecfaa71f9c9668d02e59571efa7a7b9e5daf6af1da9a22501a23611cf9e565a3"
 CURRENT_AI_RUNTIME_SHA256 = "0948bda88c41ea79fd25dc9c2faa656b7d71c9d29012024156017921122834a6"
+API_DELIVERY_SOURCE = {
+    "api.tf": ("0ad8ba2e7e2a7868c7366c84a6693e8e5c3420382cfb2946e641dab878b35efe",
+               "cc8046cd30d96ead3cf0b1c9d3713a83f8a01fc81114bd31ad667852dbab1229"),
+    "storage.tf": ("44dd9865f0e59364e1f4d0f65e384de44efbab1ec94acb8ca393a06e78b037cc",
+                   "79101ef40b01f86ddf6d6d2653f57176366b32bd5b336c0d8f40381444754774"),
+}
+API_DELIVERY_REVERSE = {
+    "api.tf": (
+        (b'  function_name     = "${local.name}-api"\n  role              = aws_iam_role.api.arn\n'
+         b'  runtime           = "python3.12"\n  architectures     = ["x86_64"]\n'
+         b'  handler           = "peaso.server.lambda_handler.handler"\n  filename          = null\n'
+         b'  s3_bucket         = aws_s3_object.api_zip.bucket\n  s3_key            = aws_s3_object.api_zip.key\n'
+         b'  s3_object_version = aws_s3_object.api_zip.version_id\n'
+         b'  source_code_hash  = filebase64sha256(var.api_zip)\n',
+         b'  function_name    = "${local.name}-api"\n  role             = aws_iam_role.api.arn\n'
+         b'  runtime          = "python3.12"\n  architectures    = ["x86_64"]\n'
+         b'  handler          = "peaso.server.lambda_handler.handler"\n  filename         = var.api_zip\n'
+         b'  source_code_hash = filebase64sha256(var.api_zip)\n'),
+        (b'  filename                       = null\n  s3_bucket                      = aws_s3_object.api_zip.bucket\n'
+         b'  s3_key                         = aws_s3_object.api_zip.key\n'
+         b'  s3_object_version              = aws_s3_object.api_zip.version_id\n',
+         b'  filename                       = var.api_zip\n'),
+    ),
+    "storage.tf": ((
+        b'resource "aws_s3_bucket_versioning" "artifacts" {\n'
+        b'  bucket = aws_s3_bucket.artifacts.id\n'
+        b'  versioning_configuration { status = "Enabled" }\n'
+        b'}\nresource "aws_s3_object" "api_zip" {\n'
+        b'  bucket                 = aws_s3_bucket.artifacts.id\n'
+        b'  key                    = "runtime-packages/api.zip"\n'
+        b'  source                 = var.api_zip\n'
+        b'  source_hash            = filebase64sha256(var.api_zip)\n'
+        b'  server_side_encryption = "aws:kms"\n'
+        b'  kms_key_id             = aws_kms_key.connectors.arn\n'
+        b'  metadata               = { sha256 = filesha256(var.api_zip) }\n'
+        b'  depends_on             = [aws_s3_bucket_versioning.artifacts]\n'
+        b'}\n', b''),),
+}
 ALLOWED_RESOURCES = set("""
 aws_cloudwatch_log_group.api aws_cloudwatch_log_group.scheduler aws_apigatewayv2_stage.api
 aws_budgets_budget.cspm aws_route53_record.cspm aws_ecs_task_definition.tasks
@@ -1819,6 +1858,7 @@ aws_ecs_cluster.cspm aws_s3_bucket_policy.tls aws_iam_role.execution
 aws_cloudwatch_metric_alarm.api_errors aws_vpc.cspm aws_sfn_state_machine.scan
 aws_s3_bucket.frontend aws_lambda_permission.api aws_s3_bucket_lifecycle_configuration.artifacts
 aws_s3_bucket.templates aws_s3_bucket_ownership_controls.templates aws_s3_bucket_versioning.templates
+aws_s3_bucket_versioning.artifacts aws_s3_object.api_zip
 aws_s3_bucket_server_side_encryption_configuration.templates aws_s3_bucket_public_access_block.templates
 aws_s3_bucket_policy.templates aws_s3_object.customer_role_template aws_s3_object.customer_role_download
 aws_s3_bucket_ownership_controls.private aws_apigatewayv2_integration.api aws_iam_role_policy.api
@@ -1844,7 +1884,7 @@ aws_iam_role.ai_execution aws_iam_role_policy.ai_execution
 # Keep dependency bytecode out of this cross-platform package. The API retains
 # complete reviewed SDK service models; workers retain the full provider SDK.
 CURRENT_API_MEMBER_LIMIT = 6000
-CURRENT_API_ARCHIVE_LIMIT = 52_428_800  # Lambda's verified zipped upload limit.
+CURRENT_API_ARCHIVE_LIMIT = 52_428_800  # Preserve the verified zipped Lambda package bound.
 # Enforce a cap below Lambda's 250 MiB uncompressed limit, including
 # layers (these functions declare none).
 # Historical artifact-update approvals retain their original byte limits.
@@ -2558,6 +2598,15 @@ def deployment_expectations(data, plan):
         current_digest = tf_files.get(name)
         if current_digest == historical_digest:
             continue
+        if name in API_DELIVERY_SOURCE and current_digest == API_DELIVERY_SOURCE[name][1]:
+            predecessor = (INFRA / name).read_bytes()
+            for replacement, original in API_DELIVERY_REVERSE[name]:
+                if predecessor.count(replacement) != 1:
+                    raise RuntimeError("API S3 delivery successor differs from its reviewed change")
+                predecessor = predecessor.replace(replacement, original, 1)
+            if hashlib.sha256(predecessor).hexdigest() != API_DELIVERY_SOURCE[name][0]:
+                raise RuntimeError("API S3 delivery successor does not reconstruct its predecessor")
+            continue
         if (name == "iam.tf" and current_digest == CURRENT_IAM_RUNTIME_SHA256
                     or name == "workflow.tf" and current_digest in {
                         PREVIOUS_WORKFLOW_RUNTIME_SHA256, CURRENT_WORKFLOW_RUNTIME_SHA256}
@@ -2628,8 +2677,53 @@ def deployment_expectations(data, plan):
                            PEASO_TASK_MEMORY_GIB=str(size["memory"] / 1024)) for stage, size in sizes.items()}
     workers["collector"]["PEASO_CREDENTIAL_SECRET_ARN"] = secret
     return {"worker_image": image, "worker_resources": sizes, "source_version": source, "api_zip": variables["api_zip"],
+            "api_s3_delivery": tf_files.get("api.tf") == API_DELIVERY_SOURCE["api.tf"][1],
             "api_code_sha256": base64.b64encode(hashlib.sha256((BUILD / "api.zip").read_bytes()).digest()).decode(),
             "api_environment": api, "worker_environments": workers}
+
+
+def check_api_delivery_plan(data, expected):
+    """Bind the Lambda source to one versioned, private, exact-byte S3 object."""
+    import base64
+    rows = {row.get("address"): row for row in data.get("resource_changes", [])}
+    obj = rows.get("aws_s3_object.api_zip")
+    versioning = rows.get("aws_s3_bucket_versioning.artifacts")
+    if not obj or not versioning or obj.get("mode") != "managed" or versioning.get("mode") != "managed":
+        raise RuntimeError("Versioned API package object is absent from saved plan")
+    change = obj.get("change") or {}
+    value = change.get("after") or {}
+    unknown = change.get("after_unknown") or {}
+    bucket = f"hacktricks-cspm-artifacts-{ACCOUNT}"
+    digest = base64.b64decode(expected["api_code_sha256"], validate=True).hex()
+    if (value.get("bucket") != bucket or value.get("key") != API_PACKAGE_KEY or
+            value.get("source") != expected["api_zip"] or
+            value.get("source_hash") != expected["api_code_sha256"] or
+            value.get("metadata") != {"sha256": digest} or
+            value.get("server_side_encryption") != "aws:kms" or
+            not re.fullmatch(rf"arn:aws:kms:us-east-1:{ACCOUNT}:key/[a-f0-9-]+", value.get("kms_key_id") or "")):
+        raise RuntimeError("Saved API package object differs from reviewed private source")
+    version = value.get("version_id")
+    version_unknown = unknown.get("version_id") is True
+    if not (isinstance(version, str) and version or version is None and version_unknown):
+        raise RuntimeError("Saved API package has no exact object version")
+    versioning_after = (versioning.get("change") or {}).get("after") or {}
+    configuration = versioning_after.get("versioning_configuration")
+    if (versioning_after.get("bucket") != bucket or
+            not isinstance(configuration, list) or len(configuration) != 1 or
+            not isinstance(configuration[0], dict) or configuration[0].get("status") != "Enabled"):
+        raise RuntimeError("Saved API package bucket versioning is not enabled")
+    for name in ("api", "scheduler"):
+        row = rows.get(f"aws_lambda_function.{name}")
+        if not row:
+            raise RuntimeError("Saved API Lambda is absent")
+        values = (row.get("change") or {}).get("after") or {}
+        markers = (row.get("change") or {}).get("after_unknown") or {}
+        if (values.get("filename") is not None or values.get("s3_bucket") != bucket or
+                values.get("s3_key") != API_PACKAGE_KEY or
+                values.get("source_code_hash") != expected["api_code_sha256"] or
+                values.get("s3_object_version") != version or
+                (markers.get("s3_object_version") is True) != version_unknown):
+            raise RuntimeError(f"Saved {name} Lambda is not bound to the reviewed API object version")
 
 
 def check_environment(environment, expected, unknown=None):
@@ -3194,6 +3288,8 @@ def plan_summary(plan, bootstrap=False, recovery_baseline=None, recovery_sha256=
     runtime = any(r.get("mode") == "managed" and r.get("type") in {"aws_ecs_task_definition", "aws_lambda_function"}
                   for r in data.get("resource_changes", []))
     expected = deployment_expectations(data, plan) if runtime and not bootstrap else None
+    if expected and expected["api_s3_delivery"]:
+        check_api_delivery_plan(data, expected)
     bootstrap_allowed = {"aws_ecr_repository.worker", "aws_ecr_lifecycle_policy.worker"}
     for resource in data.get("resource_changes", []):
         if resource.get("mode") != "managed":
@@ -3280,7 +3376,7 @@ def plan_summary(plan, bootstrap=False, recovery_baseline=None, recovery_sha256=
         if resource["type"] == "aws_lambda_function":
             if resource["name"] not in {"api", "scheduler"}:
                 raise RuntimeError("Unexpected Lambda in runtime review")
-            if values.get("filename") != expected["api_zip"]:
+            if not expected["api_s3_delivery"] and values.get("filename") != expected["api_zip"]:
                 raise RuntimeError("Saved Lambda filename differs from verified API ZIP variable")
             blocks = values.get("environment")
             markers = resource["change"].get("after_unknown", {}).get("environment")
@@ -3293,7 +3389,7 @@ def plan_summary(plan, bootstrap=False, recovery_baseline=None, recovery_sha256=
                 required_checks.append({"address": resource["address"], "field": "environment.variables", "function": resource["name"]})
             else:
                 api_environments.append(environment)
-        if resource["type"] == "aws_lambda_function" and values.get("filename"):
+        if resource["type"] == "aws_lambda_function" and not expected["api_s3_delivery"] and values.get("filename"):
             import base64
             package = Path(values["filename"])
             current_hash = base64.b64encode(hashlib.sha256(package.read_bytes()).digest()).decode()
@@ -3386,6 +3482,37 @@ def private_bytes_once(path, content):
         stream.write(content)
 
 
+def verify_resolved_api_delivery(session, contract):
+    """Read back the exact S3 version wired to both resolved Lambda resources."""
+    state = json.loads(terraform("show", "-json", capture=True).stdout)
+    rows = {item.get("address"): item.get("values") or {} for item in
+            ((state.get("values") or {}).get("root_module") or {}).get("resources", [])}
+    package = rows.get("aws_s3_object.api_zip") or {}
+    versioning = rows.get("aws_s3_bucket_versioning.artifacts") or {}
+    bucket = f"hacktricks-cspm-artifacts-{ACCOUNT}"
+    version = package.get("version_id")
+    if (package.get("bucket") != bucket or package.get("key") != API_PACKAGE_KEY or
+            not isinstance(version, str) or not version or
+            package.get("source_hash") != contract["api_code_sha256"] or
+            versioning.get("bucket") != bucket or
+            not any(item.get("status") == "Enabled" for item in versioning.get("versioning_configuration") or [])):
+        raise RuntimeError("Resolved API package version or bucket differs from reviewed delivery")
+    for name in ("api", "scheduler"):
+        values = rows.get(f"aws_lambda_function.{name}") or {}
+        if (values.get("filename") is not None or values.get("s3_bucket") != bucket or
+                values.get("s3_key") != API_PACKAGE_KEY or values.get("s3_object_version") != version):
+            raise RuntimeError(f"Resolved {name} Lambda references a different S3 version")
+    import base64
+    digest = base64.b64decode(contract["api_code_sha256"], validate=True).hex()
+    response = session.client("s3").head_object(Bucket=bucket, Key=API_PACKAGE_KEY,
+                                                  VersionId=version, ExpectedBucketOwner=ACCOUNT)
+    if (response.get("VersionId") != version or response.get("Metadata", {}).get("sha256") != digest or
+            response.get("ServerSideEncryption") != "aws:kms" or
+            response.get("SSEKMSKeyId") != package.get("kms_key_id") or
+            response.get("ContentLength") != Path(contract["api_zip"]).stat().st_size):
+        raise RuntimeError("Resolved API package object metadata differs from reviewed ZIP")
+
+
 def verify_resolved_deployment(session, plan, reviewed_sha256, recovery_baseline=None, recovery_sha256=None,
                                current_update_contract=None, current_update_sha256=None,
                                successor_update_contract=None, successor_update_sha256=None,
@@ -3431,6 +3558,8 @@ def verify_resolved_deployment(session, plan, reviewed_sha256, recovery_baseline
         raise RuntimeError("Resolved storage is outside the dedicated deployment")
     if value("api_function") != "hacktricks-cspm-api":
         raise RuntimeError("Resolved API function is outside the dedicated deployment")
+    if contract.get("api_s3_delivery"):
+        verify_resolved_api_delivery(session, contract)
     definition = json.loads(session.client("stepfunctions").describe_state_machine(stateMachineArn=workflow)["definition"])
     ecs = session.client("ecs")
     revisions = {}

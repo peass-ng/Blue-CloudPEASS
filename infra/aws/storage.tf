@@ -84,6 +84,20 @@ resource "aws_s3_bucket_policy" "templates" {
 resource "aws_s3_bucket" "artifacts" {
   bucket = "${local.name}-artifacts-${local.account_id}"
 }
+resource "aws_s3_bucket_versioning" "artifacts" {
+  bucket = aws_s3_bucket.artifacts.id
+  versioning_configuration { status = "Enabled" }
+}
+resource "aws_s3_object" "api_zip" {
+  bucket                 = aws_s3_bucket.artifacts.id
+  key                    = "runtime-packages/api.zip"
+  source                 = var.api_zip
+  source_hash            = filebase64sha256(var.api_zip)
+  server_side_encryption = "aws:kms"
+  kms_key_id             = aws_kms_key.connectors.arn
+  metadata               = { sha256 = filesha256(var.api_zip) }
+  depends_on             = [aws_s3_bucket_versioning.artifacts]
+}
 locals {
   buckets = { frontend = aws_s3_bucket.frontend.id, artifacts = aws_s3_bucket.artifacts.id }
 }
