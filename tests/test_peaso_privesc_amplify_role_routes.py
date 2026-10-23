@@ -84,7 +84,7 @@ def test_amplify_role_routes_need_a_reviewed_useful_operation():
                  "EvidenceRef": "reviewed-amplify-operation",
                  "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
                  "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
-        assert target["Arn"] in reached(run(ident, proof), ALICE, ident)
+        assert reached(run(ident, proof), ALICE, ident) == {target["Arn"]: "conditional"}
         assert target["Arn"] not in reached(run(ident), ALICE, ident)
         assert_unresolved(run(ident), ALICE, ident)
         assert target["Arn"] not in reached(run(ident, [proof, dict(proof)]), ALICE, ident)
