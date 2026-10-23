@@ -158,6 +158,8 @@ def plan(case, branch='good'):
                 r.setdefault('selfLink',C+('/regions/us-central1/' if k=='instance_group_manager' else '/global/')+endpoint.split('/')[-1]+'/'+r['name'])
             location='zones/us-central1-a' if k=='instance_group_manager' and rows and '/zones/' in rows[0].get('selfLink','') else 'regions/us-central1' if k=='instance_group_manager' else 'global'
             add(C+'/'+endpoint, {'items':{location:{key:items}}} if agg else {'items':items},primary=primary and chosen)
+        if k == 'forwarding_rule':
+            add(C+'/global/forwardingRules', {'items': []})
     if kind in {ck for ck,*_ in gcp.COMPUTE}: compute(kind,[row],True)
     elif kind in ('project','organization'):
         row.update(name='organizations/123' if kind=='organization' else 'projects/123')
