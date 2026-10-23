@@ -53,7 +53,8 @@ def spec(slug, kind, good, bad, path, **kwargs):
             'path': path, **kwargs}
 
 
-FW = {'name': 'default-allow-ssh', 'direction': 'INGRESS', 'sourceRanges': ['0.0.0.0/0'],
+FW = {'name': 'default-allow-ssh', 'direction': 'INGRESS',
+      'network': C + '/global/networks/default', 'sourceRanges': ['0.0.0.0/0'],
       'allowed': [{'IPProtocol': 'tcp', 'ports': ['22']}]}
 SPECS = [
     spec('backend_service.external_iap', 'backend_service',
@@ -168,6 +169,8 @@ def native_plan(case, variant):
                 row.setdefault('selfLink', C + '/' + location + '/' + segment + '/' + row['name'])
             data = {'items': {location: {key: items}}} if aggregate else {'items': items}
             add(C + '/' + endpoint, data, chosen)
+        if kind == 'snapshot':
+            add(row['selfLink'] + '/getIamPolicy', policy or {'bindings': []})
         if kind == 'image':
             add(C + '/global/images/review/getIamPolicy', policy)
     if 'backend_service' in case.get('dependencies', []):
@@ -219,9 +222,9 @@ def collect(case, variant, mutate=None):
                 data['nextPageToken'] = 'review-page-two'
         if 'appengine.googleapis.com' in request['url'] and request['url'].endswith('/versions'):
             assert request['params']['view'] == 'FULL'
-            assert request['params']['fields'] == 'versions(id,name,servingStatus,env,handlers(securityLevel)),nextPageToken'
+            assert request['params']['fields'] == 'versions(id,name,servingStatus,env,runtime,serviceAccount,handlers(securityLevel)),nextPageToken'
         if request['url'].endswith('getIamPolicy'):
-            assert request['params'] == ({'optionsRequestedPolicyVersion': 3} if case['kind'] == 'image' else {'options.requestedPolicyVersion': 3})
+            assert request['params'] == ({'optionsRequestedPolicyVersion': 3} if case['kind'] in ('image', 'snapshot') else {'options.requestedPolicyVersion': 3})
         responses.append({'request': deepcopy(request), 'response': deepcopy(data)})
         return data
     collected, transport = snapshot([case['kind'], *case.get('dependencies', [])], resolve,
