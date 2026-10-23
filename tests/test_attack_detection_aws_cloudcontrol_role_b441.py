@@ -6,6 +6,7 @@ from peaso.attack_detection import Rule, detect_aws_events
 
 
 ACCOUNT = "999999999999"
+OTHER_ACCOUNT = str(int(ACCOUNT) - 1)
 ROLE = f"arn:aws:iam::{ACCOUNT}:role/synthetic-handler"
 ACTOR = f"arn:aws:iam::{ACCOUNT}:user/synthetic-caller"
 RULE = Rule(
@@ -48,7 +49,7 @@ def test_denied_unrelated_and_unbounded_request_excluded():
         lambda e: e.update(errorCode="AccessDeniedException"),
         lambda e: e["requestParameters"].update(typeName="AWS::S3::Bucket"),
         lambda e: e["requestParameters"].pop("roleArn"),
-        lambda e: e["requestParameters"].update(roleArn="arn:aws:iam::111122223333:role/other"),
+        lambda e: e["requestParameters"].update(roleArn=f"arn:aws:iam::{OTHER_ACCOUNT}:role/other"),
         lambda e: e.update(readOnly=True),
         lambda e: e.update(eventSource="cloudformation.amazonaws.com"),
     ):
