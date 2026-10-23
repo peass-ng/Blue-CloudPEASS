@@ -1,4 +1,4 @@
-"""Exact BigQuery/Bigtable table-key evidence reaches only inventoried SAs."""
+"""Historical table-key evidence stays archived; no active manual-only check runs."""
 from __future__ import annotations
 
 import copy
@@ -6,6 +6,7 @@ import pytest
 
 from peaso import privesc
 from peaso.privesc.schema import validate_entry
+from peaso.privesc.versioned_catalog import _verified_reviewed_691_previous
 from tests.test_peaso_privesc_schema_ext import reached, snapshot
 
 
@@ -16,17 +17,30 @@ OTHER = "serviceAccount:other@p1.iam.gserviceaccount.com"
 CASES = (
     ("gcp-bigquery-table-row-credential", "bigquery.tables.getData",
      "projects/p1/datasets/d1/tables/keys"),
-    ("gcp-bigtable-row-credential", "bigtable.tables.readRows",
-     "projects/p1/instances/i1/tables/keys"),
 )
+MANUAL_ONLY = {"gcp-bigquery-table-row-credential", "gcp-bigtable-row-credential"}
 
 
-_CATALOG = {entry["id"]: {k: v for k, v in entry.items() if k != "_file"}
-            for entry in privesc.load_catalog()["entries"]}
+_CATALOG = _verified_reviewed_691_previous()
+
+
+def test_table_key_paths_are_historical_manual_only():
+    active = {entry["id"] for entry in privesc.load_catalog()["entries"]}
+    assert MANUAL_ONLY.isdisjoint(active)
+    assert MANUAL_ONLY <= set(_CATALOG)
+
+
+def test_historical_bigtable_row_read_does_not_name_a_service_account():
+    tid = "gcp-bigtable-row-credential"
+    permission = "bigtable.tables.readRows"
+    resource = "projects/p1/instances/i1/tables/keys"
+    assert _entry(tid)["target"]["kind"] == "gcp_verified_authority"
+    result = _run(tid, permission, resource, [_fact(tid, permission, resource)])
+    assert TARGET not in reached(result, SOURCE, tid)
 
 
 def _entry(tid):
-    return copy.deepcopy(_CATALOG[tid])
+    return copy.deepcopy({key: value for key, value in _CATALOG[tid].items() if key != "_file"})
 
 
 def _fact(tid, permission, resource):
