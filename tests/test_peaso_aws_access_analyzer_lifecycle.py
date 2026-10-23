@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 
 from peaso.collectors import aws
 from peaso.collectors import aws_access_analyzer_lifecycle as lifecycle
+from peaso.collectors.aws_iam_usage_extension import capture_contexts
 
 ACCOUNT = "123456789012"
 IDENTITY = {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/scanner"}
@@ -108,7 +109,7 @@ def test_existing_analyzers_in_other_region_are_reused_and_never_deleted(monkeyp
 def test_disabled_unused_analyzer_does_not_block_temporary_replacement(monkeypatch):
     inactive = {"arn": "disabled-unused", "name": "disabled", "type": "ACCOUNT_UNUSED_ACCESS", "status": "DISABLED"}
     requests = FakeRequests(monkeypatch, {REGIONS[0]: aws.ReadResult([inactive])})
-    with lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
+    with capture_contexts(), lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
         manager.prepare(SESSION, IDENTITY, REGIONS[:1])
         assert any(call[0] == "create" and call[3]["type"] == "ACCOUNT_UNUSED_ACCESS" for call in requests.calls)
 
@@ -119,7 +120,7 @@ def test_existing_creating_unused_analyzer_is_waited_for_and_reused(monkeypatch)
         "name": name, "type": "ACCOUNT_UNUSED_ACCESS", "status": "CREATING"}
     requests = FakeRequests(monkeypatch, {REGIONS[0]: aws.ReadResult([creating])})
     requests.records[name] = {**creating, "status": "ACTIVE"}
-    with lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
+    with capture_contexts(), lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
         manager.prepare(SESSION, IDENTITY, REGIONS[:1])
         result = manager.collect(SESSION, IDENTITY, REGIONS[0], enrich)
         assert result.items[0]["status"] == "ACTIVE"

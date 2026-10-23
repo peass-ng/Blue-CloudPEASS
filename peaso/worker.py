@@ -327,16 +327,22 @@ def _process(role, request, connection):
                 request["_scope_plan_callback"] = checkpoint_session.on_scope_plan
                 try:
                     from peaso.worker_progress import stream_progress
-                    with stream_progress(connection):
-                        if saved_rows and not remaining:
-                            from peaso.snapshot import make_snapshot
-                            snapshot = make_snapshot(prior["provider"], prior["scopes"], saved_rows,
-                                created_at=prior["created_at"], metadata=prior.get("metadata"))
-                        else:
-                            snapshot = collect_snapshot(request)
-                    if saved_rows and remaining:
-                        from peaso.collectors.resume import merge
-                        snapshot = merge(snapshot, saved_rows, prior)
+                    from peaso.collectors.aws_iam_usage_extension import capture_contexts
+                    from peaso.collectors.iam_usage_finalize import least_privilege_selected
+                    with capture_contexts(enabled=(connector.get("provider") == "aws"
+                            and least_privilege_selected("aws", request))) as aws_usage_contexts:
+                        with stream_progress(connection):
+                            if saved_rows and not remaining:
+                                from peaso.snapshot import make_snapshot
+                                snapshot = make_snapshot(prior["provider"], prior["scopes"], saved_rows,
+                                    created_at=prior["created_at"], metadata=prior.get("metadata"))
+                            else:
+                                snapshot = collect_snapshot(request)
+                        if saved_rows and remaining:
+                            from peaso.collectors.resume import merge
+                            snapshot = merge(snapshot, saved_rows, prior)
+                        from peaso.collectors.iam_usage_finalize import enrich_snapshot as enrich_iam_usage
+                        snapshot = enrich_iam_usage(snapshot, connector, request, aws_usage_contexts)
                     checkpoint_session.finish_collection()
                     snapshot.setdefault("metadata", {})["sections"] = checkpoint_session.sections()
                 finally:

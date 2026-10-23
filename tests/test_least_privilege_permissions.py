@@ -184,9 +184,25 @@ def test_azure_activity_requires_matching_caller_action_success_and_scope():
     assignment = row('role_assignment', {'properties': {'principalId': target,
         'roleDefinitionId': '/providers/Microsoft.Authorization/roleDefinitions/owner', 'scope': scope}}, scope)
     event = {'caller': target, 'eventTimestamp': '2026-10-20T12:00:00Z',
-        'status': {'value': 'Succeeded'}, 'authorization': {'action': action, 'scope': scope + '/resourceGroups/app'}}
+        'status': {'value': 'Succeeded'}, 'operationName': {'value': action},
+        'resourceId': scope + '/resourceGroups/app'}
     rows = [definition, assignment, row('activity_log', event, scope)]
     observed = enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
     assert observed['usage_basis'] == 'permission' and observed['days_since_last_access'] == 0
-    rows[-1]['data']['authorization']['scope'] = scope + '-foreign/resourceGroups/app'
+    rows[-1]['data']['resourceId'] = scope + '-foreign/resourceGroups/app'
     assert 'last_accessed' not in enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
+
+
+def test_grouping_builds_usage_index_once_for_all_principals(monkeypatch):
+    import peaso.least_privilege_permissions as usage
+    original = usage._usage_index
+    calls = []
+    def once(provider, rows):
+        calls.append((provider, len(rows)))
+        return original(provider, rows)
+    monkeypatch.setattr(usage, '_usage_index', once)
+    rows = [row('iam_user', {'Arn': ARN, 'UserPolicyList': [{'PolicyName': 'p',
+        'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:PassRole', 'Resource': '*'}]}}]})]
+    cards = [card(), dict(card(), id='other', principal=f'arn:aws:iam::{ACCOUNT}:user/Bob')]
+    grant_groups(cards, 'aws', rows, NOW)
+    assert calls == [('aws', 1)]

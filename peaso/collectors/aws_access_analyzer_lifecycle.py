@@ -17,6 +17,7 @@ class AnalyzerLifecycle:
         self.progress = progress
         self.inventories = {}
         self.owned = {}
+        self.usage_regions = {}
 
     def __enter__(self):
         return self
@@ -34,6 +35,10 @@ class AnalyzerLifecycle:
     def prepare(self, session, identity, regions):
         """List first; a failed/partial inventory never proves an analyzer absent."""
         from .aws import _failure
+        from .aws_iam_usage_extension import register_context
+        usage_scan = register_context(self.requests, session, identity, regions)
+        for region in regions:
+            self.usage_regions[(id(session), region)] = usage_scan
         account = identity["Account"]
         partition = identity["Arn"].split(":")[1]
         reads = {}
@@ -45,7 +50,7 @@ class AnalyzerLifecycle:
         # Unused IAM analysis is account-global within a partition. Prefer an
         # existing analyzer anywhere in the scanned Regions; never duplicate it.
         unused_exists = any(item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}
-                            and item.get("status") in {"ACTIVE", "CREATING"}
+                            and (not usage_scan or item.get("status") in {"ACTIVE", "CREATING"})
                             for read in reads.values() for item in read.items)
         unused_regions = {}
         for region in regions:
@@ -53,7 +58,8 @@ class AnalyzerLifecycle:
         for region, read in reads.items():
             if read.status not in OK:
                 continue
-            types = {item.get("type") for item in read.items if item.get("status") in {"ACTIVE", "CREATING"}}
+            types = {item.get("type") for item in read.items
+                     if not usage_scan or item.get("status") in {"ACTIVE", "CREATING"}}
             required = ["ACCOUNT"]
             if not unused_exists and region == unused_regions.get(partition) and all(r.status in OK for r in reads.values()):
                 required.append("ACCOUNT_UNUSED_ACCESS")
@@ -104,6 +110,7 @@ class AnalyzerLifecycle:
     def collect(self, session, identity, region, enrich):
         from .aws import _failure
         account = identity["Account"]
+        usage_scan = self.usage_regions.get((id(session), region), False)
         read = self.inventories[(id(session), region)]
         owned = [key for key in list(self.owned) if key[:2] == (id(session), region)]
         try:
@@ -127,13 +134,13 @@ class AnalyzerLifecycle:
                         from .aws import ReadFailure
                         raise ReadFailure("timeout", "access_analyzer_not_active")
                     self._wait(min(deadline, time.monotonic() + 10), account, region)
-            for item in read.items:
-                if item.get("status") != "CREATING" or item.get("_scan_temporary") or not isinstance(item.get("name"), str):
-                    continue
-                # Reuse a customer-owned analyzer that is still starting. Do
-                # not mistake its empty findings for a completed analysis.
+            pending = [item for item in read.items if usage_scan and item.get("status") == "CREATING"
+                       and not item.get("_scan_temporary") and isinstance(item.get("name"), str)]
+            if pending:
+                # One warm-up serves every customer-owned analyzer in the Region.
                 self._wait(time.monotonic() + MINIMUM_AGE_SECONDS, account, region)
-                deadline = time.monotonic() + READY_TIMEOUT_SECONDS
+            deadline = time.monotonic() + READY_TIMEOUT_SECONDS
+            for item in pending:
                 client = self.requests.client(session, "accessanalyzer", region)
                 while True:
                     self.requests.check_deadline()

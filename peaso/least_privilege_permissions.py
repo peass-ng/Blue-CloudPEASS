@@ -1,6 +1,7 @@
 """Resolve complete collected high-impact grants and correctly scoped usage facts."""
 from datetime import datetime, timezone
 from fnmatch import fnmatchcase
+from collections import defaultdict
 import re
 
 from peaso.analysis.common import as_list, native_id
@@ -24,26 +25,62 @@ def _label(row):
         or data.get('metadata', {}).get('name') or row.get('native_id') or native_id(row))
 
 
-def enrich(card, provider, resources, observed_at, *, _rows=None):
+def _usage_index(provider, rows):
+    """Index stored evidence once; rendering principals never reopens cloud logs."""
+    indexed = {'insights': defaultdict(list), 'gcp_events': defaultdict(list),
+               'gcp_actions': {}, 'azure_events': defaultdict(list), 'azure_actions': defaultdict(list),
+               'azure_aliases': defaultdict(set)}
+    for row in rows:
+        data = row['data']
+        if provider == 'gcp':
+            if (row['type'] == 'insight' and data.get('insightSubtype') == 'PERMISSIONS_USAGE'
+                    and (data.get('stateInfo') or {}).get('state') == 'ACTIVE'):
+                content = data.get('content') or {}
+                indexed['insights'][(canonical(provider, content.get('member')), row.get('scope'),
+                                     content.get('role'))].append(row)
+            elif row['type'] in {'activity', 'iam_usage_activity'}:
+                email = str(data.get('principalEmail', '')).casefold()
+                if not email:
+                    continue
+                indexed['gcp_events'][email].append(row)
+                if data.get('statusCode') not in (None, 0):
+                    continue
+                when = _date(data.get('timestamp'))
+                if when is None:
+                    continue
+                for check in data.get('authorizationInfo', []):
+                    if isinstance(check, dict) and check.get('granted') is True and isinstance(check.get('permission'), str):
+                        key = (email, row.get('scope'), check['permission'].casefold())
+                        if key not in indexed['gcp_actions'] or when > indexed['gcp_actions'][key]:
+                            indexed['gcp_actions'][key] = when
+        elif provider == 'azure':
+            if row['type'] in {'directory_user', 'directory_service_principal'}:
+                identity = str(data.get('id', '')).casefold()
+                indexed['azure_aliases'][identity].update(str(data[key]).casefold() for key in
+                    ('userPrincipalName', 'mail', 'appId') if data.get(key))
+            elif row['type'] == 'activity_log':
+                caller = str(data.get('caller', '')).casefold()
+                indexed['azure_events'][caller].append(row)
+                if (isinstance(data.get('status'), dict)
+                        and str(data['status'].get('value', '')).casefold() == 'succeeded'):
+                    action = str((data.get('operationName') or {}).get('value', '')).casefold()
+                    if action:
+                        indexed['azure_actions'][(caller, action)].append(row)
+    return indexed
+
+
+def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
     """Never expand wildcards or infer individual action usage from service activity."""
     rows = _rows if _rows is not None else [{**r, 'provider': provider} for r in resources if isinstance(r.get('data'), dict)]
+    usage = _usage if _usage is not None else _usage_index(provider, rows)
     target = card['principal']
     now = _date(observed_at)
     permissions, unresolved = [], []
     principal_rows = []
     gcp_email = target.split(':', 1)[1].casefold() if provider == 'gcp' and target.startswith(('user:', 'serviceAccount:')) else None
-    azure_aliases = {target.casefold()} if provider == 'azure' else set()
-    if provider == 'azure':
-        for identity in rows:
-            data = identity['data']
-            if identity['type'] in {'directory_user', 'directory_service_principal'} and str(data.get('id', '')).casefold() == target.casefold():
-                azure_aliases.update(str(data.get(key)).casefold() for key in ('userPrincipalName', 'mail', 'appId') if data.get(key))
-    gcp_insights = [r for r in rows if r['type'] == 'insight' and r['data'].get('insightSubtype') == 'PERMISSIONS_USAGE'
-                    and (r['data'].get('stateInfo') or {}).get('state') == 'ACTIVE'] if provider == 'gcp' else []
-    gcp_activity = [r for r in rows if r['type'] in {'activity', 'iam_usage_activity'} and gcp_email
-                    and str(r['data'].get('principalEmail', '')).casefold() == gcp_email] if provider == 'gcp' else []
-    azure_activity = [r for r in rows if r['type'] == 'activity_log' and
-                      str(r['data'].get('caller', '')).casefold() in azure_aliases] if provider == 'azure' else []
+    azure_aliases = ({target.casefold()} | usage['azure_aliases'].get(target.casefold(), set())) if provider == 'azure' else set()
+    gcp_activity = usage['gcp_events'].get(gcp_email, []) if gcp_email else []
+    azure_activity = [event for alias in azure_aliases for event in usage['azure_events'].get(alias, [])]
 
     def same(value):
         return canonical(provider, value) == canonical(provider, target)
@@ -79,7 +116,7 @@ def enrich(card, provider, resources, observed_at, *, _rows=None):
             if latest:
                 entry.update(last_accessed=latest.isoformat(), usage_basis='permission')
         if provider == 'gcp':
-            for insight in gcp_insights:
+            for insight in usage['insights'].get((canonical(provider, target), entry['scope'], entry['group_key']), []):
                 data = insight['data']; content = data.get('content') or {}
                 if (insight.get('scope') != entry['scope'] or not same(content.get('member'))
                         or content.get('role') != entry['group_key']
@@ -92,36 +129,20 @@ def enrich(card, provider, resources, observed_at, *, _rows=None):
                     usage_window_days=int(data['observationPeriod'][:-1]) // 86400,
                     usage_window_end=data['lastRefreshTime'], usage_source='GCP IAM Policy Insight')
                 break
-            activity = [r for r in gcp_activity if r.get('scope') == entry['scope']
-                and r['data'].get('statusCode') in (None, 0)
-                and any(check.get('granted') is True and check.get('permission', '').casefold() == str(permission).casefold()
-                        for check in r['data'].get('authorizationInfo', []) if isinstance(check, dict))]
-            dates = [value for r in activity if (value := _date(r['data'].get('timestamp'))) is not None]
-            if dates:
-                entry.update(last_accessed=max(dates).isoformat(), usage_basis='permission', usage_status='observed',
+            action_date = usage['gcp_actions'].get((gcp_email, entry['scope'], str(permission).casefold()))
+            if action_date:
+                entry.update(last_accessed=action_date.isoformat(), usage_basis='permission', usage_status='observed',
                     usage_source='GCP Cloud Audit Logs')
         elif provider == 'azure':
             def in_scope(event):
-                event_scope = str((event['data'].get('authorization') or {}).get('scope', '')).casefold().rstrip('/')
+                event_scope = str(event['data'].get('resourceId', '')).casefold().rstrip('/')
                 grant_scope = entry['scope'].casefold().rstrip('/')
                 return bool(grant_scope) and (event_scope == grant_scope or event_scope.startswith(grant_scope + '/'))
-            activity = [r for r in azure_activity if
-                isinstance(r['data'].get('status'), dict)
-                and str(r['data']['status'].get('value', '')).casefold() == 'succeeded'
-                and str((r['data'].get('authorization') or {}).get('action', '')).casefold() == str(permission).casefold()
-                and in_scope(r)]
+            activity = [r for alias in azure_aliases
+                        for r in usage['azure_actions'].get((alias, str(permission).casefold()), []) if in_scope(r)]
             dates = [value for r in activity if (value := _date(r['data'].get('eventTimestamp'))) is not None]
             if dates:
                 entry.update(last_accessed=max(dates).isoformat(), usage_basis='permission', usage_source='Azure Activity Log')
-            else:
-                role_activity = [r for r in azure_activity if isinstance(r['data'].get('status'), dict)
-                    and str(r['data']['status'].get('value', '')).casefold() == 'succeeded' and in_scope(r)
-                    and str((r['data'].get('authorization') or {}).get('role', '')).casefold()
-                        in {entry['group_key'].casefold(), entry['group_key'].rsplit('/', 1)[-1].casefold(),
-                            entry['group_label'].casefold()}]
-                role_dates = [value for r in role_activity if (value := _date(r['data'].get('eventTimestamp'))) is not None]
-                if role_dates:
-                    entry.update(last_accessed=max(role_dates).isoformat(), usage_basis='role', usage_source='Azure Activity Log')
         accessed = _date(entry.get('last_accessed'))
         if now and accessed and accessed <= now:
             entry['days_since_last_access'] = (now - accessed).days
@@ -276,8 +297,9 @@ def grant_groups(cards, provider, resources, observed_at):
     """Build policy/role groups from the same resolved grants used by principal details."""
     groups = {}
     rows = [{**r, 'provider': provider} for r in resources if isinstance(r.get('data'), dict)]
+    usage = _usage_index(provider, rows)
     for card in cards:
-        for permission in enrich(card, provider, resources, observed_at, _rows=rows)['high_risk_permissions']:
+        for permission in enrich(card, provider, resources, observed_at, _rows=rows, _usage=usage)['high_risk_permissions']:
             key = permission['group_key']
             group = groups.setdefault(key, {'id': key, 'label': permission['group_label'],
                 'provider': provider, 'scopes': set(), 'principals': {}, 'permissions': [], 'severity': 'high'})

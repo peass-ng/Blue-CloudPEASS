@@ -55,9 +55,9 @@ function hasUnusedEvidence(item: RiskPermission) { return !!item.unused_finding 
 function PermissionUsage({ item }: { item: RiskPermission }) {
   if (item.days_since_last_access != null) {
     const basis = item.usage_basis === "permission" ? "Action last accessed"
-      : item.usage_basis === "policy" ? "Policy report: service activity · action use unknown"
-      : item.usage_basis === "role" ? "Role activity · action use unknown"
-      : "Principal service activity · action use unknown";
+      : item.usage_basis === "policy" ? "Policy report · service activity"
+      : item.usage_basis === "role" ? "Role activity"
+      : "Principal service activity";
     return <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
       <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong>
       <small>{basis}{item.usage_source ? ` · ${item.usage_source}` : ""}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
@@ -173,7 +173,7 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
             </tbody></table></div>
           </>}
           {!!detail.permission_definitions_missing?.length && <details className="least-missing"><summary>Permission definitions not collected ({detail.permission_definitions_missing.length})</summary><p>These grants are recorded, but their permission definitions are unavailable:</p><ul>{detail.permission_definitions_missing.map(role => <li key={role}>{role}</li>)}</ul></details>}
-          {detail.identity_last_used && <p className="least-identity-usage">Identity last used: <time dateTime={detail.identity_last_used}>{detail.identity_last_used}</time>. This is identity activity, not individual permission usage.</p>}
+          {detail.identity_last_used && <p className="least-identity-usage">Identity activity last seen: <time dateTime={detail.identity_last_used}>{detail.identity_last_used}</time>.</p>}
         </section>
         {detail.suggestions.some(item => item.value !== "high-impact declared access") && <section className="least-recommendations"><h3>Access recommendations</h3>
           <div className="least-suggestions">{detail.suggestions.filter(item => item.value !== "high-impact declared access").map((item, index) => <article key={`${item.scope}-${item.value}-${index}`}>

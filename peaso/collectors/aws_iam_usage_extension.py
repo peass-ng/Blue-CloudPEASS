@@ -1,0 +1,76 @@
+"""Complete IAM service use evidence with the scan's own authenticated contexts."""
+from contextlib import contextmanager
+from contextvars import ContextVar
+import copy
+import time
+
+from peaso.snapshot import make_snapshot
+
+_active = ContextVar("aws_iam_usage_contexts", default=None)
+
+
+@contextmanager
+def capture_contexts(enabled=True):
+    contexts = {} if enabled else None
+    token = _active.set(contexts)
+    try:
+        yield contexts
+    finally:
+        _active.reset(token)
+
+
+def register_context(requests, session, identity, regions):
+    contexts = _active.get()
+    account = identity.get("Account") if isinstance(identity, dict) else None
+    if contexts is not None and account and regions:
+        contexts.setdefault(account, (requests, session, regions[0]))
+    return contexts is not None
+
+
+def enrich_snapshot(snapshot, contexts):
+    from .aws_iam_report_native import service_reports
+
+    if contexts is None:
+        return snapshot
+    collections = copy.deepcopy(snapshot["collections"])
+    by_account = {}
+    for collection in collections:
+        if collection.get("type") not in {"iam_user", "iam_role", "iam_policy"}:
+            continue
+        if collection.get("status") not in {"collected", "partial"}:
+            continue
+        for item in collection.get("items", []):
+            arn = item.get("Arn") if isinstance(item, dict) else None
+            if not isinstance(arn, str) or ":iam::" not in arn:
+                continue
+            account = arn.split(":")[4]
+            if account not in contexts:
+                continue
+            if collection["type"] == "iam_policy" and not item.get("AttachmentCount", 0):
+                continue
+            state = item.get("ServicesLastAccessedStatus", {})
+            deferred = state.get("reason") == "identity_policies_cannot_allow_namespaces" or (
+                state.get("error") or {}).get("code") == "service_last_accessed_generation_disabled"
+            if state and not deferred:
+                continue
+            by_account.setdefault(account, {}).setdefault(arn, []).append(item)
+    for account, items in by_account.items():
+        requests, session, region = contexts[account]
+        requests.iam_report_generation_requested = True
+        requests.iam_service_access_reports_requested = True
+        requests.service_last_accessed_wait = max(requests.service_last_accessed_wait, 600)
+        requests.service_last_accessed_workers = max(requests.service_last_accessed_workers, 8)
+        with requests._lock:
+            deadlines = getattr(requests, "_sla_batch_deadlines", None)
+            if deadlines is None:
+                deadlines = requests._sla_batch_deadlines = {}
+            deadlines[(id(session), region)] = time.monotonic() + requests.service_last_accessed_wait
+        for arn, (rows, status) in service_reports(requests, session, region, items.keys()).items():
+            for item in items[arn]:
+                if rows is not None:
+                    item["ServicesLastAccessed"] = rows
+                item["ServicesLastAccessedStatus"] = status
+    if not by_account:
+        return snapshot
+    return make_snapshot(snapshot["provider"], snapshot["scopes"], collections,
+                         created_at=snapshot["created_at"], metadata=snapshot.get("metadata"))
