@@ -235,6 +235,7 @@ from .aws_aoss_broad_grant import normalize_aws_aoss_broad_grant
 from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
 from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
 from .aws_datasync_s3_b436 import normalize_aws_datasync_s3_b436, correlate_aws_datasync_new_role_task_b436
+from .aws_route53_zone_b437 import normalize_aws_route53_zone_b437
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
@@ -342,8 +343,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "259c414a6aca114404f8f0a9763c8536d5ddcbc4"
-DEFAULT_RULE_PACK_SHA256 = "cefad818ec9b6c0ff2228f4c66a5dbfb5bcab142d7a5f9d607da435d42ede2d7"
+DEFAULT_RULE_REF = "2016ec1b33e4aa17c025e1b31aa32226f1750742"
+DEFAULT_RULE_PACK_SHA256 = "e13f4fc6e11effa92d0193e5f813d774e2d15741828da50fb247ea2e020ef967"
 
 
 @dataclass(frozen=True)
@@ -640,6 +641,7 @@ def detect_aws_events(
         aoss_broad_grant = normalize_aws_aoss_broad_grant(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
         datasync_s3_b436 = normalize_aws_datasync_s3_b436(record)
+        route53_zone_b437 = normalize_aws_route53_zone_b437(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
@@ -922,6 +924,7 @@ def detect_aws_events(
                 + ([aoss_broad_grant] if aoss_broad_grant is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
                 + ([datasync_s3_b436] if datasync_s3_b436 is not None else [])
+                + ([route53_zone_b437] if route53_zone_b437 is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
