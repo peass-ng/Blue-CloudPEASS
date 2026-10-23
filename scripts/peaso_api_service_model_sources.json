@@ -1293,7 +1293,7 @@
     "peaso/collectors/gcp_sourcerepo_secret_indicators.py": "b885ce15301a12cfcbb9dcb9fdc9b22358af706f961c4c3c69110ac543af3dde",
     "peaso/collectors/gcp_storage_acl_native.py": "c34df70325a98c74317808492882c60895a06467ebca9c97246e9101fdfa465f",
     "peaso/collectors/gcp_unused_directory_20261021.py": "bb9ba9e76e705220bee73682ac291bf3e5bb8a1ead0bc18109eb24c9d55df69a",
-    "peaso/collectors/gcp_unused_iam_directory_completion_20261021.py": "40432e52daf9e1466d335350f75993e1d68d69c680357de10fe07a4d60127cfb",
+    "peaso/collectors/gcp_unused_iam_directory_completion_20261021.py": "79acf9bbc87773b3c01155e348af4f8b65abe6615e2d0cf59d580da42058b8c1",
     "peaso/collectors/gcp_unused_iam_federation_completion_20261021.py": "a0bd90bde81399464e8a2d6c1f4585639b1bda06f2834aa14eec01376703d687",
     "peaso/collectors/gcp_workbench_head3_projection_20261020.py": "c23a79d7832e958de43e769d2cff1cdd8cefe554086f5f33d4c19a9b7906bdd1",
     "peaso/collectors/gcp_workbench_referenced_source_20261020.py": "0362bb137ea6b0dfb1d5479e67e83b4478f10fa31d35bc41f22086806c5c76aa",
@@ -1665,7 +1665,7 @@
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1663,
-  "python_source_sha256": "01ad8382be1aea9be09e4b97003871fad9670d5b5536af198ff64d69a84b8931",
+  "python_source_sha256": "b8302e77e31327b097d3449dffca6d2b570aaa8fe6d2470e017a83f91df35cbc",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "ai_reference_preparation_qualification": "Only pipeline.py changes: reuse fresh per-finding references between context/document preparation; discard before hashing and credential selection. Empty provider credential selection returns no access after existing scope-row validation. Supplied-context narrowing, boundary metadata, expiry/capture fields, fingerprint bytes, model inputs and batching retain existing behavior. No retained evidence cache. Existing 30 SDK client sites and service set unchanged; no native admission receipt changes.",

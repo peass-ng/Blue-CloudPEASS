@@ -484,6 +484,15 @@ def test_native_service_coverage_and_configuration_fixture():
             return {'items': []}
         if url == 'https://compute.googleapis.com/compute/v1/projects/p-one':
             return {'kind': 'compute#project', 'name': 'p-one', 'xpnProjectStatus': 'HOST'}
+        if url == 'https://appengine.googleapis.com/v1beta/apps/p-one':
+            return {'name': 'apps/p-one', 'serviceAccount': 'p-one@appspot.gserviceaccount.com'}
+        if url == 'https://biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/p-one/catalogs':
+            return {'iceberg-catalogs': []}
+        if url == 'https://osconfig.googleapis.com/v1/projects/p-one/locations/global/projectFeatureSettings':
+            return {'name': 'projects/p-one/locations/global/projectFeatureSettings',
+                    'patchAndConfigFeatureSet': 'OSCONFIG_C'}
+        if url == 'https://admin.googleapis.com/admin/directory/v1/customers/Cfixture':
+            return {'id': 'Cfixture', 'customerDomain': 'example.test'}
         if ':getEffectivePolicy' in url:
             constraint = url.rsplit('/policies/', 1)[1].split(':', 1)[0]
             return {'name': 'projects/123456789012/policies/' + constraint, 'spec': {'rules': []}}
@@ -504,6 +513,8 @@ def test_native_service_coverage_and_configuration_fixture():
         if url.endswith("/zones"):
             return {"items": [{"name": "r-a", "region": "projects/p-one/regions/r"}]}
         if url.endswith("/clusters"):
+            if 'dataproc.googleapis.com' in url:
+                return {'clusters': []}
             return {"clusters": [{"name": "gke", "location": "europe-west1",
                 "selfLink": "https://container.googleapis.com/v1/projects/p-one/locations/europe-west1/clusters/gke", "privateClusterConfig": {"enablePrivateNodes": True},
                 "masterAuth": {"clientCertificate": "do-not-store", "clientKey": "do-not-store", "password": "do-not-store"}}]}
@@ -546,13 +557,15 @@ def test_native_service_coverage_and_configuration_fixture():
     # Content-only inventories require a separately named, opted-in request.
     from peaso.collectors.gcp_network_catalog import PRIVATE_SERVICES
     organization_network_types = {kind for kind, plan in PRIVATE_SERVICES.items() if plan.get('scope_kind') == 'organizations'}
-    kinds = sorted(gcp.SUPPORTED_TYPES - CONTENT_ONLY_TYPES - gcp.CONTENT_ONLY_TYPES - organization_network_types - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy", "firewall_policy_association", "service_perimeter", "audit_log", "scc_finding", "scc_notification_config", "provider_access_event", "asset_previous", "asset_audit_log", "deployed_image", "effective_firewall"})
+    kinds = sorted(gcp.SUPPORTED_TYPES - CONTENT_ONLY_TYPES - gcp.CONTENT_ONLY_TYPES - organization_network_types - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy", "firewall_policy_association", "service_perimeter", "audit_log", "scc_finding", "scc_notification_config", "provider_access_event", "asset_previous", "asset_audit_log", "deployed_image", "effective_firewall", "folder_policy_grant_constraints", "organization_policy_grant_constraints", "service_catalog_version"})
     result, transport = snapshot(kinds, resolve, cloud_identity_customers=["Cfixture"], regions=["r"],
         sw51_policy={'scope': 'projects/p-one', 'status': 'collected', 'approved_asset_types': ['compute.googleapis.com/Instance']})
-    assert {c["type"] for c in result["collections"]} == set(kinds)
+    # Project identity is collected once to bind project-scoped evidence.
+    assert {c["type"] for c in result["collections"]} == set(kinds) | {"project"}
     assert collection(result, "shared_vpc")["status"] == "collected"
     assert not any(c["status"] in ("malformed", "unknown") for c in result["collections"]), [(c["type"], c.get("error")) for c in result["collections"] if c["status"] in ("malformed", "unknown")]
-    assert not any("workflows.googleapis.com" in r["url"] for r in transport.requests)
+    assert {r["url"] for r in transport.requests if "workflows.googleapis.com" in r["url"]} == {
+        "https://workflows.googleapis.com/v1/projects/p-one/locations"}
     assert collection(result, "gke_cluster")["status"] == "collected"
     assert "do-not-store" not in json.dumps(result)
     assert collection(result, "workload_identity_provider")["items"][0]["attributeCondition"]
@@ -981,6 +994,8 @@ def test_engine_evaluation_remains_offline_and_sealed_with_native_bucket_facts()
 def test_direct_bigquery_artifact_run_functions_metadata_has_no_payload_reads():
     def resolve(request):
         url = request["url"]
+        if url == "https://cloudfunctions.googleapis.com/v2/projects/p-one/locations":
+            return {"locations": [{"name": "projects/p-one/locations/r", "locationId": "r"}]}
         if url.endswith(":getIamPolicy"):
             return {"version": 3, "bindings": []}
         if url.endswith("/datasets"):
@@ -1985,7 +2000,7 @@ def test_unused_federation_pool_collector_to_hardening(workforce, numeric_alias)
     report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[WORKFORCE if workforce else WORKLOAD]))
     finding = json.loads(json.dumps(report))['findings'][0]
     assert finding['status'] == 'FAIL', finding['evidence']
-    assert finding['service'] == 'iam.googleapis.com'
+    assert finding['service'] == 'iam'
     assert finding['evidence']['pool_name'] == name
     assert 'HackTricks Cloud Best Practices' in finding['frameworks']
 
@@ -2019,6 +2034,8 @@ def test_unused_directory_parallel_reads_preserve_other_users_when_one_get_is_de
     assert statuses == {f'customers/{customer}/workspace_user/{users[0]["id"]}': 'FAIL',
                         f'customers/{customer}/workspace_user/{users[1]["id"]}': 'DENIED'}
     assert len(transport.requests) == 5
+    assert sum(request['url'].startswith('https://cloudresourcemanager.googleapis.com/v3/')
+               for request in transport.requests) == 2
 
 
 @pytest.mark.parametrize('hmac', [False, True])

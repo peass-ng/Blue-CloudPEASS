@@ -75,7 +75,12 @@ def collect_users(collector):
     if not isinstance(selected, list) or any(not isinstance(c, str) or not CUSTOMER.fullmatch(c) for c in selected):
         raise ValueError('Workspace customers must be explicit customer IDs for project-bound user review')
     for scope in sorted(s for s in collector.scopes if s.startswith('projects/')):
-        binding = bind_project(collector, scope)
+        # The core Directory group/customer reads need the same selected-project
+        # ancestry. Reuse its validated receipts when there is one project;
+        # keep independent per-project binding for multi-scope scans.
+        shared = getattr(collector, 'workspace_project_binding', None)
+        binding = (shared() if len(collector.scopes) == 1 and collector.scopes[0] == scope
+                   and callable(shared) else bind_project(collector, scope))
 
         def rows(scope=scope, binding=binding):
             if binding['status'] != 'collected':

@@ -285,7 +285,7 @@ class NativeHTTP:
       assert q.get('api-version')==['2024-01-01'];return deepcopy(self.extras.get(p.path,child(row,'networkRuleSets',{'virtualNetworkRules':[],'defaultAction':'Deny','ipRules':[],'publicNetworkAccess':'Enabled'},name='default')))
      if kind=='servicebus_namespace' and p.path==row['id']+'/networkRuleSets/default':assert q.get('api-version')==['2022-10-01-preview'];return deepcopy(self.extras[p.path])
      if kind=='ml_workspace' and p.path==row['id']+'/privateEndpointConnections':assert q.get('api-version')==['2024-04-01'];return {'value':[]}
-     if kind=='mssql_managed_instance' and p.path in [row['id']+'/'+s for s in ('encryptionProtector','vulnerabilityAssessments','databases')]:
+     if kind=='mssql_managed_instance' and p.path in [row['id']+'/'+s for s in ('administrators','azureADOnlyAuthentications','encryptionProtector','vulnerabilityAssessments','databases')]:
       assert q.get('api-version')==['2021-11-01' if p.path.endswith('/databases') else '2023-08-01'];return {'value':deepcopy(self.extras.get(p.path,[]))}
      if kind=='aks_cluster' and p.path==row['id']+'/managedNamespaces':assert q.get('api-version')==['2025-10-01'];return {'value':[]}
      if kind=='vm' and p.path==row['id']+'/extensions':assert q.get('api-version')==['2023-09-01'];return {'value':[]}
