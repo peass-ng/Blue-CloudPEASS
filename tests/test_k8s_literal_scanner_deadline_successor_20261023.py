@@ -53,6 +53,38 @@ class SelectedLiteralDeadlineTests(unittest.TestCase):
                 source.collect(Reader(), None, {}, ['qa'], 'cluster')
         self.assertIsNone(source._SCAN_DEADLINE.get())
 
+    def test_enabled_collection_prewarms_before_other_detector(self):
+        events = []
+
+        class Reader:
+            collections = []
+
+        def warm():
+            self.assertIsNotNone(source._SCAN_DEADLINE.get())
+            events.append('version')
+
+        def collect(*args):
+            events.append('content')
+            return {}, set()
+
+        options = {'content_secret_scans': True, '_content_secret_scan_kinds': [source.KIND]}
+        with patch.object(source, '_trufflehog', warm), patch.dict(source._GLOBALS, {'collect': collect}):
+            source.collect(Reader(), None, options, ['qa'], 'cluster')
+        self.assertEqual(events, ['version', 'content'])
+        self.assertIsNone(source._SCAN_DEADLINE.get())
+
+    def test_preflight_timeout_keeps_normal_scanner_path(self):
+        class Reader:
+            collections = []
+
+        options = {'content_secret_scans': True, '_content_secret_scan_kinds': [source.KIND]}
+        with patch.object(source, '_trufflehog', side_effect=TimeoutError('cold probe')) as warm:
+            with patch.dict(source._GLOBALS, {'collect': lambda *args: ({}, set())}) as globals_view:
+                source.collect(Reader(), None, options, ['qa'], 'cluster')
+                warm.assert_called_once_with()
+                self.assertIs(globals_view['scan_content'], source._scan_selected_content)
+        self.assertIsNone(source._SCAN_DEADLINE.get())
+
 
 if __name__ == '__main__':
     unittest.main()

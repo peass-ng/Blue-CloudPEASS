@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 from peaso.collectors import k8s_literal_secret_fields_compatible as previous
 from peaso.collectors import k8s_literal_secret_indicators as base
 from peaso.collectors.k8s_selected_log_sample_secret_indicators import private_native_logs, _wire_debug_enabled
-from peaso.secret_scanning import _fingerprint
+from peaso.secret_scanning import _fingerprint, _trufflehog
 
 KIND, CHECK, OPTION, MARKER, SCHEMA = (base.KIND, base.CHECK, base.OPTION, base.MARKER, base.SCHEMA)
 NATIVE_KINDS = base.NATIVE_KINDS
@@ -382,6 +382,13 @@ def collect(reader, api, options, scopes, cluster):
     deadline_token = _SCAN_DEADLINE.set(time.monotonic() + base.MAX_SECONDS)
     try:
         if enabled(options):
+            # The pinned 5-second version probe is tight on a cold 1-vCPU
+            # worker. Run it once before Kingfisher starts on another thread;
+            # a failed probe is retried by the normal scanner and stays UNKNOWN.
+            try:
+                _trufflehog()
+            except Exception:
+                pass
             with private_native_logs():
                 result = _GLOBALS['collect'](reader, api, options, scopes, cluster)
         else:
