@@ -1099,17 +1099,22 @@ def test_aks_kubelet_identity_is_the_node_identity():
 
 # --------------------------------------------- cross-snapshot counter / provider labels (live GKE QA, item 3)
 def test_gcp_with_joined_k8s_counts_cross_snapshot_edges_and_labels_groups_k8s():
-    actor = {"name": "projects/p1/roles/secrets", "includedPermissions": ["container.secrets.get", "container.secrets.list"]}
+    actor = {"name": "projects/p1/roles/secrets", "includedPermissions": ["container.clusters.get", "container.secrets.get", "container.secrets.list"]}
     gcp = _gke("GCE_METADATA")
     for col in gcp["collections"]:
         if col["type"] == "iam_policy":
             col["items"][0]["bindings"].append({"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]})
+        if col["type"] == "gke_cluster":
+            col["items"][0].update({"status": "RUNNING", "endpoint": "203.0.113.10"})
     gcp["collections"].append({"type": "iam_role", "scope": "projects/p1", "service": "iam_role", "status": "collected",
                                "items": [actor], "error": None})
+    gcp["collections"].append({"type": "iam_deny_policy", "scope": "projects/p1", "service": "iam", "status": "empty",
+                               "items": [], "error": None})
     secret = kobj("Secret", "tok", "a", type="kubernetes.io/service-account-token",
-                  meta={"annotations": {"kubernetes.io/service-account.name": "builder"}})
-    k = k8s(secrets=[secret])
-    k["metadata"] = {"context": "gke_p1_us-a_c1"}
+                  meta={"annotations": {"kubernetes.io/service-account.name": "builder",
+                                        "kubernetes.io/service-account.uid": "builder-uid"}})
+    k = k8s(secrets=[secret], sas=[kobj("ServiceAccount", "builder", "a", meta={"uid": "builder-uid"})])
+    k["metadata"] = {"cluster_id": "c1"}
     result = real(gcp, "gcp-container-secrets-read-ksa-token-secret", related_snapshots=[k])
     nodes = {n["id"]: n for n in result["graph"]["nodes"]}
     edges = [e for e in result["graph"]["edges"] if e["source"] == "user:alice@x.com"]
