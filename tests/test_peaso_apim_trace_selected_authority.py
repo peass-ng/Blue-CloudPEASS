@@ -57,8 +57,9 @@ def test_trace_authority_through_registered_sealed_snapshot(unavailable, expecte
         for kind, rows in [("api_management", [{"id": SERVICE, "properties": {}}]),
                            ("apim_native", [fact]), (KIND, [row])]]
     snapshot = make_snapshot("azure", [SCOPE], collections, created_at=AT)
-    findings = evaluate_snapshot(snapshot, checks=[CID], include_not_applicable=True)["findings"]
-    assert findings and {item["status"] for item in findings} == {expected}, findings
+    with pytest.raises(ValueError, match="requires external policy or manual evidence"):
+        evaluate_snapshot(snapshot, checks=[CID], include_not_applicable=True)
+    assert assess(fact, row)[0] == expected
 
 @pytest.mark.parametrize("path", [("payload",), ("_provenance",), ("parent_id",), ("_metadata_projection",), ("id",), ("payload", "source_configuration_sha256"), ("_provenance", "read_only"), ("_provenance", "captured_at"), ("_provenance", "source_inventory"), ("_provenance", "schema_version")])
 def test_unavailable_trace_receipt_binding_cannot_prove_failure(path):
