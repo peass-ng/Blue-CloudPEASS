@@ -25,6 +25,12 @@ def _label(row):
         or data.get('metadata', {}).get('name') or row.get('native_id') or native_id(row))
 
 
+def _gcp_condition(value):
+    if not isinstance(value, dict):
+        return ('', '', '', '')
+    return tuple(str(value.get(field) or '') for field in ('expression', 'title', 'description', 'location'))
+
+
 def _usage_index(provider, rows):
     """Index stored evidence once; rendering principals never reopens cloud logs."""
     indexed = {'insights': defaultdict(list), 'gcp_events': defaultdict(list),
@@ -58,14 +64,17 @@ def _usage_index(provider, rows):
                 identity = str(data.get('id', '')).casefold()
                 indexed['azure_aliases'][identity].update(str(data[key]).casefold() for key in
                     ('userPrincipalName', 'mail', 'appId') if data.get(key))
-            elif row['type'] == 'activity_log':
-                caller = str(data.get('caller', '')).casefold()
-                indexed['azure_events'][caller].append(row)
+            elif row['type'] in {'activity_log', 'iam_usage_activity'}:
+                aliases = {str(data.get(field)).casefold() for field in ('caller', 'principalObjectId', 'appId')
+                           if isinstance(data.get(field), str) and data.get(field)}
+                for caller in aliases:
+                    indexed['azure_events'][caller].append(row)
                 if (isinstance(data.get('status'), dict)
                         and str(data['status'].get('value', '')).casefold() == 'succeeded'):
-                    action = str((data.get('operationName') or {}).get('value', '')).casefold()
+                    action = str(data.get('authorizationAction') or '').casefold()
                     if action:
-                        indexed['azure_actions'][(caller, action)].append(row)
+                        for caller in aliases:
+                            indexed['azure_actions'][(caller, action)].append(row)
     return indexed
 
 
@@ -85,26 +94,56 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
     def same(value):
         return canonical(provider, value) == canonical(provider, target)
 
-    def append(permission, severity, row, *, scope=None, source=None, resources=None, conditions=None, exclusions=None, usage_row=None, group_key=None, group_label=None):
+    def append(permission, severity, row, *, scope=None, source=None, resources=None, conditions=None, exclusions=None, usage_row=None, group_key=None, group_label=None, access_plane='management'):
         if severity not in {'high', 'critical'}:
             return
         entry = dict(permission=str(permission), severity=severity, scope=scope or row.get('scope', ''),
             source=source or _label(row), resources=resources or [], conditions=conditions, exclusions=exclusions or [],
             group_key=group_key or str(row.get('native_id') or native_id(row)), group_label=group_label or _label(row))
         namespace = str(permission).split(':')[0] if ':' in str(permission) and '*' not in str(permission) else None
-        # A managed-policy report is service-level evidence for the policy, not
-        # proof that this particular action or principal used the grant.
-        for candidate, basis in ((row if row.get('type') == 'iam_policy' else None, 'policy'), (usage_row, 'service')):
-            if candidate is None or namespace is None:
-                continue
-            data = candidate['data']
-            if data.get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
-                continue
-            service = next((s for s in data.get('ServicesLastAccessed', [])
-                            if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
-            if service and service.get('LastAuthenticated'):
-                entry.update(last_accessed=service['LastAuthenticated'], usage_basis=basis)
-                break
+        # IAM action reports can identify an action attempted by an identity.
+        # A shared policy or group report is aggregate evidence, so label it as
+        # such even when its action name exactly matches this permission.
+        aws_reports = ((usage_row, 'permission', 'AWS IAM action report'),
+                       (row if row.get('type') == 'iam_policy' else None, 'policy', 'AWS IAM policy action report'),
+                       (row if row.get('type') == 'iam_group' else None, 'group', 'AWS IAM group action report'))
+        if provider == 'aws' and namespace and '*' not in str(permission):
+            action_name = str(permission).split(':', 1)[1].casefold()
+            principal_status = (usage_row or {}).get('data', {}).get('ServicesLastAccessedStatus', {})
+            if principal_status.get('collection_status') == 'collected':
+                principal_service = next((s for s in usage_row['data'].get('ServicesLastAccessed', [])
+                    if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
+                if principal_service and any(str(name).casefold() == action_name
+                        for name in principal_service.get('TrackedActionsUnobserved', [])):
+                    entry.update(usage_status='not_observed', usage_source='AWS IAM action report',
+                                 usage_window_end=principal_status.get('job_completion_date'))
+            for candidate, basis, report_source in aws_reports:
+                if candidate is None or candidate['data'].get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
+                    continue
+                service = next((s for s in candidate['data'].get('ServicesLastAccessed', [])
+                                if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
+                action = next((a for a in (service or {}).get('TrackedActionsLastAccessed', [])
+                               if a.get('ActionName', '').casefold() == action_name and a.get('LastAccessedTime')), None)
+                if action:
+                    entry.update(last_accessed=action['LastAccessedTime'], usage_basis=basis, usage_source=report_source)
+                    if basis == 'permission':
+                        entry['usage_status'] = 'observed'
+                    break
+        if 'last_accessed' not in entry:
+            for candidate, basis in ((usage_row, 'service'),
+                                     (row if row.get('type') == 'iam_policy' else None, 'policy'),
+                                     (row if row.get('type') == 'iam_group' else None, 'group')):
+                if candidate is None or namespace is None:
+                    continue
+                data = candidate['data']
+                if data.get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
+                    continue
+                service = next((s for s in data.get('ServicesLastAccessed', [])
+                                if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
+                if service and service.get('LastAuthenticated'):
+                    entry.update(last_accessed=service['LastAuthenticated'], usage_basis=basis,
+                                 usage_source='AWS IAM service report')
+                    break
         # Only an exact per-action provider observation can describe action usage.
         exact = [s for s in card.get('suggestions', []) if s.get('kind') == 'permission'
                  and s.get('value', '').casefold() == str(permission).casefold()
@@ -114,17 +153,22 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
         if exact:
             latest = max((_date(s.get('last_accessed')) for s in exact), default=None, key=lambda d: d or datetime.min.replace(tzinfo=timezone.utc))
             if latest:
-                entry.update(last_accessed=latest.isoformat(), usage_basis='permission')
+                entry.update(last_accessed=latest.isoformat(), usage_basis='permission',
+                             usage_source='AWS IAM Access Analyzer unused access')
+                entry['usage_status'] = 'observed'
         if provider == 'gcp':
             for insight in usage['insights'].get((canonical(provider, target), entry['scope'], entry['group_key']), []):
                 data = insight['data']; content = data.get('content') or {}
                 if (insight.get('scope') != entry['scope'] or not same(content.get('member'))
                         or content.get('role') != entry['group_key']
+                        or _gcp_condition(content.get('condition')) != _gcp_condition(entry['conditions'])
                         or not re.fullmatch(r'[1-9][0-9]*s', str(data.get('observationPeriod', '')))
                         or _date(data.get('lastRefreshTime')) is None
                         or not isinstance(content.get('exercisedPermissions'), list)):
                     continue
-                exercised = {p.casefold() for p in content['exercisedPermissions'] if isinstance(p, str)}
+                exercised = {name.casefold() for item in content['exercisedPermissions']
+                    if isinstance(name := (item if isinstance(item, str) else item.get('permission')
+                        if isinstance(item, dict) else None), str)}
                 entry.update(usage_status='observed' if str(permission).casefold() in exercised else 'not_observed',
                     usage_window_days=int(data['observationPeriod'][:-1]) // 86400,
                     usage_window_end=data['lastRefreshTime'], usage_source='GCP IAM Policy Insight')
@@ -141,8 +185,22 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
             activity = [r for alias in azure_aliases
                         for r in usage['azure_actions'].get((alias, str(permission).casefold()), []) if in_scope(r)]
             dates = [value for r in activity if (value := _date(r['data'].get('eventTimestamp'))) is not None]
-            if dates:
+            if dates and access_plane == 'management':
                 entry.update(last_accessed=max(dates).isoformat(), usage_basis='permission', usage_source='Azure Activity Log')
+            elif access_plane == 'management' and '*' in str(permission):
+                # A wildcard grant can match observed actions, but the event
+                # cannot prove which of several roles authorized the call.
+                compatible = [r for r in azure_activity if in_scope(r)
+                    and isinstance(r['data'].get('status'), dict)
+                    and r['data']['status'].get('value') == 'Succeeded'
+                    and isinstance(r['data'].get('authorizationAction'), str)
+                    and fnmatchcase(r['data']['authorizationAction'].casefold(), str(permission).casefold())
+                    and not any(fnmatchcase(r['data']['authorizationAction'].casefold(), str(x).casefold())
+                                for x in entry['exclusions'])]
+                dates = [value for r in compatible if (value := _date(r['data'].get('eventTimestamp'))) is not None]
+                if dates:
+                    entry.update(last_accessed=max(dates).isoformat(), usage_basis='compatible',
+                                 usage_source='Azure Activity Log')
         accessed = _date(entry.get('last_accessed'))
         if now and accessed and accessed <= now:
             entry['days_since_last_access'] = (now - accessed).days
@@ -195,7 +253,8 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
                             continue
                         append(action, permission_severity(provider, action) or ('high' if '*' in action else 'info'), row,
                             scope=scope, source=grant_source, conditions=extra_conditions,
-                            exclusions=as_list(native.get(exclusion)), group_key=grant_key, group_label=grant_label)
+                            exclusions=as_list(native.get(exclusion)), group_key=grant_key, group_label=grant_label,
+                            access_plane='data' if key == 'dataActions' else 'management')
             elif provider == 'k8s' and isinstance(native, dict):
                 from bluepeass.k8s_risks import PermissionKey, classify_permission
                 for verb in as_list(native.get('verbs')):

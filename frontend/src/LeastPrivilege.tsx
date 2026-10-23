@@ -19,7 +19,7 @@ type Suggestion = {
 };
 type RiskPermission = {
   permission: string; severity: string; source: string; scope: string; resources: string[];
-  conditions?: unknown; exclusions?: string[]; last_accessed?: string; usage_basis?: "permission" | "service" | "policy" | "role";
+  conditions?: unknown; exclusions?: string[]; last_accessed?: string; usage_basis?: "permission" | "service" | "policy" | "group" | "role" | "compatible";
   days_since_last_access?: number; unused_finding?: boolean; usage_status?: "observed" | "not_observed";
   usage_window_days?: number; usage_window_end?: string; usage_source?: string;
   group_key: string; group_label: string; principal?: string; principal_id?: string;
@@ -54,17 +54,21 @@ function hasUnusedEvidence(item: RiskPermission) { return !!item.unused_finding 
 
 function PermissionUsage({ item }: { item: RiskPermission }) {
   if (item.days_since_last_access != null) {
-    const basis = item.usage_basis === "permission" ? "Action last accessed"
-      : item.usage_basis === "policy" ? "Policy report · service activity"
+    const basis = item.usage_basis === "permission" ? "Action last seen"
+      : item.usage_basis === "policy" ? `Policy report · ${item.usage_source?.includes("action") ? "action" : "service"} attempt`
+      : item.usage_basis === "group" ? `Group report · ${item.usage_source?.includes("action") ? "action" : "service"} attempt`
       : item.usage_basis === "role" ? "Role activity"
-      : "Principal service activity";
+      : item.usage_basis === "compatible" ? "Matching principal action; granting role unconfirmed"
+      : "Principal service attempt";
     return <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
       <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong>
-      <small>{basis}{item.usage_source ? ` · ${item.usage_source}` : ""}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
+      <small>{basis}{item.usage_source ? ` · ${item.usage_source}` : ""}</small>
+      {item.usage_status === "not_observed" && <small>Exact action not observed for this principal</small>}
+      <time dateTime={item.last_accessed}>{item.last_accessed}</time>
     </div>;
   }
   if (item.usage_status) return <div className="least-usage unknown">
-    <strong>{item.usage_status === "observed" ? "Used" : "No use observed"} in {item.usage_window_days != null ? `${item.usage_window_days} day` : "the"} insight window</strong>
+    <strong>{item.usage_status === "observed" ? "Use observed" : "No use observed"}{item.usage_window_days != null ? ` in ${item.usage_window_days} days` : " in the provider window"}</strong>
     <small>{item.usage_source || "Provider insight"}; no exact last-use date</small>{item.usage_window_end && <time dateTime={item.usage_window_end}>Window ended {item.usage_window_end}</time>}
   </div>;
   return <span className="least-usage unknown">{item.unused_finding ? "Unused in analyzer window · no last-use date" : "Usage not available"}</span>;

@@ -23,7 +23,7 @@ REQUIRED_TYPES = {
                         "vpn_gateway", "vpn_tunnel", "forwarding_rule", "backend_service", "backend_bucket",
                         "url_map", "health_check", "address", "target_proxy", "instance_group",
                         "shared_vpc", "gke_cluster"]},
-    "azure": {"least_privilege": ["role_assignment", "role_definition", "directory_user", "directory_group", "directory_service_principal", "activity_log"],
+    "azure": {"least_privilege": ["role_assignment", "role_definition", "directory_user", "directory_group", "directory_service_principal"],
               "exposure": ["role_assignment", "storage_account", "nsg"],
               "network": ["vnet", "subnet", "vnet_peering", "nsg", "nic", "vm", "public_ip", "route_table",
                           "load_balancer", "application_gateway", "private_endpoint", "virtual_network_gateway",

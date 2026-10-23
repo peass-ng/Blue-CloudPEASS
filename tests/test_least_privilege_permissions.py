@@ -124,6 +124,40 @@ def test_policy_service_date_fills_missing_action_date_without_claiming_action_u
     assert not permission.get('unused_finding')
 
 
+def test_aws_action_report_precedes_service_and_shared_policy_dates():
+    policy_arn = f'arn:aws:iam::{ACCOUNT}:policy/Operations'
+    user = row('iam_user', {'Arn': ARN, 'AttachedManagedPolicies': [{'PolicyArn': policy_arn}],
+        'ServicesLastAccessedStatus': {'collection_status': 'collected'},
+        'ServicesLastAccessed': [{'ServiceNamespace': 'iam', 'LastAuthenticated': '2026-10-20T00:00:00Z',
+            'TrackedActionsLastAccessed': [{'ActionName': 'CreateAccessKey', 'LastAccessedTime': '2026-10-15T00:00:00Z'}]}]})
+    policy = row('iam_policy', {'Arn': policy_arn, 'PolicyName': 'Operations',
+        'ServicesLastAccessedStatus': {'collection_status': 'collected'},
+        'ServicesLastAccessed': [{'ServiceNamespace': 'iam', 'LastAuthenticated': '2026-10-19T00:00:00Z',
+            'TrackedActionsLastAccessed': [{'ActionName': 'CreateAccessKey', 'LastAccessedTime': '2026-10-18T00:00:00Z'}]}],
+        'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}})
+    permission = enrich(card(), 'aws', [user, policy], NOW)['high_risk_permissions'][0]
+    assert permission['usage_basis'] == 'permission'
+    assert permission['last_accessed'] == '2026-10-15T00:00:00Z'
+    assert permission['days_since_last_access'] == 6
+    user['data'].pop('ServicesLastAccessed')
+    permission = enrich(card(), 'aws', [user, policy], NOW)['high_risk_permissions'][0]
+    assert permission['usage_basis'] == 'policy'
+    assert permission['last_accessed'] == '2026-10-18T00:00:00Z'
+
+
+def test_aws_action_not_observed_is_distinct_from_service_use():
+    user = row('iam_user', {'Arn': ARN, 'UserPolicyList': [{'PolicyDocument': {'Statement': [
+        {'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}}],
+        'ServicesLastAccessedStatus': {'collection_status': 'collected',
+            'job_completion_date': '2026-10-20T00:00:00Z'},
+        'ServicesLastAccessed': [{'ServiceNamespace': 'iam', 'LastAuthenticated': '2026-10-19T00:00:00Z',
+            'TrackedActionsUnobserved': ['CreateAccessKey']}]})
+    permission = enrich(card(), 'aws', [user], NOW)['high_risk_permissions'][0]
+    assert permission['usage_status'] == 'not_observed'
+    assert permission['usage_basis'] == 'service'
+    assert permission['days_since_last_access'] == 2
+
+
 def test_unused_filter_fact_requires_exact_access_analyzer_action_finding():
     user = row('iam_user', {'Arn': ARN, 'UserPolicyList': [{'PolicyName': 'key-admin',
         'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}}]})
@@ -172,6 +206,10 @@ def test_gcp_insight_and_audit_distinguish_window_from_exact_last_use():
     assert observed['usage_basis'] == 'permission'
     assert observed['days_since_last_access'] == 0
     assert observed['usage_source'] == 'GCP Cloud Audit Logs'
+    rows[-2]['data']['content']['exercisedPermissions'] = [{'permission': permission}]
+    assert enrich(value, 'gcp', rows[:-1], NOW)['high_risk_permissions'][0]['usage_status'] == 'observed'
+    rows[-2]['data']['content']['condition'] = {'expression': 'resource.name == "other"'}
+    assert 'usage_status' not in enrich(value, 'gcp', rows[:-1], NOW)['high_risk_permissions'][0]
 
 
 def test_azure_activity_requires_matching_caller_action_success_and_scope():
@@ -184,13 +222,43 @@ def test_azure_activity_requires_matching_caller_action_success_and_scope():
     assignment = row('role_assignment', {'properties': {'principalId': target,
         'roleDefinitionId': '/providers/Microsoft.Authorization/roleDefinitions/owner', 'scope': scope}}, scope)
     event = {'caller': target, 'eventTimestamp': '2026-10-20T12:00:00Z',
-        'status': {'value': 'Succeeded'}, 'operationName': {'value': action},
+        'status': {'value': 'Succeeded'}, 'operationName': {'value': 'Microsoft.Resources/deployments/write'},
+        'authorizationAction': action,
         'resourceId': scope + '/resourceGroups/app'}
     rows = [definition, assignment, row('activity_log', event, scope)]
     observed = enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
     assert observed['usage_basis'] == 'permission' and observed['days_since_last_access'] == 0
+    rows[-1]['data']['caller'] = 'some display name'
+    rows[-1]['data']['principalObjectId'] = target
+    assert enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]['usage_basis'] == 'permission'
+    rows[-1]['data']['caller'] = target
+    rows[-1]['data']['authorizationAction'] = 'Microsoft.Resources/deployments/write'
+    assert 'last_accessed' not in enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
+    rows[-1]['data']['authorizationAction'] = action
     rows[-1]['data']['resourceId'] = scope + '-foreign/resourceGroups/app'
     assert 'last_accessed' not in enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
+
+
+def test_azure_wildcard_uses_only_compatible_management_action():
+    target = '12345678-1234-1234-1234-123456789012'
+    scope = '/subscriptions/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+    value = {'id': target, 'principal': target, 'suggestions': []}
+    definition = row('role_definition', {'name': '/providers/Microsoft.Authorization/roleDefinitions/owner',
+        'properties': {'roleName': 'Owner', 'permissions': [{'actions': ['Microsoft.Authorization/*'],
+            'notActions': ['Microsoft.Authorization/roleAssignments/delete'],
+            'dataActions': ['Microsoft.Authorization/*']}]}}, scope)
+    assignment = row('role_assignment', {'properties': {'principalId': target,
+        'roleDefinitionId': '/providers/Microsoft.Authorization/roleDefinitions/owner', 'scope': scope}}, scope)
+    event = row('iam_usage_activity', {'caller': target, 'eventTimestamp': '2026-10-20T12:00:00Z',
+        'status': {'value': 'Succeeded'}, 'authorizationAction': 'Microsoft.Authorization/roleAssignments/write',
+        'resourceId': scope + '/resourceGroups/app'}, scope)
+    permissions = enrich(value, 'azure', [definition, assignment, event], NOW)['high_risk_permissions']
+    management = next(p for p in permissions if p['exclusions'])
+    data = next(p for p in permissions if not p['exclusions'])
+    assert management['usage_basis'] == 'compatible'
+    assert 'last_accessed' not in data
+    event['data']['authorizationAction'] = 'Microsoft.Authorization/roleAssignments/delete'
+    assert all('last_accessed' not in p for p in enrich(value, 'azure', [definition, assignment, event], NOW)['high_risk_permissions'])
 
 
 def test_grouping_builds_usage_index_once_for_all_principals(monkeypatch):

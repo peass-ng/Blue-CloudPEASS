@@ -7,18 +7,23 @@ import re
 import time
 
 LAST_ACCESSED_FIELDS = ("ServiceNamespace", "ServiceName", "LastAuthenticated", "LastAuthenticatedRegion", "TotalAuthenticatedEntities")
+ACTION_FIELDS = ("ActionName", "LastAccessedTime", "LastAccessedEntity", "LastAccessedRegion")
 UNAVAILABLE_REPORT_CODES = {"ReportNotPresent", "ReportExpired", "ReportInProgress", "CredentialReportNotPresent", "CredentialReportExpired", "CredentialReportNotReady"}
 
-def service_reports(requests, session, region, arns):
+def service_reports(requests, session, region, arns, *, granularity=None):
     """Bounded IAM Read-classified report jobs, bound to this session and ARN.
 
     Reports describe attempts and observation history, not effective access.
     No externally supplied job identifier is accepted.
     """
     from .aws import ReadFailure, _failure, _safe
+    if granularity is None:
+        granularity = "ACTION_LEVEL" if getattr(requests, "iam_usage_scan", False) else "SERVICE_LEVEL"
+    if granularity not in {"SERVICE_LEVEL", "ACTION_LEVEL"}:
+        raise ValueError("unsupported IAM report granularity")
     if not getattr(requests, "iam_service_access_reports_requested", False):
         return {arn: (None, {"collection_status": "not_collected", "operation": "iam:GetServiceLastAccessedDetails",
-            "granularity": "SERVICE_LEVEL", "error": {"code": "service_last_accessed_generation_disabled"}}) for arn in sorted(arns)}
+            "granularity": granularity, "error": {"code": "service_last_accessed_generation_disabled"}}) for arn in sorted(arns)}
     with requests._lock:
         job_bindings = getattr(requests, "_sla_job_bindings", None)
         if job_bindings is None:
@@ -45,18 +50,18 @@ def service_reports(requests, session, region, arns):
 
     def one(arn):
         state = {"collection_status": "unknown", "operation": "iam:GetServiceLastAccessedDetails",
-                 "granularity": "SERVICE_LEVEL", "principal_arn": arn,
+                 "granularity": granularity, "principal_arn": arn,
                  "semantics": "IAM service-access attempt history; effective permissions unassessed"}
         try:
             partition = session.get_partition_for_region(region)
-            match = re.fullmatch(r"arn:" + re.escape(partition) + r":iam::([0-9]{12}):(user|role|policy)/.+", arn)
+            match = re.fullmatch(r"arn:" + re.escape(partition) + r":iam::([0-9]{12}):(user|group|role|policy)/.+", arn)
             if match is None or match.group(1) != account:
                 raise ReadFailure("malformed", "service_report_principal_arn_invalid")
             requests.check_deadline()
             if time.monotonic() >= deadline:
                 raise ReadFailure("timeout", "service_report_batch_timeout")
             generated = requests.call(session, "iam", region, "generate_service_last_accessed_details",
-                                      Arn=arn, Granularity="SERVICE_LEVEL")
+                                      Arn=arn, Granularity=granularity)
             job = generated.get("JobId")
             if not isinstance(job, str) or not re.fullmatch(r"[A-Za-z0-9-]{36}", job):
                 raise ReadFailure("malformed", "service_report_job_id_invalid")
@@ -92,7 +97,7 @@ def service_reports(requests, session, region, arns):
                 if requests.max_pages is not None and page > requests.max_pages:
                     raise ReadFailure("partial", "service_report_page_limit")
                 created, completed = response.get("JobCreationDate"), response.get("JobCompletionDate")
-                if (response.get("JobStatus") != "COMPLETED" or response.get("JobType") != "SERVICE_LEVEL"
+                if (response.get("JobStatus") != "COMPLETED" or response.get("JobType") != granularity
                         or not isinstance(created, datetime) or created.tzinfo is None
                         or not isinstance(completed, datetime) or completed.tzinfo is None or completed < created
                         or not isinstance(response.get("ServicesLastAccessed"), list)
@@ -110,7 +115,30 @@ def service_reports(requests, session, region, arns):
                     if "LastAuthenticated" in entry and (not isinstance(entry["LastAuthenticated"], datetime) or entry["LastAuthenticated"].tzinfo is None or entry["LastAuthenticated"] > completed):
                         raise ReadFailure("malformed", "service_report_last_authenticated_invalid")
                     namespaces.add(namespace)
-                    rows.append(_safe({field: entry[field] for field in LAST_ACCESSED_FIELDS if field in entry}))
+                    projected = {field: entry[field] for field in LAST_ACCESSED_FIELDS if field in entry}
+                    actions = entry.get("TrackedActionsLastAccessed", []) if granularity == "ACTION_LEVEL" else []
+                    if not isinstance(actions, list):
+                        raise ReadFailure("malformed", "service_report_actions_invalid")
+                    seen_actions = set()
+                    projected_actions = []
+                    unobserved_actions = []
+                    for action in actions:
+                        name = action.get("ActionName") if isinstance(action, dict) else None
+                        if not isinstance(name, str) or not name or name in seen_actions:
+                            raise ReadFailure("malformed", "service_report_action_identity_invalid")
+                        seen_actions.add(name)
+                        when = action.get("LastAccessedTime")
+                        if when is not None and (not isinstance(when, datetime) or when.tzinfo is None or when > completed):
+                            raise ReadFailure("malformed", "service_report_action_time_invalid")
+                        if when is not None:
+                            projected_actions.append(_safe({field: action[field] for field in ACTION_FIELDS if field in action}))
+                        else:
+                            unobserved_actions.append(name)
+                    if projected_actions:
+                        projected["TrackedActionsLastAccessed"] = projected_actions
+                    if unobserved_actions:
+                        projected["TrackedActionsUnobserved"] = unobserved_actions
+                    rows.append(_safe(projected))
                 if not response["IsTruncated"]:
                     break
                 marker = response.get("Marker")

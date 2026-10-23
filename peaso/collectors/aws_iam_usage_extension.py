@@ -24,6 +24,7 @@ def register_context(requests, session, identity, regions):
     account = identity.get("Account") if isinstance(identity, dict) else None
     if contexts is not None and account and regions:
         contexts.setdefault(account, (requests, session, regions[0]))
+        requests.iam_usage_scan = True
     return contexts is not None
 
 
@@ -35,7 +36,7 @@ def enrich_snapshot(snapshot, contexts):
     collections = copy.deepcopy(snapshot["collections"])
     by_account = {}
     for collection in collections:
-        if collection.get("type") not in {"iam_user", "iam_role", "iam_policy"}:
+        if collection.get("type") not in {"iam_user", "iam_group", "iam_role", "iam_policy"}:
             continue
         if collection.get("status") not in {"collected", "partial"}:
             continue
@@ -51,7 +52,8 @@ def enrich_snapshot(snapshot, contexts):
             state = item.get("ServicesLastAccessedStatus", {})
             deferred = state.get("reason") == "identity_policies_cannot_allow_namespaces" or (
                 state.get("error") or {}).get("code") == "service_last_accessed_generation_disabled"
-            if state and not deferred:
+            if state and not deferred and not (state.get("collection_status") == "collected"
+                                                 and state.get("granularity") != "ACTION_LEVEL"):
                 continue
             by_account.setdefault(account, {}).setdefault(arn, []).append(item)
     for account, items in by_account.items():
@@ -65,7 +67,8 @@ def enrich_snapshot(snapshot, contexts):
             if deadlines is None:
                 deadlines = requests._sla_batch_deadlines = {}
             deadlines[(id(session), region)] = time.monotonic() + requests.service_last_accessed_wait
-        for arn, (rows, status) in service_reports(requests, session, region, items.keys()).items():
+        for arn, (rows, status) in service_reports(requests, session, region, items.keys(),
+                                                    granularity="ACTION_LEVEL").items():
             for item in items[arn]:
                 if rows is not None:
                     item["ServicesLastAccessed"] = rows

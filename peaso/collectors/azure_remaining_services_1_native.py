@@ -14,6 +14,18 @@ def _scope(value):
     raise ValueError('native authorization scope unsupported')
 
 
+def _assignable_scope(value):
+    """Built-in roles can target Azure provider roots outside subscriptions."""
+    try:
+        return _scope(value)
+    except ValueError:
+        if (isinstance(value, str) and re.fullmatch(
+                r'/providers/Microsoft\.[A-Za-z][A-Za-z0-9.]*(?:/[A-Za-z0-9._-]+)*', value, re.I)
+                and not any(part in ('.', '..') for part in value.split('/'))):
+            return value
+        raise
+
+
 def authorization_pages(reader,request,url,kind,requested_scope):
     endpoint={'role_assignment':'roleAssignments','role_definition':'roleDefinitions'}[kind]
     expected=requested_scope.rstrip('/')+'/providers/Microsoft.Authorization/'+endpoint
@@ -59,7 +71,7 @@ def authorization_pages(reader,request,url,kind,requested_scope):
             else:
                 scopes=props.get('assignableScopes')
                 if not isinstance(scopes,list) or not scopes:raise ValueError('role assignability unavailable')
-                scopes=[_scope(s) for s in scopes]
+                scopes=[_assignable_scope(s) for s in scopes]
                 if requested_scope!='/':
                     applicable=any(s=='/' or s.casefold().startswith('/providers/microsoft.management/managementgroups/') or
                         s.casefold()==requested_scope.casefold() or s.casefold().startswith(requested_scope.casefold()+'/') or requested_scope.casefold().startswith(s.casefold()+'/') for s in scopes)

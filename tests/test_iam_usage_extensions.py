@@ -19,16 +19,28 @@ def collection(kind, scope, items, status="collected"):
     return {"type": kind, "scope": scope, "status": status, "items": items}
 
 
+def test_aws_captured_scan_marks_native_reports_action_level():
+    requests = SimpleNamespace()
+    with aws_usage.capture_contexts() as contexts:
+        assert aws_usage.register_context(requests, object(), {"Account": "123456789012"}, ["us-east-1"])
+        assert requests.iam_usage_scan is True
+        assert "123456789012" in contexts
+
+
 def test_aws_one_report_per_missing_arn_with_same_session(monkeypatch):
     account = "123456789012"
     role = f"arn:aws:iam::{account}:role/team"
     policy = f"arn:aws:iam::{account}:policy/shared"
     user = f"arn:aws:iam::{account}:user/alice"
     another = f"arn:aws:iam::{account}:user/bob"
+    service_only = f"arn:aws:iam::{account}:user/carol"
+    group = f"arn:aws:iam::{account}:group/operators"
     current = snapshot("aws", [account], [
         collection("iam_role", account, [{"Arn": role}]),
+        collection("iam_group", account, [{"Arn": group}]),
         collection("iam_policy", account, [{"Arn": policy, "AttachmentCount": 2}]),
-        collection("iam_user", account, [{"Arn": user, "ServicesLastAccessedStatus": {"collection_status": "collected"}},
+        collection("iam_user", account, [{"Arn": user, "ServicesLastAccessedStatus": {"collection_status": "collected", "granularity": "ACTION_LEVEL"}},
+            {"Arn": service_only, "ServicesLastAccessedStatus": {"collection_status": "collected", "granularity": "SERVICE_LEVEL"}},
             {"Arn": another, "ServicesLastAccessedStatus": {"collection_status": "not_collected",
                 "error": {"code": "service_last_accessed_generation_disabled"}}}]),
     ], ["access_analyzer", "iam_role", "iam_policy", "iam_user"])
@@ -37,14 +49,15 @@ def test_aws_one_report_per_missing_arn_with_same_session(monkeypatch):
         iam_service_access_reports_requested=False)
     session = object()
     calls = []
-    def reports(observed_requests, observed_session, region, arns):
+    def reports(observed_requests, observed_session, region, arns, *, granularity):
         calls.append((observed_requests, observed_session, region, set(arns)))
         assert observed_requests.iam_service_access_reports_requested
+        assert granularity == "ACTION_LEVEL"
         return {arn: ([{"ServiceNamespace": "iam", "LastAuthenticated": "2026-10-20T00:00:00Z"}],
-                      {"collection_status": "collected"}) for arn in arns}
+                      {"collection_status": "collected", "granularity": "ACTION_LEVEL"}) for arn in arns}
     monkeypatch.setattr("peaso.collectors.aws_iam_report_native.service_reports", reports)
     result = finalize(current, {"provider": "aws"}, {}, {account: (requests, session, "us-east-1")})
-    assert calls == [(requests, session, "us-east-1", {role, policy, another})]
+    assert calls == [(requests, session, "us-east-1", {role, group, policy, another, service_only})]
     assert requests.service_last_accessed_wait == 600
     assert validate(result) == result
     role_row = next(c for c in result["collections"] if c["type"] == "iam_role")["items"][0]
@@ -74,14 +87,21 @@ def test_aws_policy_service_report_accepts_same_account_and_completed_date():
             if operation == "generate_service_last_accessed_details":
                 assert kwargs["Arn"] == arn
                 return {"JobId": job}
-            return {"JobStatus": "COMPLETED", "JobType": "SERVICE_LEVEL", "JobCreationDate": now,
+            return {"JobStatus": "COMPLETED", "JobType": "ACTION_LEVEL", "JobCreationDate": now,
                 "JobCompletionDate": now, "ServicesLastAccessed": [{"ServiceNamespace": "iam",
-                    "ServiceName": "AWS Identity and Access Management", "LastAuthenticated": now}],
+                    "ServiceName": "AWS Identity and Access Management", "LastAuthenticated": now,
+                    "TrackedActionsLastAccessed": [{"ActionName": "CreateAccessKey", "LastAccessedTime": now,
+                        "LastAccessedEntity": f"arn:aws:iam::{account}:user/alice"},
+                        {"ActionName": "PassRole"}]}],
                 "IsTruncated": False}
     session = SimpleNamespace(get_partition_for_region=lambda region: "aws")
-    rows, state = service_reports(Requests(), session, "us-east-1", [arn])[arn]
+    rows, state = service_reports(Requests(), session, "us-east-1", [arn], granularity="ACTION_LEVEL")[arn]
     assert state["collection_status"] == "collected"
+    assert state["granularity"] == "ACTION_LEVEL"
     assert rows[0]["LastAuthenticated"] == now.isoformat()
+    assert rows[0]["TrackedActionsLastAccessed"] == [{"ActionName": "CreateAccessKey",
+        "LastAccessedTime": now.isoformat(), "LastAccessedEntity": f"arn:aws:iam::{account}:user/alice"}]
+    assert rows[0]["TrackedActionsUnobserved"] == ["PassRole"]
     assert [operation for _, operation, _ in calls] == ["get_caller_identity",
         "generate_service_last_accessed_details", "get_service_last_accessed_details"]
 
@@ -135,6 +155,26 @@ def test_gcp_page_limit_is_partial_and_never_proves_unused(monkeypatch):
     assert log["queryWindow"]["absenceProvesUnused"] is False
 
 
+def test_gcp_numeric_project_scope_is_queried_once(monkeypatch):
+    scope = "projects/882210141464"
+    current = snapshot("gcp", [scope], [], ["iam_policy", "insight"])
+    calls = []
+    class Credentials:
+        def __init__(self, auth): pass
+        def close(self): pass
+    class Transport:
+        def __init__(self, credentials, options): pass
+        def request(self, method, url, *, body, scope):
+            calls.append((scope, body["resourceNames"]))
+            return {"entries": []}, "read"
+        def close(self): pass
+    monkeypatch.setattr("peaso.collectors.gcp.Credentials", Credentials)
+    monkeypatch.setattr("peaso.collectors.gcp.Transport", Transport)
+    result = gcp_usage.enrich_snapshot(current, {"auth": {}})
+    assert calls == [(scope, [scope])]
+    assert result["collections"][0]["status"] == "empty"
+
+
 def test_gcp_denied_audit_is_unknown_evidence_not_scan_failure(monkeypatch):
     scope = "projects/example-project-123"
     current = snapshot("gcp", [scope], [], ["iam_policy", "insight"])
@@ -155,23 +195,83 @@ def test_gcp_denied_audit_is_unknown_evidence_not_scan_failure(monkeypatch):
     assert log["error"]["code"] == "logging_service_unavailable"
 
 
-def test_azure_fetches_only_missing_subscription_and_reuses_existing_log(monkeypatch):
+def test_gcp_disabled_recommender_retries_only_selected_project_quota(monkeypatch):
+    scope = "projects/example-project-123"
+    current = snapshot("gcp", [scope], [
+        {"type": "insight", "scope": scope, "status": "unknown", "items": [],
+            "error": {"reason": "SERVICE_DISABLED", "service": "recommender.googleapis.com"}},
+        collection("iam_usage_activity", scope, []),
+    ], ["iam_policy", "insight"])
+    calls = []
+    class Credentials:
+        def __init__(self, auth): pass
+        def close(self): pass
+    class Transport:
+        def __init__(self, credentials, options):
+            assert options["quota_project"] == "example-project-123"
+            self.evidence = []
+        def request(self, method, url, *, scope, params=None):
+            calls.append((method, url, scope))
+            self.evidence.append({"id": "request-" + str(len(calls)), "scope": scope})
+            if "cloudresourcemanager" in url:
+                return {"name": "projects/123456789012", "projectId": "example-project-123"}, "crm"
+            return {"insights": [{"name": "projects/123456789012/locations/global/insightTypes/"
+                "google.iam.policy.Insight/insights/one", "insightSubtype": "PERMISSIONS_USAGE"}]}, "insight"
+        def close(self): pass
+    monkeypatch.setattr("peaso.collectors.gcp.Credentials", Credentials)
+    monkeypatch.setattr("peaso.collectors.gcp.Transport", Transport)
+    result = finalize(current, {"provider": "gcp", "auth": {"method": "gcloud"}}, {}, {})
+    insight = next(c for c in result["collections"] if c["type"] == "insight")
+    assert insight["status"] == "collected" and insight["quota_project_retry"] == "example-project-123"
+    assert len(insight["items"]) == 1 and len(calls) == 2
+    assert len(result["metadata"]["source_requests"]) == 2
+    assert finalize(result, {"provider": "gcp", "auth": {"method": "gcloud"}}, {}, {}) == result
+
+
+def test_azure_fetches_only_missing_subscription_and_reuses_existing_usage_log(monkeypatch):
     first = "/subscriptions/11111111-1111-1111-1111-111111111111"
     second = "/subscriptions/22222222-2222-2222-2222-222222222222"
-    current = snapshot("azure", [first, second], [collection("activity_log", first, [])],
+    current = snapshot("azure", [first, second], [collection("iam_usage_activity", first, [])],
         ["role_assignment", "role_definition"])
     calls = []
-    def collect(connector, requirements):
-        calls.append((connector["scopes"], requirements))
-        return snapshot("azure", connector["scopes"],
-            [collection("activity_log", second, [{"eventDataId": "event-1"}])], ["activity_log"])
-    monkeypatch.setattr("peaso.collectors.azure.collect", collect)
+    class Transport:
+        def __init__(self, auth): pass
+        def request(self, url):
+            calls.append(url)
+            return {"value": [{"eventDataId": "event-1", "caller": "principal",
+                "eventTimestamp": "2026-10-20T00:00:00Z", "resourceId": second + "/resourceGroups/app",
+                "authorization": {"action": "Microsoft.Authorization/roleAssignments/write"},
+                "status": {"value": "Succeeded"}, "claims": {"secret": "excluded",
+                    "http://schemas.microsoft.com/identity/claims/objectidentifier": second.split('/')[-1]}}]}
+        def close(self): pass
+    monkeypatch.setattr("peaso.collectors.azure.AzureTransport", Transport)
     result = finalize(current, {"provider": "azure", "scopes": [first, second]}, {}, {})
-    assert calls == [([second], ["activity_log"])]
-    assert len([c for c in result["collections"] if c["type"] == "activity_log"]) == 2
+    assert len(calls) == 1 and second in calls[0] and "eventTimestamp+le" in calls[0]
+    assert len([c for c in result["collections"] if c["type"] == "iam_usage_activity"]) == 2
+    assert "secret" not in str(result)
+    assert result["collections"][-1]["items"][0]["principalObjectId"] == second.split('/')[-1]
     assert validate(result) == result
     assert azure_usage.enrich_snapshot(result, {"provider": "azure"}) == result
     assert len(calls) == 1
+
+
+def test_azure_incomplete_page_keeps_observed_action_and_marks_partial(monkeypatch):
+    scope = "/subscriptions/11111111-1111-1111-1111-111111111111"
+    current = snapshot("azure", [scope], [], ["role_assignment", "role_definition"])
+    class Transport:
+        def __init__(self, auth): pass
+        def request(self, url):
+            return {"value": [{"eventDataId": "event-1", "caller": "principal",
+                "eventTimestamp": "2026-10-20T00:00:00Z", "resourceId": scope,
+                "authorization": {"action": "Microsoft.Authorization/roleAssignments/write"},
+                "status": {"value": "Succeeded"}}], "nextLink":
+                    "https://management.azure.com" + scope + "/providers/Microsoft.Insights/eventtypes/management/values?skiptoken=next"}
+        def close(self): pass
+    monkeypatch.setattr("peaso.collectors.azure.AzureTransport", Transport)
+    result = azure_usage.enrich_snapshot(current, {"auth": {}}, page_limit=1)
+    log = result["collections"][0]
+    assert log["status"] == "partial" and len(log["items"]) == 1
+    assert log["queryWindow"]["absenceProvesUnused"] is False
 
 
 def test_usage_collection_follows_selected_section_and_skips_imported_snapshot():
