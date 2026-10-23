@@ -424,6 +424,20 @@ class _TemporaryApi:
             self.temporary.cleanup()
 
 
+def _allowed_calico_alias(path):
+    """Admit served Calico CRD list paths only for reviewed kind and scope."""
+    result = re.fullmatch(
+        r"/apis/crd\.projectcalico\.org/v1(?:/namespaces/([a-z0-9](?:[a-z0-9-]*[a-z0-9])?))?/([a-z0-9]+)",
+        path)
+    if result is None:
+        return False
+    reviewed = {plural: namespaced for groups, plural, namespaced
+                in k8s_network_extensions.RESOURCES.values()
+                if "crd.projectcalico.org" in groups}
+    namespaced = reviewed.get(result[2])
+    return namespaced is not None and (result[1] is None or namespaced is True)
+
+
 def _inventory_read_path(path, query, headers):
     """Admit only collector metadata reads, never arbitrary GET subresources."""
     dns = r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?"
@@ -432,6 +446,8 @@ def _inventory_read_path(path, query, headers):
     if path in ("/api", "/api/v1", "/apis", "/version"):
         return True
     if k8s_network_catalog.allowed_path(path):
+        return True
+    if _allowed_calico_alias(path):
         return True
     if re.fullmatch(r"/apis/" + dns + r"(?:/" + version + r")?", path):
         return True  # API group/resource discovery, including installed CRDs.
