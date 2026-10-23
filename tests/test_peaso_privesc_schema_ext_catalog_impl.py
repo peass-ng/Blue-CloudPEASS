@@ -101,11 +101,11 @@ def test_every_catalog_placeholder_is_resolved(catalog):
 
 
 def test_every_gcp_attached_to_service_value_is_mapped(catalog):
-    """AWS falls back to the service principal's trust and Azure matches ARM resource types generically; GCP needs every
-    value in SERVICE_HOSTS (collected host inventory) or UNCOLLECTED_ATTACHMENTS (reported as not collected)."""
-    from peaso.privesc.effective_permissions.gcp import SERVICE_HOSTS, UNCOLLECTED_ATTACHMENTS
+    """Every GCP attachment has a collected host, verified default agent, or explicit coverage gap."""
+    from peaso.privesc.effective_permissions.gcp import SERVICE_HOSTS, UNCOLLECTED_ATTACHMENTS, VERTEX_DEFAULT_AGENTS
     _, _, _, _, values = _used(catalog)
     missing = sorted(v for p, k, v in values if p == "gcp" and k == "attached_to_service"
-                     and v.lower() not in SERVICE_HOSTS and v.lower() not in UNCOLLECTED_ATTACHMENTS)
+                     and v.lower() not in SERVICE_HOSTS and v.lower() not in VERTEX_DEFAULT_AGENTS
+                     and v.lower() not in UNCOLLECTED_ATTACHMENTS)
     assert not missing, f"GCP attached_to_service values with no mapping: {missing}"
 
