@@ -70,9 +70,11 @@ def capture(monkeypatch,cid,mode='ok'):
  review={'sw18':policy}
  if mode in ('mixed_policy', 'foreign_named_policy'):
   review.update(status='collected', scope=SUB, checks={})
- if mode=='foreign_named_policy':
+ if mode in ('foreign_named_policy','malformed_policy'):
   policy['scope']=SUB.replace('11111111','aaaaaaaa')
- snapshot=collect_live({'provider':'azure','scopes':[SUB],'auth':{'method':'token','arm_token':'fixture'},'options':{'retries':0,'compliance_policy':review}},['vm','azure_sw18_evidence'])
+ options={'retries':0}
+ if mode!='missing_policy':options['compliance_policy']=review
+ snapshot=collect_live({'provider':'azure','scopes':[SUB],'auth':{'method':'token','arm_token':'fixture'},'options':options},['vm','azure_sw18_evidence'])
  assert 'SECRET_SHOULD_NOT_ESCAPE' not in json.dumps(snapshot)
  findings=[f for f in evaluate_snapshot(snapshot,checks=[cid])['findings'] if f.get('check_id') == cid]
  finding=next((f for f in findings if f.get('native_resource_id') == VM),findings[-1])
@@ -95,6 +97,23 @@ def test_denied_report_is_preserved_in_native_collection(monkeypatch):
  _,snapshot,_,_=capture(monkeypatch,IDS[0],'report_denied')
  collection,=[c for c in snapshot['collections'] if c['type']=='azure_sw18_evidence']
  assert collection['status']=='denied'
+ assert collection['items']==[]
+
+def test_missing_guest_baseline_policy_is_unknown_not_malformed(monkeypatch):
+ finding,snapshot,transport,_=capture(monkeypatch,IDS[0],'missing_policy')
+ collection,=[c for c in snapshot['collections'] if c['type']=='azure_sw18_evidence']
+ assert finding['status']=='UNKNOWN'
+ assert collection['status']=='unknown'
+ assert collection['error']=={'code':'approved_guest_baseline_policy_unavailable','kind':'AzureReadError'}
+ assert collection['items']==[]
+ assert not any('/reports/' in url for url in transport.calls)
+
+def test_provided_foreign_guest_baseline_policy_remains_malformed(monkeypatch):
+ finding,snapshot,_,_=capture(monkeypatch,IDS[0],'malformed_policy')
+ collection,=[c for c in snapshot['collections'] if c['type']=='azure_sw18_evidence']
+ assert finding['status']=='UNKNOWN'
+ assert collection['status']=='malformed'
+ assert collection['error']=={'code':'read_failed','kind':'ValueError'}
  assert collection['items']==[]
 
 def test_flat_legacy_policy_keeps_priority_over_namespace(monkeypatch):

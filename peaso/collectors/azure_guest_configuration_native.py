@@ -26,6 +26,9 @@ def _policy(options, scope):
             and str(root.get('scope', '')).casefold() == scope.casefold()):
         root = {**named, **root}
     value = (root if root.get('status') == 'collected' and 'scope' in root else root.get('sw18', root)) if isinstance(root, dict) else {}
+    if not value:
+        from .azure import AzureReadError
+        raise AzureReadError('approved_guest_baseline_policy_unavailable')
     if not isinstance(value, dict) or value.get('status') != 'collected' or str(value.get('scope', '')).casefold() != scope.casefold():
         raise ValueError('approved guest baseline policy unavailable')
     return value
