@@ -90,6 +90,12 @@ FOCUSED_HELPER_TESTS = {
 }
 
 ISOLATED_GRAPH_TESTS = {
+    "aws-apprunner-mutable-ecr-autodeploy": (
+        "tests/test_peaso_privesc_apprunner_existing_role.py"
+    ),
+    "aws-apprunner-updateservice": (
+        "tests/test_peaso_privesc_apprunner_existing_role.py"
+    ),
     "aws-ec2-passrole-associate-instance-profile": (
         "tests/test_peaso_privesc_ec2_profile_branches.py"
     ),
