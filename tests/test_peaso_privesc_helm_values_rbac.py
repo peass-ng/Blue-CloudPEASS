@@ -104,4 +104,6 @@ def test_every_review_field_is_required(field):
 def test_generic_challenge_selector_cannot_substitute_for_typed_helm_proof():
     invalid = copy.deepcopy(ENTRY)
     invalid["target"]["selector"] = {"k8s_challenge_fact": ENTRY["id"]}
-    assert any("typed k8s_helm_values_rbac" in error for error in validate_entry(invalid)[0])
+    errors, _ = validate_entry(invalid)
+    assert any("k8s_verified_authority needs typed role-binding, Helm, or verified-pivot evidence" in error
+               for error in errors)
