@@ -386,7 +386,8 @@
     "peaso/attack_detection/gcp_secret_versions_next.py": "bbd79368fd1bda4bd791e3e9657f6ffdc4984d40edeeb2d61e9944b7bd7a3d2d",
     "peaso/attack_detection/github_source.py": "f061a6eb00997bc12a78824730e462f442e7f91a787281ec502395be59451061",
     "peaso/attack_detection/gke_scope.py": "da2d9d25802ff7f34f9cacaba3518ab4d89d8058f4a5a2b553e13a59e2c3794f",
-    "peaso/attack_detection/history_s3.py": "890c4a8737504bfbfb925b939650f69c7900c30829db1c8e015f06b9ad2a3df5",
+    "peaso/attack_detection/gzip_input.py": "0e0bbff4127c3895fa65c9118166af8f9601c90ad8d9e52e0a7403368a27657e",
+    "peaso/attack_detection/history_s3.py": "30d815df60d857930341ff93cd19e186f20eeaf5c96324708e09fff616400a9f",
     "peaso/attack_detection/history_worker_s3.py": "c1829aa087a0f16676463048dd317cad741bd409c4e68518440971f764935cf1",
     "peaso/attack_detection/kubernetes.py": "b5d10f3ee6f81e642041c0bc0d14e5c5bf1084addc152a2d7da506becb2dc634",
     "peaso/attack_detection/kubernetes_aggregate_view_next.py": "c04e09d664e5e7209d96a2d8fefe12182a411694ed619875876fe15bfa3383c5",
@@ -1583,7 +1584,7 @@
     "peaso/server/access_check.py": "f8a7c0866a42ac0426312ac6159be7b393c70a4975e618e6dcccdda99a2debad",
     "peaso/server/acr_image_selection_static_20261021.py": "99ac8a385f94fcbd529ff6582c20209bc699d1c3d4aeb7ce1a1233b99a227cdd",
     "peaso/server/app.py": "d34d6682ddbd5a8d405f6a995fd2c354446421582dd1bc23e72c8bf28d698894",
-    "peaso/server/attack_logs.py": "bd9d35207edd00a7fd3d1630afd2d7e43064db6e03cd4c6f1b4ec510703e1315",
+    "peaso/server/attack_logs.py": "10ecddd95f0605f5448ca77438b2041c25405d2e73b3ec36b5aa43af1e188651",
     "peaso/server/aws_access_requirements.py": "5440560f68b7a31551a6ba634bd2897fb8a80ac87c7822039fe1e2731dddba79",
     "peaso/server/aws_selector_logs.py": "a1c811ecc964a2fd39ebf7f35251ce82a4d09d0febbdfee3b3b122b49afd9bed",
     "peaso/server/azure_attack_logs.py": "a754eeb25080ca6bdb021b717a3b854d9431da92dc45959cc2220e661d09eb6f",
@@ -1659,13 +1660,14 @@
     "risk_rules/__init__.py": "536fd9c90e7ce607169a3a219358f8bdbb132fbcd79e1674d1f9ebaf1c5b0838",
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
-  "python_source_count": 1658,
-  "python_source_sha256": "5c513d33d84a9fdce2ce08f92c61eca276b0b9670878df77640b379e96a41694",
+  "python_source_count": 1659,
+  "python_source_sha256": "4307d897038447dbd987fac6e446a3112ea838e20878430a94b803443496d259",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "alternative_workflow_qualification": "Reviewed strong DynamoDB base hydration and FIFO authority; provider-only AI input preparation; capture-scoped ciphertext index adapter; live-digest historical receipts; per-source GCP HTTP pool; large owned legacy download. Exactly 30 literal SDK client sites retain existing services; no new credential factories. Preserve main 6d8a1f23 artifact batching and closure review.",
     "api_client_sites": 30,
     "api_services_unchanged": true,
+    "audit_expansion_qualification": "Bounded C gzip decoding for validated single-member objects; GzipFile compatibility fallback for multiple members, unusual headers and errors. Bounded fallback growth; original full-object JSON parsing, limit codes, compressed identity/digest, tenant scope and record validation retained. New helper imports only gzip/io/zlib; 30 existing SDK client sites and service set unchanged; no credential-factory or native-admission receipt changes.",
     "base_commit": "42821236",
     "credential_factories_unchanged": true,
     "final_runtime_commit": "fb99a0157bbe05941095338c2e23d03705feffb1",
@@ -1716,5 +1718,5 @@
     "source_review": "Qualified factory/SW46/source-proof locality and network joins; current main offline event normalizers and historical ECS lineage; bounded S3 uploads retain tenant checks, encryption and manifest-last semantics. Added modules have no SDK calls. Exact API client closure unchanged.",
     "top20_performance_review": "Five runtime files reviewed: fresh tenant-bound status/TTL reads use existing DynamoDB GetItem; privilege query generators retain original traversal and ordering, bounded heap selection changes response paging only.30 client construction sites, credential factories and API service roster unchanged. Native admission sources unchanged."
   },
-  "source_commit": "6d8a1f233b868db4ebc1da4faee6b2952142d247"
+  "source_commit": "3359a8fb29fb32b1385cf76058f2626511100d42"
 }

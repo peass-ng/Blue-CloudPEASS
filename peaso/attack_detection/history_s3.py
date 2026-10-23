@@ -8,15 +8,15 @@ checkpoints, and finding storage; this module performs no cloud mutations.
 
 from __future__ import annotations
 
-import gzip
 import hashlib
-import io
 import json
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any
+
+from .gzip_input import ExpansionLimitError, read_gzip
 
 
 MAX_LIST_PAGES = 100
@@ -200,11 +200,10 @@ def read_cloudtrail_object(
             raise HistorySourceGap("object_size_changed")
         digest = hashlib.sha256(compressed).hexdigest()
         try:
-            with gzip.GzipFile(fileobj=io.BytesIO(compressed)) as stream:
-                expanded = stream.read(max_expanded + 1)
-            if len(expanded) > max_expanded:
-                raise HistorySourceGap("expanded_object_too_large")
+            expanded = read_gzip(compressed, max_expanded)
             document = json.loads(expanded)
+        except ExpansionLimitError:
+            raise HistorySourceGap("expanded_object_too_large") from None
         except HistorySourceGap:
             raise
         except (OSError, ValueError, TypeError, EOFError):

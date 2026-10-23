@@ -1,8 +1,6 @@
 """Bounded CloudTrail reads for the interactive attack-evidence preview."""
 from __future__ import annotations
 
-import gzip
-import io
 import json
 import re
 from datetime import datetime, timedelta, timezone
@@ -10,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from botocore.config import Config
 
 from peaso.collectors.aws import _session
+from peaso.attack_detection.gzip_input import ExpansionLimitError, read_gzip
 from .validation import COLLECTOR_ROLE_ARN, PLATFORM_ACCOUNT_IDS
 
 
@@ -206,11 +205,10 @@ def analyze_aws_source(auth, options, source, scopes=None, *, rules=None):
                 raise LogAccessError("object_size_changed")
             total_bytes += len(raw)
             try:
-                with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
-                    expanded = stream.read(MAX_UNCOMPRESSED_OBJECT_BYTES + 1)
-                if len(expanded) > MAX_UNCOMPRESSED_OBJECT_BYTES:
-                    raise LogAccessError("decompressed_object_too_large")
+                expanded = read_gzip(raw, MAX_UNCOMPRESSED_OBJECT_BYTES)
                 document = json.loads(expanded)
+            except ExpansionLimitError:
+                raise LogAccessError("decompressed_object_too_large") from None
             except (OSError, ValueError, TypeError):
                 raise LogAccessError("malformed_cloudtrail_object") from None
             records = document.get("Records") if isinstance(document, dict) else None
