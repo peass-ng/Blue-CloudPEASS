@@ -14,12 +14,13 @@ import os
 import resource
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from peaso import privesc
 from peaso.privesc.versioned_catalog import _verified_prior
-from peaso.privesc.effective_permissions import ANY, Node
+from peaso.privesc.effective_permissions import ANY, AllTargets, Node
 from peaso.privesc.effective_permissions import aws_conditions as C
 from peaso.privesc.effective_permissions.aws import AwsModel
 from peaso.privesc.effective_permissions.k8s import K8sModel
@@ -423,6 +424,27 @@ def _bench(scale):
     print(f"\nprivesc synthetic {scale}x: {synthetic.principals(snap)} principals, {elapsed:.2f}s, "
           f"+{grown_mb:.0f} MB peak RSS, {result['stats']['edges']} edges, stats={result['stats']['timing_seconds']}")
     return synthetic.principals(snap), elapsed, grown_mb, result
+
+
+def test_passrole_request_context_bulk_matches_each_role_across_accounts():
+    model = AwsModel(_synthetic().snapshot(1))
+    roles = model.targets("aws_role")
+    model.current_cset = SimpleNamespace(id="all_roles", kind="aws_role",
+                                         members={role.id: role for role in roles})
+    model.current_entry = {}
+    model.current_selector = {}
+    req = {"action": "iam:PassRole", "request_context": {"iam:PassedToService": "ec2.amazonaws.com"}}
+
+    def signature(grant):
+        return None if grant is None else (grant.confidence, grant.refs, grant.conditions, grant.permission_refs)
+
+    for username in ("user3-0", "user5-0"):
+        source = model.principals[f"arn:aws:iam::{ACCOUNT}:user/{username}"]
+        bulk = model.check_targets(source, req, "{target.arn}", model.current_cset.members.values())
+        for role in roles:
+            bulk_grant = bulk.grant if isinstance(bulk, AllTargets) else bulk.get(role.id)
+            individual_grant = model.check_targets(source, req, "{target.arn}", [role]).get(role.id)
+            assert signature(bulk_grant) == signature(individual_grant), (username, role.id)
 
 
 def test_bench_privesc_10x_aws():
