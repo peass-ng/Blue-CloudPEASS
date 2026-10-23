@@ -24,6 +24,59 @@ def chunks(items):
         yield group
 
 
+def _json_bytes(value):
+    return json.dumps(value, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode()
+
+
+def _encoded_chunks(items):
+    """Already encoded rows, with exactly the ordinary chunk boundaries."""
+    group, bodies, size = [], [], 2
+    for item, body in items:
+        encoded_size = len(body) + 1
+        if group and (size + encoded_size > CHUNK_BYTES or len(group) >= 250):
+            yield group, b'{"items":[' + b','.join(bodies) + b']}'
+            group, bodies, size = [], [], 2
+        group.append(item)
+        bodies.append(body)
+        size += encoded_size
+    if group:
+        yield group, b'{"items":[' + b','.join(bodies) + b']}'
+
+
+def _artifact_chunks(artifacts, items, *, preencoded=False):
+    if callable(getattr(artifacts, '_put_json_bytes', None)):
+        source = items if preencoded else ((item, _json_bytes(item)) for item in items)
+        yield from _encoded_chunks(source)
+    else:
+        for group in chunks(items):
+            yield group, None
+
+
+def _put_chunk(artifacts, tenant, ident, kind, group, body):
+    if body is not None:
+        return artifacts._put_json_bytes(tenant, ident, kind, body)
+    return artifacts.put(tenant, ident, kind, {'items': group})
+
+
+def _prepared_findings(artifacts, tenant, ident, findings, *, check_frameworks=None, check_meta=None,
+                       check_meta_encoding=None, remediation_templates=None):
+    from peaso.engine import hydrate_finding
+    encoded = callable(getattr(artifacts, '_put_json_bytes', None))
+    for finding in sorted(findings, key=lambda x: x['id']):
+        body = _json_bytes(finding) if encoded else None
+        # Legacy detail placement uses default JSON escaping/separators.
+        # Six times compact UTF-8 size safely bounds that size (non-ASCII
+        # escapes expand at most threefold, plus separator whitespace).
+        # Only potentially large rows need the second legacy encoding.
+        large = (not encoded or len(body) * 6 > CHUNK_BYTES) and len(json.dumps(finding).encode()) > CHUNK_BYTES
+        if large:
+            reference = artifacts.put(tenant, ident, 'detail', hydrate_finding(
+                finding, check_frameworks, check_meta, check_meta_encoding, remediation_templates))
+            finding = dict(finding_summary(finding), _detail_reference=reference)
+            body = _json_bytes(finding) if encoded else None
+        yield (finding, body) if encoded else finding
+
+
 def finding_summary(finding):
     secret = bool(finding.get("secret_fingerprint"))
     value = {k: v for k, v in finding.items() if k in _SUMMARY_FIELDS or secret and k == "evidence_summary"}
@@ -81,13 +134,21 @@ def resource_chunks(artifacts, tenant, ident, report, snapshot):
     items = sorted(({"id": r["id"], "native_id": r["native_id"], "type": r["type"], "scope": r["scope"], "data": r["data"]}
                     for r in resources(snapshot) if r["id"] in wanted), key=lambda r: r["id"])
     out = []
-    for group in chunks(items):
-        out.append({"reference": artifacts.put(tenant, ident, "resources", {"items": group}),
+    for group, body in _artifact_chunks(artifacts, items):
+        out.append({"reference": _put_chunk(artifacts, tenant, ident, "resources", group, body),
                     "first_id": group[0]["id"], "last_id": group[-1]["id"], "count": len(group)})
     return out
 
 
 def publish_report(artifacts, tenant, ident, report, snapshot=None):
+    batch = getattr(artifacts, "batch", None)
+    if not callable(batch):
+        return _publish_report(artifacts, tenant, ident, report, snapshot)
+    with batch() as publisher:
+        return _publish_report(publisher, tenant, ident, report, snapshot)
+
+
+def _publish_report(artifacts, tenant, ident, report, snapshot=None):
     from peaso.secret_evidence import without_private_values
     report = without_private_values(report)
     # Optional image scans have a separately scoped safe artifact. Keep raw
@@ -127,7 +188,6 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
     # overrides and the API hydrates/filters with these maps at serve time.
     check_frameworks = report.get("check_frameworks") if isinstance(report.get("check_frameworks"), dict) else {}
     check_meta = report.get("check_meta") if isinstance(report.get("check_meta"), dict) else {}
-    from peaso.engine import hydrate_finding
     def category(finding):
         return finding["category"] if "category" in finding else (check_meta.get(finding.get("check_id")) or {}).get("category")
     manifest["summary"]["stats"] = dict(report.get("stats", {}), by_category=dict(Counter(category(item) for item in report.get("findings", []))))
@@ -139,21 +199,19 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
     if "check_meta_encoding" in report:
         manifest["check_meta_encoding"] = report["check_meta_encoding"]
     manifest["remediation_templates"] = report.get("remediation_templates", {})
-    findings = []
-    for finding in sorted(report.get("findings", []), key=lambda x: x["id"]):
-        if len(json.dumps(finding).encode()) > CHUNK_BYTES:
-            # A presigned detail download is served as stored, so it carries its labels and per-check fields.
-            reference = artifacts.put(tenant, ident, "detail", hydrate_finding(
-                finding, check_frameworks, check_meta, report.get("check_meta_encoding"),
-                report.get("remediation_templates")))
-            finding = dict(finding_summary(finding), _detail_reference=reference)
-        findings.append(finding)
-    for group in chunks(findings):
-        detail = artifacts.put(tenant, ident, "findings", {"items": group})
+    encoded = callable(getattr(artifacts, '_put_json_bytes', None))
+    prepared = _prepared_findings(artifacts, tenant, ident, report.get('findings', []),
+        check_frameworks=check_frameworks, check_meta=check_meta, check_meta_encoding=report.get('check_meta_encoding'),
+        remediation_templates=report.get('remediation_templates'))
+    if not encoded:
+        # Preserve the existing detail-write order for legacy/custom stores.
+        prepared = list(prepared)
+    for group, body in _artifact_chunks(artifacts, prepared, preencoded=encoded):
+        detail = _put_chunk(artifacts, tenant, ident, "findings", group, body)
         index = artifacts.put(tenant, ident, "finding-index", {"items": [finding_summary(item) for item in group]})
         manifest["finding_chunks"].append({"reference": detail, "index_reference": index, "first_id": group[0]["id"], "last_id": group[-1]["id"], "count": len(group)})
-    for group in chunks(report.get("coverage", [])):
-        manifest["coverage_chunks"].append(artifacts.put(tenant, ident, "coverage", {"items": group}))
+    for group, body in _artifact_chunks(artifacts, report.get("coverage", [])):
+        manifest["coverage_chunks"].append(_put_chunk(artifacts, tenant, ident, "coverage", group, body))
         manifest["coverage_chunk_counts"].append(len(group))
     if embeddable:
         manifest["resource_chunks"] = resource_chunks(artifacts, tenant, ident, report, snapshot)
