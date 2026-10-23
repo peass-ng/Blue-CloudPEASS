@@ -3052,15 +3052,11 @@
       "catalog_file": "peaso/privesc/catalog/aws/ecs.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#ecsregistertaskdefinition-and-a-task-launching-action",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "5bb8aace3c9f038387a0538aa96562a8b50a31da4686db8b2a04f0f5d9e50249",
+      "reviewed_contract_sha256": "c6ad1a8d5b517a163db05a35d6d0cee8a4fbfcd40919cc89a7dd2973be1a9fcd",
       "purpose": "A privileged or host-mounted ECS container may reach the node and co-located task credentials.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [
-          {
-            "action": "ecs:RegisterTaskDefinition"
-          }
-        ]
+        "all_of": []
       },
       "conditions_retained": [
         "ec2_capacity",
