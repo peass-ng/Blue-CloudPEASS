@@ -68,6 +68,59 @@ def test_wrong_collection_identity_is_rejected():
             _MODULE.project({'name': name}, 'projects/p1', 'global')
 
 
+def test_numeric_alias_is_crm_bound_and_canonicalized_for_all_child_reads():
+    numeric = 'projects/1234/locations/global/collections/c1'
+    canonical = 'projects/p1/locations/global/collections/c1'
+
+    class Collector:
+        def __init__(self):
+            self.bindings = []
+            self.urls = []
+
+        def _data_project_binding(self, scope, *, require_alias=False):
+            self.bindings.append((scope, require_alias))
+            return {'project_id': 'p1', 'project_number': '1234'}
+
+        def pages(self, url, scope, **kwargs):
+            self.urls.append(url)
+            if kwargs['key'] == 'collections':
+                rows = [{'name': numeric}] if '/locations/global/' in url else []
+                yield [kwargs['transform'](row) for row in rows], 'collections'
+            elif kwargs['key'] == 'dataStores':
+                rows = [{'name': numeric + '/dataStores/d1'}] if url.endswith('/collections/c1/dataStores') else []
+                yield rows, 'stores'
+            elif kwargs['key'] == 'engines':
+                yield [{'name': numeric + '/engines/e1'}], 'engines'
+
+        def hydrate(self, row, field, url, scope):
+            assert url.startswith('https://discoveryengine.googleapis.com/v1alpha/projects/p1/')
+            return row
+
+        def parallel(self, function, rows):
+            return [function(row) for row in rows]
+
+    collector = Collector()
+    collections = [row for page, _ in _MODULE.collection_pages(collector, 'projects/p1') for row in page]
+    stores = [row for page, _ in _MODULE.data_store_pages(collector, 'projects/p1') for row in page]
+    engines = [row for page, _ in _MODULE.engine_pages(collector, 'projects/p1') for row in page]
+    assert [row['name'] for row in collections] == [canonical]
+    assert [row['name'] for row in stores] == [canonical + '/dataStores/d1']
+    assert [row['name'] for row in engines] == [canonical + '/engines/e1']
+    assert collector.bindings and all(value == ('projects/p1', True) for value in collector.bindings)
+    assert all('/projects/1234/' not in url for url in collector.urls)
+
+
+def test_unproved_numeric_and_foreign_names_stay_rejected():
+    class Collector:
+        def _data_project_binding(self, scope, *, require_alias=False):
+            return {'project_id': 'p1', 'project_number': '1234'}
+
+    for name in ('projects/5678/locations/global/collections/c1',
+                 'projects/other/locations/global/collections/c1'):
+        with pytest.raises(ReadError):
+            _MODULE.project({'name': name}, 'projects/p1', 'global', Collector())
+
+
 def test_data_store_projection_covers_standalone_and_collection_child():
     standalone = 'projects/p1/locations/global/dataStores/d1'
     child = RESOURCE + '/dataStores/d2'

@@ -35,6 +35,55 @@ HOSTS = frozenset(f"{s}.googleapis.com" for s in (
     # Groups Settings API (www.googleapis.com/groups/v1), read only with group_settings=true.
     "www", "workflows", "vpcaccess", "file", "redis", "netapp", "servicenetworking", "dataflow", "batch", "aiplatform", "managedkafka", "memorystore", "bigqueryconnection", "cloudprivatecatalogproducer", "krmapihosting",
     "memcache", "looker", "lustre", "ids", "tpu", "backupdr", "vmwareengine", "datafusion", "dataplex", "apigee", "ml", "workstations", "baremetalsolution", "connectors", "contactcenterinsights", "agentidentity", "bigquerydatatransfer", "bigqueryreservation", "developerconnect", "discoveryengine", "iap", "identitytoolkit", "config"))
+
+
+def _scoped_privesc_read(method, parsed, scope, params, body):
+    """Admit only the four documented project-bound inventory API routes."""
+    if not isinstance(scope, str) or not re.fullmatch(r"projects/[a-z][a-z0-9-]{4,28}[a-z0-9]", scope):
+        return False
+    if not isinstance(params, (dict, type(None))):
+        return False
+    path = parsed.path
+    parent = re.escape(scope)
+    segment = r"[A-Za-z0-9_.-]+"
+    location = r"[a-z0-9-]+"
+    patterns = {
+        "biglake.googleapis.com": (
+            rf"/iceberg/v1/restcatalog/extensions/{parent}/catalogs",
+            rf"/iceberg/v1/restcatalog/v1/{parent}/catalogs/{segment}/namespaces",
+            rf"/iceberg/v1/restcatalog/v1/{parent}/catalogs/{segment}/namespaces/{segment}/tables",
+            rf"/v1/{parent}/catalogs/{segment}(?:/namespaces/{segment}(?:/tables/{segment})?)?:getIamPolicy",
+        ),
+        "cloudtasks.googleapis.com": (
+            rf"/v2/{parent}/locations",
+            rf"/v2/{parent}/locations/{location}/queues",
+        ),
+        "dataform.googleapis.com": (
+            rf"/v1/{parent}/locations",
+            rf"/v1/{parent}/locations/{location}/config",
+            rf"/v1/{parent}/locations/{location}/repositories",
+            rf"/v1/{parent}/locations/{location}/repositories/{segment}:getIamPolicy",
+        ),
+        "firebaseapphosting.googleapis.com": (
+            rf"/v1/{parent}/locations",
+            rf"/v1/{parent}/locations/{location}/backends",
+        ),
+    }
+    host = parsed.hostname
+    if (host == "cloudtasks.googleapis.com" and method == "POST" and
+            re.fullmatch(rf"/v2/{parent}/locations/{location}/queues/{segment}:getIamPolicy", path)):
+        return not params and body == {"options": {"requestedPolicyVersion": 3}}
+    if method != "GET" or body is not None or host not in patterns:
+        return False
+    allowed_params = {
+        "biglake.googleapis.com": {"view", "page-size", "page-token", "pageSize", "pageToken",
+                                    "options.requestedPolicyVersion"},
+        "cloudtasks.googleapis.com": {"pageSize", "pageToken"},
+        "dataform.googleapis.com": {"pageSize", "pageToken"},
+        "firebaseapphosting.googleapis.com": {"pageSize", "pageToken"},
+    }
+    return (set(params or ()).issubset(allowed_params[host]) and
+            any(re.fullmatch(pattern, path) for pattern in patterns[host]))
 SAFE_REASONS = frozenset(("SERVICE_DISABLED", "ACCESS_TOKEN_SCOPE_INSUFFICIENT", "IAM_PERMISSION_DENIED",
     "PERMISSION_DENIED", "UNAUTHENTICATED", "NOT_FOUND", "RESOURCE_EXHAUSTED", "INVALID_ARGUMENT",
     "BILLING_DISABLED", "USER_PROJECT_DENIED", "QUOTA_EXCEEDED", "RATE_LIMIT_EXCEEDED", "UNAVAILABLE",
@@ -498,11 +547,14 @@ class Transport:
                 (re.fullmatch(r"/api/v3/namespaces/[A-Za-z0-9_-]+/apps/[A-Za-z0-9_.-]+(?:/schedules|/workflows/DataPipelineWorkflow/preferences)", parsed.path)
                  or re.fullmatch(r"/api/v3/namespaces/[A-Za-z0-9_-]+/preferences", parsed.path)
                  or re.fullmatch(r"/api/v3/namespaces/[A-Za-z0-9_-]+/artifacts/[A-Za-z0-9_.-]+/versions/[A-Za-z0-9_.-]+/extensions(?:/[a-z]+)?", parsed.path))))
-        if parsed.scheme != "https" or (parsed.hostname not in HOSTS and not regional_metadata and not cdap_read) or parsed.port not in (None, 443) or parsed.username or parsed.query:
+        privesc_read = _scoped_privesc_read(method, parsed, scope, params, body)
+        if parsed.scheme != "https" or (parsed.hostname not in HOSTS and not regional_metadata and not cdap_read and not privesc_read) or parsed.port not in (None, 443) or parsed.username or parsed.password or parsed.query:
             raise ReadError("unsupported", "unsafe_api_endpoint")
         # POST is used by a few provider read methods. Bind each action to
         # its documented service and resource path before credentials are read.
         read_post = method == "POST" and (
+            privesc_read
+            or
             (parsed.hostname == "cloudresourcemanager.googleapis.com" and (
                 re.fullmatch(r"/v3/(?:projects|folders|organizations)/[^/%:]+:getIamPolicy", parsed.path)
                 or re.fullmatch(r"/v1/projects/[^/%:]+:getAncestry", parsed.path)))

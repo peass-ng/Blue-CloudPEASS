@@ -10,11 +10,26 @@ _STORE = re.compile(r'projects/[^/]+/locations/(?:global|us|eu)/(?:collections/[
 _ENGINE = re.compile(r'projects/[^/]+/locations/(?:global|us|eu)/collections/[^/]+/engines/[^/]+')
 
 
-def project(item, scope, location):
+def _bound_name(collector, name, scope, pattern, code):
     from .gcp import ReadError
-    name = item.get('name') if isinstance(item, dict) else None
-    if (not isinstance(name, str) or not _NAME.fullmatch(name) or
-            not name.startswith(f'{scope}/locations/{location}/')):
+    if not isinstance(name, str) or not pattern.fullmatch(name):
+        raise ReadError('malformed', code)
+    project = name.split('/', 2)[1]
+    if project == scope.split('/', 1)[1]:
+        return name
+    if not project.isdecimal() or collector is None:
+        raise ReadError('malformed', code)
+    binding = collector._data_project_binding(scope, require_alias=True)
+    if project != binding['project_number']:
+        raise ReadError('malformed', code)
+    return scope + name[len('projects/' + project):]
+
+
+def project(item, scope, location, collector=None):
+    from .gcp import ReadError
+    name = _bound_name(collector, item.get('name') if isinstance(item, dict) else None,
+                       scope, _NAME, 'discoveryengine_collection_identity_invalid')
+    if not name.startswith(f'{scope}/locations/{location}/'):
         raise ReadError('malformed', 'discoveryengine_collection_identity_invalid')
     return {'name': name, '_representation': 'partial'}
 
@@ -24,7 +39,7 @@ def collection_pages(collector, scope):
         base = f'https://discoveryengine.googleapis.com/v1alpha/{scope}/locations/{location}/collections'
         for rows, request_id in collector.pages(
                 base, scope, key='collections',
-                transform=lambda item, loc=location: project(item, scope, loc)):
+                transform=lambda item, loc=location: project(item, scope, loc, collector)):
             def hydrate(row):
                 return collector.hydrate(
                     row, 'iamPolicy',
@@ -42,7 +57,7 @@ def data_store_pages(collector, scope):
         for collections, request_id in collector.pages(
                 f'https://discoveryengine.googleapis.com/v1alpha/{location_parent}/collections',
                 scope, key='collections',
-                transform=lambda item, loc=location: project(item, scope, loc)):
+                transform=lambda item, loc=location: project(item, scope, loc, collector)):
             if request_id:
                 yield [], request_id
             parents.extend(row['name'] for row in collections)
@@ -51,9 +66,9 @@ def data_store_pages(collector, scope):
             for stores, request_id in collector.pages(base, scope, key='dataStores'):
                 rows = []
                 for store in stores:
-                    name = store.get('name') if isinstance(store, dict) else None
-                    if (not isinstance(name, str) or not _STORE.fullmatch(name)
-                            or not name.startswith(location_parent + '/')
+                    name = _bound_name(collector, store.get('name') if isinstance(store, dict) else None,
+                                       scope, _STORE, 'discoveryengine_data_store_identity_invalid')
+                    if (not name.startswith(location_parent + '/')
                             or (parent != location_parent and
                                 name.rsplit('/dataStores/', 1)[0] != parent)):
                         raise ReadError('malformed', 'discoveryengine_data_store_identity_invalid')
@@ -76,7 +91,7 @@ def engine_pages(collector, scope):
         for collections, request_id in collector.pages(
                 f'https://discoveryengine.googleapis.com/v1alpha/{location_parent}/collections',
                 scope, key='collections',
-                transform=lambda item, loc=location: project(item, scope, loc)):
+                transform=lambda item, loc=location: project(item, scope, loc, collector)):
             if request_id:
                 yield [], request_id
             for collection in collections:
@@ -85,9 +100,9 @@ def engine_pages(collector, scope):
                 for engines, engine_request in collector.pages(base, scope, key='engines'):
                     rows = []
                     for engine in engines:
-                        name = engine.get('name') if isinstance(engine, dict) else None
-                        if (not isinstance(name, str) or not _ENGINE.fullmatch(name)
-                                or name.rsplit('/engines/', 1)[0] != parent):
+                        name = _bound_name(collector, engine.get('name') if isinstance(engine, dict) else None,
+                                           scope, _ENGINE, 'discoveryengine_engine_identity_invalid')
+                        if name.rsplit('/engines/', 1)[0] != parent:
                             raise ReadError('malformed', 'discoveryengine_engine_identity_invalid')
                         rows.append({'name': name, '_representation': 'partial'})
                     def hydrate(row):

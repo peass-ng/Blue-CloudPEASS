@@ -723,6 +723,46 @@ def test_compliance_service_metadata_reaches_http_transport(monkeypatch, service
     assert len(calls) == 1
 
 
+@pytest.mark.parametrize("method,url,params,body", [
+    ("GET", "https://biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/p-one1/catalogs",
+     {"view": "CATALOG_VIEW_BASIC", "page-size": 100}, None),
+    ("GET", "https://biglake.googleapis.com/v1/projects/p-one1/catalogs/c1/namespaces/n1/tables/t1:getIamPolicy",
+     {"options.requestedPolicyVersion": 3}, None),
+    ("GET", "https://cloudtasks.googleapis.com/v2/projects/p-one1/locations/us-central1/queues",
+     {"pageSize": 100, "pageToken": "cursor"}, None),
+    ("POST", "https://cloudtasks.googleapis.com/v2/projects/p-one1/locations/us-central1/queues/q1:getIamPolicy",
+     None, {"options": {"requestedPolicyVersion": 3}}),
+    ("GET", "https://dataform.googleapis.com/v1/projects/p-one1/locations/us-central1/repositories/r1:getIamPolicy",
+     None, None),
+    ("GET", "https://firebaseapphosting.googleapis.com/v1/projects/p-one1/locations/us-central1/backends",
+     {"pageSize": 100}, None),
+])
+def test_privesc_read_routes_reach_http_with_exact_project(monkeypatch, method, url, params, body):
+    transport, calls = http_transport(monkeypatch, [Response()])
+    transport.request(method, url, scope="projects/p-one1", params=params, body=body)
+    assert len(calls) == 1 and calls[0]["url"] == url and calls[0]["allow_redirects"] is False
+
+
+@pytest.mark.parametrize("method,url,params,body", [
+    ("GET", "https://biglake.googleapis.com.evil.example/iceberg/v1/restcatalog/extensions/projects/p-one1/catalogs", None, None),
+    ("GET", "https://:secret@biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/p-one1/catalogs", None, None),
+    ("GET", "https://biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/other/catalogs", None, None),
+    ("GET", "https://biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/p-one1/%2e%2e/catalogs", None, None),
+    ("GET", "https://biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/p-one1/catalogs?access_token=x", None, None),
+    ("GET", "https://biglake.googleapis.com/iceberg/v1/restcatalog/extensions/projects/p-one1/catalogs", {"access_token": "x"}, None),
+    ("GET", "https://cloudtasks.googleapis.com/v2/projects/p-one1/locations/us-central1/queues/q1/tasks", None, None),
+    ("POST", "https://cloudtasks.googleapis.com/v2/projects/p-one1/locations/us-central1/queues/q1:purge", None, {}),
+    ("POST", "https://cloudtasks.googleapis.com/v2/projects/p-one1/locations/us-central1/queues/q1:getIamPolicy", None, {"options": {"requestedPolicyVersion": 1}}),
+    ("GET", "https://dataform.googleapis.com/v1/projects/other/locations/us-central1/repositories", None, None),
+    ("GET", "https://firebaseapphosting.googleapis.com/v1/projects/p-one1/locations/us-central1/backends", {"pageToken": "cursor", "api_key": "x"}, None),
+])
+def test_privesc_read_routes_reject_unsafe_boundary(monkeypatch, method, url, params, body):
+    transport, calls = http_transport(monkeypatch, [Response()])
+    with pytest.raises(gcp.ReadError, match="unsafe_api_endpoint"):
+        transport.request(method, url, scope="projects/p-one1", params=params, body=body)
+    assert calls == []
+
+
 @pytest.mark.parametrize("method,url,code", [
     ("GET", "https://attacker.example/x", "unsafe_api_endpoint"),
     ("GET", "http://compute.googleapis.com/x", "unsafe_api_endpoint"),
