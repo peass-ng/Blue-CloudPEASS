@@ -132,6 +132,11 @@
       "integration_cases_passed": 64,
       "fresh_source_gate_cases_passed": 9,
       "note": "Counts overlap. Two initial gate failures used stale local bytecode after pin regeneration; source pin matched manifest, bytecode removed and full gate rerun passed. Main IAM usage changes preserved."
+    },
+    "policy_cache_merge": {
+      "base_commit": "d6bb3dfb",
+      "tests_passed": 59,
+      "coverage": "Publication inventory, report expansion, policy-view cache and SDK source gate"
     }
   }
 }

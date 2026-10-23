@@ -30,6 +30,8 @@ All eight complete-bundle hashes per backend match across baseline/optimized tim
 
 After rebasing onto `77956d65`, preserving concurrent IAM usage collectors and worker finalization, **64 integration cases passed**. A fresh **9-case SDK gate run passed** after clearing stale local bytecode from rapid gate regeneration; the source pin itself matched the manifest. These counts overlap. The only production-runtime difference from that main revision is `reports.py`.
 
+A subsequent rebase preserved `d6bb3dfb` (sealed IAM policy-view reuse). All **59 publication, report-expansion, policy-cache and SDK-gate tests passed** on that combined tree. The engine and IAM implementation from main were retained unchanged.
+
 Reproduce with the repository environment:
 
 ```sh
