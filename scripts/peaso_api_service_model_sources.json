@@ -1360,7 +1360,7 @@
     "peaso/jvm_class_constant_text_20261021.py": "82ac9c8f8f967e8444d3d65b8333d65e38a7a02625f4dc6f772d6046f38081ed",
     "peaso/k8s_image_source_association_20261020.py": "c5fdc84792aaaafa00c482975abc13a24c3b6e5d6271b200d92689a117089483",
     "peaso/least_privilege.py": "75056a22a267881fb7be27250f3fb300ca347ae0c683d59d9048495c042ff43f",
-    "peaso/least_privilege_permissions.py": "c6f9805120c4ac6e327bb6ecc622f1bd5bb4bb0408387f1cd7c18c876d9eed00",
+    "peaso/least_privilege_permissions.py": "53728839a5d2750aa9cab495e458a3ed7133ba28f139b7638507ef40e6cc2fe2",
     "peaso/oci_index_20261021.py": "f138d4d7e00383b45013bac742b2ae323d45dc1f7fe8906e74c713fd8ab9db56",
     "peaso/presentation_metadata_20261020.py": "dc36749e4be08665f5920a5ceba30f65f7a442961359a76ddde63fe20554b9fb",
     "peaso/principal_exposure.py": "ff3b5ee34db65007b2195ceb0eb63f7068af5d2a3b242c118a00bfc761d8fc16",
@@ -1581,7 +1581,7 @@
     "peaso/server/__main__.py": "1030c9a852d7fbc23cece83cdc838d2fdb6bc80c799822d4396ed3aa41bfd3a5",
     "peaso/server/access_check.py": "f8a7c0866a42ac0426312ac6159be7b393c70a4975e618e6dcccdda99a2debad",
     "peaso/server/acr_image_selection_static_20261021.py": "99ac8a385f94fcbd529ff6582c20209bc699d1c3d4aeb7ce1a1233b99a227cdd",
-    "peaso/server/app.py": "b0e91f9f0b6750d6946664f91387dfb4a3284023544eb60f1b19375ab7a6eff0",
+    "peaso/server/app.py": "4f1da7333d76619336d69491000a840306cd32aa9363a78a8401da141a4a04e5",
     "peaso/server/attack_logs.py": "bd9d35207edd00a7fd3d1630afd2d7e43064db6e03cd4c6f1b4ec510703e1315",
     "peaso/server/aws_access_requirements.py": "5440560f68b7a31551a6ba634bd2897fb8a80ac87c7822039fe1e2731dddba79",
     "peaso/server/aws_selector_logs.py": "a1c811ecc964a2fd39ebf7f35251ce82a4d09d0febbdfee3b3b122b49afd9bed",
@@ -1602,7 +1602,7 @@
     "peaso/server/image_findings_routes.py": "d95348251cafa809a2f2a3ffa7a233ec799f0f9bf0931022999174b264022205",
     "peaso/server/image_selection_options_20261021.py": "6ad43da57249059301ebdbf351a9c45241698ae23f4e90d03a60fedea0e25c05",
     "peaso/server/lambda_handler.py": "4c37570aba12c658f50c7ceb9022464ff68661386c02fafdf5f20fed3fb8846e",
-    "peaso/server/least_privilege_details.py": "425a8edece50ce58d0044d16d90ad2067dc5f25dea68a4261cd48d3628e87d37",
+    "peaso/server/least_privilege_details.py": "5f748098338fe6d6106f1fcec58aa79233af97576594915f1af4b0f0d153f59a",
     "peaso/server/materialized_catalog.py": "a5efd0422e12c8fbc9af5f9b20f5aa350d028a9247823d7f17604f8d92709a0b",
     "peaso/server/models.py": "33ba8e34b4c26b291401dcaae013ba124380e847920d6ee25b2d8ee7b62dc50b",
     "peaso/server/native_policy_validation.py": "c84159d8cc96b092aeea28db399c31a6c7b09bff90502e9b3e76cb2bb79791bd",
@@ -1624,7 +1624,7 @@
     "peaso/storage/attack_history_sqlite.py": "7bdd270faf146612dc73269c4f60fead7900913b9b80dbcd399f8d8f89dcb4c5",
     "peaso/storage/cost.py": "ee83070f3f0843432b55d071979f3ba5b93b84533c9e780f498bf17a0e964922",
     "peaso/storage/dynamodb.py": "74f6e55f76b528e530546f725210ce739f541d74c0e162a3abff3c0639f4780b",
-    "peaso/storage/report_reuse.py": "cf5f9c6f9910e34d66f05f08d84e5d4fe35a29eb740802d1eb07b38419b4fef1",
+    "peaso/storage/report_reuse.py": "c03611bc0119521d609249456b3eea2ba3dbde9c52591c8bc985f24fc1ab0be0",
     "peaso/storage/reports.py": "67844c36d92630df1117bde9ed32882150b839158f1eeaa353352a2c6783a63d",
     "peaso/storage/runtime.py": "d879d3526723a8d7920ccb7f7706c026c08c5723829d8f239e6701095198d0fb",
     "peaso/storage/sqlite.py": "9acc946a7d59379f3e854883e19fc840c76f0b4237d82695181ca1384d656eb0",
@@ -1659,7 +1659,7 @@
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1657,
-  "python_source_sha256": "66b2445aa58c10840f47b21d7a06574148a0a65798176aa64022e7f0e8fda160",
+  "python_source_sha256": "28e3aa665f280a45f4f877288a2eabc5ec86ad6307fc7c5f3e86e48607a2ce49",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "api_client_sites": 30,
@@ -1673,6 +1673,24 @@
     "qualified_native_source_guard_sha256": "e4a140bcea54b6aa1973f9c40df37fe6933af2cf631934adf652a538a32a5360",
     "reviewed_adaptive_publication_commit": "19e9c78b",
     "reviewed_principal_selection_commit": "a313a542",
+    "scan_artifact_batch_reuse_review": {
+      "api_client_sites": 30,
+      "api_services_unchanged": true,
+      "credential_factories_unchanged": true,
+      "exact_source_delta": {
+        "added": [],
+        "changed": [
+          "peaso/least_privilege_permissions.py",
+          "peaso/server/app.py",
+          "peaso/server/least_privilege_details.py",
+          "peaso/storage/report_reuse.py"
+        ],
+        "removed": []
+      },
+      "integration_base": "344c77bbbff97535aedfede231df8bd3ead54fae",
+      "preexisting_grant_grouping_commit": "aa167803229330e29235fcc03ab23656b23412bd",
+      "review": "Finite review of four paths. Existing grant grouping resolves tenant-bound artifacts and adds policy/role grouping; no new SDK construction. Report reuse composes exact-byte, scan-local reference caching with the existing bounded S3 writer; pending references promote only on successful context exit and cached manifests still flush dependencies. No new SDK calls, services, external dependencies or credential behavior. Native admission sources unchanged."
+    },
     "schedule_credential_review": {
       "api_client_sites": 30,
       "api_services_unchanged": true,
