@@ -90,6 +90,41 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
     azure_aliases = ({target.casefold()} | usage['azure_aliases'].get(target.casefold(), set())) if provider == 'azure' else set()
     gcp_activity = usage['gcp_events'].get(gcp_email, []) if gcp_email else []
     azure_activity = [event for alias in azure_aliases for event in usage['azure_events'].get(alias, [])]
+    aws_report_cache = usage.setdefault('aws_report_cache', {})
+    suggestions_by_permission = defaultdict(list)
+    for suggestion in card.get('suggestions', []):
+        if (isinstance(suggestion, dict) and suggestion.get('kind') == 'permission'
+                and suggestion.get('confidence') == 'provider_recommendation'):
+            suggestions_by_permission[str(suggestion.get('value', '')).casefold()].append(suggestion)
+
+    def aws_service(candidate, namespace):
+        if candidate is None or not namespace:
+            return None
+        data = candidate['data']
+        if data.get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
+            return None
+        key = id(candidate)
+        cached = aws_report_cache.get(key)
+        if cached is None or cached[0] is not candidate:
+            services = {}
+            for service in data.get('ServicesLastAccessed', []):
+                if not isinstance(service, dict):
+                    continue
+                name = service.get('ServiceNamespace')
+                if not isinstance(name, str) or not name:
+                    continue
+                actions = {}
+                for action in service.get('TrackedActionsLastAccessed', []):
+                    if (isinstance(action, dict) and isinstance(action.get('ActionName'), str)
+                            and action.get('LastAccessedTime')):
+                        actions.setdefault(action['ActionName'].casefold(), action)
+                unobserved = {action.casefold() for action in service.get('TrackedActionsUnobserved', [])
+                              if isinstance(action, str)}
+                services.setdefault(name.casefold(), (service, actions, unobserved))
+            aws_report_cache[key] = (candidate, services)
+        else:
+            services = cached[1]
+        return services.get(namespace.casefold())
 
     def same(value):
         return canonical(provider, value) == canonical(provider, target)
@@ -111,19 +146,13 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
             action_name = str(permission).split(':', 1)[1].casefold()
             principal_status = (usage_row or {}).get('data', {}).get('ServicesLastAccessedStatus', {})
             if principal_status.get('collection_status') == 'collected':
-                principal_service = next((s for s in usage_row['data'].get('ServicesLastAccessed', [])
-                    if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
-                if principal_service and any(str(name).casefold() == action_name
-                        for name in principal_service.get('TrackedActionsUnobserved', [])):
+                principal_service = aws_service(usage_row, namespace)
+                if principal_service and action_name in principal_service[2]:
                     entry.update(usage_status='not_observed', usage_source='AWS IAM action report',
                                  usage_window_end=principal_status.get('job_completion_date'))
             for candidate, basis, report_source in aws_reports:
-                if candidate is None or candidate['data'].get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
-                    continue
-                service = next((s for s in candidate['data'].get('ServicesLastAccessed', [])
-                                if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
-                action = next((a for a in (service or {}).get('TrackedActionsLastAccessed', [])
-                               if a.get('ActionName', '').casefold() == action_name and a.get('LastAccessedTime')), None)
+                service = aws_service(candidate, namespace)
+                action = service[1].get(action_name) if service else None
                 if action:
                     entry.update(last_accessed=action['LastAccessedTime'], usage_basis=basis, usage_source=report_source)
                     if basis == 'permission':
@@ -133,21 +162,13 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
             for candidate, basis in ((usage_row, 'service'),
                                      (row if row.get('type') == 'iam_policy' else None, 'policy'),
                                      (row if row.get('type') == 'iam_group' else None, 'group')):
-                if candidate is None or namespace is None:
-                    continue
-                data = candidate['data']
-                if data.get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
-                    continue
-                service = next((s for s in data.get('ServicesLastAccessed', [])
-                                if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
-                if service and service.get('LastAuthenticated'):
-                    entry.update(last_accessed=service['LastAuthenticated'], usage_basis=basis,
+                service = aws_service(candidate, namespace)
+                if service and service[0].get('LastAuthenticated'):
+                    entry.update(last_accessed=service[0]['LastAuthenticated'], usage_basis=basis,
                                  usage_source='AWS IAM service report')
                     break
         # Only an exact per-action provider observation can describe action usage.
-        exact = [s for s in card.get('suggestions', []) if s.get('kind') == 'permission'
-                 and s.get('value', '').casefold() == str(permission).casefold()
-                 and s.get('confidence') == 'provider_recommendation']
+        exact = suggestions_by_permission.get(str(permission).casefold(), [])
         if any(s.get('source') == 'AWS IAM Access Analyzer unused access' for s in exact):
             entry['unused_finding'] = True
         if exact:

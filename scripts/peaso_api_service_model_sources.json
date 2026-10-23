@@ -1365,7 +1365,7 @@
     "peaso/jvm_class_constant_text_20261021.py": "82ac9c8f8f967e8444d3d65b8333d65e38a7a02625f4dc6f772d6046f38081ed",
     "peaso/k8s_image_source_association_20261020.py": "c5fdc84792aaaafa00c482975abc13a24c3b6e5d6271b200d92689a117089483",
     "peaso/least_privilege.py": "75056a22a267881fb7be27250f3fb300ca347ae0c683d59d9048495c042ff43f",
-    "peaso/least_privilege_permissions.py": "74c456f24d15b79c57a0de334583c0d7c847a8386076e1454c8c07065ccb75ae",
+    "peaso/least_privilege_permissions.py": "473f5fdc4771d870c912f96d2607b1004c17999c12ed6480e6e1314ba42bde68",
     "peaso/oci_index_20261021.py": "f138d4d7e00383b45013bac742b2ae323d45dc1f7fe8906e74c713fd8ab9db56",
     "peaso/presentation_metadata_20261020.py": "dc36749e4be08665f5920a5ceba30f65f7a442961359a76ddde63fe20554b9fb",
     "peaso/principal_exposure.py": "ff3b5ee34db65007b2195ceb0eb63f7068af5d2a3b242c118a00bfc761d8fc16",
@@ -1665,7 +1665,7 @@
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1663,
-  "python_source_sha256": "28b98af0fc8faa4a2bee64739a5a141589292863b056e83ab7177704e5a523d9",
+  "python_source_sha256": "01ad8382be1aea9be09e4b97003871fad9670d5b5536af198ff64d69a84b8931",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "ai_reference_preparation_qualification": "Only pipeline.py changes: reuse fresh per-finding references between context/document preparation; discard before hashing and credential selection. Empty provider credential selection returns no access after existing scope-row validation. Supplied-context narrowing, boundary metadata, expiry/capture fields, fingerprint bytes, model inputs and batching retain existing behavior. No retained evidence cache. Existing 30 SDK client sites and service set unchanged; no native admission receipt changes.",

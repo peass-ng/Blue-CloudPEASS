@@ -158,6 +158,29 @@ def test_aws_action_not_observed_is_distinct_from_service_use():
     assert permission['days_since_last_access'] == 2
 
 
+def test_aws_report_is_indexed_once_for_multiple_permissions():
+    class CountingServices(list):
+        reads = 0
+
+        def __iter__(self):
+            self.reads += 1
+            return super().__iter__()
+
+    services = CountingServices([{'ServiceNamespace': 'iam',
+        'TrackedActionsLastAccessed': [
+            {'ActionName': 'CreateAccessKey', 'LastAccessedTime': '2026-10-18T00:00:00Z'},
+            {'ActionName': 'PassRole', 'LastAccessedTime': '2026-10-19T00:00:00Z'}]}])
+    user = row('iam_user', {'Arn': ARN,
+        'UserPolicyList': [{'PolicyDocument': {'Statement': [
+            {'Effect': 'Allow', 'Action': ['iam:CreateAccessKey', 'iam:PassRole'], 'Resource': '*'}]}}],
+        'ServicesLastAccessedStatus': {'collection_status': 'collected'},
+        'ServicesLastAccessed': services})
+    permissions = enrich(card(), 'aws', [user], NOW)['high_risk_permissions']
+    assert {permission['permission'] for permission in permissions} == {'iam:CreateAccessKey', 'iam:PassRole'}
+    assert all(permission['usage_basis'] == 'permission' for permission in permissions)
+    assert services.reads == 1
+
+
 def test_unused_filter_fact_requires_exact_access_analyzer_action_finding():
     user = row('iam_user', {'Arn': ARN, 'UserPolicyList': [{'PolicyName': 'key-admin',
         'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}}]})
