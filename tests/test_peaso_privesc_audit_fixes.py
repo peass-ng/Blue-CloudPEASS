@@ -887,7 +887,7 @@ def _gcp_attached(extra, email=_GSA):
 @pytest.mark.parametrize("kind,service,item", [
     ("cloudrun_service", "run_service", {"name": "projects/p1/locations/us/services/s", "template": {"serviceAccount": _GSA}}),
     ("function", "cloudfunctions_function", {"name": "projects/p1/locations/us/functions/f", "serviceConfig": {"serviceAccountEmail": _GSA}}),
-    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "config": {"gceClusterConfig": {"serviceAccount": _GSA}}}),
+    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "_region": "us-central1", "config": {"gceClusterConfig": {"serviceAccount": _GSA}}}),
     ("gke_cluster", "gke_nodepool", {"name": "k", "location": "us", "nodePools": [{"config": {"serviceAccount": _GSA}}]}),
     ("instance", "compute_instance", {"name": "vm", "zone": "zones/us-a", "serviceAccounts": [{"email": _GSA}]}),
 ])
@@ -907,7 +907,7 @@ def test_gcp_attached_to_service_inventories(kind, service, item):
 @pytest.mark.parametrize("kind,service,item", [
     ("cloudrun_service", "run_service", {"name": "projects/p1/locations/us/services/s", "template": {}}),
     ("gke_cluster", "gke_nodepool", {"name": "k", "location": "us", "nodePools": [{"config": {"serviceAccount": "default"}}]}),
-    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "config": {}}),
+    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "_region": "us-central1", "config": {}}),
 ])
 def test_gcp_workloads_without_service_account_run_as_the_default_compute_sa(kind, service, item):
     model, node = _gcp_attached([(kind, "projects/p1", [item], "collected")], email=_GDEF)
