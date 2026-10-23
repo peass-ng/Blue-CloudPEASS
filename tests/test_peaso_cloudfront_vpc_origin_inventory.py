@@ -48,17 +48,20 @@ def test_empty_and_truncated_origin_lists_do_not_look_the_same(monkeypatch, head
     assert result.status == expected
 
 
-@pytest.mark.parametrize("items,quantity,expected", [
-    ([], 0, "empty"),
-    ([{"Id": "vo-one"}], 1, "malformed"),
+@pytest.mark.parametrize("items,quantity,next_marker,expected", [
+    ([], 0, None, "empty"),
+    ([{"Id": "vo-one"}], 1, None, "malformed"),
+    ([], 0, "unverified-next-page", "malformed"),
 ])
-def test_omitted_completion_flag_requires_exact_empty_response(items, quantity, expected):
+def test_omitted_completion_flag_requires_exact_empty_response(items, quantity, next_marker, expected):
     session = boto3.Session(aws_access_key_id="inert", aws_secret_access_key="inert")
     requests = aws.Requests({})
     # The live CloudFront response omits an SDK-required field, so Stubber
     # rejects it before collector response handling can be exercised.
-    requests.call = lambda *args, **kwargs: {"VpcOriginList": {"MaxItems": 100,
-        "Quantity": quantity, "Items": items}}
+    response = {"MaxItems": 100, "Quantity": quantity, "Items": items}
+    if next_marker is not None:
+        response["NextMarker"] = next_marker
+    requests.call = lambda *args, **kwargs: {"VpcOriginList": response}
     result = fetch(requests, session, "us-east-1", "111111111111")
     assert result.status == expected
 
