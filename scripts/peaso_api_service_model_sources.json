@@ -1631,7 +1631,7 @@
     "peaso/storage/cost.py": "ee83070f3f0843432b55d071979f3ba5b93b84533c9e780f498bf17a0e964922",
     "peaso/storage/dynamodb.py": "111f5275f49e0207255b0b3077cc85da7c5b2f2dd915b88b4925970b28fc9e19",
     "peaso/storage/report_reuse.py": "c03611bc0119521d609249456b3eea2ba3dbde9c52591c8bc985f24fc1ab0be0",
-    "peaso/storage/reports.py": "67844c36d92630df1117bde9ed32882150b839158f1eeaa353352a2c6783a63d",
+    "peaso/storage/reports.py": "8413841b1a29a1b78317786cdb594e42550920181441bb8af454c7744cf4da7e",
     "peaso/storage/runtime.py": "d879d3526723a8d7920ccb7f7706c026c08c5723829d8f239e6701095198d0fb",
     "peaso/storage/sqlite.py": "9acc946a7d59379f3e854883e19fc840c76f0b4237d82695181ca1384d656eb0",
     "peaso/trivy_container_runner_20261020.py": "903bdeb043ec4ce6c6f32ffd9d3a2933c4917694aea16ec8d83a3db8095af7e1",
@@ -1665,7 +1665,7 @@
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1663,
-  "python_source_sha256": "cba0eac228e010cd5f4b664e2f27d1419505df0520b2c75b4d9342edbb50322d",
+  "python_source_sha256": "e845d63312e893280c628ce2a5c9d5275426fbc3bd365b7096a8b342d0b6fcca",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "alternative_workflow_qualification": "Reviewed strong DynamoDB base hydration and FIFO authority; provider-only AI input preparation; capture-scoped ciphertext index adapter; live-digest historical receipts; per-source GCP HTTP pool; large owned legacy download. Exactly 30 literal SDK client sites retain existing services; no new credential factories. Preserve main 6d8a1f23 artifact batching and closure review.",
@@ -1691,6 +1691,7 @@
     },
     "latest_source_review": "Least Privilege: scan-local AWS IAM service reports; bounded GCP Audit Logs; one Azure Activity Log batch for missing subscriptions. No added API SDK client sites, service models, or credential factories. Source closure reviewed with 30 literal client sites.",
     "merge_commit": "23e8a5f7efa4a0b4dc2da1f60d5c7d6dad407a5f",
+    "publication_inventory_qualification": "Only reports.py differs from reviewed current main closure: share fresh complete frozen snapshot inventory within one publication between chunks and least-privilege projection; release before later projections. No cross-publication cache, authority shortcuts, evaluator/admission changes. Preserve main IAM usage collectors and sealed policy-view cache. Existing 30 SDK client sites and services unchanged.",
     "qualified_native_source_guard_sha256": "e4a140bcea54b6aa1973f9c40df37fe6933af2cf631934adf652a538a32a5360",
     "reviewed_adaptive_publication_commit": "19e9c78b",
     "reviewed_principal_selection_commit": "a313a542",
@@ -1735,5 +1736,5 @@
     "source_review": "Qualified factory/SW46/source-proof locality and network joins; current main offline event normalizers and historical ECS lineage; bounded S3 uploads retain tenant checks, encryption and manifest-last semantics. Added modules have no SDK calls. Exact API client closure unchanged.",
     "top20_performance_review": "Five runtime files reviewed: fresh tenant-bound status/TTL reads use existing DynamoDB GetItem; privilege query generators retain original traversal and ordering, bounded heap selection changes response paging only.30 client construction sites, credential factories and API service roster unchanged. Native admission sources unchanged."
   },
-  "source_commit": "3359a8fb29fb32b1385cf76058f2626511100d42"
+  "source_commit": "d6bb3dfbe29944817a2edae3b6b78cff8ac47b80"
 }

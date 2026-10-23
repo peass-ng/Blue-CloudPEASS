@@ -131,13 +131,16 @@ def privesc_projection(graph, max_nodes, member_cap=MEMBER_CAP):
             "projection": "whole-edge truncation of the aggregated privesc graph; download the complete report for every edge"}
 
 
-def resource_chunks(artifacts, tenant, ident, report, snapshot):
+def resource_chunks(artifacts, tenant, ident, report, snapshot, *, _inventory=None):
     """Native items for report schema 1.1 (resources[].data is omitted from the report), sorted by id
-    so GET /api/scans/{id}/resources/{resource_id} reads a single bounded chunk."""
+    so GET /api/scans/{id}/resources/{resource_id} reads a single bounded chunk.
+    Internal prepared inventory must belong to this snapshot and publication.
+    """
     from peaso.snapshot import resources
     wanted = {r["id"] for r in report.get("resources", [])}
     items = sorted(({"id": r["id"], "native_id": r["native_id"], "type": r["type"], "scope": r["scope"], "data": r["data"]}
-                    for r in resources(snapshot) if r["id"] in wanted), key=lambda r: r["id"])
+                    for r in (resources(snapshot) if _inventory is None else _inventory)
+                    if r["id"] in wanted), key=lambda r: r["id"])
     out = []
     for group, body in _artifact_chunks(artifacts, items):
         out.append({"reference": _put_chunk(artifacts, tenant, ident, "resources", group, body),
@@ -219,10 +222,15 @@ def _publish_report(artifacts, tenant, ident, report, snapshot=None):
         manifest["coverage_chunks"].append(_put_chunk(artifacts, tenant, ident, "coverage", group, body))
         manifest["coverage_chunk_counts"].append(len(group))
     if embeddable:
-        manifest["resource_chunks"] = resource_chunks(artifacts, tenant, ident, report, snapshot)
         from peaso.least_privilege import project as project_least_privilege
         from peaso.snapshot import resources as snapshot_resources
-        projection = project_least_privilege(report["provider"], snapshot_resources(snapshot), snapshot=snapshot)
+        # Native data is frozen by resources(). Share its preparation between
+        # these consumers, then release it before later projections. No state
+        # survives the publication or crosses a snapshot revision.
+        inventory = snapshot_resources(snapshot)
+        manifest["resource_chunks"] = resource_chunks(artifacts, tenant, ident, report, snapshot, _inventory=inventory)
+        projection = project_least_privilege(report["provider"], inventory, snapshot=snapshot)
+        del inventory
         manifest["least_privilege"] = artifacts.put(tenant, ident, "least-privilege", projection)
     for kind in ("network", "iam"):
         graph = report.get("graphs", {}).get(kind, {"nodes": [], "edges": []})
