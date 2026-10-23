@@ -322,17 +322,17 @@
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
       "current_contract_sha256": "993974fc47417a343ccd42d3950b1cbfc7b60e98da74a100ffe4cf21b55f999e",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "4 focused adjacent-principal tests cover self-hosted and managed portal sign-in, exact child-scoped RBAC, wrong action, no new portal action, and invalid or duplicate evidence.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Microsoft documents the user shared-access token for self-hosted portal SSO and delegated sign-in to a managed portal. The old self-hosted-only wording could miss managed portal use. Exact user-child RBAC scope already resolves through target.scope. Only unique fresh reviewed evidence of a token accepted for the named user, prior denial, and newly allowed action emits a conditional path.",
+      "work_evidence": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
       "completion_evidence": {
         "source_and_contract": "Microsoft Get Shared Access Token REST API, developer portal FAQ, and delegated sign-in documentation confirm both portal routes and the distinct users/token/action permission.",
         "collector": "No automatic token collection; optional complete azure_external_principal_evidence must bind the exact source, requested user resource, portal service, token, observed subject, and new action.",
-        "evaluator": "Exact user-child RBAC permission, source, target user, portal plane, fresh and unique reviewed sign-in, prior denial, and newly allowed action are required; wrong-action and incomplete records fail closed.",
-        "positive_and_negative_test": "4 focused adjacent-principal tests passed with principal-exposure annotation stubbed because an unrelated dirty AWS receipt blocks the normal import path.",
-        "reference": "https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-setup-delegation"
+        "evaluator": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases); external-principal evidence suite passed without stubs.",
+        "reference": "https://learn.microsoft.com/en-us/rest/api/apimanagement/user/get-shared-access-token?view=rest-apimanagement-2024-05-01"
       }
     },
     {
@@ -341,16 +341,16 @@
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
       "current_contract_sha256": "26baedefce5091a3c2c4243d58059f8d0e68fec461676a4b42cef2cdcf6fdeea",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "Focused adjacent-principal tests cover exact SSO URL action and usable login, missing or wrong action, invalid or duplicate evidence, wrong subject, and no newly allowed portal action.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Azure uses users/generateSsoUrl/action for the redirection URL; users/token/action is a separate shared-access-token route. The catalog requires the direct SSO permission and unique reviewed evidence of the exact requested user, usable authentication, prior denial, and a newly allowed action. The current HackTricks source link still uses the shared-token heading; its correction awaits Cloud review.",
+      "work_evidence": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
       "completion_evidence": {
         "source_and_contract": "Microsoft APIM User Generate SSO URL REST API and Azure RBAC operation list confirm generateSsoUrl/action is the direct URL permission; the HackTricks explanation was corrected locally.",
         "collector": "No automatic credential collection; optional azure_external_principal_evidence must be complete and bind source, exact user resource, returned URL, observed portal subject, and new action.",
-        "evaluator": "The registered action, target plane, evidence fields, and scoped RBAC grant must all match; duplicate, stale, partial, wrong-action, and wrong-subject facts fail closed.",
-        "positive_and_negative_test": "4 focused external-principal tests passed with principal-exposure annotation stubbed because an unrelated dirty AWS receipt blocks the normal import path.",
+        "evaluator": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases); external-principal evidence suite passed without stubs.",
         "reference": "https://learn.microsoft.com/en-us/rest/api/apimanagement/user/generate-sso-url?view=rest-apimanagement-2024-05-01"
       }
     },

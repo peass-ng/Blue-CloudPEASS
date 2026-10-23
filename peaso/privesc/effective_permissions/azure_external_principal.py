@@ -81,6 +81,18 @@ def _valid(record, scope, snapshot):
             action_resource,
         ):
             return False
+    if record["TechniqueId"] in (
+            "azure-apim-developer-portal-sso-external-principal",
+            "azure-apim-developer-portal-shared-token-external-principal"):
+        operation = ("generatessourl" if record["TechniqueId"].endswith("sso-external-principal")
+                     else "token")
+        user = re.fullmatch(
+            r"/subscriptions/[^/]+/resourcegroups/[^/]+/providers/"
+            r"microsoft\.apimanagement/service/[^/]+/users/([^/]+)(?:/" + operation + r")?",
+            action_resource,
+        )
+        if user is None or user.group(1) != str(record.get("TargetPrincipalId", "")).casefold():
+            return False
     target_resource = record["TargetServiceResource"]
     try:
         url = urlsplit(target_resource)
