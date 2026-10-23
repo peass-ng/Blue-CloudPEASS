@@ -60,6 +60,8 @@ def main():
     optimized_performance = json.loads(optimized_perf_path.read_text()) if optimized_perf_path.is_file() else None
     repeat_path = ROOT / "performance-memory-repeat-validation.json"
     memory_repeat = json.loads(repeat_path.read_text()) if repeat_path.is_file() else None
+    isolated_path = ROOT / "performance-isolated-pass-validation.json"
+    isolated_performance = json.loads(isolated_path.read_text()) if isolated_path.is_file() else None
     assert all(result["tests"] > 0 and result["failures"] == result["errors"] == result["skipped"] == 0
                and len(result["tested_revision"]) == len(result["hacktricks_source_revision"]) == 40
                and len(result["junit_sha256"]) == 64 for result in focused_results)
@@ -117,6 +119,18 @@ def main():
          "source-specific memory increase. The memory gate remains failed on measured current runs. "
          f"{memory_repeat['evidence']}"
          if memory_repeat else "- Paired 1x memory repeats have not been recorded."),
+        (f"- A later isolated performance gate passed {isolated_performance['tests']}/{isolated_performance['tests']} "
+         f"tests on CSPM `{isolated_performance['tested_revision']}` with HackTricks Cloud "
+         f"`{isolated_performance['hacktricks_source_revision']}` "
+         f"(JUnit SHA-256 `{isolated_performance['junit_sha256']}`). The 1x run used "
+         f"{isolated_performance['one_x_rss_mib']} MiB against a "
+         f"{isolated_performance['one_x_rss_limit_mib']} MiB limit; the AWS 10x run took "
+         f"{isolated_performance['aws_privesc_ten_x_wall_seconds']} seconds against a "
+         f"{isolated_performance['aws_privesc_ten_x_wall_limit_seconds']}-second limit, with "
+         f"{isolated_performance['aws_privesc_ten_x_principals']} principals and "
+         f"{isolated_performance['aws_privesc_ten_x_edges']} edges. Earlier failed runs remain recorded "
+         "at their exact revisions. This focused gate does not replace the frozen full-suite result."
+         if isolated_performance else "- No isolated current-main passing performance result has been recorded."),
         f"- ID-specific graph test audit: {case_counts['exact_cases_verified']} have a recorded passing exact case, {case_counts['partial']} have a located but partial case, and {case_counts['no_exact_case']} have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.",
         f"- Among the {len(partial_cases)} partial routes, {sum(bool(row['positive_case']) for row in partial_cases)} name a positive assertion, {sum(bool(row['negative_case']) for row in partial_cases)} name a negative assertion, and {sum(bool(row['unknown_case']) for row in partial_cases)} name an unknown-result assertion. These are located assertions, not recorded passing exact graph cases.",
         f"- Partial routes without a named positive assertion: {', '.join(missing_positive) or 'none'}.",
