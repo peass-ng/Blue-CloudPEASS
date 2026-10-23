@@ -20,6 +20,7 @@ from peaso import oci_index_20261021 as oci_index
 from peaso.secret_evidence import scan_with_source, source_context
 from peaso.secret_scanning import scan_content, merge_leaks
 from peaso import k8s_image_source_association_20261020 as association
+from peaso import k8s_image_source_association_current_20261023 as current_association
 
 SECRET_KIND = 'k8s_selected_registry_image_secrets'
 VULN_KIND = 'k8s_selected_registry_image_vulnerabilities'
@@ -191,7 +192,7 @@ def bind_pod(target, pod):
     selection = {'cluster_id': target['cluster_id'], 'api_version': 'v1', 'kind': 'Pod',
                  'namespace': target['namespace'], 'name': target['pod'], 'uid': target['uid'],
                  'container_type': target['container_type'], 'container_name': target['container_name']}
-    result = association.resolve_image_source(selection, pod, cluster_id=target['cluster_id'])
+    result = current_association.resolve_image_source(selection, pod, cluster_id=target['cluster_id'])
     native = result.get('pod', {})
     if (result.get('status') != 'associated' or result.get('immutable_reference') != target['image']
             or native.get('resource_version') != target['resource_version']):
