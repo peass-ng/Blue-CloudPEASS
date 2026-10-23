@@ -40,11 +40,11 @@ def main():
             parser.error("revision values must be full 40-character Git SHAs")
     changed = subprocess.run(
         ["git", "diff", "--name-only", args.cspm_revision, "HEAD", "--",
-         "tests", "peaso/privesc/catalog", "work_aws_privesc_review/route-case-coverage.tsv"],
+         "tests", "peaso/privesc/catalog"],
         cwd=HERE.parent, text=True, capture_output=True, check=True,
     ).stdout.strip()
     if changed:
-        parser.error(f"tests, catalog, or case rows differ from the tested CSPM revision: {changed}")
+        parser.error(f"tests or catalog differ from the tested CSPM revision: {changed}")
     workflow = (HERE.parent / ".github/workflows/tests.yml").read_text()
     if f"HACKTRICKS_REVISION: {args.hacktricks_revision}" not in workflow:
         parser.error("HackTricks revision does not match the frozen CI workflow pin")
@@ -66,8 +66,21 @@ def main():
             )
             tests.setdefault(key, []).append(outcome)
 
-    with (HERE / "route-case-coverage.tsv").open(newline="") as stream:
+    case_path = HERE / "route-case-coverage.tsv"
+    with case_path.open(newline="") as stream:
         rows = list(csv.DictReader(stream, delimiter="\t"))
+    tested_tsv = subprocess.run(
+        ["git", "show", f"{args.cspm_revision}:work_aws_privesc_review/route-case-coverage.tsv"],
+        cwd=HERE.parent, text=True, capture_output=True, check=True,
+    ).stdout
+    tested_rows = {row["id"]: row for row in csv.DictReader(tested_tsv.splitlines(), delimiter="\t")}
+    if {row["id"] for row in rows} != set(tested_rows):
+        parser.error("case ledger IDs differ from the tested CSPM revision")
+    for row in rows:
+        tested = tested_rows[row["id"]]
+        for field in ("positive_case", "positive_assertion", "negative_case", "negative_assertion"):
+            if row[field] != tested[field]:
+                parser.error(f"{row['id']} {field} differs from the tested CSPM revision")
     audit = {}
     for row in rows:
         if row["status"] != "partial":
@@ -93,6 +106,7 @@ def main():
     result = {
         "cspm_revision": args.cspm_revision,
         "hacktricks_revision": args.hacktricks_revision,
+        "case_ledger_sha256": hashlib.sha256(case_path.read_bytes()).hexdigest(),
         "junit_sha256": junit_hashes,
         "partial_routes_audited": len(audit),
         "positive_negative_passed": sum(row["positive_negative_passed"] for row in audit.values()),
