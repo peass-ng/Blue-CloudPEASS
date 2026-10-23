@@ -184,9 +184,9 @@
     },
     "publication-native-schema-1.1": {
       "baseline": {
-        "wall_seconds": 0.5193325001746416,
-        "cpu_seconds": 0.3718120000000056,
-        "peak_python_bytes": 23710433,
+        "wall_seconds": 0.6578584997914732,
+        "cpu_seconds": 0.5182859999999962,
+        "peak_python_bytes": 23700311,
         "puts": [
           86,
           86,
@@ -208,9 +208,9 @@
         ]
       },
       "optimized": {
-        "wall_seconds": 0.42128104204311967,
-        "cpu_seconds": 0.35112899999998604,
-        "peak_python_bytes": 23721138,
+        "wall_seconds": 0.4778589173220098,
+        "cpu_seconds": 0.42268399999999673,
+        "peak_python_bytes": 23709589,
         "puts": [
           37,
           37,
@@ -358,6 +358,12 @@
         "passed": 167
       },
       "unaffected_non_ai_cases_passed": 120
+    },
+    "concurrent_artifact_merge": {
+      "main_commit": "6d8a1f23",
+      "artifact_implementation": "retained main implementation in full",
+      "artifact_and_source_gate_tests_passed": 60,
+      "publication_full_bundle_hashes": "equal; PUTs 86 to 37"
     }
   }
 }

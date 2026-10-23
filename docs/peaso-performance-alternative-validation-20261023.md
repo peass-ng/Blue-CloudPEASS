@@ -2,7 +2,7 @@
 
 This implements qualified parts of 12 of the [20 alternative opportunities](peaso-performance-alternative-roadmap-20261023.md). One prototype was rejected on measured regression; seven remain unqualified. These are workflow changes across publication, audit processing, private evidence, historical ingestion, storage and API reads. They do not change check selection, findings, detector coverage or AI model inputs.
 
-The comparison baseline is `19cb2da9`. Implementation was rebased onto `344c77bb`, preserving concurrent scheduling, worker-control, privilege-query and display changes. No cloud deployment or live customer scan was performed. Hosted index improvements need the accompanying Terraform deployment.
+The comparison baseline is `19cb2da9`. Implementation was rebased onto `6d8a1f23`, preserving concurrent scheduling, worker-control, privilege-query, display and artifact-cache changes. The overlapping artifact-cache implementation from main was retained in full; this branch adds workflow qualification and independent regression cases for it. No cloud deployment or live customer scan was performed. Hosted index improvements need the accompanying Terraform deployment.
 
 ## Measurements
 
@@ -10,7 +10,7 @@ macOS arm64, CPython 3.13.11; median of three CPU/wall trials, with a separate t
 
 | Workflow | CPU before → after | Peak Python allocation before → after | Other evidence |
 |---|---:|---:|---|
-| Two native-schema-1.1 publications, 2,000 findings each | 372 → 351 ms | 23.710 → 23.721 MB | PUTs 86 → 37; wall 519 → 421 ms with declared 10 ms synthetic PUT latency |
+| Two native-schema-1.1 publications, 2,000 findings each | 518 → 423 ms | 23.700 → 23.710 MB | PUTs 86 → 37; wall 658 → 478 ms with declared 10 ms synthetic PUT latency |
 | Audit normalization, 10,000 unrelated events | 396 → 365 ms | 14,064 → 13,272 B | Complete normalized output compared against original; all existing audit fixtures exercised separately |
 | Twenty private checkpoints, 1,000 encrypted records | 162 → 9.0 ms | 766 → 765 KB | Same decrypted document; encrypted index reused only while all dependencies match |
 | Forty verified reads of a 1,000-object manifest | 33.1 → 4.0 ms | 67.38 → 0.51 MB | Current bytes read and hashed every time |
@@ -22,7 +22,7 @@ macOS arm64, CPython 3.13.11; median of three CPU/wall trials, with a separate t
 | Twenty HTTP reads, loopback HTTP/1.1 | 23.3 → 7.4 ms | 100 → 68 KB | Connections 20 → 1; declared 10 ms connection setup; no Google/TLS measurement |
 | Large legacy grouped local JSON download | 93.4 → 48.0 ms | 53.49 → 30.52 MB | Full response JSON equals stored owned artifact; 10,000 findings |
 
-Publication retains a small bounded digest/reference map, increasing this measured peak by about 11 KB (0.05%). It reduces uploads, CPU and elapsed time; it does not claim a RAM reduction. A schema-1.0 publication replay also preserves full JSON/Markdown payloads and reduces PUTs 66 → 27. Private checkpoints retain encrypted metadata, and the first complete index construction still determines peak allocation.
+Publication retains a small bounded digest/reference map, increasing this measured peak by about 9 KB (0.04%). It reduces uploads, CPU and elapsed time; it does not claim a RAM reduction. A schema-1.0 publication replay also preserves full JSON/Markdown payloads and reduces PUTs 66 → 27. Private checkpoints retain encrypted metadata, and the first complete index construction still determines peak allocation.
 
 The manifest allocation improvement comes partly from reading `fstat().st_size + 1` rather than reserving a 64 MiB maximum for every tiny file. Existing size/type/path checks and live digest verification remain. The extra byte detects growth beyond the observed size.
 
@@ -30,7 +30,7 @@ The manifest allocation improvement comes partly from reading `fstat().st_size +
 
 | # | Candidate | Final disposition and quality boundary |
 |---|---|---|
-| 1 | Compose artifact reuse and batching | Applied. Exact encoded-byte reuse within and across successful batches. Cache publication follows durable flush and context success; manifests flush pending artifacts even on a cache hit. Failed writes, closed writers, tenant mismatch and deletion generations are covered. Custom backends retain their own behavior. |
+| 1 | Compose artifact reuse and batching | Applied. Exact encoded-byte reuse within and across successful batches. Cache publication follows durable flush and context success; manifests flush pending artifacts even on a cache hit. Failed writes, closed writers, tenant mismatch and deletion during publication are covered. Producers and deletion serialize; same-thread deletion during an active batch is rejected. Custom backends retain their own behavior. |
 | 2 | Indexed queue/claim discovery | Applied partially. Configurable keys-only state index nominates work; strong base reads and existing conditional leases grant authority. FIFO admission deliberately retains its strong scan because an eventually consistent index can omit an older waiter. |
 | 3 | Source/operation normalizer dispatch | Applied to 61 proven leading source-rejection guards. Handler order, overlaps and original normalizers remain. Only plain dictionaries with plain-string sources take the shortcut; unusual source values and custom mappings execute original guards. No speculative operation filtering. |
 | 4 | Incremental private evidence index | Applied at checkpoint boundary. Complete capture identity, cipher identity/context, scope, encrypted records and related postings qualify unchanged-index reuse. Incomplete status stays live; records are freshly copied. Unknown cipher/capture implementations remain authoritative. The admitted evidence helper is unchanged. |
@@ -64,6 +64,8 @@ Code with no configured index retains scanning. Missing/unavailable index config
 The broad combined run produced **2,627 passed, 3 skipped, 18 subtests passed, 22 failures**. An isolated untouched `19cb2da9` checkout reproduced **20 of those failures**, including older API fixtures, the packaging fixture's incomplete source tree, gzip materializer bytes and a moto concurrent-dictionary race. The two additional failures were the expected source-inventory gate: after reviewing the exact SDK client closure, the inventory was updated. No native admission receipts were changed.
 
 After rebasing current main, **141 integration tests passed**, including the source gate, scheduled credentials, calendar schedules, worker diagnostics/control, privilege pages and least-privilege details. **39 focused checkpoint, DynamoDB index, artifact reuse and history tests passed**, including cipher-context rotation and custom-cipher fallback. Other focused runs passed 1,948 audit tests, 171 AI/storage tests and 37 historical tests. These counts overlap and must not be summed. Test fixture corrections separate cold-import startup from the network-overlap deadline and keep AWS live credential capture prohibited.
+
+After retaining concurrent main commit `6d8a1f23` unchanged, all **60 artifact/cache/source-gate tests passed**. The native-schema publication replay was repeated against the retained implementation; its full bundle hashes and 86 → 37 upload reduction remained identical.
 
 The final affected-workflow run passed 283 cases and exposed four AI test fixtures using a literal `sealed` connector credential. Current main now decrypts those credentials for scheduling eligibility. Replacing the placeholders with valid encrypted renewable test credentials preserved the missing-AI-access assertions; the complete AI suite then passed **167 tests**. The other **120 cases** in that final run passed unchanged.
 

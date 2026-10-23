@@ -91,7 +91,7 @@ def test_deletion_during_batch_cannot_repopulate_reference_cache():
             return []
 
     artifacts = ReusableReportArtifacts(S3Artifacts('offline', Client()), TENANT, IDENT)
-    with pytest.raises(RuntimeError, match='deleted'):
+    with pytest.raises(RuntimeError, match='active report artifact batch'):
         with artifacts.batch() as writer:
             writer.put(TENANT, IDENT, 'findings', {'new': True})
             artifacts.delete_job(TENANT, IDENT)
