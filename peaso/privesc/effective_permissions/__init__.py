@@ -301,6 +301,14 @@ class Model:
         scopes = self.allowed_scopes(rule, source)
         return scopes is None or target.scope in scopes
 
+    def target_gain(self, source, target):
+        """False for a proven lack of new authority; otherwise an optional confidence floor."""
+        return None
+
+    def target_gain_required(self):
+        """Whether every target needs a source-specific gain check before aggregation."""
+        return False
+
     def pivot_candidates(self, source):
         """Values for {pivot}/{pivot.*} placeholders to try, or None (pivot treated as ANY, conditional)."""
         return None

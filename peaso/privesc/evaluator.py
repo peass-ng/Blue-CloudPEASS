@@ -1146,7 +1146,7 @@ class Evaluator:
                 return placeholders or None
         scope_rule = compiled["scope"]
         unknown = dict(placeholders)
-        if isinstance(current, AllTargets) and not compiled["dynamic"]:
+        if isinstance(current, AllTargets) and not compiled["dynamic"] and not model.target_gain_required():
             allowed = model.allowed_scopes(scope_rule, source)
             if current.grant.confidence == "unknown":
                 # Every candidate reached only through missing facts (e.g. an unresolvable target placeholder).
@@ -1159,7 +1159,8 @@ class Evaluator:
             # Symbolic "every candidate" result: graph.py aggregates without materialising members.
             return AllOf(current.grant, allowed, unknown)
         first_dynamic_verdict = None
-        if isinstance(current, AllTargets) and len(compiled["dynamic"]) == 1 and not cset.floor:
+        if (isinstance(current, AllTargets) and len(compiled["dynamic"]) == 1
+                and not cset.floor and not model.target_gain_required()):
             # An unevaluable selector leaves only one unresolved target per scope. When
             # every member has the same grant, materialising and downgrading every
             # target for every source adds no information (notably 10k Azure users).
@@ -1231,6 +1232,11 @@ class Evaluator:
                 continue
             if skip_self and tid == source.id and not compiled["selector"].get("same_as_source"):
                 continue
+            gain = model.target_gain(source, target)
+            if gain is False:
+                continue
+            if gain:
+                g = downgrade(g, *gain)
             if tid in unresolved:
                 if self.include_unknown:
                     pid = f"{UNRESOLVED_PREFIX}{cset.id}:{target.scope}"
