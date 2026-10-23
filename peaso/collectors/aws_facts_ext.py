@@ -982,7 +982,8 @@ def _amplify_apps(requests, session, region, account):
         row = _pick(app, ("appId", "appArn", "name", "platform", "iamServiceRoleArn", "computeRoleArn", "defaultDomain", "enableBasicAuth",
                           "createTime", "updateTime"))
         row["RepositoryConnected"] = bool(app.get("repository"))
-        row["AppBuildSpecPresent"] = bool(app.get("buildSpec"))
+        row["AppBuildSpecPresent"] = (app["AppBuildSpecPresent"] if type(app.get("AppBuildSpecPresent")) is bool
+                                      else bool(app.get("buildSpec")))
         if "AdditionalSecretIndicators" in app:
             row["AdditionalSecretIndicators"] = copy.deepcopy(app["AdditionalSecretIndicators"])
         row["id"] = app.get("appArn") or app["appId"]
