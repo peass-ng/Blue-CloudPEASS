@@ -58,6 +58,15 @@ def test_current_freeze_uses_its_own_byte_budget_and_rejects_one_byte_over(tmp_p
 
 
 def test_api_archive_enforces_aws_upload_byte_limit(tmp_path, monkeypatch):
+    from scripts import peaso_api_service_model_gate
+    try:
+        import peaso_source_archive
+    except ModuleNotFoundError:
+        from scripts import peaso_source_archive
+    # This fixture replaces pip with a tiny dependency tree; SDK model closure
+    # has separate real-botocore coverage in test_peaso_api_credential_models.
+    monkeypatch.setattr(peaso_api_service_model_gate, 'prune_api_service_models',
+                        lambda target: {'allowed_services': [], 'removed_models': 0})
     authored = tmp_path / "authored"
     authored.mkdir()
     GeneratedPackagePermissions().fixture_source(authored)
@@ -71,8 +80,12 @@ def test_api_archive_enforces_aws_upload_byte_limit(tmp_path, monkeypatch):
     monkeypatch.setattr(deploy, "CURRENT_API_ARCHIVE_LIMIT", measured)
     deploy.package_api()
     monkeypatch.setattr(deploy, "CURRENT_API_ARCHIVE_LIMIT", measured - 1)
-    with pytest.raises(RuntimeError, match="API archive byte limit exceeded"):
-        deploy.package_api()
+    # Successful recompression is allowed to bring a package below the limit;
+    # this case verifies refusal when optimization cannot recover that byte.
+    with patch.object(peaso_source_archive, 'optimize_source_archive', return_value={}) as optimizer:
+        with pytest.raises(RuntimeError, match="API archive byte limit exceeded"):
+            deploy.package_api()
+        optimizer.assert_called_once()
 
 def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     from peaso.server.validation import CUSTOMER_ROLE_TEMPLATE_URL, COLLECTOR_ROLE_ARN
@@ -189,6 +202,10 @@ def offline_pip(args, **kwargs):
         if executable:
             path.chmod(0o700)
 deploy.run = offline_pip
+# The fixture dependency has no SDK. Keep permission and byte-identity tests
+# independent of the separately tested real SDK model source inventory.
+from scripts import peaso_api_service_model_gate
+peaso_api_service_model_gate.prune_api_service_models = lambda target: {'allowed_services': [], 'removed_models': 0}
 with patch.object(socket, "socket", side_effect=AssertionError("No network in fixture")), contextlib.redirect_stdout(io.StringIO()):
     release = deploy.freeze_release()
     deploy.package_api()

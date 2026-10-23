@@ -53,6 +53,13 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'scripts/peaso_api_service_model_sources.json',
+    'docs/api-sdk-model-prune.md',
+    'scripts/peaso_api_service_model_gate.py',
+    'scripts/peaso_api_service_model_sources.json',
+    'tests/test_peaso_api_service_model_gate.py',
+    'tests/test_peaso_api_credential_models.py',
+    'docs/api-sdk-model-prune.md',
     'tests/test_automatic_environment_33_scope_candidate.py',
     'tests/test_peaso_gcp_scoped_resume_candidate.py',
     'tests/test_private_shared_finite_batch_20261023.py',
@@ -1817,8 +1824,8 @@ aws_s3_bucket_policy.ai_transport aws_ecs_task_definition.ai aws_iam_role_policy
 aws_subnet.ai aws_route_table_association.ai aws_security_group.ai aws_network_acl.ai
 """.split())
 
-# Keep dependency bytecode out of this cross-platform package; source, SDK
-# models, documentation examples and native extensions remain available.
+# Keep dependency bytecode out of this cross-platform package. The API retains
+# complete reviewed SDK service models; workers retain the full provider SDK.
 CURRENT_API_MEMBER_LIMIT = 6000
 CURRENT_API_ARCHIVE_LIMIT = 52_428_800  # Lambda's verified zipped upload limit.
 # Enforce a cap below Lambda's 250 MiB uncompressed limit, including
@@ -1829,7 +1836,7 @@ CURRENT_API_UNCOMPRESSED_LIMIT = 260_000_000
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 6000  # Measured combined epoch: 5,642 members; complete source and reproduction inputs.
+CURRENT_SOURCE_MEMBER_LIMIT = 7000  # Current complete source inventory: 6,423 members before the final bounded performance additions.
 CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 600_000_000
 CURRENT_SOURCE_ARCHIVE_LIMIT = 100_000_000  # Measured complete epoch: 73.8 MB ZIP / 539 MB expanded; historical caps stay fixed.
 
@@ -2364,6 +2371,13 @@ def package_api():
                     shutil.rmtree(directory)
         shutil.copyfile(BUILD / "release.json", target / "peaso_release.json")
     normalize_public_tree(target)
+    try:
+        from scripts.peaso_api_service_model_gate import prune_api_service_models
+    except ModuleNotFoundError:
+        from peaso_api_service_model_gate import prune_api_service_models
+    sdk_models = prune_api_service_models(target)
+    print(f"Reviewed API SDK services: {len(sdk_models['allowed_services'])}; "
+          f"removed model files: {sdk_models['removed_models']}")
     members = [path for path in sorted(target.rglob("*")) if path.is_file()]
     if len(members) > CURRENT_API_MEMBER_LIMIT:
         raise RuntimeError("API member limit exceeded after optional metadata omission: "
