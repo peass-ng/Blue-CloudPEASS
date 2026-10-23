@@ -496,7 +496,9 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             entries = cipher.decrypt(artifacts.get(tenant, reference)['sealed'])['entries']
         from .access import bind_targets, eligible_entries
         entries = bind_targets(eligible_entries(entries, snapshot), snapshot)
-        if not entries:
+        if report['provider'] == 'aws':
+            result['limitations'].append('AWS AI review uses captured evidence only; no live AWS credentials are available to AI agents.')
+        elif not entries:
             result['limitations'].append('Live cloud credentials are unavailable; review is limited to captured evidence.')
         from peaso.snapshot import resources
         inventory = resources(snapshot)

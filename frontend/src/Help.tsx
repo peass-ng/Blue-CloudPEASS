@@ -97,7 +97,7 @@ export function Help({ onNavigate }: { onNavigate: (page: string) => void }) {
           <ol className="help-steps">
             <li>Save a connector after checking its access. Open {go("Scans", "Scans")} and choose <strong>Launch scan</strong>, then select the connector.</li>
             <li>Choose the target scopes, categories, individual checks or compliance frameworks offered by the form. Keep the scope within the permissions granted to the connector.</li>
-            <li>Choose whether to use AI to verify findings and produce prioritized actions and network architecture recommendations. Configure an available AI provider in {go("Settings", "Settings")} first.</li>
+            <li>Choose whether to use AI to review findings and produce prioritized actions and network architecture recommendations. AWS AI uses captured evidence only; other eligible connectors may allow targeted read-only verification. Configure an available AI provider in {go("Settings", "Settings")} first.</li>
             <li>Start the scan. Open its details to follow collection, evaluation and any enabled AI stages. Cancel from Scans when you want to stop an execution.</li>
             <li>After completion, choose that assessment at the top of the results page. Filter failures, inspect coverage gaps and open individual findings. Export JSON or Markdown from Scans, or retrieve the data through the API.</li>
           </ol>

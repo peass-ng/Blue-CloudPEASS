@@ -74,12 +74,12 @@ export function CodexSettings() {
     <section className="ai-settings-section" aria-labelledby="ai-purpose-heading">
       <h3 id="ai-purpose-heading">What AI does</h3>
       <ul className="ai-purpose-list">
-        <li><strong>Hardening &amp; compliance:</strong> rechecks failed findings against the evidence and verifies cloud configuration when needed.</li>
+        <li><strong>Hardening &amp; compliance:</strong> rechecks failed findings against collected evidence and, where permitted, verifies cloud configuration.</li>
         <li><strong>Exposure:</strong> reviews failed exposure findings and verifies whether the recorded configuration supports them.</li>
         <li><strong>Network architecture:</strong> explains VPCs and subnets and recommends architecture and segmentation improvements.</li>
         <li><strong>Top 15 Actions:</strong> prioritizes security improvements and provides an action plan for each.</li>
       </ul>
-      <p className="muted small">AI-enabled scans share evidence with the selected provider and allow read-only verification of scanned cloud accounts.</p>
+      <p className="muted small">AI-enabled scans share captured evidence with the selected AI provider. AWS AI reviews use captured evidence only. Eligible GCP, Azure and Kubernetes connectors may allow targeted read-only verification; native checks still use the connector's cloud access.</p>
     </section>
     <section className="ai-settings-section" aria-labelledby="ai-configure-heading">
       <h3 id="ai-configure-heading">Configure AI</h3>

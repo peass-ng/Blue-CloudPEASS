@@ -5,8 +5,9 @@ native evidence is saved during collection. Each report identifies the status
 and data revision of Checks, Exposure, IAM, Network, Privilege Escalation, Leaks
 and Image CVEs in `publication.sections`.
 
-The collector and progressive analyzer run concurrently with separate AWS task
-roles. The collector reads the selected cloud scope and publishes sanitized
+The collector and progressive analyzer run concurrently. On AWS, AI tasks have
+no task role and receive presigned transport for each invocation. The collector
+reads the selected cloud scope and publishes sanitized
 snapshots. Native checks and graph evaluation use the evidence already read;
 missing dependencies remain unresolved. A section is complete when its required
 reads have finished across its planned scopes, including reads that returned
@@ -16,7 +17,10 @@ Hardening, exposure and network AI reviews start independently when their input
 section is complete. Their outputs are saved separately from advancing native
 reports. Top 15 Actions waits for the reviews it uses. Final analysis reuses
 completed reviews only when their section revision and finding inputs match.
-AI tools remain isolated and receive only the captured, scoped cloud access.
+AI tools remain isolated. AWS AI reviews use captured evidence only and receive
+no AWS session; native deterministic checks still use customer credentials.
+Eligible GCP, Azure and Kubernetes connectors may permit targeted read-only
+verification by AI tools.
 The progressive analyzer admits up to two sections concurrently. Each section
 uses the memory-aware review pool (two batches by default, up to 40 findings per
 batch), allowing up to four simultaneous AI agents per scan.
