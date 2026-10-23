@@ -103,6 +103,31 @@ def test_exact_vcenter_nsx_and_run_command_identity_paths():
         assert set(got.values()) == {"conditional"}
 
 
+@pytest.mark.parametrize("technique,invalid_fields", [
+    ("azure-avs-list-nsxt-admin-external-principal", (
+        ("ReturnedNsxtUsername", "other"),
+        ("NsxtPasswordReturnedVerified", False),
+        ("NsxtActionAuthorizedVerified", False),
+        ("NsxtGainedAction", "GET /api/v1/other"),
+        ("CredentialResponseEvidenceRef", ""),
+    )),
+    ("azure-avs-run-command-vcenter-grant-external-principal", (
+        ("ExecutedCmdletId", f"{AVS}/scriptPackages/Microsoft.AVS.Identity@1.0/scriptCmdlets/Other"),
+        ("ScriptExecutionResourceId", f"{AVS}/other/execution"),
+        ("GrantedGroupName", "other"),
+        ("SourceControlsTargetLogin", False),
+        ("GrantOperationSucceeded", False),
+    )),
+])
+def test_nsx_and_vcenter_grant_need_exact_reviewed_proof(technique, invalid_fields):
+    assert len(paths(technique, case(technique))) == 1
+    assert paths(technique, case(technique, allowed=False)) == {}
+    for field, value in invalid_fields:
+        altered = proof(technique)
+        altered[field] = value
+        assert paths(technique, case(technique, [altered])) == {}, (technique, field)
+
+
 def test_missing_partial_duplicate_stale_and_wrong_authority_fail_closed():
     technique = "azure-avs-list-vcenter-cloudadmin-external-principal"
     for snap in (case(technique, []), case(technique, status="partial"),
