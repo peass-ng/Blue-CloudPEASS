@@ -59,6 +59,14 @@ skips. Two existing catalog audits failed identically against the unchanged HEAD
 constants: unclassified Kubernetes endpoints and a local botocore installation
 without the `eventbridgev2` service model.
 
+The 140,000-resource topology control produced identical 140,000 nodes and
+70,000 edges: median CPU fell from 14.989 to 9.661 seconds and wall time from
+35.799 to 21.051 seconds. Identity hashes fell from 420,000 to 140,000 with the
+unchanged production cache capacity. This inventory contains networks and
+subnets, so findings and principal-card counts are correctly zero. Three
+interleaved runs included complete findings, topology, annotation and principal
+projection; output verification streamed canonical JSON outside the timed stage.
+
 Only four reviewed presentation-source identities and their manifest digest are
 updated. Native admission, evaluator registration and collection receipts are
 unchanged. The original frozen evidence witnesses remain intact. A separate
