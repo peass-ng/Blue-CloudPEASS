@@ -53,6 +53,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_k8s_calico_alias_current_20261023.py',
     'tests/test_k8s_blob_redirect_current_20261023.py',
     'docs/api-sdk-source-review-20261023.json',
     'tests/test_peaso_k8s_access_transport.py',
