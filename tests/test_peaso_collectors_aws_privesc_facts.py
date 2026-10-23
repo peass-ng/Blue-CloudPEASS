@@ -70,7 +70,7 @@ def test_ecs_tasks_drop_container_overrides_and_failures_are_partial(stub):
         "containerInstanceArn": "arn:aws:ecs:us-east-1:123456789012:container-instance/prod/1",
         "overrides": {"taskRoleArn": f"arn:aws:iam::{ACCOUNT}:role/override", "containerOverrides": [{"name": "app",
             "environment": [{"name": "PASSWORD", "value": "hunter2"}]}]},
-        "containers": [{"name": "app", "lastStatus": "RUNNING", "reason": "x", "environment": [{"name": "SECRET", "value": "drop"}],
+        "containers": [{"name": "app", "lastStatus": "RUNNING", "reason": "drop",
                         "managedAgents": [{"name": "ExecuteCommandAgent", "lastStatus": "RUNNING", "reason": "drop"}]}]}],
         "failures": [{"arn": task + "x", "reason": "MISSING"}]}, None)
     read = facts.FETCHERS["ecs_task"](aws.Requests({}), session, REGION, ACCOUNT)
