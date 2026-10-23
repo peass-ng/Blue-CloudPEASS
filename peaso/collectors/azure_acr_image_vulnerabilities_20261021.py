@@ -5,6 +5,7 @@ challenge negotiation, registry credential export, cloud writes, Docker daemon,
 or secret-store read is introduced here. The DB is pre-provisioned and read only.
 """
 from copy import deepcopy
+from contextlib import ExitStack
 import hashlib
 import os
 from pathlib import Path
@@ -395,14 +396,17 @@ def collect_native(outer,transport,scopes,options,*,db_cache=DEFAULT_DB_CACHE,
     return result
 
 
-def collect(reader,transport,scopes,wanted,options,*,db_cache=DEFAULT_DB_CACHE,
-            cli=trivy.DEFAULT_CLI):
+def collect(reader,transport,scopes,wanted,options,*,cli=trivy.DEFAULT_CLI):
     """Narrow Azure collector hook, entered only for the named selected check."""
     if KIND not in wanted:return
     metadata=selection_metadata(options,scopes)
     reader.acr_image_vulnerability_metadata=metadata
     if not enabled(options):return
-    result=collect_native(reader,transport,scopes,options,db_cache=db_cache,cli=cli)
+    from . import selected_image_trivy_database_20261021 as database
+    with ExitStack() as lease_stack:
+        db_cache=database.acquire(lease_stack,enabled=True,cancel=reader.check_cancelled)
+        result=collect_native(reader,transport,scopes,options,db_cache=db_cache,cli=cli,
+            database_check=(lambda _: {'fresh':False}) if db_cache is None else None)
     metadata[KIND+'_receipts']=result['receipts']
     metadata['image_vulnerability_scan']={'selected':True,
         'observations':deepcopy(result['observations'])}

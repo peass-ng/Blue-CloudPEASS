@@ -104,6 +104,53 @@ def test_disabled_and_missing_selection_zero_io(proposal):
             '_image_vulnerability_scan_kinds':[native.KIND]},database_check=Poison())
 
 
+@pytest.mark.parametrize('lease_mode',['fresh','unavailable','stale'])
+def test_collector_requires_trusted_fresh_database_lease(proposal,monkeypatch,tmp_path,lease_mode):
+    from tests import test_azure_acr_image_secret_review_20261020 as existing
+    from peaso.collectors import selected_image_trivy_database_20261021 as database
+    _,azure,native,check=proposal
+    img=existing.image()
+    _,trace=existing.capture(monkeypatch,img=img,collect=False)
+    cache=tmp_path/'trusted-current'
+    acquired=[]
+    def acquire(stack,*,enabled,cancel):
+        assert enabled is True
+        cancel()
+        acquired.append(True)
+        return cache if lease_mode!='unavailable' else None
+    monkeypatch.setattr(database,'acquire',acquire)
+    monkeypatch.setattr(native.trivy,'database_state',lambda path:{'fresh':path==cache and lease_mode=='fresh'})
+    runner=fake_runner()
+    scanned=[]
+    def trusted_runner(*args,**kwargs):
+        assert kwargs['db_cache']==cache
+        scanned.append(True)
+        return runner(*args,**kwargs)
+    monkeypatch.setattr(native.trivy,'scan_image',trusted_runner)
+    class Outer:
+        def __init__(self):self.collections=[]
+        def check_cancelled(self):pass
+        def call(self,fn,*args,**kwargs):return fn(*args,**kwargs)
+        def run(self,jobs):
+            for kind,scope,service,fetch in jobs:
+                self.collections.append({'type':kind,'scope':scope,'service':service,
+                    'status':'collected','items':[row for batch in fetch() for row in batch]})
+    outer=Outer()
+    native.collect(outer,azure.AzureTransport(None),[existing.SCOPE],[native.KIND],
+        options(native,img.target))
+    assert acquired==[True]
+    row=outer.collections[0]['items'][0][native.MARKER]
+    assert row['status']==('PASS' if lease_mode=='fresh' else 'UNKNOWN')
+    assert row['complete'] is (lease_mode=='fresh')
+    if lease_mode=='fresh':
+        assert scanned==[True]
+        assert any(call[3]=='manifest' for call in trace.calls)
+    else:
+        assert scanned==[]
+        assert row['reason']=='offline_database_unavailable'
+        assert trace.calls==[]
+
+
 def test_repeated_immutable_layer_descriptor_is_preserved(proposal):
     from tests import test_azure_acr_image_secret_review_20261020 as existing
     acr,azure,native,check=proposal
@@ -265,6 +312,7 @@ def test_azure_collection_hook_is_default_off_and_emits_unknown_without_db(propo
     acr,azure,native,check=proposal
     class Outer:
         def __init__(self):self.collections=[]
+        def check_cancelled(self):pass
         def run(self,entries):
             for kind,scope,service,fetch in entries:
                 self.collections.append((kind,scope,service,list(fetch())[0]))
@@ -273,7 +321,8 @@ def test_azure_collection_hook_is_default_off_and_emits_unknown_without_db(propo
     outer=Outer()
     native.collect(outer,Poison(),[existing.SCOPE],{native.KIND},{})
     assert outer.collections==[]
-    monkeypatch.setattr(native.trivy,'database_state',lambda _: {'fresh':False})
+    from peaso.collectors import selected_image_trivy_database_20261021 as database
+    monkeypatch.setattr(database,'acquire',lambda stack,*,enabled,cancel:None)
     native.collect(outer,Poison(),[existing.SCOPE],{native.KIND},
         options(native,existing.image().target))
     assert len(outer.collections)==1 and outer.collections[0][0]==native.KIND
