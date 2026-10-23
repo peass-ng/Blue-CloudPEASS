@@ -5,6 +5,8 @@ import json
 from collections import Counter
 from pathlib import Path
 
+import yaml
+
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "WORKLOG.md"
@@ -32,6 +34,7 @@ def main():
     retired = rows("retired-technique-status.tsv")
     additional = rows("additional-technique-status.tsv")
     route_cases = rows("route-case-coverage.tsv")
+    lineage = rows("exclusion-source-lineage-drift.tsv")
     pages = rows("page-status.tsv")
     drift = rows("static-parity-source-drift.tsv")
     assert len(active) >= 211 and len(retired) == 362 and len(additional) == 19
@@ -39,6 +42,43 @@ def main():
     assert len({row["id"] for row in active}) == len(active)
     assert {row["id"] for row in route_cases} == {row["id"] for row in active}
     assert len({row["id"] for row in retired}) == 362
+    retired_by_id = {row["id"]: row for row in retired}
+    assert len({row["id"] for row in lineage}) == len(lineage)
+    assert all(row["id"] in retired_by_id and
+               row["tracker_old_source"] == retired_by_id[row["id"]]["old_source"]
+               for row in lineage)
+    excluded = {}
+    prior_bindings = {}
+    catalog_root = ROOT.parent / "peaso/privesc/catalog/aws"
+    for path in sorted(catalog_root.glob("_excluded*.yaml")):
+        for entry in yaml.safe_load(path.read_text()) or []:
+            key = (path.name, entry["technique"])
+            excluded.setdefault(key, []).append(entry)
+            if entry.get("prior_id"):
+                prior_bindings.setdefault(entry["prior_id"], set()).add(key)
+    unresolved_lineage = set()
+    lineage_by_id = {row["id"]: row for row in lineage}
+    for row in retired:
+        if row["review_state"] != "excluded_verified":
+            continue
+        key = (row["exclusion_file"], row["exclusion_technique"])
+        assert key in excluded, row["id"]
+        if row["id"] in prior_bindings:
+            assert key in prior_bindings[row["id"]], row["id"]
+        candidates = excluded[key]
+        if row["id"] in prior_bindings:
+            candidates = [entry for entry in candidates if entry.get("prior_id") == row["id"]]
+        elif row["id"] in lineage_by_id:
+            source = lineage_by_id[row["id"]]["current_exclusion_source"]
+            candidates = [entry for entry in candidates if entry.get("source") == source]
+        else:
+            candidates = [entry for entry in candidates if row["old_source"] in
+                          (entry.get("source"), entry.get("historical_source"))]
+        assert len(candidates) == 1, row["id"]
+        entry = candidates[0]
+        if row["old_source"] not in (entry.get("source"), entry.get("historical_source")):
+            unresolved_lineage.add(row["id"])
+    assert unresolved_lineage == {row["id"] for row in lineage}
 
     active_tests = sum(bool(row["located_test_file"]) for row in active)
     proof = sum(row["external_proof_route"] == "yes" for row in active)
@@ -137,6 +177,7 @@ def main():
         f"- Partial routes without a named negative assertion: {', '.join(missing_negative) or 'none'}.",
         f"- External evidence: {proof} active techniques reference `aws_privesc_challenge_evidence`; {proof_modes['external_proof_required_for_conditional']} require a trusted live-effect witness for a conditional edge and {proof_modes['native_conditional_or_external_proof']} Glue routes also have a native conditional path. The IAM and resource prerequisites still run automatically; missing live-effect proof remains UNKNOWN.",
         f"- Retired cohort: {retired_counts['candidate']} candidates unresolved, {retired_counts['excluded_verified']} exclusions verified, {retired_counts['implemented']} restored or implemented.",
+        f"- Exclusion source lineage: {len(lineage)} documented path or anchor discrepancies still require the exact follow-up listed below. These are documentation bindings, not evidence that a route should be active.",
         f"- Additional routes: {additional_counts['candidate']} candidates unresolved, {additional_counts['excluded_verified']} exclusions verified, {additional_counts['implemented']} implemented.",
         f"- HackTricks pages: {page_counts['reviewed']} reviewed, {page_counts['triaged']} still need sign-off.",
         (f"- Source and data presentation pins: {len(drift)} files differ from the pinned source hashes; resolve the listed drift before claiming current presentation parity."
@@ -152,6 +193,9 @@ def main():
     lines.extend(["## Retired techniques: decisions and unresolved candidates", ""])
     table(lines, ["ID", "State", "Source", "Decision evidence / missing join"], retired,
           ["id", "review_state", "old_source", "review_evidence"])
+    lines.extend(["## Exclusion source lineage still to reconcile", ""])
+    table(lines, ["ID", "Tracker source", "YAML source", "Classification", "Remaining action"], lineage,
+          ["id", "tracker_old_source", "current_exclusion_source", "classification", "next_action"])
     lines.extend(["## Additional candidate routes", ""])
     table(lines, ["ID", "State", "Source", "Evidence and missing join"], additional,
           ["id", "review_state", "source", "review_evidence"])
