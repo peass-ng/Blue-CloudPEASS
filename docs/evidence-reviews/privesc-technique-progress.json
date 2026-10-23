@@ -816,7 +816,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/storage-local-v7.yaml",
       "current_contract_sha256": "b31ab26444bfa88e4a518d0dd5fa53eb23a2035d12a21aa4f8073647501f4b96",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "58 focused scoped-credential tests pass across both Storage local-user actions; reset covers enabled password, exact user and container rights, missing or disabled settings, denied or incomplete inventory, sibling scope, and a verified scope beside an unresolved one.",
+      "focused_runtime_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, password setting, container rights, wrong scope, deny, and incomplete inventory)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -825,7 +825,7 @@
         "source_and_contract": "HackTricks Storage local-user password route; Microsoft Storage Local Users Regenerate Password REST and SFTP authorization documentation.",
         "collector": "Existing storage_account, storage_local_user, and storage_container collections provide account settings, password setting, user permission scopes, and exact container IDs; Azure RBAC/deny collections provide source-specific action rights.",
         "evaluator": "The exact local-user action and enabled password are required. Unknown or disabled SFTP settings, duplicate users/accounts, and unverified containers cannot establish rights. Verified rights survive a second unresolved scope, while unresolved rights are not claimed.",
-        "positive_and_negative_test": "58 focused scoped-credential tests pass, including the verified-plus-unresolved-scope case.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, password setting, container rights, wrong scope, deny, and incomplete inventory); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/rest/api/storagerp/local-users/regenerate-password?view=rest-storagerp-2026-06-01"
       }
     },
@@ -835,7 +835,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/storage-local-v7.yaml",
       "current_contract_sha256": "725afd52503db87ac4266cf4a31564dc3745e450d2db6aee252d071b9f5b5e4a",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "59 focused scoped-credential tests pass across both local-user actions; write covers exact existing user and container rights, key credential path without password, missing or disabled SFTP, sibling scope, deny, incomplete inventory, and verified access beside an unresolved scope.",
+      "focused_runtime_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, SSH key route, container rights, wrong scope, deny, and incomplete inventory)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -844,7 +844,7 @@
         "source_and_contract": "HackTricks Storage localUsers/write section; Microsoft local-user create/update REST and SFTP authorization documentation.",
         "collector": "Existing storage_account, storage_local_user, and storage_container collections supply exact account, user, SFTP settings and container rights; Azure RBAC/deny collections supply source-specific write permissions.",
         "evaluator": "The exact existing local-user write permission is required. Known disabled SFTP or local users exclude the path; incomplete account/user settings or unverified container rights stay unresolved. The target is a Storage service identity with only verified rights, not an Entra or ARM principal.",
-        "positive_and_negative_test": "59 focused scoped-credential tests pass, including password-free SSH key update and verified-plus-unresolved-scope access.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, SSH key route, container rights, wrong scope, deny, and incomplete inventory); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/azure/storage/blobs/secure-file-transfer-protocol-support-authorize-access"
       }
     },
@@ -1006,7 +1006,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/avs.yaml",
       "current_contract_sha256": "21696e3769625cf4923b822cdbf3f029d7ed9469a692a51d1c13d41f2fe6736c",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "Focused external-principal tests cover verified NSX API and UI actions, returned username mismatch, missing password proof, missing NSX authorization, mismatched action, missing evidence references, and shared negative evidence cases.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (returned NSX user, password, authorized action, and wrong proof)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -1015,7 +1015,7 @@
         "source_and_contract": "HackTricks AVS credential section, Microsoft AVS List Admin Credentials API and Azure VMware Solution identity and NSX permissions.",
         "collector": "Reviewed azure_external_principal_evidence provides a fresh exact private-cloud credential response, NSX subject, and tested action; generic ARM inventory alone cannot create an edge.",
         "evaluator": "Exact source, AVS private cloud, returned NSX subject, prior denial, successful login, matching authorized NSX action, and effective ARM listAdminCredentials permission must join.",
-        "positive_and_negative_test": "27 focused external-principal and schema tests pass, including NSX API/UI and malformed evidence cases.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (returned NSX user, password, authorized action, and wrong proof); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/azure/azure-vmware/architecture-identity"
       }
     },
@@ -1044,7 +1044,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/avs.yaml",
       "current_contract_sha256": "c39eab70ffa2614f5b08fc31756ca33c3b2a4f31046413cf45371602ae82b155",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "Focused external-principal tests cover documented AVS Identity grant cmdlets, full script execution resource, source-controlled group member login, unrelated child grants, malformed proof, and shared negative evidence cases.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (exact command, execution resource, group, controlled login, and grant outcome)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -1053,7 +1053,7 @@
         "source_and_contract": "HackTricks AVS Run Command section corrected to use scriptCmdletId and the documented Identity package; Microsoft AVS Run Command, identity-source, RBAC operation, and script-execution REST API documentation.",
         "collector": "Fresh reviewed azure_external_principal_evidence binds full cmdlet and execution IDs, group membership and source-controlled login; package listing rights are not required for a known ID.",
         "evaluator": "Effective scriptExecutions/write permission is checked on the exact execution child. Only documented identity-grant cmdlets with verified group grant and source-controlled member login create a conditional principal edge.",
-        "positive_and_negative_test": "29 focused external-principal and schema tests pass, including exact child grant and unrelated child denial.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (exact command, execution resource, group, controlled login, and grant outcome); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/azure/azure-vmware/configure-identity-source-vcenter"
       }
     },
@@ -1472,7 +1472,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/devtest_labs.yaml",
       "current_contract_sha256": "c7de79150891f7de14d3b9426e967f73de7bc5a664641c47084a828c52e11bf2",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "34 focused collector, exact DevTest lab evaluator, and schema tests pass; tests cover exact and inherited grants, sibling exclusion, wrong compute link, stopped or failed VM, disabled or untrusted source, missing or OS-incompatible artifact, Linux and Windows script artifacts, custom reviewed evidence, explicit artifact and extension blockers, source-secret redaction and foreign child IDs.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_devtestlab_artifacts.py (exact lab VM, source, artifact compatibility, native state, and negative cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -1481,7 +1481,7 @@
         "source_and_contract": "HackTricks DevTest Labs ApplyArtifacts section reviewed with Microsoft Apply Artifacts, Virtual Machines Get, Artifact Sources List, Artifacts List and official public artifact definitions. YAML now binds exact lab VM, backing compute identity and script availability.",
         "collector": "Native read-only DevTest lab/VM/source/artifact lists retain computeId, OS, state, source enablement and artifact OS while discarding source tokens and artifact parameter values. Public repository provenance is derived from an exact GitHub URI; custom script semantics use optional reviewed evidence.",
         "evaluator": "Exact effective ApplyArtifacts/action on an inventoried lab VM, precise computeId/identity join, blocked stopped or failed VM, enabled same-lab source, OS-compatible known public script artifact or fresh exact custom evidence; guest execution and token use remain conditional.",
-        "positive_and_negative_test": "34 focused collector, evaluator and schema tests pass. Collector test covers secret redaction and foreign-ID rejection; evaluator covers Windows, Linux, inherited and VM-only grants, sibling exclusion, wrong/missing links, unavailable artifacts, explicit artifact and extension blockers, and custom evidence.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_devtestlab_artifacts.py (exact lab VM, source, artifact compatibility, native state, and negative cases); current focused Azure suite passed.",
         "references": [
           "https://learn.microsoft.com/en-us/rest/api/dtl/virtual-machines/apply-artifacts?view=rest-dtl-2018-09-15",
           "https://learn.microsoft.com/en-us/rest/api/dtl/virtual-machines/get?view=rest-dtl-2018-09-15",
