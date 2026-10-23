@@ -10,6 +10,7 @@ import csv
 import hashlib
 import json
 import re
+import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -37,6 +38,16 @@ def main():
     for value in (args.cspm_revision, args.hacktricks_revision):
         if not re.fullmatch(r"[0-9a-f]{40}", value):
             parser.error("revision values must be full 40-character Git SHAs")
+    changed = subprocess.run(
+        ["git", "diff", "--name-only", args.cspm_revision, "HEAD", "--",
+         "tests", "peaso/privesc/catalog", "work_aws_privesc_review/route-case-coverage.tsv"],
+        cwd=HERE.parent, text=True, capture_output=True, check=True,
+    ).stdout.strip()
+    if changed:
+        parser.error(f"tests, catalog, or case rows differ from the tested CSPM revision: {changed}")
+    workflow = (HERE.parent / ".github/workflows/tests.yml").read_text()
+    if f"HACKTRICKS_REVISION: {args.hacktricks_revision}" not in workflow:
+        parser.error("HackTricks revision does not match the frozen CI workflow pin")
 
     files = [args.junit_dir / f"shard-{index:02d}.xml" for index in range(19)]
     missing = [str(path) for path in files if not path.is_file()]
