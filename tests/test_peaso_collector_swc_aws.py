@@ -288,6 +288,11 @@ def test_role_permissions_and_immutable_versions():
     current_role = json.loads(json.dumps(current_role))
     current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal'] = old_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']
     current_role['Properties']['RoleName'] = old_role['Properties']['RoleName']
+    assert current_role['Properties'].pop('ManagedPolicyArns') == [
+        'arn:aws:iam::aws:policy/ReadOnlyAccess',
+        'arn:aws:iam::aws:policy/SecurityAudit',
+        'arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess',
+    ]
     assert current_role == old_role
     actions = set()
     gateway_resources = []
