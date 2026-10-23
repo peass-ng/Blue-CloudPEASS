@@ -46,7 +46,12 @@ CLOUD_SOURCE_685_PREVIOUS_TREE = 'edb0d25e9e4c812549fd13dca1ccc0567087c6922cd21f
 CLOUD_SOURCE_685_PREVIOUS_ARCHIVE_SHA256 = '025882d07a8da5c3911c35ae77a5db58c807f758028d3ff768bd92c5678b42fb'
 CLOUD_SOURCE_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-cloud-source-source-manifest.json'
 CLOUD_SOURCE_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-cloud-source-catalog.tar.gz'
-CURRENT_MANIFEST = '8fb197160ed8f236c554cbb1630256fba47963e0755654fb4f6f017df06d1bc5'
+CURRENT_MANIFEST = 'e7ca75dc3b85d5048b145e51921b58edf60079deb3a908a9b218595aac3c3e63'
+MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST = '8fb197160ed8f236c554cbb1630256fba47963e0755654fb4f6f017df06d1bc5'
+MWAA_TOKEN_REASON_685_PREVIOUS_TREE = '21b9159c4f9de06ef56637214c241da7ef1285e4a72491b1fda6a5a2b094b632'
+MWAA_TOKEN_REASON_685_PREVIOUS_ARCHIVE_SHA256 = 'cac08e430052f9b1dda76b9fdc94277ceff6851ca5fc9bd4903145e23707d752'
+MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-mwaa-token-reason-source-manifest.json'
+MWAA_TOKEN_REASON_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-mwaa-token-reason-catalog.tar.gz'
 ECS_REGISTER_685_PREVIOUS_MANIFEST = '497f5f774ae1a7fb53e40f023deff4fd9a995e992cdca540babcbd7d78cc89dd'
 ECS_REGISTER_685_PREVIOUS_TREE = '13485c5d9bf71a7cbf4f30cbce0bd56ec854f4cf20196e4ea48040cabb51339c'
 ECS_REGISTER_685_PREVIOUS_ARCHIVE_SHA256 = '82f2b532e144331aa0cf950d72ef9d21ab58ce038dcc35ca469071c572f14526'
@@ -738,7 +743,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '21b9159c4f9de06ef56637214c241da7ef1285e4a72491b1fda6a5a2b094b632'
+CURRENT_TREE = '1000c7cbea096c46e7d25992fb6c504fa0cddf92d462249c5a84c51d547bcee4'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 685
 CURRENT_EXCLUDED_COUNT = 3777
@@ -746,7 +751,7 @@ CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-princ
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_CATALOG_ARCHIVE_SHA256 = "498459a1979833e9e1a09b64bbeb859beb004980ad7baa81818621e5c810c030"
 RUNTIME_HISTORY_PACK = Path(__file__).resolve().parent / "catalog_versions/runtime-history-v1.zip"
-RUNTIME_HISTORY_SHA256 = "3a245cff2d83b8056c027fda72a722a587f29221a7b511ad5c0b3835c5cb1829"
+RUNTIME_HISTORY_SHA256 = "d8a0e55c45789a5e5779e67f8a0457caee810e62e9b90131720d34ee78c14e5f"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
 PRIOR_BOUNDED_MANIFEST = "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
 PRIOR_BOUNDED_TREE = "695e38b0bc93df9ba031828ffefbabe8e10b60741580554a5f36b8f37aa05414"
@@ -782,6 +787,15 @@ def _verified_current(catalog_dir, manifest_path):
     if len(loaded["entries"]) != CURRENT_ENTRY_COUNT or loaded["excluded"] != CURRENT_EXCLUDED_COUNT:
         raise ValueError("v4_catalog_counts_mismatch")
     return {entry["id"]: entry for entry in loaded["entries"]}
+
+
+@lru_cache(maxsize=1)
+def _verified_mwaa_token_reason_685_previous():
+    """Keep stored report bindings from before the MWAA exclusion clarification exact."""
+    return _verified_archived_current(
+        MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST_PATH, MWAA_TOKEN_REASON_685_PREVIOUS_ARCHIVE,
+        MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST, MWAA_TOKEN_REASON_685_PREVIOUS_ARCHIVE_SHA256,
+        MWAA_TOKEN_REASON_685_PREVIOUS_TREE, 685, 3777)
 
 
 @lru_cache(maxsize=1)
@@ -2111,7 +2125,7 @@ def _history_original_pair(manifest_path, archive_path, manifest_digest, archive
             if (type(index) is not dict or set(index) != {'schema', 'block_sha256', 'versions'}
                     or index['schema'] != 'privesc-exact-history-v1'
                     or type(index['block_sha256']) is not list
-                    or type(index['versions']) is not dict or len(index['versions']) != 134):
+                    or type(index['versions']) is not dict or len(index['versions']) != 135):
                 raise ValueError("archived_history_pack_index_mismatch")
             for archive_name, version in index['versions'].items():
                 if (type(archive_name) is not str or '/' in archive_name or '\\' in archive_name
@@ -2279,6 +2293,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == MWAA_TOKEN_REASON_685_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "mwaa_token_reason_685_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == BEANSTALK_685_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == BEANSTALK_685_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2842,6 +2860,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "mwaa_token_reason_685_previous":
+            previous = _verified_mwaa_token_reason_685_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "beanstalk_685_previous":
             previous = _verified_beanstalk_685_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

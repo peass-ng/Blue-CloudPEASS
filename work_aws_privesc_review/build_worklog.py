@@ -35,6 +35,8 @@ def main():
     additional = rows("additional-technique-status.tsv")
     route_cases = rows("route-case-coverage.tsv")
     lineage = rows("exclusion-source-lineage-drift.tsv")
+    semantic_lineage_reviewed = [row for row in lineage if row.get("semantic_review_status", "").startswith("reviewed_")]
+    corrected_exclusion_reasons = [row for row in lineage if row.get("semantic_review_status") == "reviewed_exclusion_valid_rationale_corrected"]
     pages = rows("page-status.tsv")
     drift = rows("static-parity-source-drift.tsv")
     assert len(active) >= 211 and len(retired) == 362 and len(additional) == 19
@@ -178,6 +180,7 @@ def main():
         f"- External evidence: {proof} active techniques reference `aws_privesc_challenge_evidence`; {proof_modes['external_proof_required_for_conditional']} require a trusted live-effect witness for a conditional edge and {proof_modes['native_conditional_or_external_proof']} Glue routes also have a native conditional path. The IAM and resource prerequisites still run automatically; missing live-effect proof remains UNKNOWN.",
         f"- Retired cohort: {retired_counts['candidate']} candidates unresolved, {retired_counts['excluded_verified']} exclusions verified, {retired_counts['implemented']} restored or implemented.",
         f"- Exclusion source lineage: {len(lineage)} documented path or anchor discrepancies still require the exact follow-up listed below. These are documentation bindings, not evidence that a route should be active.",
+        f"- Exclusion lineage semantic review: {len(semantic_lineage_reviewed)} of {len(lineage)} path-drift entries have a recorded current-page disposition; {len(lineage) - len(semantic_lineage_reviewed)} remain to review. {len(corrected_exclusion_reasons)} exclusion reasons were corrected in HackTricks Cloud and the matching CSPM catalog. The current exclusions remain in force; review status does not establish that no other false negatives exist.",
         f"- Additional routes: {additional_counts['candidate']} candidates unresolved, {additional_counts['excluded_verified']} exclusions verified, {additional_counts['implemented']} implemented.",
         f"- HackTricks pages: {page_counts['reviewed']} reviewed, {page_counts['triaged']} still need sign-off.",
         (f"- Source and data presentation pins: {len(drift)} files differ from the pinned source hashes; resolve the listed drift before claiming current presentation parity."
@@ -194,8 +197,8 @@ def main():
     table(lines, ["ID", "State", "Source", "Decision evidence / missing join"], retired,
           ["id", "review_state", "old_source", "review_evidence"])
     lines.extend(["## Exclusion source lineage still to reconcile", ""])
-    table(lines, ["ID", "Tracker source", "YAML source", "Classification", "Remaining action"], lineage,
-          ["id", "tracker_old_source", "current_exclusion_source", "classification", "next_action"])
+    table(lines, ["ID", "Tracker source", "YAML source", "Classification", "Semantic review", "Review evidence", "Remaining action"], lineage,
+          ["id", "tracker_old_source", "current_exclusion_source", "classification", "semantic_review_status", "semantic_review_evidence", "next_action"])
     lines.extend(["## Additional candidate routes", ""])
     table(lines, ["ID", "State", "Source", "Evidence and missing join"], additional,
           ["id", "review_state", "source", "review_evidence"])

@@ -28,7 +28,7 @@ def test_every_packed_tar_block_and_manifest_matches_pinned_original():
         refs = archive.read('references.bin')
         manifests = archive.read('manifests.bin')
     assert index['schema'] == 'privesc-exact-history-v1'
-    assert len(index['versions']) == len(declarations()) == 134
+    assert len(index['versions']) == len(declarations()) == 135
     assert len(blocks) == 512 * len(index['block_sha256'])
     assert all(_sha(blocks[n*512:(n+1)*512]) == digest
                for n, digest in enumerate(index['block_sha256']))
@@ -47,6 +47,19 @@ def test_every_packed_tar_block_and_manifest_matches_pinned_original():
         start, size = row['manifest_offset'], row['manifest_size']
         assert manifests[start:start+size] == manifest_path.read_bytes()
         assert _sha(original) == archive_digest
+
+
+def test_mwaa_exclusion_reason_update_keeps_previous_current_binding():
+    current = catalog.current_binding()
+    previous = dict(current,
+                    manifest_sha256=catalog.MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST,
+                    effective_tree_sha256=catalog.MWAA_TOKEN_REASON_685_PREVIOUS_TREE)
+    ids = ['aws-mwaa-s3-putobject-dag']
+    current_entries, current_status = catalog.lookup_entries(ids, current)
+    previous_entries, previous_status = catalog.lookup_entries(ids, previous)
+    assert current_status == 'exact_strict_privesc'
+    assert previous_status == 'exact_previous_current'
+    assert current_entries == previous_entries
 
 
 def test_missing_archive_and_manifest_use_exact_pinned_pack(tmp_path, monkeypatch):
@@ -116,7 +129,7 @@ def test_source_freeze_omits_only_verified_reconstructible_originals():
     from scripts.peaso_deploy import _omit_verified_reconstructible_privesc_history
     root, source = _history_source_bytes()
     omitted = _omit_verified_reconstructible_privesc_history(source, root)
-    assert len(omitted) == 268
+    assert len(omitted) == 270
     assert set(source) == {'peaso/privesc/versioned_catalog.py',
                            'peaso/privesc/catalog_versions/runtime-history-v1.zip'}
 

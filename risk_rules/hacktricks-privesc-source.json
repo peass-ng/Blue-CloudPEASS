@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "4393380a88845b42bd208d3adbb6d61ad89f02fb",
+  "revision": "5b7e2e5e5a3e582a33f09cba63dae5926efbda00",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -47,7 +47,7 @@
     "aws/_excluded_studio_space_strict_reaudit_20261016.yaml": "eb9bf3f922b48838a1453815945c266ca8cc4f2e37504384654b4de3ee85168d",
     "aws/_excluded_sweep.yaml": "83cda037d04330b02bde8b4cbbae6284f2f5e3c2ae8f04969f232f44839e3243",
     "aws/_excluded_uncollected_host_join_strict_reaudit_20261016.yaml": "c494a85e98a6de56c793515d5f2ca2d25dd684dcbf4367341b75498890cfb976",
-    "aws/_excluded_uncollected_service_join_final_reaudit_20261016.yaml": "fe7578fc3c19c53513b3ba366cb167982092d36ad64e5293eff0709a62abbc00",
+    "aws/_excluded_uncollected_service_join_final_reaudit_20261016.yaml": "e6ce033058df4c5b3bdd8cdbd083c7b339fe32e04525a2e512706862a81fb5e6",
     "aws/_excluded_unjoined_subject_strict_reaudit_20261016.yaml": "2484a2c83eedab32ea383a8847d732f0923dbf638577730abd83f297a072dca6",
     "aws/_excluded_unproven_ssm_dlm_target_final_reaudit_20261016.yaml": "b571034c8ac55fb99e35808c283ba9fd64b1ecab1200c8bd6d0fbe129ac5041f",
     "aws/_excluded_verify_a66f.yaml": "86e5ce670972642d2c498756246898ade0317d4a3561ccf2a3403158edc01216",
@@ -346,7 +346,7 @@
     "aws/_excluded_studio_space_strict_reaudit_20261016.yaml": "eb9bf3f922b48838a1453815945c266ca8cc4f2e37504384654b4de3ee85168d",
     "aws/_excluded_sweep.yaml": "83cda037d04330b02bde8b4cbbae6284f2f5e3c2ae8f04969f232f44839e3243",
     "aws/_excluded_uncollected_host_join_strict_reaudit_20261016.yaml": "c494a85e98a6de56c793515d5f2ca2d25dd684dcbf4367341b75498890cfb976",
-    "aws/_excluded_uncollected_service_join_final_reaudit_20261016.yaml": "fe7578fc3c19c53513b3ba366cb167982092d36ad64e5293eff0709a62abbc00",
+    "aws/_excluded_uncollected_service_join_final_reaudit_20261016.yaml": "e6ce033058df4c5b3bdd8cdbd083c7b339fe32e04525a2e512706862a81fb5e6",
     "aws/_excluded_unjoined_subject_strict_reaudit_20261016.yaml": "2484a2c83eedab32ea383a8847d732f0923dbf638577730abd83f297a072dca6",
     "aws/_excluded_unproven_ssm_dlm_target_final_reaudit_20261016.yaml": "b571034c8ac55fb99e35808c283ba9fd64b1ecab1200c8bd6d0fbe129ac5041f",
     "aws/_excluded_verify_a66f.yaml": "86e5ce670972642d2c498756246898ade0317d4a3561ccf2a3403158edc01216",
