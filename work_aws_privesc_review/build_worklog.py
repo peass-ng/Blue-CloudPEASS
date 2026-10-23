@@ -101,6 +101,8 @@ def main():
     missing_negative = [row["id"] for row in partial_cases if not row["negative_case"]]
     suite_result = ROOT / "final-suite-result.json"
     suite = json.loads(suite_result.read_text()) if suite_result.is_file() else None
+    interrupted_result = ROOT / "interrupted-suite-result.json"
+    interrupted = json.loads(interrupted_result.read_text()) if interrupted_result.is_file() else None
     focused_results = json.loads((ROOT / "focused-validation.json").read_text())
     perf_path = ROOT / "performance-validation.json"
     performance = json.loads(perf_path.read_text()) if perf_path.is_file() else None
@@ -129,6 +131,17 @@ def main():
          "(four Linux tmpfs cases on macOS, one explicit SQLite transition case, and one unavailable local Trivy cache); "
          "their exact test names and reasons are in `final-suite-result.json`."
          if suite else "- Full-suite test, failure, error, and skip counts remain pending."),
+        (f"- A later diagnostic on CSPM `{interrupted['tested_revision']}` and HackTricks Cloud "
+         f"`{interrupted['hacktricks_source_revision']}` stopped after "
+         f"{interrupted['shards_completed']}/{interrupted['shards_total']} shards. Its completed JUnit files record "
+         f"{interrupted['tests']} tests, {interrupted['failures']} failures, "
+         f"{interrupted['errors']} errors, and {interrupted['skipped']} skips. "
+         f"The {len(interrupted['privesc_named_failures'])} privilege-escalation-named failures concern Azure/GCP "
+         "catalog sources and Azure coverage; no AWS privilege-escalation-named test failed in those completed "
+         f"shards. The {interrupted['shards_total'] - interrupted['shards_completed']} unfinished shards "
+         "leave the full-suite result unknown. "
+         "Exact shard hashes and failed case names are in `interrupted-suite-result.json`."
+         if interrupted else "- No later interrupted full-suite diagnostic is recorded."),
         "- Separate focused runs at later exact revisions: " + "; ".join(
             f"{result['scope']} passed {result['tests']}/{result['tests']} on CSPM `{result['tested_revision']}` "
             f"with HackTricks Cloud `{result['hacktricks_source_revision']}` "
