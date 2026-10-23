@@ -201,7 +201,7 @@
     "peaso/server/k8s_access_transport.py": "54816f3e581e5d14ef190ab095317ba410af9c9a26fb98de0ef7fe99de71e5c0"
   },
   "date": "2026-10-23",
-  "final_reviewed_source_commit": "c2187b18f85e0e7b230a090ef41d5ab20d792222",
+  "final_reviewed_source_commit": "6ac5a49cc328a69b7c671a80de5cf6453dcf4e90",
   "followup_review": {
     "closure": "Native AWS response/model and Azure absent-policy handling; exact reviewed Calico metadata GET alias and current K8s source row. API direct clients remain30 across the same15 SDK services; no new API scan execution or arbitrary endpoint access.",
     "paths": {
@@ -213,6 +213,23 @@
       "peaso/private_reviewed_collector_successor_20261022.py": "66e2a03a4ee445fa89f7523b534ad55f11848db33c6b521a2fd2e7c5f6fcb104"
     },
     "source_commit": "2198ba6b713d31d8a7c4f0eb527c93a39c61b604"
+  },
+  "gcp_privesc_live_correction_20261024": {
+    "current_hashes": {
+      "peaso/collectors/gcp.py": "6fa248a62211c454a48ab246cfd1918b1a91132bc2930b402cf905c1d55c4960",
+      "peaso/collectors/gcp_discoveryengine_collections.py": "a4c54592197e2dae389c77d2285e0c5fe10cf4dd82a3aa9d429797652fd6d409",
+      "peaso/private_reviewed_collector_successor_20261022.py": "20bfe20440a172ddcac3cec489fcdf9e6835c28fa83e601d6e154eae40855bf7"
+    },
+    "review": "Reviewed exact four official GCP API origins with project-bound read route patterns and negative mutation/foreign-project/query-auth/userinfo/encoded-path/host tests; Discovery Engine numeric identities canonicalize only through existing verified CRM project binding. Existing GCP IAM100 pagination and other provider receipts retained. Native affected9-kind/two-project rerun has zero unsafe endpoint or malformed results. No new API SDK clients, dependencies or services; immutable epoch rows remain unchanged.",
+    "source_diff": {
+      "added": [],
+      "changed": [
+        "peaso/collectors/gcp.py",
+        "peaso/collectors/gcp_discoveryengine_collections.py",
+        "peaso/private_reviewed_collector_successor_20261022.py"
+      ],
+      "removed": []
+    }
   },
   "multicloud_followup_20261024": {
     "api_clients": 30,
@@ -246,7 +263,7 @@
     }
   },
   "python_source_count": 1665,
-  "python_source_sha256": "ef0c85a547980960cdee07ac9c83204171b2498a3ea5ce1a6ffb65a9563f828e",
+  "python_source_sha256": "645008562030e47e4e83f4ad5b84787134ec825809fdb3815604eb1841731ac2",
   "reviewed_source_commit": "c3ade159",
   "source_diff": {
     "added": [
