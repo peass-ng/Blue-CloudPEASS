@@ -41,6 +41,11 @@ BEANSTALK_685_PREVIOUS_TREE = 'c5424a883127f80c21168352067bae2635be2d586d77a645c
 BEANSTALK_685_PREVIOUS_ARCHIVE_SHA256 = '3e23d5a8d7fa79367b5ab623ab29451ee68a3c69de02a5a005762fdf0d4ce900'
 BEANSTALK_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-99a-source-manifest.json'
 BEANSTALK_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-99a-catalog.tar.gz'
+CLOUD_SOURCE_685_PREVIOUS_MANIFEST = '35c76659d735fe959a5cb8da1cfa68908dfc6dbdaff8ab9364a32f452fad1db2'
+CLOUD_SOURCE_685_PREVIOUS_TREE = 'edb0d25e9e4c812549fd13dca1ccc0567087c6922cd21f1863ba69a8b629be2a'
+CLOUD_SOURCE_685_PREVIOUS_ARCHIVE_SHA256 = '025882d07a8da5c3911c35ae77a5db58c807f758028d3ff768bd92c5678b42fb'
+CLOUD_SOURCE_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-cloud-source-source-manifest.json'
+CLOUD_SOURCE_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-cloud-source-catalog.tar.gz'
 CURRENT_MANIFEST = '35c76659d735fe959a5cb8da1cfa68908dfc6dbdaff8ab9364a32f452fad1db2'
 APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST = '9c3c20a056723d3a6628f52361c658ed63fa7a6553a799c7d215546b5bc3cd97'
 APPSTREAM_RESOURCE_700_PREVIOUS_TREE = 'e2aebb783f31913ad6eb37a511a57cb7a4ec2754cb4c0a33a15e52849aa21833'
@@ -736,7 +741,7 @@ CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-princ
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_CATALOG_ARCHIVE_SHA256 = "498459a1979833e9e1a09b64bbeb859beb004980ad7baa81818621e5c810c030"
 RUNTIME_HISTORY_PACK = Path(__file__).resolve().parent / "catalog_versions/runtime-history-v1.zip"
-RUNTIME_HISTORY_SHA256 = "7b6ea7f754de24c6ba64afb8d9f05f4911a9129f7a7e79c3acce0d57f911e5b3"
+RUNTIME_HISTORY_SHA256 = "dd571ecf60ecdb913098a0b1adf40936d59bb6566231d55b5670d238ae567ecd"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
 PRIOR_BOUNDED_MANIFEST = "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
 PRIOR_BOUNDED_TREE = "695e38b0bc93df9ba031828ffefbabe8e10b60741580554a5f36b8f37aa05414"
@@ -780,6 +785,15 @@ def _verified_beanstalk_685_previous():
         BEANSTALK_685_PREVIOUS_MANIFEST_PATH, BEANSTALK_685_PREVIOUS_ARCHIVE,
         BEANSTALK_685_PREVIOUS_MANIFEST, BEANSTALK_685_PREVIOUS_ARCHIVE_SHA256,
         BEANSTALK_685_PREVIOUS_TREE, 685, 3777)
+
+
+@lru_cache(maxsize=1)
+def _verified_cloud_source_685_previous():
+    """Retain the exact current catalog before the Cloud source update."""
+    return _verified_archived_current(
+        CLOUD_SOURCE_685_PREVIOUS_MANIFEST_PATH, CLOUD_SOURCE_685_PREVIOUS_ARCHIVE,
+        CLOUD_SOURCE_685_PREVIOUS_MANIFEST, CLOUD_SOURCE_685_PREVIOUS_ARCHIVE_SHA256,
+        CLOUD_SOURCE_685_PREVIOUS_TREE, 685, 3777)
 
 
 @lru_cache(maxsize=1)
@@ -2083,7 +2097,7 @@ def _history_original_pair(manifest_path, archive_path, manifest_digest, archive
             if (type(index) is not dict or set(index) != {'schema', 'block_sha256', 'versions'}
                     or index['schema'] != 'privesc-exact-history-v1'
                     or type(index['block_sha256']) is not list
-                    or type(index['versions']) is not dict or len(index['versions']) != 132):
+                    or type(index['versions']) is not dict or len(index['versions']) != 133):
                 raise ValueError("archived_history_pack_index_mismatch")
             for archive_name, version in index['versions'].items():
                 if (type(archive_name) is not str or '/' in archive_name or '\\' in archive_name
@@ -2255,6 +2269,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == BEANSTALK_685_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "beanstalk_685_previous", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == CLOUD_SOURCE_685_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == CLOUD_SOURCE_685_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "cloud_source_685_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == REVIEWED_685_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == REVIEWED_685_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2808,6 +2826,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: current[ident] for ident in ids if ident in current}, status
         if version == "beanstalk_685_previous":
             previous = _verified_beanstalk_685_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "cloud_source_685_previous":
+            previous = _verified_cloud_source_685_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "reviewed_685_previous":
             previous = _verified_reviewed_685_previous()
