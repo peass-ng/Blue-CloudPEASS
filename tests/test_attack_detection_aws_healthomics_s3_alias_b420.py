@@ -17,6 +17,14 @@ RULE = Rule(
                               "event.name": "GetObject", "event.outcome": "success",
                               "request.healthomics_s3_read_set_read": True},
 )
+PRESIGNED_RULE = Rule(
+    id="synthetic-omics-s3-presigned", title="Synthetic presigned read",
+    description="Synthetic", level="medium",
+    technique_id="synthetic-omics-s3-presigned", product="aws",
+    selection={"event.source": "s3.amazonaws.com", "event.name": "GetObject",
+               "event.outcome": "success",
+               "request.healthomics_presigned_read_set_read": True},
+)
 
 
 def _row():
@@ -72,3 +80,21 @@ def test_failed_get_or_management_event_is_rejected():
         row = deepcopy(_row())
         change(row)
         assert normalize(row) is None
+
+
+def test_presigned_query_string_read_is_distinguished_from_header_auth():
+    row = _row()
+    row["additionalEventData"].update(
+        AuthenticationMethod="QueryString", SignatureVersion="SigV4"
+    )
+    event = normalize(row)
+    assert event is not None
+    assert event["request.healthomics_presigned_read_set_read"] is True
+    assert KEY not in str(event)
+    hits = detect_aws_events([row], (PRESIGNED_RULE,))
+    assert len(hits) == 1
+    assert KEY not in str(hits)
+    assert detect_aws_events([_row()], (PRESIGNED_RULE,)) == []
+    assert "request.healthomics_presigned_read_set_read" not in normalize(_row())
+    row["additionalEventData"]["SignatureVersion"] = "SigV2"
+    assert "request.healthomics_presigned_read_set_read" not in normalize(row)

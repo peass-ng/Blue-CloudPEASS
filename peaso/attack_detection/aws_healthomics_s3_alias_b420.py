@@ -82,10 +82,14 @@ def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
         return None
     target = "sha256:" + hashlib.sha256(
         f"{account}:{region}:{bucket}:{key}".encode()).hexdigest()[:24]
-    return {
+    event = {
         "cloud.provider": "aws", "event.source": "s3.amazonaws.com",
         "event.name": "GetObject", "event.outcome": "success",
         "event.id": record["eventID"], "event.time": record["eventTime"],
         "account.id": account, "actor.id": identity["arn"], "target.id": target,
         "request.healthomics_s3_read_set_read": True,
     }
+    if (extra.get("AuthenticationMethod") == "QueryString"
+            and extra.get("SignatureVersion") == "SigV4"):
+        event["request.healthomics_presigned_read_set_read"] = True
+    return event
