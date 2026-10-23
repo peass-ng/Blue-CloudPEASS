@@ -322,17 +322,17 @@
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
       "current_contract_sha256": "993974fc47417a343ccd42d3950b1cbfc7b60e98da74a100ffe4cf21b55f999e",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "4 focused adjacent-principal tests cover self-hosted and managed portal sign-in, exact child-scoped RBAC, wrong action, no new portal action, and invalid or duplicate evidence.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Microsoft documents the user shared-access token for self-hosted portal SSO and delegated sign-in to a managed portal. The old self-hosted-only wording could miss managed portal use. Exact user-child RBAC scope already resolves through target.scope. Only unique fresh reviewed evidence of a token accepted for the named user, prior denial, and newly allowed action emits a conditional path.",
+      "work_evidence": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
       "completion_evidence": {
         "source_and_contract": "Microsoft Get Shared Access Token REST API, developer portal FAQ, and delegated sign-in documentation confirm both portal routes and the distinct users/token/action permission.",
         "collector": "No automatic token collection; optional complete azure_external_principal_evidence must bind the exact source, requested user resource, portal service, token, observed subject, and new action.",
-        "evaluator": "Exact user-child RBAC permission, source, target user, portal plane, fresh and unique reviewed sign-in, prior denial, and newly allowed action are required; wrong-action and incomplete records fail closed.",
-        "positive_and_negative_test": "4 focused adjacent-principal tests passed with principal-exposure annotation stubbed because an unrelated dirty AWS receipt blocks the normal import path.",
-        "reference": "https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-setup-delegation"
+        "evaluator": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases); external-principal evidence suite passed without stubs.",
+        "reference": "https://learn.microsoft.com/en-us/rest/api/apimanagement/user/get-shared-access-token?view=rest-apimanagement-2024-05-01"
       }
     },
     {
@@ -341,16 +341,16 @@
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
       "current_contract_sha256": "26baedefce5091a3c2c4243d58059f8d0e68fec461676a4b42cef2cdcf6fdeea",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "Focused adjacent-principal tests cover exact SSO URL action and usable login, missing or wrong action, invalid or duplicate evidence, wrong subject, and no newly allowed portal action.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Azure uses users/generateSsoUrl/action for the redirection URL; users/token/action is a separate shared-access-token route. The catalog requires the direct SSO permission and unique reviewed evidence of the exact requested user, usable authentication, prior denial, and a newly allowed action. The current HackTricks source link still uses the shared-token heading; its correction awaits Cloud review.",
+      "work_evidence": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
       "completion_evidence": {
         "source_and_contract": "Microsoft APIM User Generate SSO URL REST API and Azure RBAC operation list confirm generateSsoUrl/action is the direct URL permission; the HackTricks explanation was corrected locally.",
         "collector": "No automatic credential collection; optional azure_external_principal_evidence must be complete and bind source, exact user resource, returned URL, observed portal subject, and new action.",
-        "evaluator": "The registered action, target plane, evidence fields, and scoped RBAC grant must all match; duplicate, stale, partial, wrong-action, and wrong-subject facts fail closed.",
-        "positive_and_negative_test": "4 focused external-principal tests passed with principal-exposure annotation stubbed because an unrelated dirty AWS receipt blocks the normal import path.",
+        "evaluator": "The reviewed portal proof now requires an API Management user resource whose user ID matches the reported portal principal. The named user resource or its exact token/SSO operation URI can match; another Azure resource, user, or operation cannot.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases); external-principal evidence suite passed without stubs.",
         "reference": "https://learn.microsoft.com/en-us/rest/api/apimanagement/user/generate-sso-url?view=rest-apimanagement-2024-05-01"
       }
     },
@@ -816,7 +816,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/storage-local-v7.yaml",
       "current_contract_sha256": "b31ab26444bfa88e4a518d0dd5fa53eb23a2035d12a21aa4f8073647501f4b96",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "58 focused scoped-credential tests pass across both Storage local-user actions; reset covers enabled password, exact user and container rights, missing or disabled settings, denied or incomplete inventory, sibling scope, and a verified scope beside an unresolved one.",
+      "focused_runtime_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, password setting, container rights, wrong scope, deny, and incomplete inventory)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -825,7 +825,7 @@
         "source_and_contract": "HackTricks Storage local-user password route; Microsoft Storage Local Users Regenerate Password REST and SFTP authorization documentation.",
         "collector": "Existing storage_account, storage_local_user, and storage_container collections provide account settings, password setting, user permission scopes, and exact container IDs; Azure RBAC/deny collections provide source-specific action rights.",
         "evaluator": "The exact local-user action and enabled password are required. Unknown or disabled SFTP settings, duplicate users/accounts, and unverified containers cannot establish rights. Verified rights survive a second unresolved scope, while unresolved rights are not claimed.",
-        "positive_and_negative_test": "58 focused scoped-credential tests pass, including the verified-plus-unresolved-scope case.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, password setting, container rights, wrong scope, deny, and incomplete inventory); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/rest/api/storagerp/local-users/regenerate-password?view=rest-storagerp-2026-06-01"
       }
     },
@@ -835,7 +835,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/storage-local-v7.yaml",
       "current_contract_sha256": "725afd52503db87ac4266cf4a31564dc3745e450d2db6aee252d071b9f5b5e4a",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "59 focused scoped-credential tests pass across both local-user actions; write covers exact existing user and container rights, key credential path without password, missing or disabled SFTP, sibling scope, deny, incomplete inventory, and verified access beside an unresolved scope.",
+      "focused_runtime_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, SSH key route, container rights, wrong scope, deny, and incomplete inventory)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -844,7 +844,7 @@
         "source_and_contract": "HackTricks Storage localUsers/write section; Microsoft local-user create/update REST and SFTP authorization documentation.",
         "collector": "Existing storage_account, storage_local_user, and storage_container collections supply exact account, user, SFTP settings and container rights; Azure RBAC/deny collections supply source-specific write permissions.",
         "evaluator": "The exact existing local-user write permission is required. Known disabled SFTP or local users exclude the path; incomplete account/user settings or unverified container rights stay unresolved. The target is a Storage service identity with only verified rights, not an Entra or ARM principal.",
-        "positive_and_negative_test": "59 focused scoped-credential tests pass, including password-free SSH key update and verified-plus-unresolved-scope access.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_scoped_credentials.py (exact local user, SSH key route, container rights, wrong scope, deny, and incomplete inventory); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/azure/storage/blobs/secure-file-transfer-protocol-support-authorize-access"
       }
     },
@@ -1006,7 +1006,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/avs.yaml",
       "current_contract_sha256": "21696e3769625cf4923b822cdbf3f029d7ed9469a692a51d1c13d41f2fe6736c",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "Focused external-principal tests cover verified NSX API and UI actions, returned username mismatch, missing password proof, missing NSX authorization, mismatched action, missing evidence references, and shared negative evidence cases.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (returned NSX user, password, authorized action, and wrong proof)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -1015,7 +1015,7 @@
         "source_and_contract": "HackTricks AVS credential section, Microsoft AVS List Admin Credentials API and Azure VMware Solution identity and NSX permissions.",
         "collector": "Reviewed azure_external_principal_evidence provides a fresh exact private-cloud credential response, NSX subject, and tested action; generic ARM inventory alone cannot create an edge.",
         "evaluator": "Exact source, AVS private cloud, returned NSX subject, prior denial, successful login, matching authorized NSX action, and effective ARM listAdminCredentials permission must join.",
-        "positive_and_negative_test": "27 focused external-principal and schema tests pass, including NSX API/UI and malformed evidence cases.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (returned NSX user, password, authorized action, and wrong proof); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/azure/azure-vmware/architecture-identity"
       }
     },
@@ -1044,7 +1044,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/avs.yaml",
       "current_contract_sha256": "c39eab70ffa2614f5b08fc31756ca33c3b2a4f31046413cf45371602ae82b155",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "Focused external-principal tests cover documented AVS Identity grant cmdlets, full script execution resource, source-controlled group member login, unrelated child grants, malformed proof, and shared negative evidence cases.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (exact command, execution resource, group, controlled login, and grant outcome)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -1053,7 +1053,7 @@
         "source_and_contract": "HackTricks AVS Run Command section corrected to use scriptCmdletId and the documented Identity package; Microsoft AVS Run Command, identity-source, RBAC operation, and script-execution REST API documentation.",
         "collector": "Fresh reviewed azure_external_principal_evidence binds full cmdlet and execution IDs, group membership and source-controlled login; package listing rights are not required for a known ID.",
         "evaluator": "Effective scriptExecutions/write permission is checked on the exact execution child. Only documented identity-grant cmdlets with verified group grant and source-controlled member login create a conditional principal edge.",
-        "positive_and_negative_test": "29 focused external-principal and schema tests pass, including exact child grant and unrelated child denial.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_external_principal.py::test_nsx_and_vcenter_grant_need_exact_reviewed_proof (exact command, execution resource, group, controlled login, and grant outcome); current focused Azure suite passed.",
         "reference": "https://learn.microsoft.com/en-us/azure/azure-vmware/configure-identity-source-vcenter"
       }
     },
@@ -1472,7 +1472,7 @@
       "catalog_file": "peaso/privesc/catalog/azure/devtest_labs.yaml",
       "current_contract_sha256": "c7de79150891f7de14d3b9426e967f73de7bc5a664641c47084a828c52e11bf2",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "34 focused collector, exact DevTest lab evaluator, and schema tests pass; tests cover exact and inherited grants, sibling exclusion, wrong compute link, stopped or failed VM, disabled or untrusted source, missing or OS-incompatible artifact, Linux and Windows script artifacts, custom reviewed evidence, explicit artifact and extension blockers, source-secret redaction and foreign child IDs.",
+      "focused_runtime_test": "tests/test_peaso_privesc_azure_devtestlab_artifacts.py (exact lab VM, source, artifact compatibility, native state, and negative cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -1481,7 +1481,7 @@
         "source_and_contract": "HackTricks DevTest Labs ApplyArtifacts section reviewed with Microsoft Apply Artifacts, Virtual Machines Get, Artifact Sources List, Artifacts List and official public artifact definitions. YAML now binds exact lab VM, backing compute identity and script availability.",
         "collector": "Native read-only DevTest lab/VM/source/artifact lists retain computeId, OS, state, source enablement and artifact OS while discarding source tokens and artifact parameter values. Public repository provenance is derived from an exact GitHub URI; custom script semantics use optional reviewed evidence.",
         "evaluator": "Exact effective ApplyArtifacts/action on an inventoried lab VM, precise computeId/identity join, blocked stopped or failed VM, enabled same-lab source, OS-compatible known public script artifact or fresh exact custom evidence; guest execution and token use remain conditional.",
-        "positive_and_negative_test": "34 focused collector, evaluator and schema tests pass. Collector test covers secret redaction and foreign-ID rejection; evaluator covers Windows, Linux, inherited and VM-only grants, sibling exclusion, wrong/missing links, unavailable artifacts, explicit artifact and extension blockers, and custom evidence.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_azure_devtestlab_artifacts.py (exact lab VM, source, artifact compatibility, native state, and negative cases); current focused Azure suite passed.",
         "references": [
           "https://learn.microsoft.com/en-us/rest/api/dtl/virtual-machines/apply-artifacts?view=rest-dtl-2018-09-15",
           "https://learn.microsoft.com/en-us/rest/api/dtl/virtual-machines/get?view=rest-dtl-2018-09-15",
@@ -7098,15 +7098,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/cloud_pivot.yaml",
       "current_contract_sha256": "85cb6209d86ff9952169007f785a24772e8081b7f510bdcb390d57931d8cbed7",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "12 focused cloud pivot cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_irsa_trust.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace.",
+      "work_evidence": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
       "completion_evidence": {
         "source_and_contract": "https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html",
-        "collector_and_evaluator": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace.",
-        "positive_and_negative_test": "12 focused cloud pivot cases"
+        "collector_and_evaluator": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_irsa_trust.py covers matching and mismatched issuer, audience, Kubernetes authority, service-account inventory, and AWS trust Deny."
       }
     },
     {
@@ -7115,15 +7115,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/cloud_pivot.yaml",
       "current_contract_sha256": "6482c23dbf8edd9386e0ab2b1b4cd3bc7dda3c06ca76f7d93e8fbb0becedcdc8",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "12 focused cloud pivot cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_irsa_trust.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account.",
+      "work_evidence": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
       "completion_evidence": {
         "source_and_contract": "https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html",
-        "collector_and_evaluator": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account.",
-        "positive_and_negative_test": "12 focused cloud pivot cases"
+        "collector_and_evaluator": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_irsa_trust.py covers matching and mismatched issuer, audience, Kubernetes authority, service-account inventory, and AWS trust Deny."
       }
     },
     {
@@ -7749,15 +7749,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "e3c53553843639c203bb27f126e87dad479623223933edb32693fb1f97237750",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -7766,15 +7766,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "cbc98f80f01e0a95c1fcb1afff073021db6480bb8bd3c4ab6a25c246efc390ef",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -8106,15 +8106,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "84a1d0a693fb42c0c0d9684ba8097cacc8584e6247add4ecbec5bc4f8812b726",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -8123,15 +8123,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "8c8ebb9b2733c4b88a574189152e4e197394870a37eef87c01a6b877d2ef4c8c",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -8411,7 +8411,7 @@
     "status": "submitted_for_review",
     "source_of_truth": "HackTricks Cloud src/privilege-escalation-paths",
     "remaining": "HackTricks Cloud PR #495 remains open as a draft for review; no GCP, Azure, or Kubernetes technique review remains.",
-    "current_runtime": "CSPM main bundles the reviewed catalog synchronized from HackTricks Cloud commit 863f3ad53c745ff349950c79cffb8c0e3ac0e96b, recorded in risk_rules/hacktricks-privesc-source.json."
+    "current_runtime": "CSPM main bundles the catalog pinned by risk_rules/hacktricks-privesc-source.json; CSPM draft PR #291 contains additional source-anchor corrections and must be repinned after HackTricks Cloud PR #495 is accepted."
   },
   "retired_techniques": [
     {

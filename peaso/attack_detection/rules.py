@@ -238,7 +238,13 @@ from .aws_datasync_s3_b436 import normalize_aws_datasync_s3_b436, correlate_aws_
 from .aws_route53_zone_b437 import normalize_aws_route53_zone_b437
 from .aws_location_key_b438 import normalize_aws_location_key_b438
 from .aws_dlm_ssm_hook_b439 import normalize_aws_dlm_ssm_hook_b439, correlate_aws_dlm_new_ssm_hook_enabled_b439
+from .aws_dlm_share_b443 import normalize_aws_dlm_share_b443
 from .aws_pipes_role_b440 import normalize_aws_pipes_role_b440, correlate_aws_pipes_template_read_b440
+from .aws_cloudcontrol_role_b441 import normalize_aws_cloudcontrol_role_b441
+from .aws_cloudtrail_service_lookup_b442 import (
+    normalize_aws_cloudtrail_service_lookup_b442,
+    correlate_aws_cloudtrail_denied_list_lookup_b442,
+)
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
@@ -346,8 +352,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "b2b0ffa7910b3e09e81547e9f6e1dc7b41275af1"
-DEFAULT_RULE_PACK_SHA256 = "f1f1c9bb1cea753a9fe6ec3532f5a389fb94a492eaa958986df3138c7cfb29b5"
+DEFAULT_RULE_REF = "5989e39ec2a74b9af4df4b8e6ded4cc087b160e8"
+DEFAULT_RULE_PACK_SHA256 = "308889cb44c498cf92317ac3bb0dfc75b995804be77f87bb934e6a78e657de7e"
 
 
 @dataclass(frozen=True)
@@ -647,7 +653,10 @@ def detect_aws_events(
         route53_zone_b437 = normalize_aws_route53_zone_b437(record)
         location_key_b438 = normalize_aws_location_key_b438(record)
         dlm_ssm_hook_b439 = normalize_aws_dlm_ssm_hook_b439(record)
+        dlm_share_b443 = normalize_aws_dlm_share_b443(record)
         pipes_role_b440 = normalize_aws_pipes_role_b440(record)
+        cloudcontrol_role_b441 = normalize_aws_cloudcontrol_role_b441(record)
+        cloudtrail_service_lookup_b442 = normalize_aws_cloudtrail_service_lookup_b442(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
@@ -933,7 +942,10 @@ def detect_aws_events(
                 + ([route53_zone_b437] if route53_zone_b437 is not None else [])
                 + ([location_key_b438] if location_key_b438 is not None else [])
                 + ([dlm_ssm_hook_b439] if dlm_ssm_hook_b439 is not None else [])
+                + ([dlm_share_b443] if dlm_share_b443 is not None else [])
                 + ([pipes_role_b440] if pipes_role_b440 is not None else [])
+                + ([cloudcontrol_role_b441] if cloudcontrol_role_b441 is not None else [])
+                + ([cloudtrail_service_lookup_b442] if cloudtrail_service_lookup_b442 is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
@@ -1138,6 +1150,7 @@ def detect_aws_events(
     datasync_s3_b436_records: list[Mapping[str, Any]] = []
     dlm_ssm_hook_b439_records: list[Mapping[str, Any]] = []
     pipes_role_b440_records: list[Mapping[str, Any]] = []
+    cloudtrail_service_lookup_b442_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -1245,6 +1258,8 @@ def detect_aws_events(
                 dlm_ssm_hook_b439_records.append(record)
             if record.get("eventSource") == "pipes.amazonaws.com" and record.get("eventName") in {"CreatePipe", "UpdatePipe", "DescribePipe"}:
                 pipes_role_b440_records.append(record)
+            if (record.get("eventSource") == "cloudtrail.amazonaws.com" and record.get("eventName") == "LookupEvents") or (isinstance(record.get("eventName"), str) and record["eventName"].startswith(("List", "Describe")) and record.get("errorCode") in {"AccessDenied", "AccessDeniedException", "UnauthorizedOperation"}):
+                cloudtrail_service_lookup_b442_records.append(record)
             if record.get("eventSource") == "ecs.amazonaws.com" and record.get("eventName") in {"RegisterTaskDefinition", "CreateService", "UpdateService"}:
                 ecs_records.append(record)
             if record.get("eventSource") == "emr-serverless.amazonaws.com" and record.get("eventName") in {"StartSession", "GetSessionEndpoint"}:
@@ -1420,6 +1435,7 @@ def detect_aws_events(
     correlated += correlate_aws_datasync_new_role_task_b436(datasync_s3_b436_records)
     correlated += correlate_aws_dlm_new_ssm_hook_enabled_b439(dlm_ssm_hook_b439_records)
     correlated += correlate_aws_pipes_template_read_b440(pipes_role_b440_records)
+    correlated += correlate_aws_cloudtrail_denied_list_lookup_b442(cloudtrail_service_lookup_b442_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches

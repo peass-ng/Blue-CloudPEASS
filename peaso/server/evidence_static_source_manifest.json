@@ -90,7 +90,7 @@
   "peaso/privesc/effective_permissions/azure_datafactory_identity.py": "6816edeabb892c9b98b94ab2c2397ee643094cc75afa17a815bb27b7160c4dee",
   "peaso/privesc/effective_permissions/azure_deployment_pivots.py": "de881fb8aeeae7a7648135f43c386889a894008b34e9e55a429178fb7002f4d7",
   "peaso/privesc/effective_permissions/azure_disclosure_effects.py": "656431b05f9ab8ab36c86963775e6e6bd3c3758686c17c50da31327835c8a5a1",
-  "peaso/privesc/effective_permissions/azure_external_principal.py": "90cad48976dea564e0966431a9f0249b156b3034977beb64082f2a61fd9c7e24",
+  "peaso/privesc/effective_permissions/azure_external_principal.py": "132d998cfb4df4942c3a8d96e7cf83b9798788338da8e7f05daf63df795f1c1a",
   "peaso/privesc/effective_permissions/azure_self_grants.py": "cb576ec63906b7a7a5b16e8eabbf01b8184b57cf7917ca4c8ba48d8966c3d79e",
   "peaso/privesc/effective_permissions/bounded_evidence.py": "1cd1a44f2d955bb5dc877e404ab09294a3df9b67bb1ff9e867aec1cd0cf212af",
   "peaso/privesc/effective_permissions/credential_evidence.py": "a38e29dbf22225693f0420458690eb28b92445791e50ce39a833ae04ca041f6c",
@@ -100,7 +100,7 @@
   "peaso/privesc/effective_permissions/gcp_conditions.py": "920f1e011141a7908b3629625532a098066ee5c059f6572062a57d97f9239008",
   "peaso/privesc/effective_permissions/gcp_external_principal.py": "58dcbb686952e19a10fea9fe0603b59d2dc16d540894d71a7ccd7b8ce891262a",
   "peaso/privesc/effective_permissions/gcp_resource_self_grant.py": "e67f4508d9f726c564aa13c00b969478350e30b22ff94f8281a947a6d60de4c0",
-  "peaso/privesc/effective_permissions/k8s.py": "bf31e0ab84d4e7755e0550cb1185f13113ae9367e1bd9b8e295448d3e452a554",
+  "peaso/privesc/effective_permissions/k8s.py": "e17b03d4026e22408883e076477cf812936ef89e308fc7439af22e3a428ed9a5",
   "peaso/privesc/effective_permissions/k8s_helm_values_rbac.py": "419c5f845f33d4ec9729893f4fba319cc67b25ddc0714ee90165f9aca2d404d8",
   "peaso/privesc/effective_permissions/k8s_verified_pivots.py": "8cd11c1d1461d3d08bec8675419ab6ab0896f149fb141f77bb54f17aea5334a0",
   "peaso/privesc/effective_permissions/principal_evidence.py": "b75890a975715d4912b5ee39fbde72cd606a5e2aac02726298f8f93c17e2f6d8",
@@ -109,7 +109,7 @@
   "peaso/privesc/gcp_observed_impact.py": "7bb592248badd27f5c07b7ca7ed206f4a7547b1b5ab2b30d2b9c50b00d8094e7",
   "peaso/privesc/k8s_observed_impact.py": "703dfb2a9d72963283c696dbf6abd13c0182f9dd7d89f06060ce77bb7ff1da2d",
   "peaso/privesc/schema.py": "e0c936be6e05470d310f3309240e0c56fa9b2ad59a5f077b8a25697f039c28cb",
-  "peaso/privesc/versioned_catalog.py": "9e62504eaa963ce6332605c776d4d4577928d8817c1fe8cebf481bced3016fac",
+  "peaso/privesc/versioned_catalog.py": "7934638bda57a985079f313455129ddabc45e2c9dc06567d857e880667a806b2",
   "peaso/provider_followup_observations_20261021.py": "84d18fb252d53059c2ea486e98e8b3301e79bc1f9bdee24a4d063570c109c313",
-  "risk_rules/hacktricks-privesc-source.json": "8fb197160ed8f236c554cbb1630256fba47963e0755654fb4f6f017df06d1bc5"
+  "risk_rules/hacktricks-privesc-source.json": "e7ca75dc3b85d5048b145e51921b58edf60079deb3a908a9b218595aac3c3e63"
 }

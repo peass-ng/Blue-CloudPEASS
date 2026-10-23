@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 
+import pytest
 import yaml
 
 from peaso import privesc
@@ -102,6 +103,31 @@ def test_exact_vcenter_nsx_and_run_command_identity_paths():
         assert set(got.values()) == {"conditional"}
 
 
+@pytest.mark.parametrize("technique,invalid_fields", [
+    ("azure-avs-list-nsxt-admin-external-principal", (
+        ("ReturnedNsxtUsername", "other"),
+        ("NsxtPasswordReturnedVerified", False),
+        ("NsxtActionAuthorizedVerified", False),
+        ("NsxtGainedAction", "GET /api/v1/other"),
+        ("CredentialResponseEvidenceRef", ""),
+    )),
+    ("azure-avs-run-command-vcenter-grant-external-principal", (
+        ("ExecutedCmdletId", f"{AVS}/scriptPackages/Microsoft.AVS.Identity@1.0/scriptCmdlets/Other"),
+        ("ScriptExecutionResourceId", f"{AVS}/other/execution"),
+        ("GrantedGroupName", "other"),
+        ("SourceControlsTargetLogin", False),
+        ("GrantOperationSucceeded", False),
+    )),
+])
+def test_nsx_and_vcenter_grant_need_exact_reviewed_proof(technique, invalid_fields):
+    assert len(paths(technique, case(technique))) == 1
+    assert paths(technique, case(technique, allowed=False)) == {}
+    for field, value in invalid_fields:
+        altered = proof(technique)
+        altered[field] = value
+        assert paths(technique, case(technique, [altered])) == {}, (technique, field)
+
+
 def test_missing_partial_duplicate_stale_and_wrong_authority_fail_closed():
     technique = "azure-avs-list-vcenter-cloudadmin-external-principal"
     for snap in (case(technique, []), case(technique, status="partial"),
@@ -190,3 +216,35 @@ def test_named_portal_github_and_mqtt_paths_need_exact_new_authority():
         bad = copy.deepcopy(snap)
         next(c for c in bad["collections"] if c["type"] == "azure_external_principal_evidence")["items"][0]["AfterTargetPermissionAllowed"] = False
         assert paths(technique, bad) == {}, technique
+
+
+@pytest.mark.parametrize("technique,operation", [
+    ("azure-apim-developer-portal-sso-external-principal", "generateSsoUrl"),
+    ("azure-apim-developer-portal-shared-token-external-principal", "token"),
+])
+def test_apim_portal_token_requires_the_named_user_resource(technique, operation):
+    user_resource = f"{RG}/providers/Microsoft.ApiManagement/service/api1/users/bob"
+    portal = "https://api1.portal.example.com/users/bob"
+    permission = ENTRIES[technique]["requires"]["all_of"][0]["action"]
+
+    def targets(action_resource, principal="bob"):
+        record = {**proof(), "TechniqueId": technique, "ActionResource": action_resource,
+                  "AccessPermission": permission, "TargetPlane": "apim_developer_portal",
+                  "TargetServiceResource": portal, "TargetPrincipalId": principal,
+                  "ObservedPrincipalId": principal, "AccessArtifactKind": "credential",
+                  "AccessArtifactRef": "reviewed-portal-token-1",
+                  "GainedPermission": "portal:read-subscription",
+                  "PriorTestedPermission": "portal:read-subscription",
+                  "AfterTestedPermission": "portal:read-subscription",
+                  "PriorTestedResource": portal, "AfterTestedResource": portal}
+        snap = az(assignments=[("u-alice", "User", action_resource, ROLE_ID)],
+                  roles={ROLE_ID: ([permission], [])},
+                  extra=[("azure_external_principal_evidence", SUB, [record], "collected")])
+        snap["created_at"] = "2026-10-16T11:05:00Z"
+        return paths(technique, snap)
+
+    assert len(targets(user_resource)) == 1
+    assert len(targets(f"{user_resource}/{operation}")) == 1
+    assert targets(f"{RG}/providers/Microsoft.Storage/storageAccounts/api1") == {}
+    assert targets(user_resource, principal="other") == {}
+    assert targets(f"{user_resource}/otherAction") == {}
