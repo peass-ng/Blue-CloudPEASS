@@ -56,6 +56,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'examples/benchmark_peaso_final_collector_release.py',
     'examples/benchmark_peaso_checkpoint_copy.py',
     'docs/multicloud-worker-sizing.md',
     'tests/test_k8s_literal_scanner_deadline_successor_20261023.py',
@@ -1809,8 +1810,12 @@ IAM_RUNTIME_EXACT_ADDITION = (
 # 804ee202. The complete file digests bind the runtime contract after those
 # changes while the earlier pins above remain available for historical review.
 CURRENT_IAM_RUNTIME_SHA256 = "a20b4d6d6fa5698cb55ab0fc0bed420859fe12163373c9358955a97a377285bc"
+CURRENT_INDEXED_IAM_SHA256 = "8db82f1355308602a2c6f6216e8aba42ebd23ba889e7af3ea76ca0b3f7a4aea6"
+INDEXED_IAM_QUERY_ADDITION = b'    { Effect = "Allow", Action = ["dynamodb:Query"], Resource = ["${aws_dynamodb_table.metadata.arn}/index/work-state", "${aws_dynamodb_table.metadata.arn}/index/schedule-time"] },\n'
 PREVIOUS_WORKFLOW_RUNTIME_SHA256 = "caed9a12c8d11c12e14d87cb74d1fdef83567648287c1d654f926114cd227d64"
 CURRENT_WORKFLOW_RUNTIME_SHA256 = "ecfaa71f9c9668d02e59571efa7a7b9e5daf6af1da9a22501a23611cf9e565a3"
+CURRENT_INDEXED_WORKFLOW_SHA256 = "361fef2318aef55d01ba351501cc79a4fa06884d368d380b714f2f42814e57ad"
+INDEXED_WORKFLOW_ADDITION = b'    PEASO_WORK_STATE_INDEX         = "work-state"\n    PEASO_SCHEDULE_TIME_INDEX      = "schedule-time"\n'
 CURRENT_AI_RUNTIME_SHA256 = "0948bda88c41ea79fd25dc9c2faa656b7d71c9d29012024156017921122834a6"
 API_DELIVERY_SOURCE = {
     "api.tf": ("0ad8ba2e7e2a7868c7366c84a6693e8e5c3420382cfb2946e641dab878b35efe",
@@ -2665,6 +2670,24 @@ def deployment_expectations(data, plan):
             if hashlib.sha256(predecessor).hexdigest() != API_DELIVERY_SOURCE[name][0]:
                 raise RuntimeError("API S3 delivery successor does not reconstruct its predecessor")
             continue
+        if name == "workflow.tf" and current_digest == CURRENT_INDEXED_WORKFLOW_SHA256:
+            restored = (INFRA / name).read_bytes()
+            if restored.count(INDEXED_WORKFLOW_ADDITION) != 1:
+                raise RuntimeError("Indexed workflow differs from reviewed index environment")
+            restored = restored.replace(INDEXED_WORKFLOW_ADDITION, b'', 1)
+            if hashlib.sha256(restored).hexdigest() != CURRENT_WORKFLOW_RUNTIME_SHA256:
+                raise RuntimeError("Indexed workflow does not reconstruct reviewed source")
+            continue
+        if name == "iam.tf" and current_digest == CURRENT_INDEXED_IAM_SHA256:
+            restored = (INFRA / name).read_bytes()
+            batch_addition = b'"dynamodb:GetItem", "dynamodb:BatchGetItem", '
+            if restored.count(batch_addition) != 3 or restored.count(INDEXED_IAM_QUERY_ADDITION) != 3:
+                raise RuntimeError("Indexed IAM successor differs from reviewed permissions")
+            restored = restored.replace(batch_addition, b'"dynamodb:GetItem", ')
+            restored = restored.replace(INDEXED_IAM_QUERY_ADDITION, b'')
+            if hashlib.sha256(restored).hexdigest() != CURRENT_IAM_RUNTIME_SHA256:
+                raise RuntimeError("Indexed IAM successor does not reconstruct reviewed source")
+            continue
         if (name == "iam.tf" and current_digest == CURRENT_IAM_RUNTIME_SHA256
                     or name == "workflow.tf" and current_digest in {
                         PREVIOUS_WORKFLOW_RUNTIME_SHA256, CURRENT_WORKFLOW_RUNTIME_SHA256}
@@ -2728,6 +2751,8 @@ def deployment_expectations(data, plan):
         "PEASO_STATE_DIR": "/tmp/peaso/state", "PEASO_IDENTITY_DIR": "/tmp/peaso/identity",
         "PEASO_SOURCE_VERSION": source,
     }
+    if tf_files.get("workflow.tf") == CURRENT_INDEXED_WORKFLOW_SHA256:
+        common.update(PEASO_WORK_STATE_INDEX="work-state", PEASO_SCHEDULE_TIME_INDEX="schedule-time")
     for stage, size in sizes.items():
         common[f"PEASO_{stage.upper()}_VCPU"] = str(size["cpu"] / 1024)
         common[f"PEASO_{stage.upper()}_MEMORY_GIB"] = str(size["memory"] / 1024)
