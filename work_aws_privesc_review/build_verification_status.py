@@ -96,6 +96,9 @@ ISOLATED_GRAPH_TESTS = {
     "aws-apprunner-updateservice": (
         "tests/test_peaso_privesc_apprunner_existing_role.py"
     ),
+    "aws-iam-createsamlprovider-orphaned-trust": "tests/test_peaso_privesc_aws_followups.py",
+    "aws-iam-createuser-policy-accesskey": "tests/test_peaso_privesc_aws_followups.py",
+    "aws-iam-modify-assumable-role-policy": "tests/test_peaso_privesc_followups.py",
     "aws-ec2-passrole-associate-instance-profile": (
         "tests/test_peaso_privesc_ec2_profile_branches.py"
     ),
