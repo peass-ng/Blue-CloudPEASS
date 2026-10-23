@@ -15,7 +15,7 @@ from fastapi import HTTPException
 from peaso.auth import Authenticator, CredentialCipher, redact
 from peaso.auth.secrets import credential_values
 from peaso.server.config import Settings
-from peaso.storage import SQLiteStore, FileArtifacts, S3Artifacts
+from peaso.storage import SQLiteStore, FileArtifacts, S3Artifacts, StoreError
 from peaso.storage.runtime import stores, WorkflowDispatcher
 
 LOGGER = logging.getLogger(__name__)
@@ -498,10 +498,23 @@ class Worker:
         for row in self.store.due_schedules(now):
             try:
                 selectors = json.loads(row['data'])
+                from peaso.server.schedule_credentials import scheduling_eligibility
+                saved = self.store.connector(row['tenant'], selectors['connector_id'])
+                data = json.loads(saved['data'])
+                private = self.cipher.decrypt(saved['auth'])
+                eligibility = scheduling_eligibility(data['provider'], private['auth'],
+                    input_mode=data.get('input_mode'), options=private.get('options', {}), proof=private.get('scheduling_proof'), hosted=self.settings.auth_mode == 'cognito')
+                if not eligibility['allowed']:
+                    self.store.pause_schedule(row['tenant'], row['id'], reason=eligibility['reason'])
+                    continue
                 if selectors.get('ai_enabled', True):
                     from peaso.ai.auth import require_local_codex
                     require_local_codex(self.settings, self.store, selectors.get('ai_user_id', row['tenant']))
                 paid = self.authenticator.is_paid(row["tenant"])
+            except StoreError as exc:
+                if exc.status == 404:
+                    continue  # Connector deleted after the due-schedule read.
+                raise
             except HTTPException as exc:
                 if exc.status_code == 401:
                     self.store.pause_schedule(row["tenant"], row["id"])

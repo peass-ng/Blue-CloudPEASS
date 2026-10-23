@@ -268,6 +268,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         # Snapshot payloads are private evidence, available only through owned reports.
         if "options" in data:
             data["options"].pop("snapshot", None)
+        from peaso.server.schedule_credentials import scheduling_eligibility
+        data["scheduling"] = scheduling_eligibility(data["provider"], auth["auth"],
+            input_mode=data.get("input_mode"), options=auth.get("options", {}), proof=auth.get("scheduling_proof"), hosted=settings.auth_mode == "cognito")
         data["auth"] = {"configured": bool(auth["auth"]), "fields": sorted(auth["auth"])}
         onboarding = onboarding_details(auth["auth"]) if include_onboarding else None
         if onboarding:
@@ -662,6 +665,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         data["input_mode"] = "offline_snapshot" if "snapshot" in data["options"] else "demo" if data["options"].get("demo") else "live"
         # Encrypt the whole connector input too: secrets can hide in arbitrary options.
         private_input = {"auth": auth, "options": data.pop("options")}
+        from peaso.server.schedule_credentials import verify_nonexpiring_token
+        private_input["scheduling_proof"] = verify_nonexpiring_token(body.provider, auth, hosted=settings.auth_mode == "cognito")
         data["options"] = redact(private_input["options"], tuple(credential_values(auth)))
         data["options"].pop("snapshot", None)
         provider, input_mode = data.pop("provider"), data.pop("input_mode")
@@ -674,6 +679,10 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         row = store.connector(user.tenant_id, ident)
         data = json.loads(row["data"])
         private = cipher.decrypt(row["auth"])
+        from peaso.server.schedule_credentials import scheduling_eligibility
+        data["scheduling"] = scheduling_eligibility(data["provider"], private["auth"],
+            input_mode=data.get("input_mode"), options=private.get("options", {}),
+            proof=private.get("scheduling_proof"), hosted=settings.auth_mode == "cognito")
         data["auth"] = {"configured": bool(private["auth"]), "fields": sorted(private["auth"])}
         onboarding = onboarding_details(private["auth"]) if user.auth_kind != "api_key" and user.workspace_role != "read" else None
         if onboarding:
@@ -715,6 +724,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                            scopes=patch.get("scopes", json.loads(row["data"])["scopes"]))
         if "auth" in body.model_fields_set:
             bind_workspace_external_id(user, json.loads(row["data"])["provider"], private["auth"])
+        if "auth" in body.model_fields_set or "scheduling_proof" not in private:
+            from peaso.server.schedule_credentials import verify_nonexpiring_token
+            private["scheduling_proof"] = verify_nonexpiring_token(saved["provider"], private["auth"], hosted=settings.auth_mode == "cognito")
         patch["input_mode"] = "offline_snapshot" if "snapshot" in private["options"] else "demo" if private["options"].get("demo") else "live"
         input_mode = patch.pop("input_mode")
         store.update_connector(user.tenant_id, ident, dict(redact(patch, tuple(credential_values(private["auth"]))), input_mode=input_mode), cipher.encrypt(private))
@@ -2055,6 +2067,16 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 "provider": provider, "grant_count": len(grants), "grant_summary": grant_summary(grants), "grants": grants,
                 "semantics": "Declared grants with rule-based severity; not effective access."}
 
+    def require_schedule_credentials(user, connector_id):
+        from peaso.server.schedule_credentials import scheduling_eligibility
+        row = store.connector(user.tenant_id, connector_id)
+        data = json.loads(row["data"])
+        private = cipher.decrypt(row["auth"])
+        eligibility = scheduling_eligibility(data["provider"], private["auth"],
+            input_mode=data.get("input_mode"), options=private.get("options", {}), proof=private.get("scheduling_proof"), hosted=settings.auth_mode == "cognito")
+        if not eligibility["allowed"]:
+            raise HTTPException(422, eligibility["reason"])
+
     @app.get("/api/schedules")
     def schedules(user=Depends(identity)):
         return {"items": store.schedules(user.tenant_id)}
@@ -2062,6 +2084,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.post("/api/schedules", status_code=201)
     def add_schedule(body: ScheduleCreate, user=Depends(identity), account=Depends(account_identity)):
         owned = store.connector(user.tenant_id, body.connector_id)
+        require_schedule_credentials(user, body.connector_id)
         validate_selectors(body.model_dump(), json.loads(owned["data"])["provider"])
         if body.ai_enabled:
             from peaso.ai.auth import require_local_codex
@@ -2077,6 +2100,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         current = next((row for row in store.schedules(user.tenant_id) if row['id'] == ident), None)
         if current is None:
             raise HTTPException(404, 'Schedule not found')
+        if body.enabled is not False:
+            require_schedule_credentials(user, body.connector_id or current["connector_id"])
         patch = body.model_dump(exclude_none=True, exclude={"enabled", "next_run_at"})
         effective_ai = body.ai_enabled if body.ai_enabled is not None else current.get('ai_enabled', True)
         if effective_ai and (body.ai_enabled is True or body.enabled is not False):

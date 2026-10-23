@@ -174,6 +174,10 @@ def test_hosted_scheduler_handler_dispatches_calendar_occurrence(store, tmp_path
     monkeypatch.setattr('time.time', lambda: now)
     worker = Worker('collector', Settings(state_dir=tmp_path/'worker-state', identity_dir=tmp_path/'identity'),
         store=store, artifacts=SimpleNamespace(), authenticator=SimpleNamespace(is_paid=lambda tenant: True))
+    # The scheduler now checks actual saved credentials before dispatch. Keep
+    # this calendar-only fixture offline and encrypted with its worker's key.
+    store.update_connector('alice', data['connector_id'], {'input_mode': 'demo'},
+        worker.cipher.encrypt({'auth': {}, 'options': {'demo': True}}))
     dispatched = []
     monkeypatch.setattr(scheduler_handler, 'Worker', lambda role: worker)
     monkeypatch.setattr(WorkflowDispatcher, 'dispatch', lambda self, tenant, job: dispatched.append((tenant, job['id'])) or True)
