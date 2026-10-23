@@ -21,6 +21,7 @@ export type Category =
   | "asset_management"
   | "patch_management";
 export type Connector = {
+  scheduling?: { allowed: boolean; reason: string };
   id: string;
   name: string;
   provider: Provider;

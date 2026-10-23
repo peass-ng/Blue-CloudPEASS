@@ -792,9 +792,9 @@ class SQLiteStore:
             if db.execute("DELETE FROM schedules WHERE tenant=? AND id=?", (tenant, ident)).rowcount != 1:
                 raise StoreError(404, "Schedule not found")
 
-    def pause_schedule(self, tenant, ident):
+    def pause_schedule(self, tenant, ident, *, reason="Schedule disabled: identity is no longer eligible"):
         with self.transaction() as db:
-            db.execute("UPDATE schedules SET enabled=0,last_error='Schedule disabled: identity is no longer eligible' WHERE tenant=? AND id=?", (tenant, ident))
+            db.execute("UPDATE schedules SET enabled=0,last_error=? WHERE tenant=? AND id=?", (reason, tenant, ident))
 
     def due_schedules(self, now=None):
         with self.connect() as db:

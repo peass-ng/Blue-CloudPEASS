@@ -126,3 +126,42 @@ An independent cold API process serving the same complete Azure bundle plus the 
 The actual three-image Compose build and health-gated startup passed. A supplied AWS snapshot completed through the durable collector/analyzer pipeline and preserved the IMDSv2 `optional` fact as a FAIL. JSON (3,555 bytes) and Markdown (3,023 bytes) downloaded successfully. Replaying the same idempotency key returned the same job and retained quota usage one; an additional manual run returned 429. Restarting all three containers preserved the completed report, snapshot identity and quota. That historical analyzer inspection confirmed its then-offline configuration and an offline `iam:PassRole` critical severity classification from bundled risk data. A sentinel credential was absent from downloads and container logs. One initial build captured a concurrently rewritten invalid source manifest; rebuilding valid source fixed it, and image builds now validate JSON integrity before installation.
 
 Live hosted acceptance and provider coverage are recorded separately in `docs/peaso-validation.md` and `docs/peaso-aws.md`. This component verification does not claim paid live billing, public registration, successful cloud deployment or provider coverage beyond independently recorded acceptance results.
+
+### Credentials for scheduled assessments
+
+Manual scans accept every supported connector authentication method. Recurring
+schedules require a known durable credential or a method that obtains a fresh
+session automatically. The API rejects creation and reactivation otherwise, and
+the scheduler pauses existing incompatible schedules before starting a scan or
+reserving quota. The connector response includes `scheduling.allowed` and a
+human-readable `scheduling.reason`; stored credentials and verification hashes
+are never included in those fields.
+
+| Provider | Accepted for scheduling | Manual only |
+| --- | --- | --- |
+| AWS | IAM access keys; hosted AssumeRole from the platform or durable explicit keys; instance/container identity | Pasted STS sessions, including role chains based on those sessions; unverified local default/profile/SSO chains |
+| GCP | Service-account JSON keys; platform service account; metadata identity | Pasted OAuth access tokens; federation with an inline subject token; unverified local ADC/gcloud/impersonation sources |
+| Azure | Client secret or client certificate; managed identity | Pasted ARM/Graph/Vault/Storage/Logs tokens; federation with a pasted assertion; unverified local CLI/device-code sources |
+| Kubernetes | Client certificate; rotating in-cluster identity; cryptographically verified legacy ServiceAccount token | Projected/TokenRequest tokens; opaque tokens; legacy tokens that cannot be verified; unverified file-based kubeconfigs |
+
+GCP access tokens are short-lived, including the extended-lifetime variants;
+`tokeninfo` does not turn them into permanent credentials. Service-account keys
+can obtain fresh access tokens and are a separate authentication method.
+See [Google token types](https://cloud.google.com/docs/authentication/token-types)
+and [Microsoft access-token lifetimes](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens).
+
+Kubernetes legacy Secret-backed ServiceAccount tokens can have no expiration.
+When saving a connector, the server verifies the legacy issuer, subject and
+required ServiceAccount/Secret claims, absence of expiration/audience, and the
+JWT signature using the configured cluster's `/openid/v1/jwks` over verified TLS.
+Only RS256/ES256 signatures from that cluster are accepted. JWT-provided key URLs
+are never fetched. Missing permissions, unavailable signing keys or verification
+failure leave the connector manual-only. The proof is encrypted with the exact
+connector authentication and cannot be carried over to different credentials.
+Existing connectors can be rechecked and saved to obtain this verification.
+See [Kubernetes ServiceAccounts](https://kubernetes.io/docs/concepts/security/service-accounts/)
+and [AWS access-key types](https://docs.aws.amazon.com/IAM/latest/UserGuide/security-creds-programmatic-access.html).
+
+Scheduling eligibility does not promise that credentials can never be revoked.
+Rotate keys, client secrets and certificates before their expiration and update
+the connector. Disabling or deleting an incompatible schedule remains allowed.

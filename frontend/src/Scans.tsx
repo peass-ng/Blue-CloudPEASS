@@ -527,6 +527,9 @@ export function LaunchForm({
             ))}
           </select>
         </label>
+        {isSchedule && selectedConnector?.scheduling?.allowed === false && (
+          <p className="form-error" role="alert">{selectedConnector.scheduling.reason}</p>
+        )}
         {!connectors.length && (
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
@@ -635,7 +638,7 @@ export function LaunchForm({
         )}
         <button
           className="button primary"
-          disabled={mutation.isPending || resumeMutation.isPending || !connectors.length}
+          disabled={(isSchedule && selectedConnector?.scheduling?.allowed === false) || mutation.isPending || resumeMutation.isPending || !connectors.length}
           type="submit"
         >
           {mutation.isPending || resumeMutation.isPending

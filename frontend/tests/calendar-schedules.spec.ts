@@ -90,3 +90,16 @@ test("legacy intervals remain visible until explicitly converted and check selec
   expect(writes[0].checks).toEqual(["aws.iam.console_mfa"]);
   expect(writes[0].rules).toEqual([{ frequency: "daily", time: "09:00" }]);
 });
+
+test("temporary connectors stay available manually but cannot save recurring schedules", async ({ page }) => {
+  const writes = await setup(page);
+  await page.route("**/api/connectors", route => route.fulfill({ json: { items: [
+    { id: "account", name: "Temporary AWS", provider: "aws", scopes: ["555566667777"],
+      scheduling: { allowed: false, reason: "This connector uses temporary or unverified credentials. Run scans manually, or select renewable credentials before creating a schedule." } },
+  ] } }));
+  await page.reload();
+  await page.getByRole("button", { name: "Add schedule", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Run scans manually");
+  await expect(page.getByRole("button", { name: "Save schedule", exact: true })).toBeDisabled();
+  expect(writes).toHaveLength(0);
+});
