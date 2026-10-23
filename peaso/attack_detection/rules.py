@@ -267,6 +267,7 @@ from .aws_directconnect_inventory_b413 import normalize as normalize_aws_directc
 from .aws_healthomics_workflow_b414 import normalize as normalize_aws_healthomics_workflow_b414
 from .aws_healthomics_sequence_b415 import normalize as normalize_aws_healthomics_sequence_b415
 from .aws_healthomics_reference_b416 import normalize as normalize_aws_healthomics_reference_b416
+from .aws_healthomics_controls_b417 import normalize as normalize_aws_healthomics_controls_b417
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -697,6 +698,7 @@ def detect_aws_events(
         healthomics_workflow_b414 = normalize_aws_healthomics_workflow_b414(record)
         healthomics_sequence_b415 = normalize_aws_healthomics_sequence_b415(record)
         healthomics_reference_b416 = normalize_aws_healthomics_reference_b416(record)
+        healthomics_controls_b417 = normalize_aws_healthomics_controls_b417(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -956,6 +958,7 @@ def detect_aws_events(
                 + ([healthomics_workflow_b414] if healthomics_workflow_b414 is not None else [])
                 + ([healthomics_sequence_b415] if healthomics_sequence_b415 is not None else [])
                 + ([healthomics_reference_b416] if healthomics_reference_b416 is not None else [])
+                + ([healthomics_controls_b417] if healthomics_controls_b417 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
