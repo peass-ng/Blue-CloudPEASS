@@ -191,7 +191,7 @@ def main():
         if suite_state == "pending_final_suite":
             pending.append("Complete all 19 final-suite shards")
         elif suite_state.startswith("executed_with_failures_global@"):
-            pending.append("Resolve final-suite failures before end-to-end sign-off")
+            pending.append("Run the current-main full suite and triage its failures; the earlier frozen run was red")
         if proof_mode == "external_proof_required_for_conditional":
             pending.insert(0, "Verify trusted live-effect evidence import and absent-evidence UNKNOWN behavior")
         elif proof_mode == "native_conditional_or_external_proof":
