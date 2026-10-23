@@ -415,6 +415,8 @@ class Evaluator:
                           if compiled["selector"].get(p + "_challenge_fact")), None)
         if compiled["selector"].get("gcp_resource_self_grant"):
             challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_privatecatalog_dm_iam_path"):
+            challenge = compiled["entry"]["id"]
         if compiled["selector"].get("gcp_project_iam_sa_token_grant"):
             challenge = compiled["entry"]["id"]
         if compiled["selector"].get("gcp_kcc_project_policy_grant"):
