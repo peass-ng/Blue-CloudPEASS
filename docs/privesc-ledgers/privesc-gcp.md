@@ -902,7 +902,7 @@ views that reference protected source tables has its own source-table permission
 | `#gcp---generic-permission-privilege-escalation` | # GCP - Generic Permission Privilege Escalation | - | STRUCTURAL | page title / intro / references |
 | `#iam-principals--org-policies` | ## IAM, Principals & Org Policies | - | EXCLUDED | X: Page intro |
 | `#generic-permission-patterns` | ## Generic permission patterns | - | EXCLUDED | X: Generic permission patterns |
-| `#serviceresourcesetiampolicy--self-grant-on-the-governed-resource` | ### `<service>.<resource>.setIamPolicy` — self-grant on the governed resource | - | EXCLUDED | X: Generic <service>.<resource>.setIamPolicy |
+| `#serviceresourcesetiampolicy--self-grant-on-the-governed-resource` | ### `<service>.<resource>.setIamPolicy` — self-grant on the governed resource | - | STRUCTURAL | Generic permission pattern; concrete self-grants are mapped under their service entries. |
 | `#iamserviceaccountsactas--a-code-executing-resource-write--run-as-an-attached-identity` | ### `iam.serviceAccounts.actAs` + a code-executing resource write — run as an attached identity | iam.serviceAccounts.actAs | EXCLUDED | X: Generic actAs + code-executing resource write |
 | `#references` | ## References | - | EXCLUDED | X: References section |
 

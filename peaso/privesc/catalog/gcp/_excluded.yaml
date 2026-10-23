@@ -1,7 +1,4 @@
 # Excluded GCP source sections: no exact principal or new permission gain under current typed evidence contract.
-- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#serviceresourcesetiampolicy--self-grant-on-the-governed-resource
-  technique: Generic resource IAM policy self-grant
-  reason: This heading describes a permission pattern without naming an exact service or resource. The catalog models concrete setIamPolicy paths where the resource and resulting grant can be evaluated.
 - source: src/pentesting-cloud/gcp-security/gcp-persistence/gcp-workload-identity-federation-persistence.md#iamgoogleapiscomworkloadidentitypoolscreate--workloadidentitypoolproviderscreate--external-backdoor
   technique: New workload identity pool and provider backdoor
   reason: The path also requires iam.serviceAccounts.setIamPolicy on the target SA; that permission alone can grant the caller Token Creator or Workload Identity
