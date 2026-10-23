@@ -30,7 +30,63 @@ def document(value):
     return value if isinstance(value, dict) and isinstance(value.get("Statement"), (dict, list)) else None
 
 
-def policy_documents(data):
+_DEFAULT_DOCUMENT = document
+POLICY_VIEW_LIMIT = 256
+POLICY_VIEW_BYTES = 4 * 1024 * 1024
+POLICY_VIEW_MISS_LIMIT = 64
+
+
+def _sealed_policy_document(value):
+    """Share identical encoded policy trees only inside one analysis context.
+
+    Parsed facts are sealed before sharing. Public/mutable parsers still return
+    independent trees, and exhausted admission falls back to ordinary decoding.
+    The byte charge conservatively allows for decoded Python container overhead.
+    """
+    if type(value) is not str:
+        parsed = document(value)
+        return parsed if parsed is None or type(parsed) is FrozenDict else _decoded_policy_view(parsed)
+    context = _CONTEXT.get()
+    eligible = (context is not None and document is _DEFAULT_DOCUMENT
+                and 256 <= len(value) <= 32768)
+    cache = None
+    if eligible:
+        cache = context['derivations'].get(('snapshot', 'iam_encoded_policy_views'))
+        if cache is None:
+            cache = context['derivations'][('snapshot', 'iam_encoded_policy_views')] = {
+                'entries': {}, 'bytes': 0, 'lock': Lock(), 'misses': 0, 'enabled': True}
+        if not cache['enabled']:
+            cache = None
+        else:
+            cached = cache['entries'].get(value)
+            if cached is not None:
+                cache['misses'] = 0
+                return cached
+    parsed = document(value)
+    result = parsed if parsed is None or type(parsed) is FrozenDict else _decoded_policy_view(parsed)
+    if cache is not None and type(result) is FrozenDict:
+        charge = 512 + 128 * len(value)
+        with cache['lock']:
+            if not cache['enabled']:
+                return result
+            if value in cache['entries']:
+                return cache['entries'][value]
+            cache['misses'] += 1
+            if cache['misses'] >= POLICY_VIEW_MISS_LIMIT:
+                # Unique-policy scans should not keep hashing large strings or
+                # paying admission costs after reuse has stopped being useful.
+                cache['enabled'] = False
+                cache['entries'].clear()
+                cache['bytes'] = 0
+                return result
+            if len(cache['entries']) < POLICY_VIEW_LIMIT and cache['bytes'] + charge <= POLICY_VIEW_BYTES:
+                cache['entries'][value] = result
+                cache['bytes'] += charge
+    return result
+
+
+def policy_documents(data, *, _parse=None):
+    parse = document if _parse is None else _parse
     # DomainStatus.AccessPolicies (OpenSearch describe_domain), Policy.policy.document (CodeArtifact),
     # Identity.Policies {name: document} (SES v2 get_email_identity), policyDocument (Logs resource policy).
     wrappers = {"Policy", "policy", "Attributes", "Domain", "Table", "PolicyDetails", "ResourcePolicy", "AccessPolicy", "AccessPolicies", "policyText",
@@ -41,24 +97,24 @@ def policy_documents(data):
         for key, current in value.items():
             if key == "Policies" and isinstance(current, dict):
                 for name, entry in sorted(current.items()):
-                    doc = document(entry)
+                    doc = parse(entry)
                     if doc is not None:
                         yield f"{path}.Policies.{name}", doc
                 continue
             if key not in wrappers:
                 continue
-            doc = document(current)
+            doc = parse(current)
             if doc is not None:
                 yield f"{path}.{key}", doc
             else:
                 yield from nested(current, f"{path}.{key}", depth + 1)
     for key in ("PolicyDocument", "Document", "Policy", "policy", "AssumeRolePolicyDocument"):
-        doc = document(data.get(key))
+        doc = parse(data.get(key))
         if doc is not None:
             yield key, doc
     for key in wrappers:
         value = data.get(key)
-        doc = document(value)
+        doc = parse(value)
         if doc is None:
             yield from nested(value, key, 0)
         elif key not in {"Policy", "policy"}:
@@ -69,9 +125,12 @@ def policy_documents(data):
                 continue
             if key == "PolicyVersionList" and item.get("IsDefaultVersion") is not True:
                 continue
-            doc = document(item.get("PolicyDocument", item.get("Document", item.get("document"))))
+            doc = parse(item.get("PolicyDocument", item.get("Document", item.get("document"))))
             if doc is not None:
                 yield f"{key}[{i}]", doc
+
+
+_DEFAULT_POLICY_DOCUMENTS = policy_documents
 
 
 def _decoded_policy_view(doc):
@@ -88,8 +147,11 @@ def _resource_policy_documents(resource):
         if _CONTEXT.get() is not None and type(resource["data"]) is FrozenDict:
             # Encoded native policies decode into mutable trees. Seal those
             # views once so reviews and graph evidence can share statements.
-            result = tuple((path, doc if type(doc) is FrozenDict else _decoded_policy_view(doc))
-                           for path, doc in policy_documents(resource["data"]))
+            if policy_documents is _DEFAULT_POLICY_DOCUMENTS:
+                result = tuple(policy_documents(resource["data"], _parse=_sealed_policy_document))
+            else:
+                result = tuple((path, doc if type(doc) is FrozenDict else _decoded_policy_view(doc))
+                               for path, doc in policy_documents(resource["data"]))
             if type(resource['data'].get('AssumeRolePolicyDocument')) is str:
                 # Wrappers can be replaced while a context is alive. Trust
                 # consumers may share only the exact source decoded here.

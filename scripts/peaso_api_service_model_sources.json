@@ -41,7 +41,7 @@
     "peaso/analysis/evidence_accumulator.py": "26df83a98303df5a051cffba064236bb37c6655714b73a167dc3d767bbc9c856",
     "peaso/analysis/exposure_dedup.py": "3f53a526fad4cf98cd210b84263f3965cea9b6b2918a3bdd9c53711ae9186604",
     "peaso/analysis/finding_clarity.py": "13d69a471f92612739c43cc9d39668de14846537791de69dee6c46ace32c549e",
-    "peaso/analysis/iam.py": "a90d2db835107b4beb01d543bc651c7427881a654c4605f8030c04be4b544084",
+    "peaso/analysis/iam.py": "f6628da0475541c222db845a344f7516c05541f7a2ac0e69b2b0c571c4d7c980",
     "peaso/analysis/internet_exposure.py": "16a37d33791911ac53dbb28b4188ef751da22eb8477bfdcfada5b806550de02b",
     "peaso/analysis/k8s_impersonation_index.py": "2d0997edeeba3070871416eb2a9bca36c3a857fa864e524f8ff4c99b107df06e",
     "peaso/analysis/k8s_network_links.py": "bb00a52b7db319afef3e8f7be8984c614a04d41e2311a16e6550b8b72dc73c33",
@@ -1600,7 +1600,7 @@
     "peaso/server/config.py": "127529c32265a120d41ead5c8ce77623be152185ad7f26c9091d871bbc032c35",
     "peaso/server/content_selection_preflight_20261021.py": "0fe9b0ff1299408e732fd33ef8f7325a0eb87e857a18ece3b42e3c189c3041aa",
     "peaso/server/entra_attack_logs.py": "b6805b72b0ffd1b3843d6348b58321fed66ab15bcffc8d2bdc91533015e3b141",
-    "peaso/server/evidence_static.py": "3feec421b71e08bcf797a1a669f4a9b37d0a4c270dd9a67603416f922ac285b3",
+    "peaso/server/evidence_static.py": "372ade2d54186a4e013de72c0dc3c40be187e41679699528dcd8f6c899145565",
     "peaso/server/finding_groups_static_20261021.py": "b92f3c0acdd36544837a3c7f88f3f4b5063d772df24e533fca77edd39b689a3a",
     "peaso/server/finding_types_static_20261020.py": "081503b5a6275961b692f514fb1590dc46b81e1249f90e01d93e872b1ffbefce",
     "peaso/server/gcp_attack_logs.py": "78046b81fe898de2faeec19fadd5087df65bc4731f61dc8ea88ce13807ec7aef",
@@ -1665,7 +1665,7 @@
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1663,
-  "python_source_sha256": "1a555e02aa3b25a068d04f5c3e41d369f7af40576ff4dc0e2f9c8990c7ba0630",
+  "python_source_sha256": "cba0eac228e010cd5f4b664e2f27d1419505df0520b2c75b4d9342edbb50322d",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "alternative_workflow_qualification": "Reviewed strong DynamoDB base hydration and FIFO authority; provider-only AI input preparation; capture-scoped ciphertext index adapter; live-digest historical receipts; per-source GCP HTTP pool; large owned legacy download. Exactly 30 literal SDK client sites retain existing services; no new credential factories. Preserve main 6d8a1f23 artifact batching and closure review.",
@@ -1676,6 +1676,19 @@
     "credential_factories_unchanged": true,
     "final_runtime_commit": "fb99a0157bbe05941095338c2e23d03705feffb1",
     "final_runtime_review": "Kubernetes per-target authority gain; AWS/Azure/GCP Model defaults remain no-op and symbolic fast paths remain enabled; final reviewed source/anchor historical bindings and static display regeneration. API clients and customer credential factories unchanged.",
+    "iam_encoded_policy_scan_cache": {
+      "adaptive_admission": "After 64 consecutive valid policy misses, stop admission and release cache references; ordinary parsing continues without cache lookups.",
+      "api_services_unchanged": true,
+      "base_commit": "6b997cdc8aa2c49f3a6f23d19e32aaf65f41b5ce",
+      "client_sites": 30,
+      "exact_runtime_delta": [
+        "peaso/analysis/iam.py",
+        "peaso/server/evidence_static.py"
+      ],
+      "integration_base": "77956d65b60bebcbb8ae6e64e8dd7f577df2222d",
+      "review": "Scan-local, admission-bounded reuse of identical encoded policy JSON as sealed read-only trees; no classification or final verdict caching. Public and custom parser semantics and mutable resource paths preserved. Display source manifest changed only for IAM; display loader source changes only the matching hash. No SDK calls, services, credential factories, dependencies or native admission sources changed.",
+      "source_count": 1663
+    },
     "latest_source_review": "Least Privilege: scan-local AWS IAM service reports; bounded GCP Audit Logs; one Azure Activity Log batch for missing subscriptions. No added API SDK client sites, service models, or credential factories. Source closure reviewed with 30 literal client sites.",
     "merge_commit": "23e8a5f7efa4a0b4dc2da1f60d5c7d6dad407a5f",
     "qualified_native_source_guard_sha256": "e4a140bcea54b6aa1973f9c40df37fe6933af2cf631934adf652a538a32a5360",
