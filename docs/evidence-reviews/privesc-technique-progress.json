@@ -339,7 +339,7 @@
       "id": "azure-apim-developer-portal-sso-external-principal",
       "provider": "azure",
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
-      "current_contract_sha256": "26baedefce5091a3c2c4243d58059f8d0e68fec461676a4b42cef2cdcf6fdeea",
+      "current_contract_sha256": "4dafc321cbd6202fb16c44cb214e95cb8555ceffc469f8bb0565b9249066e8cc",
       "source_contract_review": "record_matches_current_yaml",
       "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases)",
       "checked": true,

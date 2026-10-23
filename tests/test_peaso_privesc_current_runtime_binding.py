@@ -12,6 +12,21 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_apim_anchor_correction_preserves_original_report_binding():
+    ident = "azure-apim-developer-portal-sso-external-principal"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.APIM_ANCHOR_685_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.APIM_ANCHOR_685_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["source"].endswith("#microsoftapimanagementserviceuserstokenaction")
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["source"].endswith("#microsoftapimanagementserviceusersgeneratessourlaction")
+    assert len(catalog._verified_apim_anchor_685_previous()) == 685
+
+
 def test_beanstalk_prefilter_change_preserves_previous_report_binding():
     ident = "aws-elasticbeanstalk-passrole-create-environment"
     old = {"schema": catalog.BINDING_SCHEMA,
