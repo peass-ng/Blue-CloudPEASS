@@ -238,6 +238,10 @@ def render_documents():
         return _incremental_current_documents(main_manifest, current, cases,
                                               catalog.BEANSTALK_685_PREVIOUS_MANIFEST,
                                               catalog.BEANSTALK_685_PREVIOUS_TREE)
+    if sys.argv[1:] == ['--incremental-cloud-source-685']:
+        return _incremental_current_documents(main_manifest, current, cases,
+                                              catalog.CLOUD_SOURCE_685_PREVIOUS_MANIFEST,
+                                              catalog.CLOUD_SOURCE_685_PREVIOUS_TREE)
     if sys.argv[1:]:
         raise ValueError('unsupported privilege display build mode')
     loaders = archived_loaders()

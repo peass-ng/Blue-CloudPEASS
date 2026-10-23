@@ -352,6 +352,11 @@
         "evaluator": "The registered action, target plane, evidence fields, and scoped RBAC grant must all match; duplicate, stale, partial, wrong-action, and wrong-subject facts fail closed.",
         "positive_and_negative_test": "4 focused external-principal tests passed with principal-exposure annotation stubbed because an unrelated dirty AWS receipt blocks the normal import path.",
         "reference": "https://learn.microsoft.com/en-us/rest/api/apimanagement/user/generate-sso-url?view=rest-apimanagement-2024-05-01"
+      },
+      "source_recheck": {
+        "canonical_revision": "5b8ad441180eade2a776b19ca9d5b45f5d113297",
+        "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceusersgeneratessourlaction",
+        "finding": "The canonical source heading now identifies generateSsoUrl/action, the permission required by this exact SSO technique; token/action is a separate shared-access-token operation."
       }
     },
     {
@@ -3397,26 +3402,31 @@
       "id": "gcp-agentidentity-retrieve-credentials",
       "provider": "gcp",
       "catalog_file": "peaso/privesc/catalog/gcp/workspace.yaml",
-      "current_contract_sha256": "d89be0f9b9b30066657ce59f6f4aedf0e0640b58891bbf7d3d8392f00ebf905b",
+      "current_contract_sha256": "927d56fb491cdc6b585bb13a73ea6f7faaa3cf03fbaf04ec2fad27d0d52541a9",
       "source_contract_review": "record_matches_current_yaml",
       "focused_runtime_test": "11 evaluator tests and 2 collector tests pass: exact authorization and aliases, missing permission, wrong provider, disabled or suspended state, non-Google OAuth, narrow scopes, malformed endpoint, blocked scope, incomplete or conflicting rows, denied inventory, archived contract hold.",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Source moved to gcp-to-workspace-pivoting. Google authorization list exposes exact clientUserId, active state and scopes; clientUserId is not Google-verified. Implemented read-only provider and authorization inventory and exact conditional evaluator join.",
+      "work_evidence": "Source moved to the GCP privilege-escalation chapter. Google authorization list exposes exact clientUserId, active state and scopes; clientUserId is not Google-verified. Implemented read-only provider and authorization inventory and exact conditional evaluator join.",
       "completion_evidence": {
         "source_and_contract": "HackTricks Agent Identity retrieveCredentials source and Google provider, authorization, and credentials.retrieve API documentation.",
         "collector": "Read-only regional provider metadata, provider IAM policy, and paginated authorization metadata; includes exact clientUserId, active state, granted scopes, and denied-read coverage without reading tokens.",
         "evaluator": "Provider-scoped retrieveCredentials permission joins an enabled Google 3LO provider to an exact active authorization; target remains bounded to recorded scopes and unknown inventory stays unresolved.",
         "positive_and_negative_test": "11 evaluator tests, 2 collector tests, and published JSON schema contract tests pass.",
         "reference": "https://docs.cloud.google.com/iam/docs/reference/agentidentity/rest/v1/projects.locations.authProviders.authorizations/list"
+      },
+      "source_recheck": {
+        "canonical_revision": "5b8ad441180eade2a776b19ca9d5b45f5d113297",
+        "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersretrievecredentials",
+        "finding": "The Agent Identity page moved into the GCP privilege-escalation chapter. Its exact-user authorization and permission conditions are unchanged."
       }
     },
     {
       "id": "gcp-agentidentity-update-token-url",
       "provider": "gcp",
       "catalog_file": "peaso/privesc/catalog/gcp/workspace.yaml",
-      "current_contract_sha256": "9124ab0261854ab64d97e2063cdb4c8241b7aee617defd0a8ab5cd3ea62748d0",
+      "current_contract_sha256": "23944373de8634c0d4a81bdef470d117f7c67063aeebab54f7174dbaeda3ddd3",
       "source_contract_review": "record_matches_current_yaml",
       "focused_runtime_test": "6 focused cases pass: exact active authorization, missing update right, wrong provider, disabled or suspended state, non-Google endpoint, identity-only scope, denied listing, archived contract hold.",
       "checked": true,
@@ -3429,6 +3439,11 @@
         "evaluator": "Exact provider update permission joins a named active Google OAuth authorization. The path stays conditional on accepted patch, stored refresh token, and later legitimate refresh; incomplete inventory stays unknown.",
         "positive_and_negative_test": "6 focused evaluator tests plus shared collector and schema tests pass.",
         "reference": "https://docs.cloud.google.com/iam/docs/reference/agentidentity/rest/v1/projects.locations.authProviders/patch"
+      },
+      "source_recheck": {
+        "canonical_revision": "5b8ad441180eade2a776b19ca9d5b45f5d113297",
+        "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersupdate-token-endpoint-interception",
+        "finding": "The Agent Identity page moved into the GCP privilege-escalation chapter. Its update permission, active authorization, and later-refresh condition are unchanged."
       }
     },
     {
@@ -8410,8 +8425,8 @@
   "publication": {
     "status": "submitted_for_review",
     "source_of_truth": "HackTricks Cloud src/privilege-escalation-paths",
-    "remaining": "HackTricks Cloud PR #495 remains open as a draft for review; no GCP, Azure, or Kubernetes technique review remains.",
-    "current_runtime": "CSPM main bundles the reviewed catalog synchronized from HackTricks Cloud commit 863f3ad53c745ff349950c79cffb8c0e3ac0e96b, recorded in risk_rules/hacktricks-privesc-source.json."
+    "remaining": "HackTricks Cloud PR #498 corrects the APIM SSO source link and remains open for review. The broader catalog review PR #495 also remains open as a draft; no GCP, Azure, or Kubernetes technique review remains.",
+    "current_runtime": "CSPM bundles the reviewed catalog synchronized from HackTricks Cloud PR #498 commit 5b8ad441180eade2a776b19ca9d5b45f5d113297, recorded in risk_rules/hacktricks-privesc-source.json."
   },
   "retired_techniques": [
     {
