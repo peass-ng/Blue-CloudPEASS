@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from peaso.checks import CHECKS
 from peaso.checks.native_only import exclusions
+from peaso.presentation_metadata_20261020 import ALIASES
 ROOT=Path(__file__).resolve().parents[1]
 
 @pytest.mark.parametrize('provider',['gcp','azure','k8s'])
@@ -13,10 +14,24 @@ def test_every_registered_id_has_recorded_review_or_explicit_exclusion(provider)
     selected=[r for r in rows if r['provider']==provider]
     expected={c.id for c in CHECKS if c.provider==provider}
     assert len(selected)==len({r['check_id']for r in selected})
-    assert {r['check_id']for r in selected}==expected
+    historical={r['check_id']for r in selected}
+    retired=historical-expected
+    assert retired<=ALIASES.keys()
+    assert all(ALIASES[alias] in expected for alias in retired)
+    added=expected-historical
+    if provider in ('gcp','k8s'):
+        successor=json.loads((ROOT/f'docs/evidence-reviews/{provider}-current-native-successor-20261022.json').read_text())
+        assert set(successor['added'])==added
+        assert successor['current_count']==len(expected)
+        assert all(row.get('branches') and row.get('evaluator_source') for row in successor['added'].values())
+    else:
+        descriptions=json.loads((ROOT/'docs/compliance-ledgers/descriptions/implemented-new-checks.json').read_text())
+        assert added<=descriptions.keys()
+        assert all(descriptions[check_id] for check_id in added)
     progress=json.loads((ROOT/'docs/check-review/progress.json').read_text())
-    assert progress['inventory_counts'][provider]==len(expected)
-    assert progress['active_counts'][provider]==len(expected-exclusions().keys())
+    # This progress file records the earlier cohort; later additions have their own receipts.
+    assert progress['inventory_counts'][provider]<=len(historical)
+    assert progress['active_counts'][provider]<=len(expected-exclusions().keys())
     for row in selected:
         assert row['current_goal_status']
         assert row['current_goal_receipt'] and (ROOT/row['current_goal_receipt']).is_file()
