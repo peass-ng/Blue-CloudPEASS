@@ -8,9 +8,11 @@ import hashlib
 from functools import lru_cache
 from heapq import nsmallest
 from urllib.parse import unquote
+from threading import Lock
 
-from .common import (RANK, as_list, derived, externality, finding, native_id, node, node_id,
+from .common import (RANK, _CONTEXT, as_list, derived, externality, finding, native_id, node, node_id,
                      relationship, source, stable_id, usage)
+from peaso.snapshot import FrozenDict, FrozenList, freeze
 
 IAM_TYPES = {"iam_user", "iam_group", "iam_role", "iam_policy", "iam_binding", "service_account",
              "iam_role_definition", "directory_user", "directory_group", "directory_service_principal", "directory_application",
@@ -72,8 +74,51 @@ def policy_documents(data):
                 yield f"{key}[{i}]", doc
 
 
+def _decoded_policy_view(doc):
+    try:
+        return freeze(doc)
+    except RecursionError:
+        # A decoder can accept more nesting than Python's recursive view
+        # conversion. Keep the original complete tree when reuse is unavailable.
+        return doc
+
+
 def _resource_policy_documents(resource):
-    return derived(resource, "iam_policy_documents", lambda: tuple(policy_documents(resource["data"])))
+    def documents():
+        if _CONTEXT.get() is not None and type(resource["data"]) is FrozenDict:
+            # Encoded native policies decode into mutable trees. Seal those
+            # views once so reviews and graph evidence can share statements.
+            result = tuple((path, doc if type(doc) is FrozenDict else _decoded_policy_view(doc))
+                           for path, doc in policy_documents(resource["data"]))
+            if type(resource['data'].get('AssumeRolePolicyDocument')) is str:
+                # Wrappers can be replaced while a context is alive. Trust
+                # consumers may share only the exact source decoded here.
+                _CONTEXT.get()['derivations'][('iam_policy_documents_source', node_id(resource))] = resource['data']
+            return result
+        return tuple(policy_documents(resource["data"]))
+    return derived(resource, "iam_policy_documents", documents)
+
+
+def assume_role_document(resource):
+    """Reuse an already decoded native trust policy without eagerly parsing other fields."""
+    value = resource['data'].get('AssumeRolePolicyDocument')
+    if type(value) is not str or type(resource['data']) is not FrozenDict:
+        return document(value)
+    context = _CONTEXT.get()
+    if context is not None:
+        identity = node_id(resource)
+        cache = context['derivations']
+        documents = (cache.get(('iam_policy_documents', identity))
+                     if cache.get(('iam_policy_documents_source', identity)) is resource['data'] else None)
+        if documents is not None:
+            for path, doc in documents:
+                if path == 'AssumeRolePolicyDocument':
+                    # Mutable or unusually deep decoded trees keep the public
+                    # parser's independent ownership and failure behavior.
+                    if type(doc) is FrozenDict:
+                        return doc
+                    break
+    return document(value)
 
 
 @lru_cache(maxsize=4)
@@ -93,6 +138,50 @@ def _rulepack_revision(provider):
 def permission_severity(provider, permission):
     revision = _rulepack_revision(provider)
     return _permission_severity(provider, permission, revision) if revision else None
+
+
+_DEFAULT_PERMISSION_SEVERITY = permission_severity
+ACTION_PROFILE_LIMIT = 1024
+ACTION_PROFILE_BYTES = 2 * 1024 * 1024
+
+
+def _permission_profile_uncached(provider, permissions, *, force_broad=False):
+    levels = [permission_severity(provider, p) for p in permissions if isinstance(p, str)]
+    broad = any("*" in p for p in permissions if isinstance(p, str)) or force_broad
+    severity = "high" if broad else min((x for x in levels if x), key=RANK.get, default="info")
+    state = "unknown" if not levels or all(x is None for x in levels) else "partial" if any(x is None for x in levels) else "rule_based"
+    return broad, severity, state
+
+
+def _permission_profile(provider, permissions, *, force_broad=False):
+    """Reuse action classification only; no resources, conditions or grants are cached.
+
+    Admission is bounded and scan-local. Unusual inputs, caller classifiers and
+    exhausted budgets use the complete original computation.
+    """
+    context = _CONTEXT.get()
+    if (context is None or permission_severity is not _DEFAULT_PERMISSION_SEVERITY
+            or type(permissions) not in (list, FrozenList) or not 8 <= len(permissions) <= 128):
+        return _permission_profile_uncached(provider, permissions, force_broad=force_broad)
+    signature = tuple(permissions)
+    if any(type(p) is not str for p in signature):
+        return _permission_profile_uncached(provider, permissions, force_broad=force_broad)
+    cache = context['derivations'].get(('snapshot', 'iam_action_profiles'))
+    if cache is None:
+        cache = context['derivations'][('snapshot', 'iam_action_profiles')] = {'entries': {}, 'bytes': 0, 'lock': Lock()}
+    # Bind the summary to the same audited revision as the per-action cache.
+    key = provider, _permission_severity, _rulepack_revision(provider), force_broad, signature
+    cached = cache['entries'].get(key)
+    if cached is not None:
+        return cached
+    result = _permission_profile_uncached(provider, permissions, force_broad=force_broad)
+    if len(cache['entries']) < ACTION_PROFILE_LIMIT and all(len(p) <= 256 for p in signature):
+        size = 320 + len(signature) * 16 + sum(len(p) * 4 for p in signature)
+        with cache['lock']:
+            if key not in cache['entries'] and len(cache['entries']) < ACTION_PROFILE_LIMIT and cache['bytes'] + size <= ACTION_PROFILE_BYTES:
+                cache['entries'][key] = result
+                cache['bytes'] += size
+    return result
 
 
 @lru_cache(maxsize=16384)
@@ -130,11 +219,18 @@ def _grants(resource):
                 if not isinstance(statement, dict):
                     continue
                 permissions = as_list(statement.get("Action"))
-                levels = [permission_severity(provider, p) for p in permissions if isinstance(p, str)]
-                broad = any("*" in p for p in permissions if isinstance(p, str)) or "NotAction" in statement
+                if type(permissions) in (list, FrozenList) and len(permissions) < 8:
+                    # Short declarations cost less to classify directly than to
+                    # admit into a shared profile; retain their original path.
+                    levels = [permission_severity(provider, p) for p in permissions if isinstance(p, str)]
+                    broad = any("*" in p for p in permissions if isinstance(p, str)) or "NotAction" in statement
+                    severity = "high" if broad else min((x for x in levels if x), key=RANK.get, default="info")
+                    state = "unknown" if not levels or all(x is None for x in levels) else "partial" if any(x is None for x in levels) else "rule_based"
+                else:
+                    broad, severity, state = _permission_profile(provider, permissions, force_broad="NotAction" in statement)
                 result.append({"path": f"{path}.Statement[{i}]", "native_grant": statement,
-                    "severity": "high" if broad else min((x for x in levels if x), key=RANK.get, default="info"),
-                    "criticality_state": "unknown" if not levels or all(x is None for x in levels) else "partial" if any(x is None for x in levels) else "rule_based",
+                    "severity": "high" if broad else severity,
+                    "criticality_state": state,
                     "broad": broad, "allowed_declaration": statement.get("Effect") == "Allow",
                     "conditional": bool(statement.get("Condition")), "effective_access": "unknown"})
     elif provider == "gcp":
@@ -162,11 +258,16 @@ def _grants(resource):
             if not isinstance(permission, dict):
                 continue
             actions = as_list(permission.get("actions")) + as_list(permission.get("dataActions"))
-            levels = [permission_severity(provider, p) for p in actions if isinstance(p, str)]
-            broad = any("*" in p for p in actions if isinstance(p, str))
+            if type(actions) in (list, FrozenList) and len(actions) < 8:
+                levels = [permission_severity(provider, p) for p in actions if isinstance(p, str)]
+                broad = any("*" in p for p in actions if isinstance(p, str))
+                severity = "high" if broad else min((x for x in levels if x), key=RANK.get, default="info")
+                state = "unknown" if not levels or all(x is None for x in levels) else "partial" if any(x is None for x in levels) else "rule_based"
+            else:
+                broad, severity, state = _permission_profile(provider, actions)
             result.append({"path": f"properties.permissions[{i}]", "native_grant": permission,
-                "severity": "high" if broad else min((x for x in levels if x), key=RANK.get, default="info"),
-                "criticality_state": "unknown" if not levels or all(x is None for x in levels) else "partial" if any(x is None for x in levels) else "rule_based",
+                "severity": "high" if broad else severity,
+                "criticality_state": state,
                 "broad": broad, "allowed_declaration": True,
                 "conditional": bool(permission.get("notActions") or permission.get("notDataActions")),
                 "effective_access": "unknown"})
@@ -459,31 +560,34 @@ def build_iam(snapshot, resources, *, defer_types=()):
     selected = [r for r in resources if r["type"] in IAM_TYPES or list(principals(r))
                 or (r["type"] == "pod" and r["data"].get("spec", {}).get("serviceAccountName"))]
     alias, merged = _managed_aliases(snapshot, selected)
-    ident = lambda r: alias.get(node_id(r), node_id(r))
     # Non-canonical copies of a deduplicated definition: same declared grants, folded into one node.
     folded = {node_id(r) for canonical, same in merged.values() for r in same if r is not canonical}
     nodes = {}
+    native_node_ids, canonical_node_ids = [], []
     for r in selected:
-        if node_id(r) in folded:
+        current_id = node_id(r)
+        canonical_id = alias.get(current_id, current_id)
+        native_node_ids.append(current_id)
+        canonical_node_ids.append(canonical_id)
+        if current_id in folded:
             continue
-        current = nodes[ident(r)] = node(r)
-        if ident(r) in merged:
-            canonical, same = merged[ident(r)]
-            current.update(id=ident(r), scope=MANAGED_SCOPE, provider_managed=True, native_scope=canonical["scope"],
+        current = nodes[canonical_id] = node(r)
+        if canonical_id in merged:
+            canonical, same = merged[canonical_id]
+            current.update(id=canonical_id, scope=MANAGED_SCOPE, provider_managed=True, native_scope=canonical["scope"],
                            scope_refs={s["scope"]: s.get("id", native_id(s)) for s in same})
     edges = []
     observed_bindings = {}
     lookup = {}
     deferred = {}
-    for resource in selected:  # folded copies included: their per-scope names resolve to the canonical node
+    for resource, current_id in zip(selected, canonical_node_ids):  # folded copies resolve to the canonical node
         data = resource["data"]
         meta = data.get("metadata", {})
         names = [native_id(resource), data.get("UserName"), data.get("GroupName"), data.get("RoleName"), data.get("name"), data.get("email"), data.get("id"),
                  f"{meta.get('namespace', '_cluster')}/{meta['name']}" if meta.get("name") else None]
         for name in names:
             if name:
-                lookup[(resource["scope"], resource["type"], str(name))] = ident(resource)
-    selected = [r for r in selected if node_id(r) not in folded]
+                lookup[(resource["scope"], resource["type"], str(name))] = current_id
     by_kind_name = defaultdict(list)  # (kind, name) -> [(scope, node id)]: O(1) cross-scope resolution
     for (lscope, lkind, lname), value in lookup.items():
         by_kind_name[(lkind, lname)].append((lscope, value))
@@ -541,8 +645,10 @@ def build_iam(snapshot, resources, *, defer_types=()):
             principal_scopes[target].add(str(resource["scope"]))
         return target
 
-    for resource in selected:
-        src, data = ident(resource), resource["data"]
+    for resource, current_id, src in zip(selected, native_node_ids, canonical_node_ids):
+        if current_id in folded:
+            continue
+        data = resource["data"]
         card = nodes[src]
         if resource["type"] in defer_types:
             deferred[src] = resource

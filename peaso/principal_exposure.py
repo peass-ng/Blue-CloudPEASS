@@ -9,7 +9,7 @@ from collections import defaultdict
 from fnmatch import fnmatchcase
 
 from peaso.analysis.common import as_list, externality, native_id, with_analysis_context
-from peaso.analysis.iam import document, grants
+from peaso.analysis.iam import assume_role_document, grants
 from peaso.analysis.internet_exposure import assess, describe, ports_of, Assessment, pset, union, _internet, _public_ip
 from peaso.analysis.trust import restrictive_conditions, aws_federated_trust, _k8s_self_info_binding
 
@@ -111,7 +111,7 @@ def project(snapshot, resources):
             federation_review = aws_federated_trust(snapshot, row)
             unpinned = {(r["federated_principal"], r["statement"]) for r in federation_review[2]["federated_trusts"]
                         if r.get("multi_tenant_issuer") and any(p.get("severity") not in {"low", "review"} for p in r["problems"])} if federation_review else set()
-            policy = document(data.get("AssumeRolePolicyDocument")) or {}
+            policy = assume_role_document(row) or {}
             for statement_index, statement in enumerate(as_list(policy.get("Statement"))):
                 if not isinstance(statement, dict) or statement.get("Effect") != "Allow":
                     continue
