@@ -138,30 +138,30 @@ def _compact(document):
     return document
 
 
-def _incremental_appstream_documents(main_manifest, current, cases):
-    """Reuse pinned historical rows while rebuilding both changed 700-entry bindings."""
+def _incremental_current_documents(main_manifest, current, cases, previous_manifest, previous_tree):
+    """Reuse pinned history when only the previous and new current bindings change."""
     previous = _compact(_pinned_existing())
     old_current = previous['current_binding']
-    if (old_current['manifest_sha256'] != catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST
-            or old_current['effective_tree_sha256'] != catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE
+    if (old_current['manifest_sha256'] != previous_manifest
+            or old_current['effective_tree_sha256'] != previous_tree
             or old_current['source_revision'] != catalog.V4_REVISION):
-        raise ValueError('previous AppStream display binding changed')
+        raise ValueError('previous display binding changed')
     identity = lambda row: (row[0], row[1], row[2], row[3])
     old = {identity(row): row for row in previous['bindings']}
     wanted = {(values['manifest_sha256'], values.get('effective_tree_sha256'),
                values['source_revision'], status) for _, status, values in cases}
-    old_current_key = (catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
-                       catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE,
+    old_current_key = (previous_manifest,
+                       previous_tree,
                        catalog.V4_REVISION, 'exact_strict_privesc')
     new_current_key = (catalog.CURRENT_MANIFEST, catalog.CURRENT_TREE,
                        catalog.V4_REVISION, 'exact_strict_privesc')
-    archive_key = (catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
-                   catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE,
+    archive_key = (previous_manifest,
+                   previous_tree,
                    catalog.V4_REVISION, 'exact_previous_current')
     removed, added = set(old) - wanted, wanted - set(old)
     if (len(old) != len(previous['bindings']) or removed != {old_current_key}
             or added != {new_current_key, archive_key}):
-        raise ValueError(f'AppStream display changed outside two reviewed bindings: {removed!r}, {added!r}')
+        raise ValueError(f'display changed outside two reviewed bindings: {removed!r}, {added!r}')
     prior_details = previous['details']
     details = {hashlib.sha256(encoded(row)).hexdigest(): row for row in prior_details}
     if len(details) != len(prior_details):
@@ -227,7 +227,13 @@ def render_documents():
         return _documents(_compact(document), main_manifest)
     cases = binding_cases()
     if sys.argv[1:] == ['--incremental-appstream']:
-        return _incremental_appstream_documents(main_manifest, current, cases)
+        return _incremental_current_documents(main_manifest, current, cases,
+                                              catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
+                                              catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE)
+    if sys.argv[1:] == ['--incremental-reviewed-685']:
+        return _incremental_current_documents(main_manifest, current, cases,
+                                              catalog.REVIEWED_685_PREVIOUS_MANIFEST,
+                                              catalog.REVIEWED_685_PREVIOUS_TREE)
     if sys.argv[1:]:
         raise ValueError('unsupported privilege display build mode')
     loaders = archived_loaders()
