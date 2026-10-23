@@ -83,8 +83,12 @@ def main():
         eligible = bool(checks["positive"] and checks["negative"]) and all(
             item["outcomes"] and set(item["outcomes"]) == {"passed"} for item in required
         )
+        unknown_passed = bool(checks["unknown"]) and all(
+            item["outcomes"] and set(item["outcomes"]) == {"passed"} for item in checks["unknown"]
+        )
         audit[row["id"]] = {"positive": checks["positive"], "negative": checks["negative"],
                             "unknown": checks["unknown"], "positive_negative_passed": eligible,
+                            "unknown_passed": unknown_passed,
                             "case_gap_before": row["case_gap"]}
     result = {
         "cspm_revision": args.cspm_revision,
@@ -92,6 +96,10 @@ def main():
         "junit_sha256": junit_hashes,
         "partial_routes_audited": len(audit),
         "positive_negative_passed": sum(row["positive_negative_passed"] for row in audit.values()),
+        "unknown_passed": sum(row["unknown_passed"] for row in audit.values()),
+        "positive_negative_eligible_ids": sorted(
+            route_id for route_id, row in audit.items() if row["positive_negative_passed"]
+        ),
         "routes": audit,
     }
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
