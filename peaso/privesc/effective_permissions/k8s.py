@@ -150,12 +150,14 @@ class RelatedClouds:
         out = []
         issuer_path = str(issuer or "").removeprefix("https://").rstrip("/")
         for st in role_model.trust.get(role.id, []):
-            if st.effect != "allow" or not st.action_matches("sts:AssumeRoleWithWebIdentity"):
+            if (st.effect != "allow" or st.ref.get("not_principal")
+                    or not st.action_matches("sts:AssumeRoleWithWebIdentity")):
                 continue
             principal = st.principals if isinstance(st.principals, dict) else {}
-            providers = [str(f).split("oidc-provider/", 1)[-1].rstrip("/")
+            providers = [(str(f), str(f).split("oidc-provider/", 1)[-1].rstrip("/"))
                          for f in as_list(principal.get("Federated")) if "oidc-provider/" in str(f)]
-            if not providers or (issuer_path and issuer_path not in providers):
+            providers = [(arn, path) for arn, path in providers if not issuer_path or path == issuer_path]
+            if not providers:
                 continue
             raw = _trust_raw(role_model, role, st)
             subjects = []
@@ -175,7 +177,16 @@ class RelatedClouds:
                         subjects.extend(str(v) for v in as_list(value))
             if audience_seen and not audience_allowed:
                 continue
-            out.extend(subjects or ["*"])
+            for provider_arn, provider_path in providers:
+                for subject in subjects or ["*"]:
+                    overrides = {(provider_path + ":aud").lower(): ["sts.amazonaws.com"]}
+                    if not any(char in subject for char in ("*", "?", "${")):
+                        overrides[(provider_path + ":sub").lower()] = [subject]
+                    denied = role_model._trust_explicit_deny(
+                        role.id, "sts:AssumeRoleWithWebIdentity", federated=provider_arn,
+                        extra_overrides=overrides)
+                    if denied is not True:
+                        out.append(subject)
         return out
 
     def gcp_sa(self, email):
