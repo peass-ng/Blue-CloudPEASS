@@ -6775,7 +6775,7 @@
       "catalog_file": "peaso/privesc/catalog/gcp/vmmigration.yaml",
       "current_contract_sha256": "ed8d957d7b44838a1e3b242d790dae6b443722b4861b7a66180e6610c51045fe",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "tests/test_gcp_vmmigration_metadata_clone_path.py (focused positive and negative cases passed)",
+      "focused_runtime_test": "tests/test_gcp_vertex_vm_migration_review.py (configured identity, missing permissions, and same-VM mutation cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -6783,7 +6783,7 @@
       "completion_evidence": {
         "source_and_contract": "https://docs.cloud.google.com/migrate/virtual-machines/docs/reference/rest/v1/projects.locations.sources.migratingVms",
         "collector_and_evaluator": "The collector now records the exact migrating VM target service account; update and clone must apply to the same VM. An absent account, missing clone grant, or split-resource grants do not match.",
-        "positive_and_negative_test": "tests/test_gcp_vmmigration_metadata_clone_path.py (focused positive and negative cases passed)"
+        "positive_and_negative_test": "tests/test_gcp_vertex_vm_migration_review.py (configured identity, missing permissions, and same-VM mutation cases)"
       }
     },
     {
@@ -7919,7 +7919,7 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "ce7c95dcf7ebee641e0b44beb4690396264fef952502851c97a76d550876c736",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "tests/test_k8s_rbac_privilege_paths.py (73 focused RBAC, pivot, and schema tests passed)",
+      "focused_runtime_test": "tests/test_k8s_rbac_missing_sa_review.py (existing namespace, useful binding, and missing-role cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -7927,7 +7927,7 @@
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
         "collector_and_evaluator": "An existing namespace, resolved binding with a concrete additional right, and an exact future service-account name must join the creation route. Admission and token paths remain conditional.",
-        "positive_and_negative_test": "tests/test_k8s_rbac_privilege_paths.py (73 focused RBAC, pivot, and schema tests passed)"
+        "positive_and_negative_test": "tests/test_k8s_rbac_missing_sa_review.py (existing namespace, useful binding, and missing-role cases)"
       }
     },
     {
@@ -8157,7 +8157,7 @@
       "catalog_file": "peaso/privesc/catalog/k8s/verified_pivots.yaml",
       "current_contract_sha256": "b08668f2a242c3fe61f07c35af59345f32fa8c2a4f7a2305267240f55179b24f",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "tests/test_k8s_rbac_privilege_paths.py (73 focused RBAC, pivot, and schema tests passed)",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_verified_pivots.py (exact Argo credential and negative proof cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -8165,7 +8165,7 @@
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
         "collector_and_evaluator": "Exact Secret UID/version, accepted read, authenticated remote subject, and prior denial plus newly allowed action are required; inferred credentials alone do not match.",
-        "positive_and_negative_test": "tests/test_k8s_rbac_privilege_paths.py (73 focused RBAC, pivot, and schema tests passed)"
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_verified_pivots.py (exact Argo credential and negative proof cases)"
       }
     },
     {
@@ -8191,7 +8191,7 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "b83ea7aba431b78b9e8f9c12f435400af16bd6d19852eb63667f79bb9f06e570",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "tests/test_k8s_rbac_privilege_paths.py (73 focused RBAC, pivot, and schema tests passed)",
+      "focused_runtime_test": "tests/test_k8s_rbac_missing_sa_review.py (absent namespace, useful binding or host SCC, and negative cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -8199,7 +8199,7 @@
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
         "collector_and_evaluator": "An absent namespace must be established by complete inventory and paired with clusterwide creation and useful direct binding or host SCC; exact TokenRequest name is required.",
-        "positive_and_negative_test": "tests/test_k8s_rbac_privilege_paths.py (73 focused RBAC, pivot, and schema tests passed)"
+        "positive_and_negative_test": "tests/test_k8s_rbac_missing_sa_review.py (absent namespace, useful binding or host SCC, and negative cases)"
       }
     },
     {
