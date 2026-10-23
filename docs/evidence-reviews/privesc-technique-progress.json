@@ -5392,7 +5392,7 @@
       "catalog_file": "peaso/privesc/catalog/gcp/domains.yaml",
       "current_contract_sha256": "bd0e03aa1e0dc40c377354c95e98feff48cc519d1d0b6104df0b6b2d57d43b5e",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "2 evaluator tests cover exact tenant-domain and active-registration joins, alias-domain admins, missing customer metadata, and exported registrations; 1 collector test covers the read-only customer projection and denied response.",
+      "focused_runtime_test": "tests/test_peaso_privesc_schema_ext_gcp.py::test_catalog_domain_recovery_requires_exact_active_registration_and_admin (both YAML routes, exact grant, active registration, Workspace customer, and administrator cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -5401,7 +5401,7 @@
         "source_and_contract": "HackTricks Cloud Workspace recovery technique; Google Cloud Domains registration state and DNS documentation; Directory customers.get customerDomain; Workspace administrator recovery procedure.",
         "collector": "Read-only Directory customers.get projection keeps only id and customerDomain. The paired Workspace user and Cloud Domains inventories request it automatically. A focused collector test checks exact fields, omitted contact details, and denied handling.",
         "evaluator": "Joins Workspace users by customerId to recorded customerDomain and ACTIVE registration. Allows administrator email aliases within the same customer. Missing customer domain or registration state is unknown; exported registrations do not create a path.",
-        "positive_and_negative_tests": "2 focused evaluator tests and 1 focused collector test passed with isolated stubs for unrelated shared-worktree import failures; catalog validation returned 650 and compileall/diff-check passed."
+        "positive_and_negative_tests": "tests/test_peaso_privesc_schema_ext_gcp.py::test_catalog_domain_recovery_requires_exact_active_registration_and_admin (both YAML routes, exact grant, active registration, Workspace customer, and administrator cases)"
       }
     },
     {
@@ -5410,7 +5410,7 @@
       "catalog_file": "peaso/privesc/catalog/gcp/domains.yaml",
       "current_contract_sha256": "1ad75b93355746f9e814005676a396331559492d427fda6c39cb90731e0a9d11",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "A focused management-transfer evaluator test proves exact configureManagement permission, customer primary-domain matching, same-customer administrator aliases, and no edge for a source without that permission; adjacent domain tests cover missing customer facts and EXPORTED registrations.",
+      "focused_runtime_test": "tests/test_peaso_privesc_schema_ext_gcp.py::test_catalog_domain_recovery_requires_exact_active_registration_and_admin (both YAML routes, exact grant, active registration, Workspace customer, and administrator cases)",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -5419,7 +5419,7 @@
         "source_and_contract": "HackTricks Cloud Cloud Domains and Workspace recovery pages; Google Cloud Domains retrieveAuthorizationCode, registrar-transfer and Registration API documentation; Google Workspace administrator recovery.",
         "collector": "Existing read-only registration {name, domainName, state} and Directory customer {id, customerDomain} projections bind a live registration to one Workspace tenant; no transfer credential is collected.",
         "evaluator": "Exact configureManagement permission on the matched ACTIVE registration. External registrar transfer and Google recovery remain conditional; missing tenant facts are unresolved and EXPORTED registrations are excluded.",
-        "positive_and_negative_tests": "3 focused domain evaluator tests passed using a stub for an unrelated shared-worktree import failure; catalog and tracker validation passed."
+        "positive_and_negative_tests": "tests/test_peaso_privesc_schema_ext_gcp.py::test_catalog_domain_recovery_requires_exact_active_registration_and_admin (both YAML routes, exact grant, active registration, Workspace customer, and administrator cases)"
       }
     },
     {
