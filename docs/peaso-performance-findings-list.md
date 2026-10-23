@@ -27,3 +27,9 @@ Grouped lists, summaries and member details now skip sort cards for individual o
 | Group member detail | 1.31x | 1.44x | 68% |
 
 All responses had identical bytes. The 38-test focused suite includes complete grouped-list, summary and member response comparisons, effective review statuses, archived evidence, filters, pagination, regular observation sorting and tenant isolation.
+
+## Principal detail
+
+Principal cards now select candidate findings from their stored category and principal ID before hydrating display metadata. Archived defaults apply only to missing fields; explicit null values and the existing resource-ID summary limit retain their behavior. The route still hydrates every matching finding, counts all matches before the 500-row response limit, and checks the tenant and graph principal before selection.
+
+Run `python scripts/benchmark_api_principal_hydration.py --baseline /path/to/predecessor/app.py`. Two complete warm HTTP requests over 30,000 synthetic findings returned the same responses before and after the change. Process CPU fell from 0.128 to 0.015 seconds and from 0.137 to 0.020 seconds. Peak traced request allocations remained approximately 0.1 MB. These measurements exclude collection and startup; they describe principal-detail requests, not whole scans. Fourteen focused cases cover archived defaults, explicit nulls, long IDs, ordering, result limits, report revisions and tenant isolation.
