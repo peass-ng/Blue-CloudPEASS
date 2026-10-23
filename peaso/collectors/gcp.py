@@ -2698,7 +2698,10 @@ class GCPCollector:
                     item["_coverage"]["_activity"] = {**coverage, "status": coverage["status"] if activities is None else "not_observed",
                         "semantics": "Account absent from Policy Analyzer results: usage unknown"}
                 return item
-            for items, request_id in self.pages(f"https://iam.googleapis.com/v1/{scope}/serviceAccounts", scope, key="accounts"):
+            # IAM serviceAccounts.list rejects pageSize above 100 even when the
+            # connector's general page size is larger.
+            for items, request_id in self.pages(f"https://iam.googleapis.com/v1/{scope}/serviceAccounts", scope,
+                                                key="accounts", params={"pageSize": min(self.page_size, 100)}):
                 yield self.parallel(detail, items), request_id
         add("service_account", "iam", service_accounts)
         add("workload_identity_pool", "iam", lambda: self.pages(f"https://iam.googleapis.com/v1/{scope}/locations/global/workloadIdentityPools",

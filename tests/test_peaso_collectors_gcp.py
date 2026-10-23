@@ -392,6 +392,29 @@ def test_service_account_keys_are_metadata_only_and_no_parent_visibility_is_not_
     assert collection(result, "service_account_key")["error"]["code"] == "service_account_inventory_incomplete"
 
 
+def test_service_account_listing_caps_iam_page_size_and_reads_next_page():
+    def resolve(request):
+        if request["url"].endswith("/serviceAccounts"):
+            assert request["params"]["pageSize"] == 100
+            token = request["params"].get("pageToken")
+            if token is None:
+                return {"accounts": [{"name": "projects/p-one/serviceAccounts/first@p-one.iam.gserviceaccount.com",
+                                      "email": "first@p-one.iam.gserviceaccount.com"}], "nextPageToken": "next"}
+            assert token == "next"
+            return {"accounts": [{"name": "projects/p-one/serviceAccounts/second@p-one.iam.gserviceaccount.com",
+                                  "email": "second@p-one.iam.gserviceaccount.com"}]}
+        assert request["url"].endswith(":getIamPolicy")
+        return {"bindings": []}
+
+    result, transport = snapshot(["service_account"], resolve, page_size=1000,
+                                 service_account_activity=False)
+    accounts = collection(result, "service_account")
+    assert accounts["status"] == "collected"
+    assert {item["email"] for item in accounts["items"]} == {
+        "first@p-one.iam.gserviceaccount.com", "second@p-one.iam.gserviceaccount.com"}
+    assert len([request for request in transport.requests if request["url"].endswith("/serviceAccounts")]) == 2
+
+
 def test_activity_projection_never_stores_log_payload_or_proves_inactivity():
     result, transport = snapshot(["activity"], lambda r: {"entries": [{"insertId": "event", "timestamp": "2026-10-10T00:00:00Z",
         "protoPayload": {"authenticationInfo": {"principalEmail": "a@p-one.iam.gserviceaccount.com",

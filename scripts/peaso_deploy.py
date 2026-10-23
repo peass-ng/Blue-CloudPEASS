@@ -53,6 +53,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'docs/gcp-iam-pagination-source-review-20261023.json',
     'scripts/benchmark_engine_finding_materialization.py',
     'scripts/benchmark_engine_sw46_joins.py',
     'examples/benchmark_peaso_network_facts.py',
