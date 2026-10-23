@@ -262,6 +262,7 @@ from .aws_ssm_association_next import normalize_aws_ssm_association_start
 from .aws_ssm_command_history_next import correlate_aws_ssm_command_output_read
 from .aws_ssm_session_next import normalize_aws_ssm_session_start
 from .aws_ssm_automation_window_next import normalize_aws_ssm_automation_window, correlate_aws_ssm_document_window
+from .aws_ssm_node_routes_b412 import normalize_shell_command as normalize_aws_ssm_shell_command_b412, correlate_cross_principal_resume as correlate_aws_ssm_cross_principal_resume_b412
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -687,6 +688,7 @@ def detect_aws_events(
         ssm_association_start = normalize_aws_ssm_association_start(record)
         ssm_session_start = normalize_aws_ssm_session_start(record)
         ssm_automation_window = normalize_aws_ssm_automation_window(record)
+        ssm_shell_command_b412 = normalize_aws_ssm_shell_command_b412(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -941,6 +943,7 @@ def detect_aws_events(
                 + ([ssm_association_start] if ssm_association_start is not None else [])
                 + ([ssm_session_start] if ssm_session_start is not None else [])
                 + ([ssm_automation_window] if ssm_automation_window is not None else [])
+                + ([ssm_shell_command_b412] if ssm_shell_command_b412 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
@@ -1002,6 +1005,7 @@ def detect_aws_events(
     lambda_efs_mount_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
+    ssm_session_b412_records: list[Mapping[str, Any]] = []
     rds_restore_records: list[Mapping[str, Any]] = []
     rds_parameter_records: list[Mapping[str, Any]] = []
     rds_replica_records: list[Mapping[str, Any]] = []
@@ -1227,6 +1231,8 @@ def detect_aws_events(
                 ssm_command_records.append(record)
             if record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") in {"UpdateDocument", "UpdateDocumentDefaultVersion", "RegisterTargetWithMaintenanceWindow", "RegisterTaskWithMaintenanceWindow"}:
                 ssm_automation_window_records.append(record)
+            if record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") in {"StartSession", "ResumeSession"}:
+                ssm_session_b412_records.append(record)
             if record.get("eventSource") == "rds.amazonaws.com" and record.get("eventName") in {"RestoreDBInstanceFromDBSnapshot", "ModifyDBInstance"}:
                 rds_restore_records.append(record)
             if record.get("eventSource") == "rds.amazonaws.com" and record.get("eventName") in {"ModifyDBParameterGroup", "ModifyDBInstance", "RebootDBInstance", "DownloadDBLogFilePortion"}:
@@ -1261,6 +1267,7 @@ def detect_aws_events(
     correlated += correlate_aws_lambda_efs_mount(lambda_efs_mount_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
+    correlated += correlate_aws_ssm_cross_principal_resume_b412(ssm_session_b412_records)
     correlated += correlate_aws_rds_public_clone_password_reset(rds_restore_records)
     correlated += correlate_aws_rds_sql_log_capture_path(rds_parameter_records)
     correlated += correlate_aws_rds_public_replica_controls(rds_replica_records)
