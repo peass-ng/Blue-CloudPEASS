@@ -105,6 +105,27 @@ def test_duplicate_settlement_does_not_advance_checkpoint(monkeypatch, tmp_path)
         session.close()
 
 
+def test_cumulative_snapshot_includes_sections_with_original_digest(monkeypatch, tmp_path):
+    from peaso.snapshot import make_snapshot, seal
+
+    session, _, _, _ = _session(monkeypatch, tmp_path)
+    envelope = {"type": "bucket", "scope": SCOPE, "status": "collected",
+                "items": [{"id": "b", "Nested": {"dimensions": ["one", "two"]}}]}
+    sections = {"hardening": {"status": "complete", "data_revision": 1}}
+    try:
+        current = session._snapshot([envelope], sequence=1, sections=sections)
+        old = make_snapshot("aws", [SCOPE], [envelope], created_at=current["created_at"],
+                            metadata={key: value for key, value in current["metadata"].items()
+                                      if key != "sections"})
+        old["metadata"]["sections"] = sections
+        old = seal(old)
+        assert current == old
+        envelope["items"][0]["Nested"]["dimensions"].append("later")
+        assert current == old
+    finally:
+        session.close()
+
+
 def test_interrupted_later_analysis_keeps_earlier_category(monkeypatch, tmp_path):
     session, artifacts, refs, published = _session(monkeypatch, tmp_path, second=True,
                                                    fail_second=True)

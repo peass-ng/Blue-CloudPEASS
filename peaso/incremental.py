@@ -122,7 +122,7 @@ class CheckpointSession:
         self.thread = threading.Thread(target=self._background, name="peaso-checkpoint", daemon=True)
         self.thread.start()
 
-    def _snapshot(self, envelopes, *, sequence=None):
+    def _snapshot(self, envelopes, *, sequence=None, sections=None):
         # Only observed, exact native scopes enter this partial view. The
         # explicit scope boundary is retained separately for coverage.
         scopes = sorted({row["scope"] for row in envelopes}) or self.requested_scopes
@@ -136,6 +136,8 @@ class CheckpointSession:
         if self.provider == 'aws' and self.image_targets:
             from .collectors.aws_image_vulnerability_runtime_20261021 import attach_metadata
             attach_metadata(metadata, envelopes, self.image_targets)
+        if sections is not None:
+            metadata['sections'] = sections
         return make_snapshot(self.provider, scopes, envelopes, metadata=metadata)
 
     def _ready(self, collections=None, *, sections=None):
@@ -449,15 +451,12 @@ class CheckpointSession:
                              or (sequence - self.last_published < self.collection_stride
                                  and now - self.last_time < self.interval))):
                     return None
-                # Committed envelopes are replaced, never edited in place.
-                # Capture their mapping atomically, then copy/seal without
-                # blocking provider settlement behind the growing inventory.
+                # Committed public envelopes are replaced, never edited in
+                # place. Capture their mapping atomically; make_snapshot below
+                # already copies and seals the complete native data.
                 collections = dict(self.collections)
             cpu_started = time.thread_time()
-            collections = copy.deepcopy(collections)
-            raw = self._snapshot(list(collections.values()), sequence=sequence)
-            raw['metadata']['sections'] = sections
-            raw = seal(raw)
+            raw = self._snapshot(list(collections.values()), sequence=sequence, sections=sections)
             from .secret_evidence import _lock as private_evidence_lock
             with private_evidence_lock:
                 snapshot = validate(self.public_snapshot(raw))
