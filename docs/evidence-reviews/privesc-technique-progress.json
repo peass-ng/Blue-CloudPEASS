@@ -7749,15 +7749,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "e3c53553843639c203bb27f126e87dad479623223933edb32693fb1f97237750",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -7766,15 +7766,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "cbc98f80f01e0a95c1fcb1afff073021db6480bb8bd3c4ab6a25c246efc390ef",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -8106,15 +8106,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "84a1d0a693fb42c0c0d9684ba8097cacc8584e6247add4ecbec5bc4f8812b726",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
@@ -8123,15 +8123,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "8c8ebb9b2733c4b88a574189152e4e197394870a37eef87c01a6b877d2ef4c8c",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused bind tests plus existing exact-role/name/scope cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
+      "work_evidence": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update",
-        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights.",
-        "positive_and_negative_test": "6 focused bind tests plus existing exact-role/name/scope cases"
+        "collector_and_evaluator": "Bind and patch rights now join an exact existing role and binding scope; existing RoleBinding path is dynamic per source, and cluster-admin role must contain SA-reaching rights. An inventoried namespace remains a valid RBAC target even when it contains no inventoried principal or Secret.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_rbac_bound_gain.py exercises this active YAML route with exact role, bind, binding write, namespace inventory, and missing-grant cases."
       }
     },
     {
