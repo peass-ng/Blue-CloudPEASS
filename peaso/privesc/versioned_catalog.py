@@ -26,12 +26,27 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '2c19c7e9efc2271b438f78432995925ad305290199bf6524461642c41c29ede0'
 REVIEWED_691_PREVIOUS_MANIFEST = '16e83c81081977912ae81f40981ba0a6ed5ad4cb939ecf3801ef5bd4302e8917'
 REVIEWED_691_PREVIOUS_TREE = 'bd33c3dc1d491a0daf045d73f7cfcc335b8341456bc47681fe20550d18a63a4c'
 REVIEWED_691_PREVIOUS_ARCHIVE_SHA256 = 'fc6ee9346dbec5e670118b5f87efb624424ff03a84f2c0d798ab56bb00139577'
 REVIEWED_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-691-source-manifest.json'
 REVIEWED_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-691-catalog.tar.gz'
+CURRENT_MANIFEST = 'faee1d9f348246d4c69330c03a371fb83fde135413e9c3b204cae7b34e0c97f4'
+APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST = '9c3c20a056723d3a6628f52361c658ed63fa7a6553a799c7d215546b5bc3cd97'
+APPSTREAM_RESOURCE_700_PREVIOUS_TREE = 'e2aebb783f31913ad6eb37a511a57cb7a4ec2754cb4c0a33a15e52849aa21833'
+APPSTREAM_RESOURCE_700_PREVIOUS_ARCHIVE_SHA256 = '9088e3d467efc69f56e5db4bab566ca26eeb78b40475457c5bd6ff51585c0aa3'
+APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-700-before-appstream-resource-requires-source-manifest.json'
+APPSTREAM_RESOURCE_700_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-700-before-appstream-resource-requires-catalog.tar.gz'
+SOURCE_REPIN_700_PREVIOUS_MANIFEST = '6e1cd8ac3d631a42a569eeafccf0f5c396e57bfe5946454c77fe213791c3d456'
+SOURCE_REPIN_700_PREVIOUS_TREE = '6f29f2951ed59e62d23921036697e09fbf35d5e9e84c977e150449779f1b2aff'
+SOURCE_REPIN_700_PREVIOUS_ARCHIVE_SHA256 = 'a239ffcca6bb2e0ac67e170672d56c16e31f06c5407f8466724643791a31ac2c'
+SOURCE_REPIN_700_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-700-before-ht-source-repin-source-manifest.json'
+SOURCE_REPIN_700_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-700-before-ht-source-repin-catalog.tar.gz'
+FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST = '16e83c81081977912ae81f40981ba0a6ed5ad4cb939ecf3801ef5bd4302e8917'
+FINAL_AWS_AUDIT_691_PREVIOUS_TREE = 'bd33c3dc1d491a0daf045d73f7cfcc335b8341456bc47681fe20550d18a63a4c'
+FINAL_AWS_AUDIT_691_PREVIOUS_ARCHIVE_SHA256 = 'ecc7ba16e01e8cfbe8b6fb4d9259411e190c2aa98b22bac709de40c071305df6'
+FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-before-final-aws-audit-source-manifest.json'
+FINAL_AWS_AUDIT_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-before-final-aws-audit-catalog.tar.gz'
 FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_MANIFEST = 'd7f6015a720aa97b48e7407e9e64619a73152ee3d42e866d08a240fa1a65773a'
 FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_TREE = 'a75ba19025307cc03b0e6e26c91a347b0e305944b5b06cad04d48ff9f29c1205'
 FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_ARCHIVE_SHA256 = '54841a5e8b4f8f163dd726df317b1172ea06811930add95f5abc97c84e785950'
@@ -273,6 +288,7 @@ ECS_NEW_TASK_691_PREVIOUS_ARCHIVE_SHA256 = '5df7bb9d79c556cfb7434981f7e9c25385d3
 ECS_NEW_TASK_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-ecs-new-task-source-manifest.json'
 ECS_NEW_TASK_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-ecs-new-task-catalog.tar.gz'
 ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST = '7d528406be7793c99131834f3b4747dbf14fec5ac0515d813c60949670c1baba'
+ORGANIZATIONS_RCP_691_REVISIONLESS_TREE = 'e2aebb783f31913ad6eb37a511a57cb7a4ec2754cb4c0a33a15e52849aa21833'
 ORGANIZATIONS_RCP_691_PREVIOUS_MANIFEST = 'fb78323d003a13e56cb130b11cbc5b5236bd91c31a67f0cc81c5aae05eaac45e'
 ORGANIZATIONS_RCP_691_PREVIOUS_TREE = 'e79cf10386508df546b33f8383e78907948571eaf6479b2047a8a45683b65ae8'
 ORGANIZATIONS_RCP_691_PREVIOUS_ARCHIVE_SHA256 = '511107dedd9565230d7b23cd67856f2d4c658e2429460796cf8b9fb097c38c6f'
@@ -702,15 +718,15 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'c20afad0bbab461524e876dd9fa5fa8b3d8d966268059992a4f686f297a60d1d'
+CURRENT_TREE = '2e30181ac85c7af8d49d093a3abfb19dc1113304f473540c8344d90004690e79'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 676
-CURRENT_EXCLUDED_COUNT = 3780
+CURRENT_ENTRY_COUNT = 685
+CURRENT_EXCLUDED_COUNT = 3777
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_CATALOG_ARCHIVE_SHA256 = "498459a1979833e9e1a09b64bbeb859beb004980ad7baa81818621e5c810c030"
 RUNTIME_HISTORY_PACK = Path(__file__).resolve().parent / "catalog_versions/runtime-history-v1.zip"
-RUNTIME_HISTORY_SHA256 = "1bea8a2a4bf0a8eb0cc8e4d66add36c368ffd0a013e635c529c2967aa768d6c6"
+RUNTIME_HISTORY_SHA256 = "7d03d90169b8dea6363f872ca4e1b958d0e1396c2e53a03a2d0a0c9c481a9e95"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
 PRIOR_BOUNDED_MANIFEST = "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
 PRIOR_BOUNDED_TREE = "695e38b0bc93df9ba031828ffefbabe8e10b60741580554a5f36b8f37aa05414"
@@ -836,6 +852,39 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_appstream_resource_700_previous():
+    """Keep reports bound to the 700-entry catalog before AppStream resource requirements."""
+    return _verified_archived_current(
+        APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST_PATH,
+        APPSTREAM_RESOURCE_700_PREVIOUS_ARCHIVE,
+        APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
+        APPSTREAM_RESOURCE_700_PREVIOUS_ARCHIVE_SHA256,
+        APPSTREAM_RESOURCE_700_PREVIOUS_TREE, 700, 3734)
+
+
+@lru_cache(maxsize=1)
+def _verified_source_repin_700_previous():
+    """Keep reports bound to the 700-entry catalog before source anchor repinning."""
+    return _verified_archived_current(
+        SOURCE_REPIN_700_PREVIOUS_MANIFEST_PATH,
+        SOURCE_REPIN_700_PREVIOUS_ARCHIVE,
+        SOURCE_REPIN_700_PREVIOUS_MANIFEST,
+        SOURCE_REPIN_700_PREVIOUS_ARCHIVE_SHA256,
+        SOURCE_REPIN_700_PREVIOUS_TREE, 700, 3734)
+
+
+@lru_cache(maxsize=1)
+def _verified_final_aws_audit_691_previous():
+    """Keep reports bound to the catalog before the final AWS route review."""
+    return _verified_archived_current(
+        FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST_PATH,
+        FINAL_AWS_AUDIT_691_PREVIOUS_ARCHIVE,
+        FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST,
+        FINAL_AWS_AUDIT_691_PREVIOUS_ARCHIVE_SHA256,
+        FINAL_AWS_AUDIT_691_PREVIOUS_TREE, 691, 3737)
 
 
 @lru_cache(maxsize=1)
@@ -2007,7 +2056,7 @@ def _history_original_pair(manifest_path, archive_path, manifest_digest, archive
             if (type(index) is not dict or set(index) != {'schema', 'block_sha256', 'versions'}
                     or index['schema'] != 'privesc-exact-history-v1'
                     or type(index['block_sha256']) is not list
-                    or type(index['versions']) is not dict or len(index['versions']) != 126):
+                    or type(index['versions']) is not dict or len(index['versions']) != 129):
                 raise ValueError("archived_history_pack_index_mismatch")
             for archive_name, version in index['versions'].items():
                 if (type(archive_name) is not str or '/' in archive_name or '\\' in archive_name
@@ -2179,6 +2228,14 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == REVIEWED_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "reviewed_691_previous", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == APPSTREAM_RESOURCE_700_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "appstream_resource_700_previous", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == SOURCE_REPIN_700_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == SOURCE_REPIN_700_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "source_repin_700_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2372,11 +2429,11 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("source_revision") == V4_REVISION):
         version, status = "ecs_new_task_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST and
-          binding.get("effective_tree_sha256") == CURRENT_TREE and
+          binding.get("effective_tree_sha256") == ORGANIZATIONS_RCP_691_REVISIONLESS_TREE and
           binding.get("source_revision") == V4_REVISION):
-        # The source commit became known after the YAML was committed; the
-        # effective catalog tree did not change.
-        version, status = "current", "exact_previous_current"
+        # The source commit became known after the YAML was committed; this
+        # binding keeps that original tree after the current catalog advances.
+        version, status = "appstream_resource_700_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == ORGANIZATIONS_RCP_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == ORGANIZATIONS_RCP_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2716,6 +2773,12 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: current[ident] for ident in ids if ident in current}, status
         if version == "reviewed_691_previous":
             previous = _verified_reviewed_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "appstream_resource_700_previous":
+            previous = _verified_appstream_resource_700_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "source_repin_700_previous":
+            previous = _verified_source_repin_700_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "final_two_role_effects_691_previous":
             previous = _verified_final_two_role_effects_691_previous()

@@ -198,6 +198,29 @@ def test_excluded_item_removal_is_guarded(synced):
         syncer.sync(book, target)
 
 
+def test_partial_upstream_removal_keeps_local_items_until_reviewed(synced, tmp_path):
+    target, book = synced
+    local = (catalog(target) / 'gcp/iam.yaml').read_bytes()
+    prior_manifest = (target / 'risk_rules/hacktricks-privesc-source.json').read_bytes()
+    upstream_item = entry('gcp-iam-two').encode()
+    (upstream(book) / 'gcp/iam.yaml').write_bytes(upstream_item)
+    syncer.sync(book, target)
+    assert (catalog(target) / 'gcp/iam.yaml').read_bytes() == local
+    manifest = json.loads((target / 'risk_rules/hacktricks-privesc-source.json').read_text())
+    assert manifest['canonical_sha256']['gcp/iam.yaml'] == hashlib.sha256(upstream_item).hexdigest()
+    assert manifest['sha256']['gcp/iam.yaml'] == hashlib.sha256(local).hexdigest()
+    assert 'gcp/iam.yaml' in manifest['effective']['local_ahead_files']
+    syncer.sync(book, target, check=True)
+
+    ledger = tmp_path / 'ledger.json'
+    ledger.write_text(json.dumps({'version': 1, 'review': {'description': 'Reviewed old route.'},
+                                  'accepted_removals': {'gcp-iam-one': 'Old route retired.'}}))
+    # The same change against the original base is accepted with a reviewed ledger.
+    (target / 'risk_rules/hacktricks-privesc-source.json').write_bytes(prior_manifest)
+    syncer.sync(book, target, ledger_path=ledger)
+    assert (catalog(target) / 'gcp/iam.yaml').read_bytes() == upstream_item
+
+
 def test_invalid_ledger_is_rejected(synced, tmp_path):
     target, book = synced
     ledger = tmp_path / 'ledger.json'

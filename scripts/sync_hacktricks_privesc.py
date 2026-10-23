@@ -234,6 +234,17 @@ def sync(book_root: Path, target: Path, *, check=False, validate_only=False, led
     accepted = set(ledger['accepted_removals']) if ledger else set()
     local_keys, effective_keys = item_keys(local), item_keys(effective)
     lost = sorted(k for k in set(local_keys) - set(effective_keys) if k not in accepted)
+    # A newer upstream file can remove a locally retained item while adding
+    # other valid items. Keep that complete local file until its removals are
+    # reviewed; still record the newer upstream bytes as canonical provenance.
+    # Full file deletion and an emptied file continue to require the ledger.
+    for rel in sorted({local_keys[key] for key in lost}):
+        if (not prefer_upstream and rel in upstream and rel in local
+                and effective.get(rel) == upstream[rel] != local[rel]
+                and item_keys({rel: upstream[rel]})):
+            effective[rel] = local[rel]
+    effective_keys = item_keys(effective)
+    lost = sorted(k for k in set(local_keys) - set(effective_keys) if k not in accepted)
     if lost:
         raise SyncError('Synchronization would drop local privesc items not present upstream; upstream them '
                         'or accept the removal in a reviewed ledger: '

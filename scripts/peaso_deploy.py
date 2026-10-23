@@ -1759,6 +1759,13 @@ IAM_RUNTIME_EXACT_ADDITION = (
     b'    ], var.codex_token_secret_arn == "" ? [] : [\n'
     b'    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.codex_token_secret_arn }\n'
 )
+# Reviewed durable queue and parallel-stage successors in f51b813d and
+# 804ee202. The complete file digests bind the runtime contract after those
+# changes while the earlier pins above remain available for historical review.
+CURRENT_IAM_RUNTIME_SHA256 = "a20b4d6d6fa5698cb55ab0fc0bed420859fe12163373c9358955a97a377285bc"
+PREVIOUS_WORKFLOW_RUNTIME_SHA256 = "caed9a12c8d11c12e14d87cb74d1fdef83567648287c1d654f926114cd227d64"
+CURRENT_WORKFLOW_RUNTIME_SHA256 = "ecfaa71f9c9668d02e59571efa7a7b9e5daf6af1da9a22501a23611cf9e565a3"
+CURRENT_AI_RUNTIME_SHA256 = "0948bda88c41ea79fd25dc9c2faa656b7d71c9d29012024156017921122834a6"
 ALLOWED_RESOURCES = set("""
 aws_cloudwatch_log_group.api aws_cloudwatch_log_group.scheduler aws_apigatewayv2_stage.api
 aws_budgets_budget.cspm aws_route53_record.cspm aws_ecs_task_definition.tasks
@@ -1974,6 +1981,8 @@ def _omit_verified_reconstructible_privesc_history(source, root):
     import struct
     code_name = 'peaso/privesc/versioned_catalog.py'
     pack_name = 'peaso/privesc/catalog_versions/runtime-history-v1.zip'
+    if code_name not in source and pack_name not in source:
+        return set()
     code, packed = source[code_name], source[pack_name]
     pinned = {node.targets[0].id: ast.literal_eval(node.value)
               for node in ast.parse(code).body if isinstance(node, ast.Assign)
@@ -2002,7 +2011,7 @@ def _omit_verified_reconstructible_privesc_history(source, root):
         manifests = archive.read('manifests.bin')
     if (index.get('schema') != 'privesc-exact-history-v1'
             or not isinstance(index.get('versions'), dict)
-            or len(index['versions']) != 126
+            or len(index['versions']) != 129
             or not isinstance(index.get('block_sha256'), list)
             or len(blocks) != 512 * len(index['block_sha256'])
             or len(index['block_sha256']) > 65536):
@@ -2497,6 +2506,11 @@ def deployment_expectations(data, plan):
     for name, historical_digest in RUNTIME_CONFIG_SHA256.items():
         current_digest = tf_files.get(name)
         if current_digest == historical_digest:
+            continue
+        if (name == "iam.tf" and current_digest == CURRENT_IAM_RUNTIME_SHA256
+                    or name == "workflow.tf" and current_digest in {
+                        PREVIOUS_WORKFLOW_RUNTIME_SHA256, CURRENT_WORKFLOW_RUNTIME_SHA256}
+                    or name == "ai_runtime.tf" and current_digest == CURRENT_AI_RUNTIME_SHA256):
             continue
         if name == "variables.tf" and current_digest == RUNTIME_LIMITS_CURRENT_SHA256:
             restored = (INFRA / name).read_bytes()

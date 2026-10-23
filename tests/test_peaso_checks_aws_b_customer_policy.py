@@ -69,7 +69,7 @@ def test_current_declared_read_actions_are_verified_and_sts_not_granted():
     assert "sts:AssumeRole" not in actions and "sts:GetCallerIdentity" not in actions
     assert "iam:GenerateCredentialReport" in actions
     assert "iam:GenerateServiceLastAccessedDetails" in actions
-    for action in actions - {"apigateway:GET", "cloudtrail:LookupEvents", "iam:SimulatePrincipalPolicy", "ec2:SearchTransitGatewayRoutes", "iam:GenerateCredentialReport", "iam:GenerateServiceLastAccessedDetails"}:
+    for action in actions - {"apigateway:GET", "cloudtrail:LookupEvents", "iam:SimulatePrincipalPolicy", "ec2:SearchTransitGatewayRoutes", "iam:GenerateCredentialReport", "iam:GenerateServiceLastAccessedDetails", "braket:SearchDevices"}:
         assert action.split(":", 1)[1].startswith(("Get", "List", "Describe", "BatchGet"))
     documents = split_policy(policy)
     assert len(documents) <= IAM_MANAGED_POLICIES_PER_ROLE
@@ -236,6 +236,29 @@ _POST_HISTORICAL_METADATA_READS = {
     ('s3tables', 'list_table_buckets'),
     ('s3vectors', 'list_vector_buckets'),
     ('securityhub', 'get_finding_history'),
+    ('amplify', 'list_branches'),
+    ('appstream', 'describe_app_block_builder_app_block_associations'),
+    ('appstream', 'describe_app_blocks'), ('appstream', 'describe_images'),
+    ('appstream', 'list_associated_stacks'),
+    ('athena', 'get_session'), ('athena', 'list_sessions'),
+    ('batch', 'describe_job_queues'), ('braket', 'search_devices'),
+    ('cloudformation', 'describe_organizations_access'),
+    ('deadline', 'get_queue'), ('deadline', 'list_queues'), ('deadline', 'list_workers'),
+    ('devicefarm', 'get_device_pool_compatibility'), ('devicefarm', 'list_device_pools'),
+    ('devicefarm', 'list_uploads'),
+    ('gamelift', 'describe_fleet_attributes'), ('gamelift', 'list_compute'),
+    ('gamelift', 'list_fleets'),
+    ('gameliftstreams', 'list_stream_groups'), ('gameliftstreams', 'list_stream_sessions'),
+    ('glue', 'get_triggers'), ('glue', 'list_sessions'),
+    ('grafana', 'list_workspace_service_accounts'),
+    ('iam', 'list_ssh_public_keys'),
+    ('iot', 'describe_role_alias'), ('iot', 'list_role_aliases'),
+    ('lambda-microvms', 'list_microvm_images'),
+    ('quicksight', 'describe_account_subscription'),
+    ('sagemaker', 'describe_space'), ('sagemaker', 'list_apps'),
+    ('sagemaker', 'list_notebook_instance_lifecycle_configs'),
+    ('sagemaker', 'list_spaces'), ('sagemaker', 'list_studio_lifecycle_configs'),
+    ('ssm', 'describe_maintenance_window_tasks'), ('ssm', 'describe_maintenance_windows'),
 }
 
 # Resource-policy discovery extends the live input universe. These historical

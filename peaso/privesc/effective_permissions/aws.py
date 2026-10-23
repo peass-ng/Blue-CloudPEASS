@@ -2736,7 +2736,7 @@ class AwsModel(Model):
             return [self.eks_entity(arn) for arn in sorted(self.eks)]
         return []
 
-    def _credential_fact_bound(self, technique, scope, fact):
+    def _credential_fact_bound(self, technique, scope, fact, *, require_active=True):
         """Check the identity/resource join before a credential record can name a principal target."""
         service, actions = _EXACT_USER_CREDENTIAL_ACTIONS[technique]
         scope_parts = str(scope).split("/")
@@ -2768,11 +2768,58 @@ class AwsModel(Model):
                         f"{resource_parts[5].removeprefix('project/')}")
             if not isinstance(build, str) or re.fullmatch(re.escape(expected) + r":[A-Za-z0-9-]+", build) is None:
                 return False
-        return (fact.get("TargetKind") == "aws_user"
-                and fact.get("CredentialSubjectArn") == target
-                and fact.get("CredentialKind") == "aws_iam_user_access_key"
-                and fact.get("TargetAccount") == account
-                and isinstance(action, str) and action.lower() in actions)
+        subject_bound = (fact.get("TargetKind") == "aws_user"
+                         and fact.get("CredentialSubjectArn") == target
+                         and fact.get("CredentialKind") == "aws_iam_user_access_key"
+                         and fact.get("TargetAccount") == account
+                         and isinstance(action, str) and action.lower() in actions)
+        if not subject_bound or not require_active:
+            return subject_bound
+        # A successful historical authentication does not establish that the
+        # same key still belongs to this user and remains active in this
+        # inventory. The collector stores key fingerprints, not raw key IDs.
+        fingerprint = fact.get("CredentialAccessKeyFingerprint")
+        if not isinstance(fingerprint, str) or re.fullmatch(r"[0-9a-f]{64}", fingerprint) is None:
+            return False
+        users = [row for user_scope, row in items(self.snapshot, "iam_user")
+                 if user_scope.split("/")[0] == account and row.get("Arn") == target]
+        if len(users) != 1:
+            return False
+        # GetAccountAuthorizationDetails and the separate ListAccessKeys
+        # collection are independent complete sources for the current key
+        # state. Either can bind the reviewed authentication to this user, but
+        # a contradictory recorded state must not authenticate a different key.
+        key_sources = []
+        nested = users[0].get("AccessKeys")
+        if isinstance(nested, dict):
+            key_sources.append((nested.get("collection_status"), as_list(nested.get("items"))))
+        global_scope = f"{account}/global"
+        global_status = inventory_status(self.snapshot, "iam_access_key").get(global_scope)
+        if global_status is not None:
+            global_keys = [row for key_scope, row in items(self.snapshot, "iam_access_key")
+                           if key_scope == global_scope and row.get("UserArn") == target]
+            key_sources.append((global_status, global_keys))
+        complete = False
+        for status, rows in key_sources:
+            matching = [key for key in rows if isinstance(key, dict)
+                        and key.get("AccessKeyFingerprint") == fingerprint]
+            if len(matching) > 1 or any(key.get("Status") != "Active" for key in matching):
+                return False
+            if status in ("collected", "empty"):
+                complete = True
+                if len(matching) != 1:
+                    return False
+        if not complete:
+            return False
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(fact["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        return True
 
     def _sqs_self_grants(self):
         cached = self.__dict__.get("_sqs_self_grant_cache")
@@ -2836,7 +2883,7 @@ class AwsModel(Model):
             return [self.principals[target] for (tid, _, fact_kind, target), records
                     in self.credential_evidence.items()
                     if tid == technique and fact_kind == kind and target in self.principals
-                    and any(self._credential_fact_bound(tid, scope, item)
+                    and any(self._credential_fact_bound(tid, scope, item, require_active=False)
                             for scope, item in records)]
         if kind == "aws_verified_authority":
             technique = selector.get("aws_challenge_fact")
@@ -3125,6 +3172,47 @@ class AwsModel(Model):
                 allowed = True
         return False if denied else None if unknown else allowed
 
+    def _ecs_task_role_trust_for_region(self, rid, partition, region):
+        """Prove only ECS SourceArn conditions that cover every task in this account and Region."""
+        account = self.principals[rid].scope
+        broad_source = f"arn:{partition}:ecs:{region}:{account}:*"
+        task_arn = f"arn:{partition}:ecs:{region}:{account}:task/PeasoPrivesc/00000000000000000000000000000000"
+        ctx = Context(action="sts:assumerole", resource=rid, overrides={
+            "aws:sourcearn": [task_arn], "aws:sourceaccount": [account], "aws:sourceowner": [account]})
+        allowed, denied, unknown = False, False, False
+        for st in self.trust.get(rid, ()):
+            if not st.action_matches("sts:AssumeRole"):
+                continue
+            principal = st.principals
+            matches = principal == "*" or isinstance(principal, dict) and any(
+                str(name).lower() in ("*", "ecs-tasks.amazonaws.com")
+                for name in as_list(principal.get("Service")))
+            if st.ref.get("not_principal"):
+                unknown = True
+                continue
+            if not matches:
+                continue
+            source_conditions = [(operator, value) for operator, fields in st.condition.items()
+                                 if isinstance(fields, dict) for key, value in fields.items()
+                                 if str(key).lower() == "aws:sourcearn"] if isinstance(st.condition, dict) else []
+            if source_conditions and any(
+                    str(operator).lower() not in ("arnlike", "stringlike") or
+                    not as_list(value) or any(str(pattern) not in (broad_source, "*")
+                                              for pattern in as_list(value))
+                    for operator, value in source_conditions):
+                unknown = True
+                continue
+            verdict, _ = evaluate_condition(st.condition, ctx) if st.condition else (True, ())
+            if verdict is False:
+                continue
+            if verdict is None or st.variables:
+                unknown = True
+            elif st.effect == "deny":
+                denied = True
+            elif st.effect == "allow":
+                allowed = True
+        return False if denied else None if unknown else allowed
+
     def _trust_verdict(self, source, rid, value, action="sts:assumerole", extra_overrides=None):
         """Best applicable Allow for this IAM principal, including duplicate trust statements."""
         best = None
@@ -3256,7 +3344,12 @@ class AwsModel(Model):
                     if len(records) != 1:
                         continue
                     scope, fact = records[0]
-                    if statuses.get(scope) != "collected" or not self._credential_fact_bound(value, scope, fact):
+                    if statuses.get(scope) != "collected":
+                        out[candidate_id] = ("unknown", "credential_evidence_collection_incomplete")
+                        continue
+                    if not self._credential_fact_bound(value, scope, fact):
+                        if fact.get("Status") != "disproven":
+                            out[candidate_id] = ("unknown", "active_credential_key_or_witness_not_verified")
                         continue
                     if fact.get("Status") == "disproven":
                         continue
@@ -10399,6 +10492,48 @@ class AwsModel(Model):
             return ("conditional", "flink_existing_studio_role_session")
         return ("unknown", "flink_existing_studio_role_session_not_verified") if uncertain else None
 
+    def _flink_existing_streaming_inline_code_update(self, source, target):
+        """Join an updateable running streaming application to its recorded role."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "flink_application").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "flink_application_inventory_not_collected")
+        uncertain = bool(source.incomplete or target.incomplete or
+                         any(status not in ("collected", "empty") for status in statuses.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, app in items(self.snapshot, "flink_application"):
+            if statuses.get(scope) != "collected" or not isinstance(app, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, arn = app.get("ApplicationName"), app.get("ApplicationARN")
+            if (not isinstance(name, str) or
+                    arn != f"arn:{partition}:kinesisanalytics:{region}:{source.scope}:application/{name}"):
+                uncertain = True
+                continue
+            if app.get("ServiceExecutionRole") != target.id:
+                continue
+            if app.get("ApplicationMode") != "STREAMING" or app.get("ApplicationStatus") != "RUNNING":
+                continue
+            version = app.get("ApplicationVersionId")
+            token = app.get("ConditionalToken")
+            if not (isinstance(version, int) and version >= 1) and not (isinstance(token, str) and token):
+                uncertain = True
+                continue
+            trust = self._service_trust_for_source_arn(target.id, "kinesisanalytics.amazonaws.com", arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            grant = self._check_action(source, "kinesisanalytics:updateapplication", arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived":
+                uncertain = True
+                continue
+            return ("conditional", "flink_existing_streaming_inline_code_update")
+        return ("unknown", "flink_existing_streaming_inline_code_update_not_verified") if uncertain else None
+
     def _gameliftstreams_admin_shell(self, source, target):
         statuses = {scope: status for scope, status in
                     inventory_status(self.snapshot, "gameliftstreams_stream_session").items()
@@ -10688,33 +10823,166 @@ class AwsModel(Model):
             return None
         return ("conditional", "glue_exact_executed_job_role_effect")
 
-    def _glue_writable_script_witness(self, source, role, job_status):
-        """Find a recorded script object the caller can replace and the role can read."""
+    def _glue_script_bucket_ready(self, account, name):
+        """A known account bucket whose default encryption needs no unproved KMS grant."""
+        scope = f"{account}/global"
+        if inventory_status(self.snapshot, "bucket").get(scope) != "collected":
+            return False
+        buckets = [bucket for bucket_scope, bucket in items(self.snapshot, "bucket")
+                   if bucket_scope == scope and bucket.get("Name") == name]
+        if len(buckets) != 1:
+            return False
+        encryption = buckets[0].get("Encryption")
+        if not isinstance(encryption, dict):
+            return False
+        if encryption.get("collection_status") == "absent":
+            return True
+        if encryption.get("collection_status") != "collected":
+            return False
+        configuration = encryption.get("ServerSideEncryptionConfiguration")
+        rules = configuration.get("Rules") if isinstance(configuration, dict) else None
+        return bool(isinstance(rules, list) and rules and all(
+            isinstance(rule, dict) and isinstance(rule.get("ApplyServerSideEncryptionByDefault"), dict)
+            and rule["ApplyServerSideEncryptionByDefault"].get("SSEAlgorithm") == "AES256"
+            for rule in rules))
+
+    def _glue_writable_script_witness(self, source, role):
+        """Find one concrete script object the caller can choose and the role can read."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
-        unresolved = False
-        for scope, job in items(self.snapshot, "glue_job"):
-            if (not scope.startswith(source.scope + "/") or job_status.get(scope) != "collected"
-                    or not isinstance(job, dict)):
+        writes, _ = self._statements(source, "s3:putobject")
+        reads, _ = self._statements(role, "s3:getobject")
+        prefix = f"arn:{partition}:s3:::"
+        token = "peaso-glue-script-" + hashlib.sha256((source.id + role.id).encode()).hexdigest()[:12] + ".py"
+        write_patterns = [pattern for statement in writes if not statement.notresource and not statement.variables
+                          for pattern in statement.resources if isinstance(pattern, str)]
+        read_patterns = [pattern for statement in reads if not statement.notresource and not statement.variables
+                         for pattern in statement.resources if isinstance(pattern, str)]
+        unresolved = len(write_patterns) > 40 or len(read_patterns) > 40
+        write_patterns, read_patterns = write_patterns[:40], read_patterns[:40]
+        if inventory_status(self.snapshot, "bucket").get(f"{source.scope}/global") != "collected":
+            return False, True
+        for bucket_scope, bucket in items(self.snapshot, "bucket"):
+            if bucket_scope != f"{source.scope}/global" or not isinstance(bucket.get("Name"), str):
                 continue
-            command = job.get("Command")
-            script = command.get("ScriptLocation") if isinstance(command, dict) else None
-            if not isinstance(script, str):
+            name = bucket["Name"]
+            if not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", name):
+                unresolved = True
                 continue
-            parsed = urlsplit(script)
-            if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
-                    or not parsed.path.startswith("/") or parsed.path == "/"
-                    or parsed.query or parsed.fragment or "%" in parsed.path
-                    or any(ord(char) < 32 for char in script)):
+            if not self._glue_script_bucket_ready(source.scope, name):
+                unresolved = True
                 continue
-            object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
-            put = self.check(source, {"action": "s3:PutObject"}, object_arn)
-            read = self.check(role, {"action": "s3:GetObject"}, object_arn)
-            if put is None or read is None:
-                continue
-            if put.confidence == read.confidence == "derived":
-                return True, False
-            unresolved = True
+            object_prefix = prefix + name + "/"
+            candidates = {object_prefix + token}
+            for pattern in (write_patterns + read_patterns + [
+                    _unify_arn(left, right) for left in write_patterns for right in read_patterns
+                    if left.startswith("arn:") and right.startswith("arn:")]):
+                if not isinstance(pattern, str) or pattern == "*":
+                    continue
+                unified = _unify_arn(pattern, object_prefix + "*")
+                if unified and unified.startswith(object_prefix):
+                    candidates.add(unified.replace("*", token).replace("?", "x"))
+            for object_arn in sorted(candidates)[:100]:
+                key = object_arn[len(object_prefix):]
+                if (not object_arn.startswith(object_prefix) or not key or key.endswith("/")
+                        or "%" in key or any(ord(char) < 32 for char in key)):
+                    continue
+                put = self.check(source, {"action": "s3:PutObject"}, object_arn)
+                read = self.check(role, {"action": "s3:GetObject"}, object_arn)
+                if put is None or read is None:
+                    continue
+                if put.confidence == read.confidence == "derived":
+                    return True, False
+                unresolved = True
         return False, unresolved
+
+    def _iam_new_role_cross_account_trust(self, source, target):
+        """Join one creatable role ARN to collected cross-account PrincipalArn trust."""
+        if source.scope == target.scope:
+            return None
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else ""
+        if not target.id.startswith(f"arn:{partition}:iam::{target.scope}:role/"):
+            return None
+        if source.incomplete or target.incomplete:
+            return ("unknown", "cross_account_principal_policy_or_trust_incomplete")
+        roles = inventory_status(self.snapshot, "iam_role")
+        if not self._collected(roles, source.scope) or not self._collected(roles, target.scope):
+            return ("unknown", "cross_account_role_inventory_not_complete")
+        summary = self.iam_account_quotas.get(source.scope, {})
+        used, quota = summary.get("Roles"), summary.get("RolesQuota")
+        if isinstance(used, int) and isinstance(quota, int) and quota > 0 and used >= quota:
+            return ("unknown", "new_role_quota_exhausted")
+        existing_names = {node.id.rsplit("/", 1)[-1].casefold() for node in self.principals.values()
+                          if node.kind == "aws_role" and node.scope == source.scope}
+        prefix = f"arn:{partition}:iam::{source.scope}:role/"
+        unresolved = False
+        if any(statement.effect == "deny" and statement.ref.get("not_principal")
+               and statement.action_matches("sts:AssumeRole") for statement in self.trust.get(target.id, ())):
+            return ("unknown", "cross_account_notprincipal_deny_not_resolved")
+        for statement in self.trust.get(target.id, ()):
+            if (statement.effect != "allow" or statement.ref.get("not_principal")
+                    or not statement.action_matches("sts:AssumeRole")):
+                continue
+            principal = statement.principals
+            aws = [str(value) for value in as_list(principal.get("AWS"))] if isinstance(principal, dict) else []
+            delegated = (principal == "*" or any(value in (
+                "*", source.scope, f"arn:{partition}:iam::{source.scope}:root") for value in aws))
+            if not delegated or not isinstance(statement.condition, dict):
+                continue
+            patterns = []
+            for operator, clauses in statement.condition.items():
+                if str(operator).lower() not in ("arnequals", "arnlike", "stringequals", "stringlike"):
+                    continue
+                if not isinstance(clauses, dict):
+                    unresolved = True
+                    continue
+                for key, values in clauses.items():
+                    if str(key).lower() == "aws:principalarn":
+                        patterns.extend(str(value) for value in as_list(values) if isinstance(value, str))
+            for pattern in patterns[:40]:
+                wildcard_account = f"arn:{partition}:iam::*:role/"
+                if pattern.startswith(wildcard_account):
+                    pattern = prefix + pattern[len(wildcard_account):]
+                if not pattern.startswith(prefix) or "${" in pattern:
+                    continue
+                for number in range(len(existing_names) + 2 if "*" in pattern or "?" in pattern else 1):
+                    role_arn = pattern.replace("*", f"PeasoCrossAccount{number}").replace("?", "x")
+                    path_name = role_arn[len(prefix):]
+                    path, _, name = path_name.rpartition("/")
+                    name = name if path else path_name
+                    if (not re.fullmatch(r"[A-Za-z0-9_+=,.@-]{1,64}", name)
+                            or path and (len(path) > 510 or not re.fullmatch(r"[!-~]+", path))
+                            or name.casefold() in existing_names):
+                        continue
+                    hypothetical = Node(role_arn, "aws_role", "aws", source.scope, name,
+                                        attrs={"boundary": None, "policy_ids": ()})
+                    context = Context(principal=hypothetical, action="sts:assumerole",
+                                      resource=target.id, org_id=self.org_id)
+                    allowed, _ = evaluate_condition(statement.condition, context)
+                    if allowed is False:
+                        continue
+                    if allowed is not True:
+                        unresolved = True
+                        continue
+                    denied = self._trust_explicit_deny(target.id, "sts:assumerole", source=hypothetical)
+                    if denied is True:
+                        continue
+                    if denied is None:
+                        unresolved = True
+                        continue
+                    create = self.check(source, {"action": "iam:CreateRole", "request_context": {
+                        "iam:PermissionsBoundary": {"absent": True}}}, role_arn)
+                    put = self.check(source, {"action": "iam:PutRolePolicy"}, role_arn)
+                    assume_new = self._direct_trust_guardrails(
+                        source, hypothetical, Grant("derived", []))
+                    assume_target = self._guardrails(hypothetical, "sts:assumerole", target.id,
+                                                     Grant("derived", []), context)
+                    if any(grant is None for grant in (create, put, assume_new, assume_target)):
+                        continue
+                    if all(grant.confidence == "derived" for grant in
+                           (create, put, assume_new, assume_target)):
+                        return ("conditional", "new_role_matches_cross_account_trust")
+                    unresolved = True
+        return ("unknown", "new_role_cross_account_join_not_verified") if unresolved else None
 
     def precondition(self, pid, candidates, source):
         # These paths require a recorded running resource. When no collection
@@ -10747,6 +11015,11 @@ class AwsModel(Model):
             kind, reason = deadline_inventory
             if not inventory_status(self.snapshot, kind):
                 return UniformVerdict(candidates, ("unknown", reason), exclude=source.id)
+        if pid == "iam_new_role_cross_account_trust":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._iam_new_role_cross_account_trust(source, target)) is not None}
         if pid == "glue_new_public_dev_endpoint_role":
             if source is None:
                 return None
@@ -12010,6 +12283,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, target in candidates.items()
                     if (verdict := self._flink_existing_studio_role_session(source, target)) is not None}
+        if pid == "flink_existing_streaming_inline_code_update":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._flink_existing_streaming_inline_code_update(source, target)) is not None}
         if pid == "flink_new_application_startable":
             if source is None:
                 return None
@@ -12280,6 +12558,7 @@ class AwsModel(Model):
                     out[tid] = pending
             return out
         if pid in ("grafana_api_key_workspace_eligible", "grafana_service_account_workspace_eligible",
+                   "grafana_existing_admin_service_account_token_ready",
                    "grafana_saml_workspace_active"):
             if source is None:
                 return None
@@ -12295,6 +12574,40 @@ class AwsModel(Model):
                         out[tid] = ("unknown", "grafana_workspace_status_not_collected")
                     elif str(row["status"]).upper() == "ACTIVE":
                         out[tid] = None
+                    continue
+                if pid == "grafana_existing_admin_service_account_token_ready":
+                    version = re.match(r"^(\d+)(?:\.|$)", str(row.get("grafanaVersion") or ""))
+                    if row.get("status") is None or version is None:
+                        out[tid] = ("unknown", "grafana_workspace_status_or_version_not_collected")
+                        continue
+                    if str(row["status"]).upper() != "ACTIVE" or int(version.group(1)) < 9:
+                        continue
+                    accounts = row.get("ServiceAccounts")
+                    if not isinstance(accounts, dict) or accounts.get("collection_status") not in ("collected", "empty"):
+                        out[tid] = ("unknown", "grafana_service_accounts_not_collected")
+                        continue
+                    summaries = accounts.get("items")
+                    if not isinstance(summaries, list):
+                        out[tid] = ("unknown", "grafana_service_accounts_malformed")
+                        continue
+                    uncertain = False
+                    for account in summaries:
+                        if not isinstance(account, dict) or not isinstance(account.get("id"), str) or not account["id"]:
+                            uncertain = True
+                            continue
+                        if account.get("grafanaRole") != "ADMIN":
+                            if account.get("grafanaRole") is None:
+                                uncertain = True
+                            continue
+                        disabled = account.get("isDisabled")
+                        if disabled is False or disabled == "false":
+                            out[tid] = None
+                            break
+                        if disabled is None or (disabled is not True and disabled != "true"):
+                            uncertain = True
+                    else:
+                        if uncertain:
+                            out[tid] = ("unknown", "grafana_service_account_role_or_state_unclear")
                     continue
                 version = re.match(r"^(\d+)(?:\.|$)", str(row.get("grafanaVersion") or ""))
                 if row.get("status") is None or version is None:
@@ -12463,6 +12776,8 @@ class AwsModel(Model):
                                 self.check(source, {"action": "iam:PassRole", "request_context": {
                                     "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
                                     "iam:AssociatedResourceArn": arn}}, tid),
+                                self.check(source, {"action": "bedrock-agentcore:CreateAgentRuntimeEndpoint",
+                                                    "request_context": {"aws:RequestedRegion": region}}, arn),
                                 self.check(source, {"action": invoke}, arn),
                                 self.check(source, {"action": invoke}, endpoint),
                             ))
@@ -13448,6 +13763,117 @@ class AwsModel(Model):
                 if tid not in out and unresolved:
                     out[tid] = ("unknown", "sagemaker_studio_profile_lcc_or_app_not_verified")
             return out
+        if pid == "sagemaker_studio_shared_space_lcc_route":
+            if source is None:
+                return None
+            space_status = inventory_status(self.snapshot, "sagemaker_space")
+            domain_status = inventory_status(self.snapshot, "sagemaker_domain")
+            app_status = inventory_status(self.snapshot, "sagemaker_app")
+            config_status = inventory_status(self.snapshot, "sagemaker_studio_lifecycle_config")
+            spaces = {row.get("SpaceArn"): (scope, row)
+                      for scope, row in items(self.snapshot, "sagemaker_space")
+                      if isinstance(row, dict) and isinstance(row.get("SpaceArn"), str)}
+            domains = {(scope, row.get("DomainId")): row
+                       for scope, row in items(self.snapshot, "sagemaker_domain")
+                       if isinstance(row, dict) and isinstance(row.get("DomainId"), str)}
+            apps = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_app")]
+            configs = {}
+            malformed = set()
+            for scope, row in items(self.snapshot, "sagemaker_studio_lifecycle_config"):
+                name = row.get("StudioLifecycleConfigName")
+                if not name and isinstance(row.get("StudioLifecycleConfigArn"), str):
+                    name = row["StudioLifecycleConfigArn"].rsplit("/", 1)[-1]
+                if isinstance(name, str) and name:
+                    configs.setdefault(scope, set()).add(name)
+                else:
+                    malformed.add(scope)
+            allows, _ = self._statements(source, "sagemaker:createstudiolifecycleconfig")
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                unresolved = bool(source.incomplete or role.incomplete or guardrails_unknown)
+                for space_arn in self.hosts.get(tid, {}).get("sagemaker_space", ()):
+                    pair = spaces.get(space_arn)
+                    if pair is None:
+                        unresolved = True
+                        continue
+                    scope, space = pair
+                    if (space_status.get(scope) not in ("collected", "empty") or
+                            domain_status.get(scope) not in ("collected", "empty") or
+                            app_status.get(scope) not in ("collected", "empty") or
+                            config_status.get(scope) not in ("collected", "empty") or
+                            scope in malformed or guardrails_unknown):
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    partition = space_arn.split(":", 2)[1]
+                    domain_id, space_name = space.get("DomainId"), space.get("SpaceName")
+                    domain = domains.get((scope, domain_id))
+                    app_type = space.get("AppType")
+                    if (not isinstance(domain_id, str) or not isinstance(space_name, str) or
+                            space_arn != f"arn:{partition}:sagemaker:{region}:{source.scope}:space/{domain_id}/{space_name}" or
+                            space.get("ExecutionRole") != tid or space.get("Status") != "InService" or
+                            space.get("SharingType") != "Shared" or app_type not in ("JupyterLab", "CodeEditor") or
+                            not isinstance(domain, dict) or domain.get("Status") != "InService" or
+                            domain.get("AuthMode") != "IAM"):
+                        unresolved = True
+                        continue
+                    if any(app_scope == scope and app.get("DomainId") == domain_id and
+                           app.get("SpaceName") == space_name and app.get("AppType") == app_type
+                           for app_scope, app in apps):
+                        unresolved = True
+                        continue
+                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:studio-lifecycle-config/"
+                    names = {"PeasoStudio" + seed, "PeasoStudio" + seed + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if pattern == "*" or "studio-lifecycle-config/" not in pattern:
+                                continue
+                            suffix = pattern.split("studio-lifecycle-config/", 1)[-1]
+                            for replacement in ("Peaso" + seed, "Peaso" + seed + "A"):
+                                choice = suffix.replace("*", replacement).replace("?", "X")
+                                if valid_name.fullmatch(choice):
+                                    names.add(choice)
+                    for name in sorted(names)[:80]:
+                        if name in configs.get(scope, ()):
+                            unresolved = True
+                            continue
+                        config_arn = prefix + name
+                        create = self.check(source, {"action": "sagemaker:CreateStudioLifecycleConfig",
+                            "request_context": {"aws:RequestedRegion": region}}, config_arn)
+                        if create is None:
+                            continue
+                        context = {"aws:RequestedRegion": region,
+                                   "sagemaker:StudioLifecycleConfigArns": config_arn,
+                                   "sagemaker:SpaceSharingType": "Shared"}
+                        update = self.check(source, {"action": "sagemaker:UpdateSpace",
+                            "request_context": context}, space_arn)
+                        if update is None:
+                            continue
+                        app_arn = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                   f"app/{domain_id}/{space_name}/{app_type}/default")
+                        trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", app_arn)
+                        if trust is not True:
+                            unresolved |= trust is None
+                            continue
+                        launch = self.check(source, {"action": "sagemaker:CreateApp",
+                            "request_context": context}, app_arn)
+                        tags = self.check(source, {"action": "sagemaker:AddTags",
+                            "request_context": context}, app_arn)
+                        if all(grant is not None and grant.confidence == "derived"
+                               for grant in (create, update, launch, tags)):
+                            out[tid] = ("conditional", "sagemaker_shared_space_lcc_app_start_pending")
+                            break
+                        unresolved = True
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_shared_space_lcc_or_app_not_verified")
+            return out
         if pid in ("sagemaker_processing_inline_entrypoint_route",
                    "sagemaker_training_inline_entrypoint_route"):
             if source is None:
@@ -13979,6 +14405,46 @@ class AwsModel(Model):
                         uncertain = True
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "sagemaker_studio_profile_domain_access_not_verified")
+            return out
+        if pid == "synthetics_existing_canary_dry_run_code":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "synthetics_canary")
+            if not statuses:
+                return {tid: ("unknown", "synthetics_canary_inventory_not_collected") for tid in candidates}
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete or
+                                 any(state not in ("collected", "empty") for state in statuses.values()))
+                for scope, canary in items(self.snapshot, "synthetics_canary"):
+                    if (statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/") or
+                            not isinstance(canary, dict) or canary.get("ExecutionRoleArn") != target.id):
+                        continue
+                    account, region = scope.split("/", 1)
+                    name = canary.get("Name")
+                    if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,255}", name):
+                        uncertain = True
+                        continue
+                    runtime = canary.get("RuntimeVersion")
+                    match = re.fullmatch(r"syn-(nodejs-puppeteer|nodejs-playwright|python-selenium|nodejs)-(\d+)\.(\d+)",
+                                         runtime) if isinstance(runtime, str) else None
+                    if not match:
+                        uncertain = True
+                        continue
+                    family, major, minor = match.group(1), int(match.group(2)), int(match.group(3))
+                    minimum = {"nodejs-puppeteer": (10, 0), "nodejs-playwright": (2, 0),
+                               "python-selenium": (5, 1), "nodejs": (3, 0)}[family]
+                    if (major, minor) < minimum:
+                        continue
+                    partition = target.id.split(":", 2)[1]
+                    canary_arn = f"arn:{partition}:synthetics:{region}:{account}:canary:{name}"
+                    grant = self._check_action(source, "synthetics:startcanarydryrun", canary_arn)
+                    if grant is not None and grant.confidence == "derived":
+                        out[tid] = ("conditional", "synthetics_existing_canary_inline_code_dry_run")
+                        break
+                    uncertain = uncertain or grant is not None
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "synthetics_existing_canary_dry_run_not_verified")
             return out
         if pid == "sfn_existing_state_machine_update_and_start":
             if source is None:
@@ -14542,7 +15008,7 @@ class AwsModel(Model):
             job_status = inventory_status(self.snapshot, "glue_job")
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             for tid, target in candidates.items():
-                witness, witness_uncertain = self._glue_writable_script_witness(source, target, job_status)
+                witness, witness_uncertain = self._glue_writable_script_witness(source, target)
                 uncertain = witness_uncertain or bool(source.incomplete or target.incomplete)
                 for job_arn in self.hosts.get(target.id, {}).get("glue_job", ()):
                     parts = job_arn.split(":", 5)
@@ -14698,7 +15164,7 @@ class AwsModel(Model):
                     if passed is None:
                         unresolved = True
                         continue
-                    witness, witness_uncertain = self._glue_writable_script_witness(source, role, job_status)
+                    witness, witness_uncertain = self._glue_writable_script_witness(source, role)
                     if witness and passed.confidence == "derived":
                         out[tid] = ("conditional", "glue_job_change_run_and_script_object_bound")
                         break
@@ -14721,7 +15187,7 @@ class AwsModel(Model):
             trigger_status = inventory_status(self.snapshot, "glue_trigger")
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             for tid, target in candidates.items():
-                witness, witness_uncertain = self._glue_writable_script_witness(source, target, status)
+                witness, witness_uncertain = self._glue_writable_script_witness(source, target)
                 uncertain = witness_uncertain or bool(source.incomplete or target.incomplete)
                 for arn in self.hosts.get(target.id, {}).get("glue_job", ()):
                     parts = arn.split(":", 5)
@@ -14853,6 +15319,9 @@ class AwsModel(Model):
                     put = self.check(source, {"action": "s3:PutObject"}, object_arn)
                     read = self.check(target, {"action": "s3:GetObject"}, object_arn)
                     if put is None or read is None:
+                        continue
+                    if not self._glue_script_bucket_ready(source.scope, parsed.netloc):
+                        uncertain = True
                         continue
                     start = self.check(source, {"action": "glue:StartJobRun"}, job_arn)
                     defaults = job.get("DefaultCodeArguments")
@@ -15815,6 +16284,101 @@ class AwsModel(Model):
                 elif any(state is True for state in states):
                     out[tid] = ("unknown", "lambda_code_signing_function_binding_unclear")
             return out
+        if pid == "iam_user_boundary_admin_gain":
+            if source is None or source.kind != "aws_user":
+                return {}
+            boundary_arn = source.attrs.get("boundary")
+            if not boundary_arn:
+                return {}
+            boundary = self.policies.get(boundary_arn)
+            if boundary is None or source.incomplete:
+                return {tid: ("unknown", "source_boundary_or_identity_policies_not_collected")
+                        for tid in candidates}
+            # An unrestricted boundary cannot be the cause of a missing admin grant.
+            wide_allow = any(
+                st.effect == "allow" and not st.notaction and not st.notresource
+                and not st.conditional and any(a in ("*", "*:*") for a in st.actions)
+                and "*" in st.resources for st in boundary.statements
+            )
+            if wide_allow and not any(st.effect == "deny" for st in boundary.statements):
+                return {}
+            # Delete removes the boundary; Put with AdministratorAccess has the same
+            # effective ceiling. The IAM action is checked separately with its exact
+            # source ARN and requested boundary ARN by the catalog requirement.
+            future = Node(source.id, source.kind, source.provider, source.scope, source.label,
+                          attrs={**source.attrs, "boundary": None},
+                          perm_key=(source.attrs["policy_ids"], None, source.scope),
+                          incomplete=list(source.incomplete))
+            after = self.admin_targets(future)
+            if not after:
+                return {}
+            grant = after[0][1]
+            if grant.confidence == "derived":
+                return dict.fromkeys(candidates)
+            return {tid: ("conditional", "post_boundary_admin_authority_has_conditions")
+                    for tid in candidates}
+        if pid == "iam_role_boundary_admin_gain":
+            if source is None:
+                return None
+            reqs = [r for r in flatten_requirements((self.current_entry or {}).get("requires") or {})
+                    if r.get("action") in ("iam:DeleteRolePermissionsBoundary",
+                                            "iam:PutRolePermissionsBoundary")]
+            roles = ([source.id] if (self.current_selector or {}).get("same_as_source")
+                     else self._assumable(source))
+            unknown = False
+            conditional = False
+            for rid in roles:
+                role = self.principals.get(rid)
+                if role is None or role.kind != "aws_role" or role.scope != source.scope:
+                    continue
+                mutation = None
+                for req in reqs:
+                    mutation = _BEST(mutation, self.cached_check(source, req, rid))
+                if mutation is None:
+                    continue
+                boundary_arn = role.attrs.get("boundary")
+                if not boundary_arn:
+                    continue
+                boundary = self.policies.get(boundary_arn)
+                if boundary is None or role.incomplete:
+                    unknown = True
+                    continue
+                wide_allow = any(
+                    st.effect == "allow" and not st.notaction and not st.notresource
+                    and not st.conditional and any(a in ("*", "*:*") for a in st.actions)
+                    and "*" in st.resources for st in boundary.statements
+                )
+                if wide_allow and not any(st.effect == "deny" for st in boundary.statements):
+                    continue
+                future = Node(role.id, role.kind, role.provider, role.scope, role.label,
+                              attrs={**role.attrs, "boundary": None},
+                              perm_key=(role.attrs["policy_ids"], None, role.scope),
+                              incomplete=list(role.incomplete))
+                after = self.admin_targets(future)
+                if not after:
+                    continue
+                if (self.current_selector or {}).get("same_as_source"):
+                    # An already issued role session keeps its old boundary. A fresh
+                    # session must be obtained before this gain can be used.
+                    conditional = True
+                    continue
+                trust = self._trusting(source).get(rid)
+                assume = self._check_action(source, "sts:assumerole", rid)
+                if assume is None and rid in self.trust_by_arn.get(_norm_arn(source.id), {}):
+                    assume = self._trust_grant(source, role, "sts:assumerole")
+                if (trust is None or assume is None or trust[0] != "derived" or
+                        assume.confidence != "derived" or mutation.confidence != "derived" or
+                        after[0][1].confidence != "derived"):
+                    conditional = True
+                    continue
+                return dict.fromkeys(candidates)
+            if conditional:
+                return {tid: ("conditional", "fresh_role_session_or_policy_conditions")
+                        for tid in candidates}
+            if unknown:
+                return {tid: ("unknown", "role_boundary_or_identity_policies_not_collected")
+                        for tid in candidates}
+            return {}
         if pid == "source_boundary_allows_account_admin":
             if source is None:
                 return None
@@ -16141,6 +16705,116 @@ class AwsModel(Model):
                     out[tid] = None
                 elif self._account_status("ecs_task_definition", node.scope) != "collected":
                     out[tid] = ("unknown", "ecs_task_definition_not_collected")
+            return out
+        if pid == "ecs_new_task_definition_eventbridge_schedule_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            rule_status = inventory_status(self.snapshot, "event_rule")
+            task_status = inventory_status(self.snapshot, "ecs_task_definition")
+            instance_status = inventory_status(self.snapshot, "ecs_container_instance")
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+            roles = [node for node in self.principals.values()
+                     if node.kind == "aws_role" and node.scope == source.scope]
+
+            def every_revision_allowed(principal, action, task_arn):
+                allows, denies = self._statements(principal, action)
+                if denies:
+                    return False
+                future_arn = task_arn.rsplit(":", 1)[0] + ":999999999"
+                return any(not statement.notresource and not statement.variables and
+                           any(isinstance(pattern, str) and (pattern == "*" or pattern.endswith("*")) and
+                               glob_match(pattern, task_arn, False) and
+                               glob_match(pattern, future_arn, False)
+                               for pattern in statement.resources)
+                           for statement in allows)
+
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete or not scopes)
+                for scope in scopes:
+                    account, region = scope.split("/", 1)
+                    if (not self._region_ok("ecs_cluster", account, region) or
+                            rule_status.get(scope) not in ("collected", "empty") or
+                            task_status.get(scope) not in ("collected", "empty") or
+                            instance_status.get(scope) not in ("collected", "empty")):
+                        uncertain = True
+                        continue
+                    seed = hashlib.sha256((source.id + tid + region).encode()).hexdigest()[:16]
+                    family = "PeasoPrivesc" + seed
+                    task_arn = f"arn:{partition}:ecs:{region}:{account}:task-definition/{family}:1"
+                    future_task_arn = task_arn.rsplit(":", 1)[0] + ":999999999"
+                    rule_arn = f"arn:{partition}:events:{region}:{account}:rule/{family}"
+                    if (any(row.get("Arn") == rule_arn for row_scope, row in items(self.snapshot, "event_rule")
+                            if row_scope == scope and isinstance(row, dict)) or
+                            any(str(row.get("taskDefinitionArn", "")).startswith(task_arn.rsplit(":", 1)[0] + ":")
+                                for row_scope, row in items(self.snapshot, "ecs_task_definition")
+                                if row_scope == scope and isinstance(row, dict))):
+                        uncertain = True
+                        continue
+                    if not every_revision_allowed(source, "ecs:registertaskdefinition", task_arn):
+                        uncertain |= bool(self._statements(source, "ecs:registertaskdefinition")[0])
+                        continue
+                    task_trust = self._ecs_task_role_trust_for_region(tid, partition, region)
+                    if task_trust is not True:
+                        uncertain |= task_trust is None
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, task_arn)
+                    future_registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, future_task_arn)
+                    task_pass = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                    put_rule = self.check(source, {"action": "events:PutRule"}, rule_arn)
+                    if any(grant is None for grant in (registration, future_registration, task_pass, put_rule)):
+                        continue
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{account}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or not cluster.get("count"):
+                            uncertain = True
+                            continue
+                        connected = [row for row_scope, row in items(self.snapshot, "ecs_container_instance")
+                                     if row_scope == scope and row.get("clusterArn") == cluster_arn and
+                                     row.get("status") == "ACTIVE" and row.get("agentConnected") is True]
+                        if not connected:
+                            uncertain = True
+                            continue
+                        put_target = self.check(source, {"action": "events:PutTargets",
+                            "request_context": {"events:TargetArn": cluster_arn}}, rule_arn)
+                        if put_target is None:
+                            continue
+                        for invocation in roles:
+                            if invocation.id == tid or invocation.incomplete:
+                                continue
+                            trust = self._service_trust_for_source_arn(invocation.id, "events.amazonaws.com", rule_arn)
+                            if trust is not True:
+                                uncertain |= trust is None
+                                continue
+                            if not every_revision_allowed(invocation, "ecs:runtask", task_arn):
+                                uncertain |= bool(self._statements(invocation, "ecs:runtask")[0])
+                                continue
+                            invocation_pass = self.check(source, {"action": "iam:PassRole",
+                                "request_context": {"iam:PassedToService": "events.amazonaws.com"}}, invocation.id)
+                            run = self.check(invocation, {"action": "ecs:RunTask",
+                                "request_context": {"ecs:cluster": cluster_arn}}, task_arn)
+                            future_run = self.check(invocation, {"action": "ecs:RunTask",
+                                "request_context": {"ecs:cluster": cluster_arn}}, future_task_arn)
+                            role_pass = self.check(invocation, {"action": "iam:PassRole",
+                                "request_context": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                            grants = (registration, future_registration, task_pass, put_rule, put_target,
+                                      invocation_pass, run, future_run, role_pass)
+                            if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                                out[tid] = ("conditional", "ecs_new_task_definition_eventbridge_schedule_ready")
+                                break
+                            if any(grant is not None for grant in (invocation_pass, run, future_run, role_pass)):
+                                uncertain = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_scheduled_task_role_or_invocation_not_verified")
             return out
         if pid in ("ecs_new_task_definition_runtask_ready", "ecs_new_task_definition_starttask_ready"):
             if source is None:

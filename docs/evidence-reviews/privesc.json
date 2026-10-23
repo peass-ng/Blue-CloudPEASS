@@ -1,8 +1,8 @@
 {
-  "catalog_techniques": 676,
+  "catalog_techniques": 685,
   "generated_check_count": 1,
   "by_provider": {
-    "aws": 211,
+    "aws": 220,
     "gcp": 223,
     "azure": 162,
     "k8s": 80
@@ -287,13 +287,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/appstream.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md#appstreamcreateappblockbuilderstreamingurl--take-over-an-existing-app-package-builder",
       "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "613f9438c38387429023cdb0cd426511a2dca0bce6a8e298a2afd4b14e92dde8",
+      "reviewed_contract_sha256": "cd8c70f20c939abe585e973ae89c06cad9e201956414edb147d6edcdad3664af",
       "purpose": "A builder streaming session may expose the app block builder’s recorded machine role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
           {
-            "action": "appstream:CreateAppBlockBuilderStreamingURL"
+            "action": "appstream:CreateAppBlockBuilderStreamingURL",
+            "resource": "arn:{source.partition}:appstream:*:{source.account}:app-block-builder/*"
           }
         ]
       },
@@ -316,13 +317,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/appstream.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md#appstreamcreateimagebuilderstreamingurl--administratorroot-access-to-an-existing-builder",
       "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "ecc95c7e3de40ab92ee61cf50a551509e7f70649ba82123d1bbc5e3b399582de",
+      "reviewed_contract_sha256": "f99a4ee465bf1709afee34fe19dc3d0b94129967f8fb9cf5bd1f84aff814f223",
       "purpose": "An image builder streaming session may expose the builder’s recorded machine role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
           {
-            "action": "appstream:CreateImageBuilderStreamingURL"
+            "action": "appstream:CreateImageBuilderStreamingURL",
+            "resource": "arn:{source.partition}:appstream:*:{source.account}:image-builder/*"
           }
         ]
       },
@@ -345,13 +347,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/appstream.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md#appstreamcreatestreamingurl--enter-an-existing-fleet-under-its-machine-role",
       "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "d488386dd0587ffa242d74ef8fe544237cd72e253bc3a929756628b0e4f9a04b",
+      "reviewed_contract_sha256": "aeb71ea6f86772e772a4f2a004c64983af50aa1f516dbcf069ee582c87e4c7a7",
       "purpose": "A fleet desktop session may expose the fleet’s recorded machine role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
           {
-            "action": "appstream:CreateStreamingURL"
+            "action": "appstream:CreateStreamingURL",
+            "resource": "arn:{source.partition}:appstream:*:{source.account}:fleet/*"
           }
         ]
       },
@@ -897,7 +900,7 @@
       "catalog_file": "peaso/privesc/catalog/aws/bedrock.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-agentcore-privesc/README.md#bedrock-agentcorecreateagentruntime--createagentruntimeendpoint-iampassrole--run-an-attacker-container-as-a-role",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "1f5593b994b88699e77abddde61dc405fb71a5a995807e5bdfca849f7b34c875",
+      "reviewed_contract_sha256": "4b5649e227e35a49985bd48b36d6608d575b062c7fb5d87874222507ce6979ad",
       "purpose": "A controlled AgentCore runtime artifact may execute with the assigned role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -912,6 +915,10 @@
           {
             "action": "bedrock-agentcore:CreateAgentRuntime",
             "resource": "*"
+          },
+          {
+            "action": "bedrock-agentcore:CreateAgentRuntimeEndpoint",
+            "resource": "arn:{source.partition}:bedrock-agentcore:*:{source.account}:runtime/*"
           },
           {
             "action": "bedrock-agentcore:InvokeAgentRuntime",
@@ -942,8 +949,8 @@
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/aws/bedrock.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-agentcore-privesc/README.md#bedrock-agentcorecreatecodeinterpreter--createbrowser-iampassrole--sandbox-actions-with-an-execution-role",
-      "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "74226b7b4a2b104efed62ed35e1dbea3df6d556d074222d9de8ac1dd1b343c0a",
+      "source_revision": "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae",
+      "reviewed_contract_sha256": "e04e01b14d9877fa5f5a83776ec05ef9c3de5880eb05c0a85f5c1390541d3af0",
       "purpose": "Invoking a new Code Interpreter may execute code with its passed Bedrock AgentCore role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -1037,8 +1044,8 @@
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/aws/bedrock.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-agentcore-privesc/README.md#bedrock-agentcoreupdateagentruntime--updategateway-iampassrole--change-an-existing-resources-role",
-      "source_revision": "171e422299",
-      "reviewed_contract_sha256": "fa99ead301d59db7bc1c61746c86503a6c46491c850cbc244c20f9e5b780e081",
+      "source_revision": "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae",
+      "reviewed_contract_sha256": "37cc8c1943b992132f86bdb34debd1bc289144235225da15cf2aac744f25b6b3",
       "purpose": "A controlled AgentCore runtime artifact may execute with the assigned role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -1144,9 +1151,9 @@
       "provider": "aws",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/aws/cloudcontrol.yaml",
-      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudcontrol-privesc/README.md#cloudformationcreateresource-or-updateresource--iampassrole",
-      "source_revision": "171e422299",
-      "reviewed_contract_sha256": "8ff651f3e16fdc64a3a35e1aabd982d8fb261ce1b4e4aa5cd751251f10701492",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudcontrol-privesc/README.md#cloudformationcreateresource--iampassrole",
+      "source_revision": "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae",
+      "reviewed_contract_sha256": "18c0301e35dd7356b015733affdb699134c51ef198fe11d11996d7094b421004",
       "purpose": "Cloud Control may perform chosen resource operations with the passed CloudFormation role.",
       "target_kind": "aws_account_admin",
       "requirement_contract": {
@@ -2855,6 +2862,39 @@
       },
       "review_status": "source_reviewed"
     },
+    "aws-ecs-eventbridge-scheduled-task-role": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/ecs.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#periodic-ecs-task-through-eventbridge",
+      "source_revision": "b587e6bd26",
+      "reviewed_contract_sha256": "f4fe35eb4a848a0285413c928939930e7775eebf2f710951a87acb932a29ff9f",
+      "purpose": "The source can register a task definition with controlled code and use a scheduled EventBridge rule to start it under a stronger task role.",
+      "target_kind": "aws_role",
+      "requirement_contract": {
+        "all_of": [
+          {
+            "action": "iam:PassRole",
+            "resource": "{target.arn}",
+            "request_context": {
+              "iam:PassedToService": "ecs-tasks.amazonaws.com"
+            }
+          }
+        ]
+      },
+      "conditions_retained": [
+        "scheduled_task_execution"
+      ],
+      "blockers_retained": [
+        "scp_or_boundary_deny"
+      ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
     "aws-ecs-executecommand": {
       "provider": "aws",
       "disposition": "rewritten",
@@ -3407,8 +3447,8 @@
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/aws/emr.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-emr-privesc/README.md#elasticmapreducegetclustersessioncredentials--connect-to-a-runtime-role-cluster-endpoint",
-      "source_revision": "171e422299",
-      "reviewed_contract_sha256": "f4d89dd17e2aa904b7c4a27f31945a453a7bb72e67ecbe654a166e526f13d753",
+      "source_revision": "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae",
+      "reviewed_contract_sha256": "886230596ebaed396e63970cfb18007370699b9c49ace34c36262aa34a083387",
       "purpose": "EMR session credentials may enable cluster work as the named runtime role without PassRole.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -3597,6 +3637,39 @@
       },
       "review_status": "source_reviewed"
     },
+    "aws-flink-updateapplication-inline-code-existing-role": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/flink.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md#updateapplication--code-control--application-execution-role",
+      "source_revision": "171e422299",
+      "reviewed_contract_sha256": "e6c0766d2741b3246a8c56d5a4ec583e4362e26c5677d0dbb8ff85ffdbd88317",
+      "purpose": "The source can submit an inline ZIP update to a running streaming application, which restarts with code using its recorded service role.",
+      "target_kind": "aws_role",
+      "requirement_contract": {
+        "all_of": [
+          {
+            "action": "iam:PassRole",
+            "resource": "{target.arn}",
+            "request_context": {
+              "iam:PassedToService": "kinesisanalytics.amazonaws.com"
+            }
+          }
+        ]
+      },
+      "conditions_retained": [
+        "successful_update"
+      ],
+      "blockers_retained": [
+        "scp_or_boundary_deny"
+      ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
     "aws-gamelift-getcomputeaccess-shared-fleet-role": {
       "provider": "aws",
       "disposition": "rewritten",
@@ -3737,7 +3810,7 @@
       "catalog_file": "peaso/privesc/catalog/aws/glue.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md#replace-the-script-of-an-existing-glue-job",
       "source_revision": "f6c5b04636",
-      "reviewed_contract_sha256": "c0dd230746bacadaf81eddee229f30fe8e7c72a88aa6002cc19bb5cd81d3909d",
+      "reviewed_contract_sha256": "64ed72b486ef8852e49fbd09f6b21839cbd1515ed7b36971b301c7e3573b7548",
       "purpose": "A replaced Glue job script may run with the existing job role when the job next runs.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -3797,7 +3870,7 @@
       "catalog_file": "peaso/privesc/catalog/aws/glue.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md#create-or-modify-and-run-a-glue-job",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "69a0846458c40472ce9adf5a886db40c23b32691f74156b103723445e560b3c9",
+      "reviewed_contract_sha256": "e9d2ec5c69f24758cf39faeaca2e1f6cdcd7ddc18beca4cab71876badf60fc49",
       "purpose": "A controlled Glue job script or argument override may run with the job execution role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -3891,7 +3964,7 @@
       "catalog_file": "peaso/privesc/catalog/aws/glue.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md#create-or-modify-and-run-a-glue-job",
       "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "33a9ba713e5ce2c78b1b541627ce560bf78a8f240c18d25017b495198cbc5181",
+      "reviewed_contract_sha256": "6effeab04da40f32cf509ac5a84f635e3bf8e73e74b46ecfafee357d975c7752",
       "purpose": "A controlled Glue job script or argument override may run with the job execution role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -3965,7 +4038,7 @@
       "catalog_file": "peaso/privesc/catalog/aws/glue.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md#create-or-modify-and-run-a-glue-job",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "5e5f261dc34447e15d2cf2225378f49c710fe632b5678392936cfd0baee2179d",
+      "reviewed_contract_sha256": "05cb0dd362429cef42c39dab6e0e12bf3706c182d3f30d5cc8764528e9cfd32d",
       "purpose": "A controlled Glue job script or argument override may run with the job execution role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -4024,13 +4097,44 @@
       },
       "review_status": "source_reviewed"
     },
+    "aws-grafana-existing-admin-serviceaccount-token": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/grafana.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md#createworkspaceserviceaccounttoken--existing-or-attacker-created-service-account",
+      "source_revision": "171e422299",
+      "reviewed_contract_sha256": "5046e83ac0107cc2a8a0bef1e2bbda85b8404969d53eee4fc7f417669b3893e8",
+      "purpose": "The source can obtain Grafana ADMIN API access by minting a token for an enabled ADMIN service account already present in one workspace.",
+      "target_kind": "aws_service_plane_admin",
+      "requirement_contract": {
+        "all_of": [
+          {
+            "action": "grafana:CreateWorkspaceServiceAccountToken",
+            "resource": "{target.resource_arn}"
+          }
+        ]
+      },
+      "conditions_retained": [
+        "existing_admin_account",
+        "workspace_network_access"
+      ],
+      "blockers_retained": [
+        "scp_or_boundary_deny"
+      ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
     "aws-grafana-serviceaccounttoken-admin": {
       "provider": "aws",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/aws/grafana.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md#createworkspaceserviceaccounttoken--existing-or-attacker-created-service-account",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "1dd1ad8b41383536f86cf03726f61269468d7050eaba64c2d6437103e81b67ae",
+      "reviewed_contract_sha256": "b7db5b969234520eacccc838463a2e05063b8ba2ca1e70617670877559a40735",
       "purpose": "A minted Grafana administrator key or service-account token may administer the workspace.",
       "target_kind": "aws_service_plane_admin",
       "requirement_contract": {
@@ -4400,6 +4504,32 @@
       },
       "review_status": "source_reviewed"
     },
+    "aws-iam-createrole-satisfy-cross-account-trust": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/iam.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#path-name-and-arn-conditions",
+      "source_revision": "b587e6bd26",
+      "reviewed_contract_sha256": "af0b69588a8faff1d480c0296e6c9b137a299f7e7eb83f219f0af486bed0d892",
+      "purpose": "The source can create and assume a role whose ARN matches another account's role trust, then grant the new role permission to assume that target.",
+      "target_kind": "aws_role",
+      "requirement_contract": {
+        "all_of": []
+      },
+      "conditions_retained": [
+        "role_creation_and_assumption",
+        "trust_uses_principal_arn"
+      ],
+      "blockers_retained": [
+        "scp_or_boundary_deny"
+      ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
     "aws-iam-createsamlprovider-orphaned-trust": {
       "provider": "aws",
       "disposition": "rewritten",
@@ -4700,6 +4830,82 @@
       },
       "review_status": "source_reviewed"
     },
+    "aws-iam-putrolepermissionsboundary-assumable-admin": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/iam.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputrolepermissionsboundary",
+      "source_revision": "6fb9ac51fd",
+      "reviewed_contract_sha256": "1a715e9d233a72d44d8b6a1e1f34a444b73c27ad17db54a8b0367b584458f617",
+      "purpose": "An existing assumable role has an administrator identity policy limited by its current boundary, and the source can remove or widen that boundary before assuming it.",
+      "target_kind": "aws_account_admin",
+      "requirement_contract": {
+        "any_of": [
+          [
+            {
+              "action": "iam:DeleteRolePermissionsBoundary",
+              "resource": "{source.assumable_role_arn}"
+            }
+          ],
+          [
+            {
+              "action": "iam:PutRolePermissionsBoundary",
+              "resource": "{source.assumable_role_arn}",
+              "request_context": {
+                "iam:PermissionsBoundary": "arn:{source.partition}:iam::aws:policy/AdministratorAccess"
+              }
+            }
+          ]
+        ]
+      },
+      "conditions_retained": [],
+      "blockers_retained": [],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
+    "aws-iam-putrolepermissionsboundary-self-admin": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/iam.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputrolepermissionsboundary",
+      "source_revision": "171e422299",
+      "reviewed_contract_sha256": "fb31a7dab960f2a4eb26d9cc3055f49d14127af45f28661864db951de018ecff",
+      "purpose": "The source role already has an administrator identity policy limited by its current boundary and can remove or widen that boundary.",
+      "target_kind": "aws_account_admin",
+      "requirement_contract": {
+        "any_of": [
+          [
+            {
+              "action": "iam:DeleteRolePermissionsBoundary",
+              "resource": "{source.arn}"
+            }
+          ],
+          [
+            {
+              "action": "iam:PutRolePermissionsBoundary",
+              "resource": "{source.arn}",
+              "request_context": {
+                "iam:PermissionsBoundary": "arn:{source.partition}:iam::aws:policy/AdministratorAccess"
+              }
+            }
+          ]
+        ]
+      },
+      "conditions_retained": [
+        "fresh_session"
+      ],
+      "blockers_retained": [],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
     "aws-iam-putrolepolicy-self": {
       "provider": "aws",
       "disposition": "rewritten",
@@ -4721,6 +4927,45 @@
       "blockers_retained": [
         "scp_or_boundary_deny"
       ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
+    "aws-iam-putuserpermissionsboundary-self-admin": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/iam.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputuserpermissionsboundary",
+      "source_revision": "171e422299",
+      "reviewed_contract_sha256": "ae8f66b6dc2748e3c9bf9186bf27cddaea22a29157c3d93a13d123701ad8f69e",
+      "purpose": "The source IAM user already has an administrator identity policy limited by its current boundary and can remove that boundary or replace it with AdministratorAccess.",
+      "target_kind": "aws_account_admin",
+      "requirement_contract": {
+        "any_of": [
+          [
+            {
+              "action": "iam:DeleteUserPermissionsBoundary",
+              "resource": "{source.arn}"
+            }
+          ],
+          [
+            {
+              "action": "iam:PutUserPermissionsBoundary",
+              "resource": "{source.arn}",
+              "request_context": {
+                "iam:PermissionsBoundary": "arn:{source.partition}:iam::aws:policy/AdministratorAccess"
+              }
+            }
+          ]
+        ]
+      },
+      "conditions_retained": [
+        "existing_identity_grant"
+      ],
+      "blockers_retained": [],
       "status_contract": {
         "FAIL": "derived modeled permissions, not observed execution",
         "MANUAL": "conditional modeled path",
@@ -5971,9 +6216,9 @@
       "provider": "aws",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/aws/organizations.yaml",
-      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-organizations-prinvesc/README.md#organizationscreateaccount--spawn-an-account-you-fully-own-inside-the-victim-org",
-      "source_revision": "171e422299",
-      "reviewed_contract_sha256": "bdd5438407bcd821a5fe2a0c9dace7adf425cc84b3d02c79af7cd245c3b3f95e",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-organizations-prinvesc/README.md#organizationscreateaccount--create-a-member-account-with-a-management-access-role",
+      "source_revision": "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae",
+      "reviewed_contract_sha256": "45d9abd0fd83c71e235c43b1acbd71bc6378b7c520a816036fc7d8209bd92ad4",
       "purpose": "A controlled new member account may satisfy organization-wide trust and assume a target role.",
       "target_kind": "aws_role",
       "requirement_contract": {
@@ -6263,6 +6508,31 @@
       "conditions_retained": [
         "notebook_restart",
         "controlled_configuration"
+      ],
+      "blockers_retained": [
+        "scp_or_boundary_deny"
+      ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
+    "aws-sagemaker-attach-studio-lifecycle-config-shared-space": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/sagemaker.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sagemaker-privesc/README.md#set-lifecycle-configuration-on-sagemaker-studio",
+      "source_revision": "b587e6bd26",
+      "reviewed_contract_sha256": "e5f8d2fd2f23d0f3f898a9164a5bc6992090916486e287f247d0c76495fc3959",
+      "purpose": "The source can attach a new lifecycle configuration to a shared space and start a matching app using its recorded execution role.",
+      "target_kind": "aws_role",
+      "requirement_contract": {
+        "all_of": []
+      },
+      "conditions_retained": [
+        "successful_space_app_start"
       ],
       "blockers_retained": [
         "scp_or_boundary_deny"
@@ -7528,6 +7798,39 @@
         "trust_names_principal_directly",
         "trust_conditions",
         "source_controlled_session_attributes"
+      ],
+      "blockers_retained": [
+        "scp_or_boundary_deny"
+      ],
+      "status_contract": {
+        "FAIL": "derived modeled permissions, not observed execution",
+        "MANUAL": "conditional modeled path",
+        "UNKNOWN": "missing facts or unresolved targets"
+      },
+      "review_status": "source_reviewed"
+    },
+    "aws-synthetics-startcanarydryrun-replacement-code": {
+      "provider": "aws",
+      "disposition": "rewritten",
+      "catalog_file": "peaso/privesc/catalog/aws/synthetics.yaml",
+      "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md#dry-run-replacement-code--passrole",
+      "source_revision": "171e422299",
+      "reviewed_contract_sha256": "2cb15330d6269a399bc45945eb25930cfb6e0b21030fbdfad01f49e652f98abf",
+      "purpose": "The source can supply inline code for an existing canary's dry run, which executes using that canary's recorded role.",
+      "target_kind": "aws_role",
+      "requirement_contract": {
+        "all_of": [
+          {
+            "action": "iam:PassRole",
+            "resource": "{target.arn}",
+            "request_context": {
+              "iam:PassedToService": "synthetics.amazonaws.com"
+            }
+          }
+        ]
+      },
+      "conditions_retained": [
+        "successful_dry_run"
       ],
       "blockers_retained": [
         "scp_or_boundary_deny"

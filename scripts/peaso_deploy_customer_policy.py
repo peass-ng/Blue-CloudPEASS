@@ -22,6 +22,10 @@ VERIFIED_ACTIONS = frozenset(('access-analyzer:ListAnalyzers', 'access-analyzer:
 # Reviewed metadata-only reads: IAM ListPolicies and EMR ListInstances.
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"iam:ListPolicies", "iam:GetPolicyVersion", "elasticmapreduce:ListInstances"}
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"amplify:ListBranches"}
+# The Grafana workspace list is followed by a workspace-scoped, metadata-only
+# service-account list. It exposes role and disabled state, never token values.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_grafana.html
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"grafana:ListWorkspaceServiceAccounts"}
 # Exact queue-to-role binding for the Deadline Cloud privilege-escalation map.
 # https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"deadline:ListQueues", "deadline:GetQueue", "deadline:ListWorkers"}
@@ -253,12 +257,17 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | {SECURITYHUB_HISTORY_METADATA_REFERENCE[0]
 # published 7e template, but the collector's direct READ_ACTIONS tuple is
 # DescribeStacks. Keep that certified supplemental read during regeneration.
 PRESERVED_TEMPLATE_READ_ACTIONS = frozenset({("cloudformation", "list_stacks")})
+# The currently pinned botocore model has no eventbridgev2 client. The collector
+# declares this read so unsupported inventory stays explicit, but no IAM action
+# can make the unavailable SDK request run. Revisit when the runtime ships it.
+UNAVAILABLE_SDK_METADATA_OPERATIONS = frozenset({("eventbridgev2", "list_event_buses")})
 SERVICE_PREFIXES = {'elbv2': 'elasticloadbalancing', 'elb': 'elasticloadbalancing', 'docdb': 'rds', 'neptune': 'rds', 'opensearch': 'es', 's3control': 's3', 'efs': 'elasticfilesystem', 'apigatewayv2': 'apigateway', 'sso-admin': 'sso', 'accessanalyzer': 'access-analyzer', 'emr': 'elasticmapreduce', 'bedrock-agent': 'bedrock', 'sesv2': 'ses', 'stepfunctions': 'states', 'supplychain': 'scn'}
 SERVICE_PREFIXES['resourcegroupstaggingapi'] = 'tag'
 SERVICE_PREFIXES['opensearchserverless'] = 'aoss'
 SERVICE_PREFIXES['cloudhsmv2'] = 'cloudhsm'
 SERVICE_PREFIXES.update(_NATIVE_NETWORK_IAM['prefixes'])
 ACTION_ALIASES = {('s3', 'list_buckets'): 's3:ListAllMyBuckets', ('s3', 'get_public_access_block'): 's3:GetBucketPublicAccessBlock', ('s3', 'get_bucket_encryption'): 's3:GetEncryptionConfiguration', ('s3control', 'get_public_access_block'): 's3:GetAccountPublicAccessBlock', ('s3', 'get_bucket_lifecycle_configuration'): 's3:GetLifecycleConfiguration', ('s3', 'get_object_lock_configuration'): 's3:GetBucketObjectLockConfiguration', ('s3', 'get_bucket_notification_configuration'): 's3:GetBucketNotification', ('s3', 'get_bucket_replication'): 's3:GetReplicationConfiguration', ('s3', 'list_directory_buckets'): 's3express:ListAllMyDirectoryBuckets', ('accessanalyzer', 'list_findings_v2'): 'access-analyzer:ListFindings', ('accessanalyzer', 'get_finding_v2'): 'access-analyzer:GetFinding'}
+ACTION_ALIASES[('lambda-microvms', 'list_microvm_images')] = 'lambda:ListMicrovmImages'
 
 # S3Control's Outposts list uses a distinct IAM service namespace.
 ACTION_ALIASES[('s3', 'list_objects_v2')] = 's3:ListBucket'
@@ -368,7 +377,8 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IAM_REPORT_READ_REFERENCES)
 # Reviewed non-Get/List names that only read or create an access-report job; both are in
 # the AWS managed SecurityAudit policy (iam:GenerateServiceLastAccessedDetails explicitly).
 READ_OPERATION_EXCEPTIONS = frozenset({("cloudtrail", "lookup_events"), ("iam", "generate_service_last_accessed_details"),
-    ("iam", "simulate_principal_policy"), ("ec2", "search_transit_gateway_routes")})
+    ("iam", "simulate_principal_policy"), ("ec2", "search_transit_gateway_routes"),
+    ("braket", "search_devices")})
 
 
 @lru_cache(maxsize=256)
@@ -644,6 +654,25 @@ BRAKET_DEVICE_METADATA_REFERENCE = {
     "braket:SearchDevices": "https://docs.aws.amazon.com/braket/latest/APIReference/API_SearchDevices.html",
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(BRAKET_DEVICE_METADATA_REFERENCE)
+# Metadata reads used by the AWS privilege-escalation graph, each checked
+# against the service's authorization reference before being granted.
+ADDITIONAL_PRIVESC_METADATA_REFERENCES = {
+    **dict.fromkeys({"appstream:DescribeAppBlockBuilderAppBlockAssociations",
+                     "appstream:DescribeAppBlocks", "appstream:DescribeImages",
+                     "appstream:ListAssociatedStacks"},
+        "https://docs.aws.amazon.com/service-authorization/latest/reference/list_appstream.html"),
+    "batch:DescribeJobQueues": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_batch.html",
+    "cloudformation:DescribeOrganizationsAccess": "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeOrganizationsAccess.html",
+    **dict.fromkeys({"glue:GetTriggers", "glue:ListSessions"},
+        "https://docs.aws.amazon.com/service-authorization/latest/reference/list_glue.html"),
+    "iam:ListSSHPublicKeys": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_iam.html",
+    "lambda:ListMicrovmImages": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_lambda.html",
+    "quicksight:DescribeAccountSubscription": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_quicksight.html",
+    "sagemaker:ListApps": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html",
+    **dict.fromkeys({"ssm:DescribeMaintenanceWindowTasks", "ssm:DescribeMaintenanceWindows"},
+        "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ssm.html"),
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(ADDITIONAL_PRIVESC_METADATA_REFERENCES)
 
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,
@@ -657,7 +686,8 @@ def build_policy(read_actions=None, *, include_credential_report_generation=None
     actions = set()
     gateway_paths = set()
     for service, operation in sorted(read_actions):
-        if (service, operation) in UNGRANTED_CREDENTIAL_OPERATIONS | UNGRANTED_CONTENT_OPERATIONS:
+        if (service, operation) in (UNGRANTED_CREDENTIAL_OPERATIONS | UNGRANTED_CONTENT_OPERATIONS |
+                                    UNAVAILABLE_SDK_METADATA_OPERATIONS):
             continue  # Declared collector operation, never a customer-role grant.
         if service == "sts":
             if operation not in {"get_caller_identity", "assume_role"}:

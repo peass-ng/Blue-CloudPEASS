@@ -46,8 +46,8 @@ REVIEWED_SUCCESSORS = {
 
 
 # Preserve the original 12,145 rendered witnesses. This exact successor records
-# reviewed privilege evidence wording and catalog retirements; the native
-# formatter must independently reproduce every successor below.
+# reviewed privilege evidence wording, catalog retirements, and historical
+# source anchors; the native formatter must reproduce every successor below.
 PRIVESC_SUCCESSOR_RAW = (ROOT/'tests/fixtures/evidence_static_privesc_successor_20261022.json.gz').read_bytes()
 assert hashlib.sha256(PRIVESC_SUCCESSOR_RAW).hexdigest() == '8145a980ec06b8f79a484c04daa799df9569fb777f2172c309c87af5d5cdef9e'
 import gzip
@@ -206,7 +206,9 @@ for index,row in changed:
  cold=module.evidence_summary(row['finding'])
  assert cold==successor['current']
  native=original(row['finding'])
- if row['finding']['check_id'] in {'aws-bedrock-agentcore-createcodeinterpreter-passrole',
+ if row['finding']['check_id'] in {'aws-cloudcontrol-passrole-createresource',
+                                  'aws-organizations-createaccount-principalorgid-trust',
+                                  'aws-bedrock-agentcore-createcodeinterpreter-passrole',
                                   'aws-bedrock-agentcore-updateagentruntime-passrole',
                                   'aws-emr-getclustersessioncredentials-runtime-role',
                                   'aws-finspace-passrole-createkxcluster'}:
