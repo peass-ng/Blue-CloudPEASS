@@ -57,10 +57,57 @@ def synthetic_snapshot(provider, workloads=5000, selectors=1000, subnets=300):
                             for i in range(subnets)],
         }
         metadata = {}
+    elif provider == "gcp":
+        scope = "benchmark-project"
+        networks = [f"projects/{scope}/global/networks/network-{i}" for i in range(subnets)]
+        facts = {
+            "network": [{"name": f"network-{i}", "selfLink": name} for i, name in enumerate(networks)],
+            "instance": [{"name": f"vm-{i}", "id": str(i), "status": "RUNNING",
+                          "tags": {"items": ["web"]},
+                          "serviceAccounts": [{"email": f"web@{scope}.iam.gserviceaccount.com"}],
+                          "networkInterfaces": [{"name": "nic0", "network": networks[i % subnets],
+                              "accessConfigs": [{"natIP": f"8.8.{i // 250 % 250}.{i % 250 + 1}"}]}]}
+                         for i in range(workloads)],
+            "firewall": [{"name": f"rule-{i}-{port}", "network": name, "priority": 1000,
+                          "sourceRanges": ["0.0.0.0/0"], "targetTags": ["web"],
+                          "allowed": [{"IPProtocol": "tcp", "ports": [str(port)]}]}
+                         for i, name in enumerate(networks) for port in range(400, 420)],
+            "firewall_policy": [],
+        }
+        metadata = {}
+    elif provider == "azure":
+        scope = "/subscriptions/benchmark"
+        prefix = scope + "/resourceGroups/benchmark/providers/Microsoft.Network"
+        nsg = prefix + "/networkSecurityGroups/shared"
+        subnet = prefix + "/virtualNetworks/shared/subnets/default"
+        facts = {
+            "nsg": [{"id": nsg, "properties": {"securityRules": [
+                {"name": f"allow-{p}", "properties": {"priority": p, "direction": "Inbound", "access": "Allow",
+                 "protocol": "Tcp", "sourceAddressPrefix": "*", "destinationAddressPrefix": "*",
+                 "destinationPortRange": str(p)}} for p in range(400, 420)]}}],
+            "subnet": [{"id": subnet, "properties": {"networkSecurityGroup": {"id": nsg}}}],
+            "nic": [{"id": f"{prefix}/networkInterfaces/nic-{i}", "properties": {"ipConfigurations": [
+                {"id": f"{prefix}/networkInterfaces/nic-{i}/ipConfigurations/ip", "properties": {
+                    "privateIPAddress": f"10.{i // 62500 % 250}.{i // 250 % 250}.{i % 250 + 1}",
+                    "subnet": {"id": subnet}, "loadBalancerBackendAddressPools": [
+                        {"id": f"{prefix}/loadBalancers/lb-{i}/backendAddressPools/pool"}]}}]}}
+                    for i in range(workloads)],
+            "public_ip": [{"id": f"{prefix}/publicIPAddresses/ip-{i}", "properties": {"ipAddress": "20.1.1.1"}}
+                          for i in range(selectors)],
+            "load_balancer": [{"id": f"{prefix}/loadBalancers/lb-{i}", "properties": {
+                "frontendIPConfigurations": [{"id": f"front-{i}", "properties": {
+                    "publicIPAddress": {"id": f"{prefix}/publicIPAddresses/ip-{i}"}}}],
+                "loadBalancingRules": [{"name": f"web-{p}", "properties": {
+                    "frontendIPConfiguration": {"id": f"front-{i}"}, "protocol": "Tcp", "frontendPort": p,
+                    "backendPort": p, "backendAddressPool": {
+                        "id": f"{prefix}/loadBalancers/lb-{i % workloads}/backendAddressPools/pool"}}}
+                    for p in (400, 401, 402, 403)]}} for i in range(selectors)],
+        }
+        metadata = {}
     else:
-        raise ValueError("benchmark provider must be aws or k8s")
+        raise ValueError("benchmark provider must be aws, gcp, azure or k8s")
     return make_snapshot(provider, [scope], [
-        {"type": kind, "scope": scope, "status": "collected", "items": items} for kind, items in facts.items()],
+        {"type": kind, "scope": scope, "status": "collected" if items else "empty", "items": items} for kind, items in facts.items()],
         created_at="2026-01-01T00:00:00+00:00", metadata=metadata)
 
 
@@ -94,7 +141,7 @@ def benchmark(provider="k8s", workloads=5000, selectors=1000, subnets=300):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--provider", choices=("aws", "k8s"), default="k8s")
+    parser.add_argument("--provider", choices=("aws", "gcp", "azure", "k8s"), default="k8s")
     parser.add_argument("--workloads", type=int, default=5000)
     parser.add_argument("--selectors", type=int, default=1000)
     parser.add_argument("--subnets", type=int, default=300)
