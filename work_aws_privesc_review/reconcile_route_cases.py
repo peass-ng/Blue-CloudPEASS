@@ -32,7 +32,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("junit_dir", nargs="?", type=Path)
     parser.add_argument("--junit-file", type=Path,
-                        help="one JUnit from run_partial_route_cases.py")
+                        help="one targeted JUnit file")
     parser.add_argument("--cspm-revision", required=True)
     parser.add_argument("--hacktricks-revision", required=True)
     parser.add_argument("--output", type=Path, required=True)
