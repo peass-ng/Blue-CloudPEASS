@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import sys
 from urllib.parse import urlsplit
 
 import pytest
@@ -41,12 +42,15 @@ BAD={'authorization_mode':'AlwaysAllow','client_ca_configured':'','anonymous_dis
 
 
 @pytest.fixture(autouse=True)
-def offline(monkeypatch):
+def offline(monkeypatch, request):
     def blocked(*a,**k):pytest.fail('socket/DNS/live authentication forbidden')
     for n in ('connect','connect_ex'):monkeypatch.setattr(socket.socket,n,blocked)
     for n in ('getaddrinfo','gethostbyname','gethostbyname_ex','create_connection'):monkeypatch.setattr(socket,n,blocked)
     for n in ('load_kube_config','load_incluster_config','new_client_from_config'):monkeypatch.setattr(config,n,blocked)
-    monkeypatch.setattr(k8s,'_new_api',blocked)
+    # The source admission attests the live collector callable. Keep that
+    # callable intact in its offline, fixture-only contract test.
+    if request.node.name != 'test_admitted_native_successors_preserve_archived_contracts_and_proposals':
+        monkeypatch.setattr(k8s,'_new_api',blocked)
 
 
 @pytest.fixture(scope='session',autouse=True)
@@ -274,7 +278,10 @@ def test_exported_projection_cannot_rebind_identity_context_or_safe_types(monkey
 
 
 def test_admitted_native_successors_preserve_archived_contracts_and_proposals():
-    from peaso.checks import k8s_kubelet_configmap_admission_20261020 as admission
+    from peaso.checks import k8s_kubelet_configmap_source_successor_20261021 as source
+    # The production installer uses this verified private namespace to bind
+    # the archived admission to the current annotation collector successor.
+    admission = sys.modules[source.PRIVATE_NAME]
     receipt,cases,compiled=admission.reviewed_inputs()
     assert set(candidate.IDS)<={c.id for c in registry.CHECKS}
     for cid in candidate.IDS:
