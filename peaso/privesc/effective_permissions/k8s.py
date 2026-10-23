@@ -632,14 +632,20 @@ class K8sModel(ExactEvidenceMixin, Model):
                     if not isinstance(subject, dict):
                         continue
                     skind, sname = subject.get("kind"), subject.get("name")
+                    # A subject without a recognized kind and nonempty name
+                    # cannot identify a usable principal.
+                    if skind not in ("ServiceAccount", "Group", "User") or not isinstance(sname, str) or not sname:
+                        continue
                     if skind == "ServiceAccount":
                         sns = subject.get("namespace") or ns
+                        if not isinstance(sns, str) or not sns:
+                            continue
                         key = f"sa:{sns}:{sname}"
                         self._sa(cluster, sns, sname).attrs["binding_ref"] = True
                     elif skind == "Group":
                         key = f"group:{sname}"
                         self._subject(cluster, "k8s_group", sname)
-                    else:
+                    elif skind == "User":
                         key = f"user:{sname}"
                         if not str(sname).startswith("system:node:"):
                             self._subject(cluster, "k8s_user", sname)
@@ -1444,7 +1450,10 @@ class K8sModel(ExactEvidenceMixin, Model):
     def target_gain_required(self):
         return (self.current_entry or {}).get("id") in {
             "k8s-rbac-impersonate-users", "k8s-rbac-impersonate-groups",
-            "k8s-rbac-impersonate-serviceaccounts"}
+            "k8s-rbac-impersonate-serviceaccounts",
+            "k8s-rbac-csr-kube-apiserver-client-user",
+            "k8s-rbac-csr-kube-apiserver-client-group",
+            "k8s-rbac-csr-kube-apiserver-client-serviceaccount"}
 
     def target_gain(self, source, target):
         if self.target_gain_required():

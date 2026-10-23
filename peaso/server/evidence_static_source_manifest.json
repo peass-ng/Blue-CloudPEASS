@@ -100,7 +100,7 @@
   "peaso/privesc/effective_permissions/gcp_conditions.py": "920f1e011141a7908b3629625532a098066ee5c059f6572062a57d97f9239008",
   "peaso/privesc/effective_permissions/gcp_external_principal.py": "58dcbb686952e19a10fea9fe0603b59d2dc16d540894d71a7ccd7b8ce891262a",
   "peaso/privesc/effective_permissions/gcp_resource_self_grant.py": "e67f4508d9f726c564aa13c00b969478350e30b22ff94f8281a947a6d60de4c0",
-  "peaso/privesc/effective_permissions/k8s.py": "197bd8a8dd3dd7c7b54a71d112ec0052df488f689ee34381f5b00272263f5961",
+  "peaso/privesc/effective_permissions/k8s.py": "2af9bc45ccda5bcc4d59710b195b98b3c1fd918b9db9686980698870e9a6d600",
   "peaso/privesc/effective_permissions/k8s_helm_values_rbac.py": "419c5f845f33d4ec9729893f4fba319cc67b25ddc0714ee90165f9aca2d404d8",
   "peaso/privesc/effective_permissions/k8s_verified_pivots.py": "8cd11c1d1461d3d08bec8675419ab6ab0896f149fb141f77bb54f17aea5334a0",
   "peaso/privesc/effective_permissions/principal_evidence.py": "b75890a975715d4912b5ee39fbde72cd606a5e2aac02726298f8f93c17e2f6d8",

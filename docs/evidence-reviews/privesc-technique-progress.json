@@ -7868,7 +7868,7 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "e05f152fa9f78a371c4f13d5ce9eaa31c7b5e479d2df592663c8cc210ec3b422",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "focused CSR exact-name and target-kind cases",
+      "focused_runtime_test": "tests/test_k8s_rbac_csr_review.py covers exact CSR rights, valid subjects, malformed RBAC subjects, and actual RBAC gain.",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -7876,7 +7876,7 @@
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/",
         "collector_and_evaluator": "CSR create, approval update, exact/domain signer approval, and certificate retrieval must align on a request name. Restricted incompatible names are excluded and unresolved compatible names stay unknown. The new SA route joins CN to a directly RBAC-bound ServiceAccount username and resolved role.",
-        "positive_and_negative_test": "focused CSR exact-name and target-kind cases"
+        "positive_and_negative_test": "Focused CSR tests cover exact request-name joins, valid user/group/ServiceAccount targets, empty or invalid binding subjects, and groups whose rights the source already holds."
       }
     },
     {
@@ -7885,7 +7885,7 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "625bc6615c810bb0a747fb56348f514a1dfe96101507188e9e7797299f3db575",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "focused CSR exact-name and target-kind cases",
+      "focused_runtime_test": "tests/test_k8s_rbac_csr_review.py covers exact CSR rights, valid subjects, malformed RBAC subjects, and actual RBAC gain.",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -7893,7 +7893,7 @@
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/",
         "collector_and_evaluator": "CSR create, approval update, exact/domain signer approval, and certificate retrieval must align on a request name. Restricted incompatible names are excluded and unresolved compatible names stay unknown. The new SA route joins CN to a directly RBAC-bound ServiceAccount username and resolved role.",
-        "positive_and_negative_test": "focused CSR exact-name and target-kind cases"
+        "positive_and_negative_test": "Focused CSR tests cover exact request-name joins, valid user/group/ServiceAccount targets, empty or invalid binding subjects, and groups whose rights the source already holds."
       }
     },
     {
@@ -7902,7 +7902,7 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "aecb916dd0622e1c9521f09a2244c0da501ab93b1745095ca697d118d000c364",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "focused CSR exact-name and target-kind cases",
+      "focused_runtime_test": "tests/test_k8s_rbac_csr_review.py covers exact CSR rights, valid subjects, malformed RBAC subjects, and actual RBAC gain.",
       "checked": true,
       "status": "completed",
       "remaining": null,
@@ -7910,7 +7910,7 @@
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/",
         "collector_and_evaluator": "CSR create, approval update, exact/domain signer approval, and certificate retrieval must align on a request name. Restricted incompatible names are excluded and unresolved compatible names stay unknown. The new SA route joins CN to a directly RBAC-bound ServiceAccount username and resolved role.",
-        "positive_and_negative_test": "focused CSR exact-name and target-kind cases"
+        "positive_and_negative_test": "Focused CSR tests cover exact request-name joins, valid user/group/ServiceAccount targets, empty or invalid binding subjects, and groups whose rights the source already holds."
       }
     },
     {
