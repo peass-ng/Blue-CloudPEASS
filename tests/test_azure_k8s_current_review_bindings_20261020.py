@@ -23,11 +23,23 @@ def test_all_current_azure_k8s_bodies_have_exact_existing_or_erratum_receipts():
     for path, expected in successor['immutable_predecessor_files_sha256'].items():
         assert hashlib.sha256((root/path).read_bytes()).hexdigest()==expected
     assert hashlib.sha256((root/successor['evaluator_source']).read_bytes()).hexdigest()==successor['evaluator_current_sha256']
+    latest_raw=(root/'docs/check-review/azure-k8s-current-binding-successors-20261023.json').read_bytes()
+    assert hashlib.sha256(latest_raw).hexdigest()=='7f807dace99bfd16dc0153072f84f6cc5ce4510a888c6962a4df667779c1f7e3'
+    latest=json.loads(latest_raw)
+    assert latest['schema']=='azure-k8s-current-binding-successors/v1'
+    assert latest['historical_review_sha256']==hashlib.sha256((root/'docs/check-review/azure-k8s-current-predicate-bindings-20261020.json').read_bytes()).hexdigest()
+    assert len(latest['records'])==15
+    for updated in latest['records'].values():
+        assert hashlib.sha256((root/updated['current_source']).read_bytes()).hexdigest()==updated['current_source_file_sha256']
     err=json.loads((root/audit['current_master_attestation_errata']).read_text())
     rows={r['id']:r for r in audit['checks']};fixes={r['id']:r for r in err['records']}
     current={c.id:c for c in CHECKS if c.provider in ('azure','k8s')}
     added='azure.review.function.selected_package_source_secret_indicators'
-    assert current.keys()-{added}==rows.keys() and len(rows)==2017
+    # This receipt covers its original 2017 bodies. Later checks are outside
+    # that historical set; the retired AKS check is no longer active.
+    assert len(rows)==2017
+    assert rows.keys()-current.keys()=={'azure.claude.aks_authorized_ip_ranges'}
+    assert set(latest['records']) <= rows.keys() & current.keys()
     new=current[added]
     assert new.provider=='azure' and new.kind=='azure_function_package_portable_20261020'
     master,=[r for r in csv.DictReader((root/'docs/check-review/checks.csv').open()) if r['check_id']==added]
@@ -35,16 +47,28 @@ def test_all_current_azure_k8s_bodies_have_exact_existing_or_erratum_receipts():
     assert master['current_goal_status'] in {'native_integration_final_gate_pending','accepted_local_bounded_native_review'}
     assert master['current_bound_predicate_sha256']==hashlib.sha256(inspect.getsource(function).encode()).hexdigest()
     assert master['source_sha256']==hashlib.sha256((root/master['source']).read_bytes()).hexdigest()
-    current={cid:c for cid,c in current.items()if cid!=added}
+    current={cid:c for cid,c in current.items()if cid in rows}
     assert set(fixes)==set(audit['master_attestation_mismatches']) and len(fixes)==26
     assert not audit['current_unresolved_reviewed_bindings'] and not err['unresolved_ids']
+    bodies={}
     for cid,check in current.items():
-        row=rows[cid];fn=next(f for f in _bound_functions(check.evaluate)
-                             if str(Path(inspect.getsourcefile(f)).relative_to(root))==row['current_source']
+        row=rows[cid]
+        updated=latest['records'].get(cid)
+        expected_source=updated['current_source'] if updated else row['current_source']
+        expected_body=(updated['current_body_sha256'] if updated else
+                       successor['records'][cid]['current_body_sha256'] if cid in successor['records'] else
+                       row['current_body_sha256'])
+        fn=next((f for f in _bound_functions(check.evaluate)
+                             if str(Path(inspect.getsourcefile(f)).relative_to(root))==expected_source
                              and hashlib.sha256(inspect.getsource(f).encode()).hexdigest()==(
-                                 successor['records'][cid]['current_body_sha256'] if cid in successor['records']
-                                 else row['current_body_sha256']))
+                                 expected_body)), None)
+        bodies[cid]=fn
+    assert not [cid for cid, fn in bodies.items() if fn is None], ', '.join(cid for cid, fn in bodies.items() if fn is None)
+    for cid,check in current.items():
+        row=rows[cid];fn=bodies[cid]
         assert fn and (root/row['review_receipt']).is_file()
+        if cid in latest['records']:
+            assert row['current_body_sha256']==latest['records'][cid]['historical_body_sha256']
         if cid in successor['records']:
             update=successor['records'][cid]
             assert row['expected_body_sha256']==row['current_body_sha256']==update['historical_body_sha256']
