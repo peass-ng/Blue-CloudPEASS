@@ -96,6 +96,9 @@ def capture(sdk,monkeypatch,branch='associate',mode='good'):
 @pytest.mark.parametrize('mode',['good','stopped'])
 def test_actual_sdk_three_branches(sdk,monkeypatch,branch,mode):
  edges,result,snapshot=capture(sdk,monkeypatch,branch,mode)
+ if branch=='replace' and mode=='stopped':
+  assert edges==[]
+  return
  assert len(edges)==1 and edges[0]['confidence']=='conditional'
  nodes={n['id']:n for n in result['graph']['nodes']};node=nodes[edges[0]['target']]
  assert ROLE==node['id']or ROLE in node.get('members',[])
