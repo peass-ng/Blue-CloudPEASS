@@ -12,7 +12,7 @@ import socket
 import ssl
 import tempfile
 import time
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from uuid import uuid4
 
 from peaso import container_image_archive_20261020 as archive
@@ -32,6 +32,7 @@ SCHEMA = 'k8s-selected-registry-image-v1'
 MAX_TARGETS = 2
 MAX_SECONDS = 600
 MAX_CALLS = 70
+MAX_BLOB_REDIRECTS = 2
 MAX_TOTAL = archive.MAX_COMPRESSED + archive.MAX_MANIFEST
 MAX_FILE_SCAN = 32 * 1024 * 1024
 MAX_SCAN = 256 * 1024 * 1024
@@ -225,6 +226,24 @@ def _open_https(host, path, headers, timeout):
         raise
 
 
+def _blob_redirect(host, location):
+    """Accept only MCR's public regional blob CDN, never arbitrary registry redirects."""
+    if host != 'mcr.microsoft.com' or type(location) is not str or len(location) > 8192:
+        raise Incomplete('redirect_unsupported')
+    try:
+        url = urlsplit(location)
+        cdn = _host(url.hostname)
+        port = url.port
+    except (ValueError, TypeError):
+        raise Incomplete('redirect_unsupported') from None
+    if (url.scheme != 'https' or port not in (None, 443) or url.username is not None
+            or url.password is not None or url.fragment or not cdn.endswith('.data.mcr.microsoft.com')
+            or cdn == 'data.mcr.microsoft.com' or not url.path.startswith('/')
+            or '\\' in location or any(ord(ch) < 33 or ord(ch) > 126 for ch in location)):
+        raise Incomplete('redirect_unsupported')
+    return cdn, url.path + ('?' + url.query if url.query else '')
+
+
 class RegistryReader:
     def __init__(self, host, repository, check, *, authorization=None, open_https=_open_https):
         self.host, self.repository, self.cancel, self.open_https = _host(host), repository, check, open_https
@@ -247,15 +266,31 @@ class RegistryReader:
         record = {'id': 'registry-read-' + uuid4().hex, 'method': 'GET', 'category': category,
                   'digest': digest, 'status': 'unavailable', 'bytes': 0}
         self.receipts.append(record)
-        self.calls += 1
         connection = response = None
         try:
             headers = {'Accept': ', '.join((archive.OCI, archive.DOCKER, oci_index.OCI_INDEX, oci_index.DOCKER_LIST)) if category == 'manifests' else 'application/octet-stream',
                        'Accept-Encoding': 'identity', 'Cache-Control': 'no-store'}
             if self.authorization is not None:
                 headers['Authorization'] = self.authorization
-            connection, response = self.open_https(self.host, path, headers, min(10, max(.1, self.end-time.monotonic())))
-            status = response.status
+            current_host, current_path = self.host, path
+            for hop in range(MAX_BLOB_REDIRECTS + 1):
+                self.check()
+                if self.calls >= MAX_CALLS:
+                    raise Incomplete('registry_read_bound')
+                self.calls += 1
+                connection, response = self.open_https(current_host, current_path, headers,
+                                                        min(10, max(.1, self.end-time.monotonic())))
+                status = response.status
+                if status not in (301, 302, 303, 307, 308):
+                    break
+                if category != 'blobs' or hop >= MAX_BLOB_REDIRECTS:
+                    raise Incomplete('redirect_unsupported')
+                current_host, current_path = _blob_redirect(self.host, response.headers.get('Location'))
+                response.close()
+                connection.close()
+                response = connection = None
+                headers.pop('Authorization', None)
+                headers.pop('Cookie', None)
             if status != 200:
                 if status in (401, 403):
                     record['status'] = 'denied'
