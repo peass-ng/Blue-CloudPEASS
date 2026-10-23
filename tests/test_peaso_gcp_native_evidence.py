@@ -292,6 +292,39 @@ def test_access_approval_unresolved_native_facts_never_become_pass(mode):
     assert verdict(result, 'gcp_c5_access_approval') in ('UNKNOWN', 'DENIED')
 
 
+def test_approval_request_numeric_project_alias_requires_crm_binding():
+    from peaso.collectors.gcp_native_evidence import _approval_jobs
+
+    class Collector:
+        needed = {'access_approval_request'}
+
+        def __init__(self, observed, bound):
+            self.observed, self.bound = observed, bound
+            self.binding_reads = 0
+
+        def _data_project_binding(self, scope, *, require_alias=False):
+            assert scope == PROJECT and require_alias
+            self.binding_reads += 1
+            return {'project_id': 'p-one', 'project_number': self.bound}
+
+        def pages(self, url, scope, *, key, params, transform):
+            assert url == 'https://accessapproval.googleapis.com/v1/' + PROJECT + '/approvalRequests'
+            assert key == 'approvalRequests' and params == {'filter': 'ALL'}
+            yield [transform({'name': 'projects/' + self.observed + '/approvalRequests/a1',
+                              'requestedResourceName': '//bigquery.googleapis.com/projects/p-one/datasets/d1',
+                              'requestTime': '2026-10-12T12:00:00Z',
+                              'requestedExpiration': '2026-10-13T12:00:00Z'})], 'list'
+
+    good = Collector('1234', '1234')
+    rows = [row for page, _ in _approval_jobs(good, PROJECT)[0][3]() for row in page]
+    assert rows[0]['name'] == PROJECT + '/approvalRequests/a1'
+    assert good.binding_reads == 1
+    for observed in ('5678', 'foreign'):
+        bad = Collector(observed, '1234')
+        with pytest.raises(ReadError, match='approval_request_identity_unresolved'):
+            list(_approval_jobs(bad, PROJECT)[0][3]())
+
+
 def test_provider_logs_are_opt_in_and_missing_approved_window_makes_no_log_request():
     from peaso.collectors.gcp import GCPCollector
     collector = GCPCollector({'scopes': [PROJECT], 'options': {}})

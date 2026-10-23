@@ -198,10 +198,20 @@ def _approval_jobs(collector, scope):
             seen = {}
             def project(row):
                 name, resource = row.get('name'), row.get('requestedResourceName')
+                match = re.fullmatch(r'projects/([^/]+)/approvalRequests/([^/]+)', name) \
+                    if isinstance(name, str) and scope.startswith('projects/') else None
+                if match and name != scope + '/approvalRequests/' + match[2]:
+                    if not match[1].isdecimal():
+                        raise ReadError('malformed', 'approval_request_identity_unresolved')
+                    binding = collector._data_project_binding(scope, require_alias=True)
+                    if match[1] != binding['project_number']:
+                        raise ReadError('malformed', 'approval_request_identity_unresolved')
+                    name = scope + '/approvalRequests/' + match[2]
                 if (not isinstance(name, str) or not re.fullmatch(re.escape(scope) + r'/approvalRequests/[^/]+', name) or
                         not isinstance(resource, str) or not resource):
                     raise ReadError('malformed', 'approval_request_identity_unresolved')
-                result = {k: row[k] for k in ('name', 'requestedResourceName', 'requestTime', 'requestedExpiration') if k in row}
+                result = {k: row[k] for k in ('requestedResourceName', 'requestTime', 'requestedExpiration') if k in row}
+                result['name'] = name
                 _timestamp(result.get('requestTime')); _timestamp(result.get('requestedExpiration'))
                 if 'approve' in row:
                     decision = row['approve']
