@@ -9,7 +9,11 @@ READ_ACTIONS = {("cloudfront", "get_vpc_origin")}
 def fetch(requests, session, region, account):
     # Botocore has no paginator for this API. Validate truncation before
     # treating omitted Items as an empty list; a missing next marker is a gap.
+    # CloudFront omits IsTruncated on some complete zero-quantity responses.
+    # Accept that exact empty shape while keeping ambiguous nonempty pages malformed.
     expression = ("((VpcOriginList.IsTruncated == `false`) || "
+                  "(VpcOriginList.IsTruncated == `null` && VpcOriginList.Quantity == `0` && "
+                  "VpcOriginList.NextMarker == `null` && (VpcOriginList.Items || `[]`) == `[]`) || "
                   "(VpcOriginList.IsTruncated == `true` && VpcOriginList.NextMarker)) && "
                   "(VpcOriginList.Items || `[]`)")
     return requests.pages(session, "cloudfront", region, "list_vpc_origins", expression,

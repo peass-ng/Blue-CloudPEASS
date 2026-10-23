@@ -48,6 +48,21 @@ def test_empty_and_truncated_origin_lists_do_not_look_the_same(monkeypatch, head
     assert result.status == expected
 
 
+@pytest.mark.parametrize("items,quantity,expected", [
+    ([], 0, "empty"),
+    ([{"Id": "vo-one"}], 1, "malformed"),
+])
+def test_omitted_completion_flag_requires_exact_empty_response(items, quantity, expected):
+    session = boto3.Session(aws_access_key_id="inert", aws_secret_access_key="inert")
+    requests = aws.Requests({})
+    # The live CloudFront response omits an SDK-required field, so Stubber
+    # rejects it before collector response handling can be exercised.
+    requests.call = lambda *args, **kwargs: {"VpcOriginList": {"MaxItems": 100,
+        "Quantity": quantity, "Items": items}}
+    result = fetch(requests, session, "us-east-1", "111111111111")
+    assert result.status == expected
+
+
 def test_origin_pagination_uses_nested_next_marker(monkeypatch):
     session = boto3.Session(aws_access_key_id="inert", aws_secret_access_key="inert")
     client = session.client("cloudfront")
