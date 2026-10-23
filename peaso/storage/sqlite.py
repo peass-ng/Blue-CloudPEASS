@@ -421,6 +421,14 @@ class SQLiteStore:
                 raise StoreError(404, "Scan not found")
             return dict(row)
 
+    def job_control(self, tenant, ident):
+        """Fresh cancellation state without loading connector or report metadata."""
+        with self.connect() as db:
+            value = db.execute("SELECT status FROM jobs WHERE tenant=? AND id=?", (tenant, ident)).fetchone()
+            if value is None:
+                raise StoreError(404, "Scan not found")
+            return dict(value)
+
     def replace_completed_report(self, tenant, ident, expected_report, report):
         """Operator-only compare-and-swap; keep original runtime and job history."""
         with self.transaction() as db:

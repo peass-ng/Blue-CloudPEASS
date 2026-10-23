@@ -8,6 +8,7 @@ permission whose facts are missing) can act through that aggregate's edges.
 from __future__ import annotations
 
 from collections import deque
+from heapq import nsmallest
 
 CONF_RANK = {"derived": 0, "conditional": 1, "unknown": 2}
 ADMIN_TYPES = ("aws_account_admin", "gcp_scope_owner", "azure_scope_owner", "k8s_cluster_admin")
@@ -132,7 +133,7 @@ def _is_principal(index, node_id):
     return node is None or node.get("kind") == "principal"
 
 
-def reach_admin(graph, *, max_depth=6, include_unknown=False):
+def _reach_admin_rows(graph, *, max_depth=6, include_unknown=False):
     """Principals that reach an admin-equivalent entity, with distance and confidence.
 
     Reverse multi-source BFS from every admin entity; the confidence of a path is
@@ -159,16 +160,55 @@ def reach_admin(graph, *, max_depth=6, include_unknown=False):
                     queue.append(prev)
                 else:
                     queue.appendleft(prev)
-    out = []
     for node_id, (depth, conf, admin, nxt) in best.items():
         if depth == 0 or not _is_principal(index, node_id):
             continue
         node = index.nodes.get(node_id) or {"id": node_id}
-        out.append({"principal": node_id, "label": node.get("label", node_id), "type": node.get("type"),
+        yield {"principal": node_id, "label": node.get("label", node_id), "type": node.get("type"),
                     "admin": admin, "admin_label": (index.nodes.get(admin) or {}).get("label"),
-                    "distance": depth, "confidence": conf, "next": nxt})
-    out.sort(key=lambda r: (r["distance"], CONF_RANK[r["confidence"]], r["principal"]))
-    return out
+                    "distance": depth, "confidence": conf, "next": nxt}
+
+
+def _admin_order(row):
+    return row["distance"], CONF_RANK[row["confidence"]], row["principal"]
+
+
+def reach_admin(graph, *, max_depth=6, include_unknown=False):
+    """All principals reaching admin authority, in the original complete order."""
+    return sorted(_reach_admin_rows(graph, max_depth=max_depth, include_unknown=include_unknown), key=_admin_order)
+
+
+def _ranked_page(rows, key, offset, limit):
+    total = 0
+    def counted():
+        nonlocal total
+        for row in rows:
+            total += 1
+            yield row
+    if offset + limit <= 2048:
+        selected = nsmallest(offset + limit, counted(), key=key)[offset:]
+    else:
+        ordered = sorted(rows, key=key)
+        total = len(ordered)
+        selected = ordered[offset:offset + limit]
+    more = offset + len(selected) < total
+    return {"items": selected, "offset": offset, "limit": limit, "total": total,
+            "has_more": more, "next_offset": offset + len(selected) if more else None}
+
+
+def _list_page(rows, offset, limit):
+    selected = rows[offset:offset + limit]
+    more = offset + len(selected) < len(rows)
+    return {"items": selected, "offset": offset, "limit": limit, "total": len(rows),
+            "has_more": more, "next_offset": offset + len(selected) if more else None}
+
+
+def reach_admin_page(graph, *, offset=0, limit=500, max_depth=6, include_unknown=False):
+    index = _index(graph)
+    if len(index.nodes) < 4096 or offset + limit > 2048:
+        return _list_page(reach_admin(index, max_depth=max_depth, include_unknown=include_unknown), offset, limit)
+    return _ranked_page(_reach_admin_rows(index, max_depth=max_depth, include_unknown=include_unknown),
+                        _admin_order, offset, limit)
 
 
 def shortest_paths(graph, source, target=None, *, max_depth=6, limit=10, include_unknown=False):
@@ -215,10 +255,9 @@ def shortest_paths(graph, source, target=None, *, max_depth=6, limit=10, include
     return paths
 
 
-def broad_reach(graph, *, min_targets=50, include_unknown=False):
+def _broad_reach_rows(graph, *, min_targets=50, include_unknown=False):
     """Principals whose direct edges reach at least min_targets principals or any admin entity."""
     index = _index(graph)
-    out = []
     for node_id, edges in index.out.items():
         if not _is_principal(index, node_id):
             continue
@@ -236,10 +275,25 @@ def broad_reach(graph, *, min_targets=50, include_unknown=False):
                 total += 1
         if admin or total >= min_targets:
             node = index.nodes.get(node_id) or {}
-            out.append({"principal": node_id, "label": node.get("label", node_id), "reached": total,
-                        "admin": admin, "aggregates": aggregates})
-    out.sort(key=lambda r: (not r["admin"], -r["reached"], r["principal"]))
-    return out
+            yield {"principal": node_id, "label": node.get("label", node_id), "reached": total,
+                        "admin": admin, "aggregates": aggregates}
+
+
+def _broad_order(row):
+    return not row["admin"], -row["reached"], row["principal"]
+
+
+def broad_reach(graph, *, min_targets=50, include_unknown=False):
+    """All principals with broad direct reach, in the original complete order."""
+    return sorted(_broad_reach_rows(graph, min_targets=min_targets, include_unknown=include_unknown), key=_broad_order)
+
+
+def broad_reach_page(graph, *, offset=0, limit=500, min_targets=50, include_unknown=False):
+    index = _index(graph)
+    if len(index.nodes) < 4096 or offset + limit > 2048:
+        return _list_page(broad_reach(index, min_targets=min_targets, include_unknown=include_unknown), offset, limit)
+    return _ranked_page(_broad_reach_rows(index, min_targets=min_targets, include_unknown=include_unknown),
+                        _broad_order, offset, limit)
 
 
 reaching = broad_reach
