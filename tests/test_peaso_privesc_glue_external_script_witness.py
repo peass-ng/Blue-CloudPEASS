@@ -59,7 +59,8 @@ def test_new_job_uses_external_script_witness():
 
 
 def test_override_uses_external_script_witness():
-    snap = override._case(writer=OBJECT, reader=OBJECT)
+    # KMS leaves the native script route unresolved, isolating the verified execution proof.
+    snap = override._case(writer=OBJECT, reader=OBJECT, encryption="kms")
     add_proof(snap, override.ID, override.JOB, "StartJobRun")
     result = privesc.analyze(snap, entries=[override.ENTRY])
     assert reached(result, override.SOURCE, override.ID) == {override.TARGET: "conditional"}
@@ -82,3 +83,9 @@ def test_external_script_wrong_role_id_does_not_override_native_route():
     add_proof(snap, override.ID, override.JOB, "StartJobRun", wrong_role=True)
     result = privesc.analyze(snap, entries=[override.ENTRY], include_unknown=True)
     assert reached(result, override.SOURCE, override.ID) == native_reaches
+
+    # KMS leaves the independent native route unresolved, exposing the proof mismatch.
+    isolated = override._case(writer=OBJECT, reader=OBJECT, encryption="kms")
+    add_proof(isolated, override.ID, override.JOB, "StartJobRun", wrong_role=True)
+    isolated_result = privesc.analyze(isolated, entries=[override.ENTRY], include_unknown=True)
+    assert override.TARGET not in reached(isolated_result, override.SOURCE, override.ID)
