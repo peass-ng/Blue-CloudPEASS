@@ -1,0 +1,222 @@
+{
+  "api_sdk_direct_client_calls": [
+    [
+      "peaso/ai/access.py",
+      100,
+      "sts"
+    ],
+    [
+      "peaso/ai/auth.py",
+      66,
+      "secretsmanager"
+    ],
+    [
+      "peaso/ai/crypto.py",
+      14,
+      "secretsmanager"
+    ],
+    [
+      "peaso/ai/fargate.py",
+      102,
+      "ecs"
+    ],
+    [
+      "peaso/ai/fargate.py",
+      103,
+      "s3"
+    ],
+    [
+      "peaso/auth/billing.py",
+      102,
+      "secretsmanager"
+    ],
+    [
+      "peaso/auth/identity.py",
+      47,
+      "cognito-idp"
+    ],
+    [
+      "peaso/auth/secrets.py",
+      44,
+      "secretsmanager"
+    ],
+    [
+      "peaso/gcp_platform.py",
+      55,
+      "secretsmanager"
+    ],
+    [
+      "peaso/server/access_check.py",
+      213,
+      "iam"
+    ],
+    [
+      "peaso/server/access_check.py",
+      103,
+      "sts"
+    ],
+    [
+      "peaso/server/access_check.py",
+      117,
+      "sts"
+    ],
+    [
+      "peaso/server/access_check.py",
+      200,
+      "sts"
+    ],
+    [
+      "peaso/server/access_check.py",
+      215,
+      "iam"
+    ],
+    [
+      "peaso/server/access_check.py",
+      219,
+      "ec2"
+    ],
+    [
+      "peaso/server/access_check.py",
+      223,
+      "s3"
+    ],
+    [
+      "peaso/server/access_check.py",
+      227,
+      "accessanalyzer"
+    ],
+    [
+      "peaso/server/access_check.py",
+      139,
+      "organizations"
+    ],
+    [
+      "peaso/server/access_check.py",
+      193,
+      "sts"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      140,
+      "s3"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      135,
+      "cloudtrail"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      158,
+      "cloudtrail"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      189,
+      "s3"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      81,
+      "sts"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      34,
+      "sts"
+    ],
+    [
+      "peaso/server/attack_logs.py",
+      73,
+      "sts"
+    ],
+    [
+      "peaso/storage/artifacts.py",
+      113,
+      "s3"
+    ],
+    [
+      "peaso/storage/dynamodb.py",
+      45,
+      "dynamodb"
+    ],
+    [
+      "peaso/storage/runtime.py",
+      48,
+      "stepfunctions"
+    ],
+    [
+      "peaso/worker.py",
+      55,
+      "sts"
+    ]
+  ],
+  "api_sdk_services": [
+    "accessanalyzer",
+    "cloudtrail",
+    "cognito-identity",
+    "cognito-idp",
+    "dynamodb",
+    "ec2",
+    "ecs",
+    "iam",
+    "organizations",
+    "s3",
+    "secretsmanager",
+    "sso",
+    "sso-oidc",
+    "stepfunctions",
+    "sts"
+  ],
+  "closure_review": [
+    "New hosted Kubernetes preflight uses urllib3 with existing public-address pinning and read-only request guard; no AWS SDK clients.",
+    "GCP pagination and ECS/CloudFront inventory changes are collector execution paths; API only invokes credential factories and preflight.",
+    "ACR descriptor occurrence validation and GKE image association/CDN reader changes do not introduce API SDK clients.",
+    "Current source receipt transitions retain immutable source archives and before/after proof rows."
+  ],
+  "current_hashes": {
+    "peaso/checks/azure_acr_image_secret_review_20261020.py": "69802ff5c1f379f25c14689332a0dc2ba285454f80c706430dcc9632244c6612",
+    "peaso/checks/azure_acr_image_vulnerabilities_20261021.py": "aaa1679af238adc125fd735929e62aaa5ae3de47661634106dc20c4eafd2e82a",
+    "peaso/checks/gcp_private_workbench_head3_source_successor_20261021.py": "fae65ca1142ad1418d0015a9131027579cc8f3d0b2efad54350de97e79ddcaa7",
+    "peaso/checks/private_secret_shared_source_successor_20261021.py": "f5cf6f6953478292f141dc746809e0111cdd28ca86a4a2ab453c417a9247411a",
+    "peaso/collectors/aws_b_services.py": "5fb58e5f02d8a05f41a70258a2a5108b88334bc165f59b443e5910b7689c10a3",
+    "peaso/collectors/aws_network_service_metadata.py": "387f86bd51462610c486b6441c6f5f086f01c4de5f20f70409c4335a16d69a78",
+    "peaso/collectors/azure_acr_image_stream_inspection_20261021.py": "770d118bfd8f5ed0490a3b569856a8c4e9ee31788bbed65e0000fdf478ca4f3c",
+    "peaso/collectors/azure_acr_image_vulnerabilities_20261021.py": "d14baaf9bc230f9c60c6317dc5fd418ad81ac2fb54a9dfff11758c49cd0d940d",
+    "peaso/collectors/gcp.py": "b2376014f0346ff8534837f137aaadca7f8dd39425a784c81516cbabf6de4852",
+    "peaso/collectors/k8s_selected_registry_image_20261021.py": "840d3e5cbdb686dc15f23a7d7e9a1791e2bfab1f0d87da6d372e2ee838cf8d91",
+    "peaso/gcp_private_source_successor_20261021.py": "8202f8de2af70ba35b45ae864051336cbf2101b707c2d7673d846bb0ea9524df",
+    "peaso/k8s_image_source_association_current_20261023.py": "4e1a01e25f89c4243ec5eb48f368d148a3ba249390866806189190cfe0b0d783",
+    "peaso/private_reviewed_collector_successor_20261022.py": "07e4dee9211cd32eec07a29fd25fe49aad0cb37c580316bb66b47368aa642507",
+    "peaso/private_secret_source_epoch_20261021.py": "eae01d8f57f41645b5e67fc75315da6c9fb9aeeb98a81d420f345c8d7553e86e",
+    "peaso/server/access_check.py": "0d44783ca12a9de0ac6747263312f18f088ecdff13b796859e252d4f8b3d6051",
+    "peaso/server/k8s_access_transport.py": "800c1c199fbb0cd87e9d5c667b9e0a01270331dc9132268d37dd723e069ece5f"
+  },
+  "date": "2026-10-23",
+  "python_source_count": 1665,
+  "python_source_sha256": "a2668804c92ed4b1c4e298373d41cb5d856059d4def6c1c8d78f94267beec412",
+  "reviewed_source_commit": "c3ade159",
+  "source_diff": {
+    "added": [
+      "peaso/k8s_image_source_association_current_20261023.py",
+      "peaso/server/k8s_access_transport.py"
+    ],
+    "changed": [
+      "peaso/checks/azure_acr_image_secret_review_20261020.py",
+      "peaso/checks/azure_acr_image_vulnerabilities_20261021.py",
+      "peaso/checks/gcp_private_workbench_head3_source_successor_20261021.py",
+      "peaso/checks/private_secret_shared_source_successor_20261021.py",
+      "peaso/collectors/aws_b_services.py",
+      "peaso/collectors/aws_network_service_metadata.py",
+      "peaso/collectors/azure_acr_image_stream_inspection_20261021.py",
+      "peaso/collectors/azure_acr_image_vulnerabilities_20261021.py",
+      "peaso/collectors/gcp.py",
+      "peaso/collectors/k8s_selected_registry_image_20261021.py",
+      "peaso/gcp_private_source_successor_20261021.py",
+      "peaso/private_reviewed_collector_successor_20261022.py",
+      "peaso/private_secret_source_epoch_20261021.py",
+      "peaso/server/access_check.py"
+    ],
+    "removed": []
+  }
+}
