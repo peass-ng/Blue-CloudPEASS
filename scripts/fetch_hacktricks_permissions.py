@@ -2,7 +2,7 @@
 """Fetch one consistent revision of HackTricks permission data with bounded retries.
 
 With --with-privesc the same sparse checkout also contains the privilege-escalation path
-catalog (src/privilege-escalation-paths-cspm-reviewed) and the pentesting-cloud pages its `source` fields
+catalog (src/privilege-escalation-paths) and the pentesting-cloud pages its `source` fields
 point to. --revision-file pins that checkout to the reviewed Cloud commit.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ ATTEMPTS = 5
 ATTEMPT_TIMEOUT = 150
 BACKOFF_SECONDS = (15, 30, 60, 120)
 PERMISSIONS_PATH = 'src/permission-categorizations'
-PRIVESC_PATHS = ('src/privilege-escalation-paths-cspm-reviewed', 'src/pentesting-cloud')
+PRIVESC_PATHS = ('src/privilege-escalation-paths', 'src/pentesting-cloud')
 REVISION_RE = re.compile(r'[0-9a-f]{40}\Z')
 
 
@@ -77,7 +77,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destination', type=Path, default=Path('.canonical-source'))
     parser.add_argument('--with-privesc', action='store_true',
-                        help='also fetch src/privilege-escalation-paths-cspm-reviewed and its source pages')
+                        help='also fetch src/privilege-escalation-paths and its source pages')
     parser.add_argument('--require-privesc', action='store_true',
                         help='like --with-privesc, but retry and fail when the privesc directory is missing')
     parser.add_argument('--revision-file', type=Path,

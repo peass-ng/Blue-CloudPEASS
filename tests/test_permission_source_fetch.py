@@ -94,7 +94,7 @@ def test_pinned_revision_is_fetched_before_sparse_checkout(tmp_path, monkeypatch
         complete_checkout(arguments, deadline)
         if 'fetch' in arguments:
             checkout = Path(arguments[1])
-            (checkout / 'src/privilege-escalation-paths-cspm-reviewed/aws').mkdir(parents=True)
+            (checkout / 'src/privilege-escalation-paths/aws').mkdir(parents=True)
 
     monkeypatch.setattr(fetcher, '_git', git)
     fetcher.fetch(tmp_path / 'source', require_privesc=True, revision=revision)

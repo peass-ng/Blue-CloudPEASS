@@ -21,6 +21,38 @@ import yaml
 # temporary parser graphs of the Python implementation. Keep a safe fallback.
 SAFE_YAML_LOADER = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
 
+# Keep cross-field validation self-contained so the canonical HackTricks copy
+# can validate the same catalog without importing the CSPM package.
+AZURE_EXTERNAL_PRINCIPAL_CONTRACT = {'azure-apim-developer-portal-shared-token-external-principal': ('microsoft.apimanagement/service/users/token/action',
+                                                                 'apim_developer_portal',
+                                                                 'credential'),
+ 'azure-apim-developer-portal-sso-external-principal': ('microsoft.apimanagement/service/users/generatessourl/action',
+                                                        'apim_developer_portal',
+                                                        'credential'),
+ 'azure-arc-resource-bridge-credential-export': (('microsoft.resourceconnector/appliances/listkeys/action',
+                                                  'microsoft.resourceconnector/appliances/listclusterusercredential/action'),
+                                                 'arc_bridge_appliance',
+                                                 'credential'),
+ 'azure-avs-list-nsxt-admin-external-principal': ('microsoft.avs/privateclouds/listadmincredentials/action',
+                                                  'vmware_nsx',
+                                                  'credential'),
+ 'azure-avs-list-vcenter-cloudadmin-external-principal': ('microsoft.avs/privateclouds/listadmincredentials/action',
+                                                          'vmware_vcenter',
+                                                          'credential'),
+ 'azure-avs-run-command-vcenter-grant-external-principal': ('microsoft.avs/privateclouds/scriptexecutions/write',
+                                                            'vmware_vcenter',
+                                                            'identity_grant'),
+ 'azure-datafactory-github-oauth-external-principal': ('microsoft.datafactory/factories/getgithubaccesstoken/action',
+                                                       'github_repository',
+                                                       'credential'),
+ 'azure-eventgrid-mqtt-client-grant-external-principal': ('microsoft.eventgrid/namespaces/permissionbindings/write',
+                                                          'eventgrid_mqtt',
+                                                          'identity_grant')}
+K8S_VERIFIED_PIVOT_KINDS = {'k8s-cloud-kiam-kube2iam-annotation': 'cloud_identity',
+ 'k8s-cloud-pivot-secret-static-gcp-sa-key': 'cloud_identity',
+ 'k8s-gke-authenticated-user-rolebinding-self-grant': 'k8s_verified_authority',
+ 'k8s-rbac-secrets-read-argocd-cluster-credential': 'k8s_remote_cluster'}
+
 
 # Parsed documents are private; every consumer validates a fresh deep copy.
 # The key includes exact freshly read contents and the selected safe parser.
@@ -2690,8 +2722,7 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
         if kind == "azure_external_principal" and not selector.get("azure_external_principal_evidence"):
             errors.append(f"{where}: azure_external_principal needs typed evidence")
         if selector.get("azure_external_principal_evidence"):
-            from peaso.privesc.effective_permissions.azure_external_principal import CONTRACT
-            contract = CONTRACT.get(entry.get("id"))
+            contract = AZURE_EXTERNAL_PRINCIPAL_CONTRACT.get(entry.get("id"))
             expected_outcome = "credentials" if contract and contract[2] == "credential" else "identity"
             if (kind != "azure_external_principal"
                     or set(selector) != {"azure_external_principal_evidence", "azure_external_plane"}
@@ -2786,10 +2817,9 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
         if selector.get("k8s_helm_values_rbac") and (kind != "k8s_verified_authority" or selector.get("k8s_challenge_fact")):
             errors.append(f"{where}: k8s_helm_values_rbac needs an exclusive k8s_verified_authority target")
         if selector.get("k8s_verified_pivot"):
-            from peaso.privesc.effective_permissions.k8s_verified_pivots import KINDS
             if (selector["k8s_verified_pivot"] != entry.get("id")
                     or set(selector) != {"k8s_verified_pivot"}
-                    or kind != KINDS.get(entry.get("id"))
+                    or kind != K8S_VERIFIED_PIVOT_KINDS.get(entry.get("id"))
                     or (entry.get("target") or {}).get("outcome") !=
                     ("permission_grant" if kind == "k8s_verified_authority" else "credentials")
                     or (kind == "k8s_verified_authority" and not (entry.get("target") or {}).get("grants"))

@@ -107,8 +107,8 @@
   "peaso/privesc/finding_explanation.py": "ab8bd86f9911511ef9159dca6ddec4cb2ffa0993bf99a4c63abfbb9baa727d85",
   "peaso/privesc/gcp_observed_impact.py": "7bb592248badd27f5c07b7ca7ed206f4a7547b1b5ab2b30d2b9c50b00d8094e7",
   "peaso/privesc/k8s_observed_impact.py": "703dfb2a9d72963283c696dbf6abd13c0182f9dd7d89f06060ce77bb7ff1da2d",
-  "peaso/privesc/schema.py": "44b0591c64a9d9408656950904848a8bf78e13835084a00fbd086220f9bbc612",
-  "peaso/privesc/versioned_catalog.py": "524fb9168f6eea2d08249121b23bf739bfd888d9b9250669f4e490fb01663733",
+  "peaso/privesc/schema.py": "e0c936be6e05470d310f3309240e0c56fa9b2ad59a5f077b8a25697f039c28cb",
+  "peaso/privesc/versioned_catalog.py": "acac6062a7a581cf763c1077d64a128ad53a964257165e81734dc874913f2c46",
   "peaso/provider_followup_observations_20261021.py": "84d18fb252d53059c2ea486e98e8b3301e79bc1f9bdee24a4d063570c109c313",
-  "risk_rules/hacktricks-privesc-source.json": "faee1d9f348246d4c69330c03a371fb83fde135413e9c3b204cae7b34e0c97f4"
+  "risk_rules/hacktricks-privesc-source.json": "d0f411c0fd932267614209ecaf763d5ea34c22c6f6c5762df8f7b265a002d2e0"
 }
