@@ -240,6 +240,10 @@ from .aws_location_key_b438 import normalize_aws_location_key_b438
 from .aws_dlm_ssm_hook_b439 import normalize_aws_dlm_ssm_hook_b439, correlate_aws_dlm_new_ssm_hook_enabled_b439
 from .aws_pipes_role_b440 import normalize_aws_pipes_role_b440, correlate_aws_pipes_template_read_b440
 from .aws_cloudcontrol_role_b441 import normalize_aws_cloudcontrol_role_b441
+from .aws_cloudtrail_service_lookup_b442 import (
+    normalize_aws_cloudtrail_service_lookup_b442,
+    correlate_aws_cloudtrail_denied_list_lookup_b442,
+)
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
@@ -347,8 +351,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "520a85e672928898ec05c11fbcd9d8978596dea5"
-DEFAULT_RULE_PACK_SHA256 = "c506af7a36e4cc0693244646b11d3a0b8537417f80df51284c3ae0602bc62c67"
+DEFAULT_RULE_REF = "f3e4cffa1d6e7e47db467faa6e4d0bcd5b186fa7"
+DEFAULT_RULE_PACK_SHA256 = "152aac648de99986d1b69125a059af4b3ad74dc9f4e4e8409d2341a9ac72ec0e"
 
 
 @dataclass(frozen=True)
@@ -650,6 +654,7 @@ def detect_aws_events(
         dlm_ssm_hook_b439 = normalize_aws_dlm_ssm_hook_b439(record)
         pipes_role_b440 = normalize_aws_pipes_role_b440(record)
         cloudcontrol_role_b441 = normalize_aws_cloudcontrol_role_b441(record)
+        cloudtrail_service_lookup_b442 = normalize_aws_cloudtrail_service_lookup_b442(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
@@ -937,6 +942,7 @@ def detect_aws_events(
                 + ([dlm_ssm_hook_b439] if dlm_ssm_hook_b439 is not None else [])
                 + ([pipes_role_b440] if pipes_role_b440 is not None else [])
                 + ([cloudcontrol_role_b441] if cloudcontrol_role_b441 is not None else [])
+                + ([cloudtrail_service_lookup_b442] if cloudtrail_service_lookup_b442 is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
@@ -1141,6 +1147,7 @@ def detect_aws_events(
     datasync_s3_b436_records: list[Mapping[str, Any]] = []
     dlm_ssm_hook_b439_records: list[Mapping[str, Any]] = []
     pipes_role_b440_records: list[Mapping[str, Any]] = []
+    cloudtrail_service_lookup_b442_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -1248,6 +1255,8 @@ def detect_aws_events(
                 dlm_ssm_hook_b439_records.append(record)
             if record.get("eventSource") == "pipes.amazonaws.com" and record.get("eventName") in {"CreatePipe", "UpdatePipe", "DescribePipe"}:
                 pipes_role_b440_records.append(record)
+            if (record.get("eventSource") == "cloudtrail.amazonaws.com" and record.get("eventName") == "LookupEvents") or (isinstance(record.get("eventName"), str) and record["eventName"].startswith(("List", "Describe")) and record.get("errorCode") in {"AccessDenied", "AccessDeniedException", "UnauthorizedOperation"}):
+                cloudtrail_service_lookup_b442_records.append(record)
             if record.get("eventSource") == "ecs.amazonaws.com" and record.get("eventName") in {"RegisterTaskDefinition", "CreateService", "UpdateService"}:
                 ecs_records.append(record)
             if record.get("eventSource") == "emr-serverless.amazonaws.com" and record.get("eventName") in {"StartSession", "GetSessionEndpoint"}:
@@ -1423,6 +1432,7 @@ def detect_aws_events(
     correlated += correlate_aws_datasync_new_role_task_b436(datasync_s3_b436_records)
     correlated += correlate_aws_dlm_new_ssm_hook_enabled_b439(dlm_ssm_hook_b439_records)
     correlated += correlate_aws_pipes_template_read_b440(pipes_role_b440_records)
+    correlated += correlate_aws_cloudtrail_denied_list_lookup_b442(cloudtrail_service_lookup_b442_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
