@@ -92,3 +92,26 @@ def test_changed_report_reference_reloads_findings_and_archived_metadata(api,mon
     response=detail(client)
     assert response.status_code==200,response.text
     assert response.json()['findings_total']==0 and response.json()['findings']==[]
+
+
+@pytest.mark.parametrize('inline', [False, True], ids=['chunked', 'inline'])
+@pytest.mark.parametrize('field', ['category', 'resource_id'])
+def test_explicit_null_does_not_inherit_principal_selection_defaults(api, inline, field):
+    client, _, rows, manifest = prepare(api, inline=inline)
+    manifest['check_meta']['a'].update(category='privesc', resource_id='principal-primary')
+    rows[1]['resource_id'] = 'principal-primary'
+    rows[1][field] = None
+    response = detail(client)
+    assert response.status_code == 200, response.text
+    assert response.json()['findings'] == []
+    assert response.json()['findings_total'] == 0
+
+
+@pytest.mark.parametrize('inline', [False, True], ids=['chunked', 'inline'])
+def test_explicit_category_wins_over_null_archived_category(api, inline):
+    client, _, rows, manifest = prepare(api, inline=inline)
+    manifest['check_meta']['a']['category'] = None
+    rows[1].update(category='privesc', resource_id='principal-primary')
+    response = detail(client)
+    assert response.status_code == 200, response.text
+    assert [row['id'] for row in response.json()['findings']] == [rows[1]['id']]

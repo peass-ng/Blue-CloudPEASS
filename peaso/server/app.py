@@ -1712,8 +1712,16 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         else:
             summaries = (finding_summary(f) for f in bundle.get("findings", []))
         labels, meta = check_labels(bundle), check_fields(bundle)
+        def candidate(finding):
+            # Hydration fills absent fields only; AI reviews change neither
+            # category nor principal identity. Keep summary clipping identical.
+            defaults = meta.get(finding.get("check_id")) or {}
+            category = finding.get("category", defaults.get("category"))
+            resource_id = finding.get("resource_id", defaults.get("resource_id"))
+            return category == "privesc" and finding_summary({"resource_id": resource_id}).get("resource_id") == principal_id
+
         findings = [with_labels(with_meta(finding_summary(f), meta, bundle), labels)
-                    for f in (with_meta(f, meta, bundle) for f in summaries) if f.get("category") == "privesc"
+                    for f in (with_meta(f, meta, bundle) for f in summaries if candidate(f)) if f.get("category") == "privesc"
                     and finding_summary({"resource_id": f.get("resource_id")}).get("resource_id") == principal_id]
         card = queries.principal_card(index, principal_id, findings)
         for key in ("outgoing", "incoming", "findings"):
