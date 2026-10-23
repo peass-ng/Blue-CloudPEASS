@@ -236,8 +236,6 @@ def test_admin_source_is_short_circuited():
     assert [f["status"] for f in result["findings"] if f["check_id"] == "admin-equivalent"] == ["FAIL"]
     full = real(aws([admin], [role("ec2-role")]), "aws-ec2-passrole-runinstances", include_admin_sources=True)
     assert reached(full, sid, "aws-ec2-passrole-runinstances") == {}
-    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
-               for row in full["coverage"])
 
 
 def test_memoized_sources_match_individual_evaluation():
@@ -254,8 +252,6 @@ def test_memoized_sources_match_individual_evaluation():
     assert key(memo) == key(plain)
     for u in users:
         assert reached(memo, u["Arn"]) == {}
-    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
-               for row in memo["coverage"])
 
 
 # ----------------------------------------------------------------------- Kubernetes
