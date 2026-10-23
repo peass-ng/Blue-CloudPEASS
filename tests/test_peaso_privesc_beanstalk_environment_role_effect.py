@@ -68,7 +68,8 @@ def _snapshot(*, operation="CreateEnvironment", created_app=False, changed=None,
 
 
 def test_beanstalk_exact_created_or_updated_environment_executes_role():
-    for snap in (_snapshot(), _snapshot(operation="UpdateEnvironment"), _snapshot(created_app=True)):
+    for snap in (_snapshot(), _snapshot(operation="UpdateEnvironment"),
+                 _snapshot(created_app=True)):
         assert reached(real(snap, TID), ALICE) == {role_arn("worker"): "conditional"}
 
 
@@ -76,6 +77,7 @@ def test_beanstalk_rejects_disjoint_grants_and_unexecuted_code():
     negatives = [
         _snapshot(remove="iam:PassRole"),
         _snapshot(remove="elasticbeanstalk:CreateEnvironment"),
+        _snapshot(operation="UpdateEnvironment", remove="elasticbeanstalk:UpdateEnvironment"),
         _snapshot(remove="elasticbeanstalk:CreateApplicationVersion"),
         _snapshot(remove="s3:PutObject"),
         _snapshot(direct=True),
