@@ -239,6 +239,7 @@ from .aws_route53_zone_b437 import normalize_aws_route53_zone_b437
 from .aws_location_key_b438 import normalize_aws_location_key_b438
 from .aws_dlm_ssm_hook_b439 import normalize_aws_dlm_ssm_hook_b439, correlate_aws_dlm_new_ssm_hook_enabled_b439
 from .aws_pipes_role_b440 import normalize_aws_pipes_role_b440, correlate_aws_pipes_template_read_b440
+from .aws_cloudcontrol_role_b441 import normalize_aws_cloudcontrol_role_b441
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
@@ -346,8 +347,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "b2b0ffa7910b3e09e81547e9f6e1dc7b41275af1"
-DEFAULT_RULE_PACK_SHA256 = "f1f1c9bb1cea753a9fe6ec3532f5a389fb94a492eaa958986df3138c7cfb29b5"
+DEFAULT_RULE_REF = "520a85e672928898ec05c11fbcd9d8978596dea5"
+DEFAULT_RULE_PACK_SHA256 = "c506af7a36e4cc0693244646b11d3a0b8537417f80df51284c3ae0602bc62c67"
 
 
 @dataclass(frozen=True)
@@ -648,6 +649,7 @@ def detect_aws_events(
         location_key_b438 = normalize_aws_location_key_b438(record)
         dlm_ssm_hook_b439 = normalize_aws_dlm_ssm_hook_b439(record)
         pipes_role_b440 = normalize_aws_pipes_role_b440(record)
+        cloudcontrol_role_b441 = normalize_aws_cloudcontrol_role_b441(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
@@ -934,6 +936,7 @@ def detect_aws_events(
                 + ([location_key_b438] if location_key_b438 is not None else [])
                 + ([dlm_ssm_hook_b439] if dlm_ssm_hook_b439 is not None else [])
                 + ([pipes_role_b440] if pipes_role_b440 is not None else [])
+                + ([cloudcontrol_role_b441] if cloudcontrol_role_b441 is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
