@@ -320,6 +320,7 @@ class AwsModel(Model):
         self.resource_policies = {}  # resource arn -> (account, [Statement], kind)
         self.ecr = {}              # account -> [(repository arn, imageTagMutability)]
         self.ecr_status = {}
+        self._cross_account_role_names = {}  # account -> names in this immutable snapshot
         self._stmt_cache, self._possible_cache = {}, {}
         self._load()
         from .aws_s3_self_grant import load as load_s3_self_grant
@@ -10916,8 +10917,12 @@ class AwsModel(Model):
         used, quota = summary.get("Roles"), summary.get("RolesQuota")
         if isinstance(used, int) and isinstance(quota, int) and quota > 0 and used >= quota:
             return ("unknown", "new_role_quota_exhausted")
-        existing_names = {node.id.rsplit("/", 1)[-1].casefold() for node in self.principals.values()
-                          if node.kind == "aws_role" and node.scope == source.scope}
+        existing_names = self._cross_account_role_names.get(source.scope)
+        if existing_names is None:
+            existing_names = frozenset(node.id.rsplit("/", 1)[-1].casefold()
+                                       for node in self.principals.values()
+                                       if node.kind == "aws_role" and node.scope == source.scope)
+            self._cross_account_role_names[source.scope] = existing_names
         prefix = f"arn:{partition}:iam::{source.scope}:role/"
         unresolved = False
         if any(statement.effect == "deny" and statement.ref.get("not_principal")
