@@ -3269,14 +3269,21 @@
       "catalog_file": "peaso/privesc/catalog/aws/elasticbeanstalk.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-elastic-beanstalk-privesc/README.md#elasticbeanstalkcreateapplication-elasticbeanstalkcreateenvironment-elasticbeanstalkcreateapplicationversion-elasticbeanstalkupdateenvironment-iampassrole-and-more",
       "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "5820d2364cc718516df64e32f5ea8e823be69777301c67979d32cf6ca4676af8",
+      "reviewed_contract_sha256": "b0230d9b1c6d3f0dff9d60541e2c088c8bdd18fd5666abbb45018cc55309d4e5",
       "purpose": "A controlled Beanstalk environment may execute code with its passed EC2 instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [
-          {
-            "action": "elasticbeanstalk:CreateEnvironment"
-          }
+        "any_of": [
+          [
+            {
+              "action": "elasticbeanstalk:CreateEnvironment"
+            }
+          ],
+          [
+            {
+              "action": "elasticbeanstalk:UpdateEnvironment"
+            }
+          ]
         ]
       },
       "conditions_retained": [
@@ -8451,9 +8458,9 @@
       "provider": "azure",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
-      "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceusersgeneratessourlaction",
+      "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceuserstokenaction",
       "source_revision": "db5b136660",
-      "reviewed_contract_sha256": "4dafc321cbd6202fb16c44cb214e95cb8555ceffc469f8bb0565b9249066e8cc",
+      "reviewed_contract_sha256": "26baedefce5091a3c2c4243d58059f8d0e68fec461676a4b42cef2cdcf6fdeea",
       "purpose": "A usable portal SSO link may grant new actions as the exact portal user.",
       "target_kind": "azure_external_principal",
       "requirement_contract": {
@@ -13537,9 +13544,9 @@
       "provider": "gcp",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/gcp/workspace.yaml",
-      "source": "src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersretrievecredentials",
+      "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersretrievecredentials",
       "source_revision": "47bb6e8f32",
-      "reviewed_contract_sha256": "d89be0f9b9b30066657ce59f6f4aedf0e0640b58891bbf7d3d8392f00ebf905b",
+      "reviewed_contract_sha256": "927d56fb491cdc6b585bb13a73ea6f7faaa3cf03fbaf04ec2fad27d0d52541a9",
       "purpose": "Exact active Google OAuth authorization may expose its already granted API scopes to a principal able to retrieve credentials on its provider.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
@@ -13567,9 +13574,9 @@
       "provider": "gcp",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/gcp/workspace.yaml",
-      "source": "src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersupdate-token-endpoint-interception",
+      "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersupdate-token-endpoint-interception",
       "source_revision": "47bb6e8f32",
-      "reviewed_contract_sha256": "9124ab0261854ab64d97e2063cdb4c8241b7aee617defd0a8ab5cd3ea62748d0",
+      "reviewed_contract_sha256": "23944373de8634c0d4a81bdef470d117f7c67063aeebab54f7174dbaeda3ddd3",
       "purpose": "Provider update rights could redirect a later token refresh for an exact active Google OAuth authorization.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
