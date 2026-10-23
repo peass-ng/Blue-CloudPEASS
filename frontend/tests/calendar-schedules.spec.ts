@@ -92,12 +92,14 @@ test("legacy intervals remain visible until explicitly converted and check selec
 });
 
 test("temporary connectors stay available manually but cannot save recurring schedules", async ({ page }) => {
-  const writes = await setup(page);
+  const writes = await setup(page, [{ id: "paused", connector_id: "account", enabled: false,
+    interval_hours: 24, last_error: "This connector uses temporary or unverified credentials." }]);
   await page.route("**/api/connectors", route => route.fulfill({ json: { items: [
     { id: "account", name: "Temporary AWS", provider: "aws", scopes: ["555566667777"],
       scheduling: { allowed: false, reason: "This connector uses temporary or unverified credentials. Run scans manually, or select renewable credentials before creating a schedule." } },
   ] } }));
   await page.reload();
+  await expect(page.getByText("This connector uses temporary or unverified credentials.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Add schedule", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Run scans manually");
   await expect(page.getByRole("button", { name: "Save schedule", exact: true })).toBeDisabled();

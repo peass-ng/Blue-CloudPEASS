@@ -285,6 +285,7 @@ export function Scans({
                       {scheduleDescription(s)} · Next{" "}
                       {nextScheduleDate(s)}
                     </p>
+                    {s.last_error && <p className="form-error small">{s.last_error}</p>}
                   </div>
                   <button
                     className="button"

@@ -204,6 +204,7 @@ export type ScheduleRule = {
   day_of_month?: number;
 };
 export type Schedule = {
+  last_error?: string | null;
   ai_enabled?: boolean;
   ai_priorities_enabled?: boolean;
   ai_network_enabled?: boolean;
