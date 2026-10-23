@@ -263,6 +263,7 @@ from .aws_ssm_command_history_next import correlate_aws_ssm_command_output_read
 from .aws_ssm_session_next import normalize_aws_ssm_session_start
 from .aws_ssm_automation_window_next import normalize_aws_ssm_automation_window, correlate_aws_ssm_document_window
 from .aws_ssm_node_routes_b412 import normalize_shell_command as normalize_aws_ssm_shell_command_b412, correlate_cross_principal_resume as correlate_aws_ssm_cross_principal_resume_b412
+from .aws_directconnect_inventory_b413 import normalize as normalize_aws_directconnect_inventory_b413
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -689,6 +690,7 @@ def detect_aws_events(
         ssm_session_start = normalize_aws_ssm_session_start(record)
         ssm_automation_window = normalize_aws_ssm_automation_window(record)
         ssm_shell_command_b412 = normalize_aws_ssm_shell_command_b412(record)
+        directconnect_inventory_b413 = normalize_aws_directconnect_inventory_b413(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -944,6 +946,7 @@ def detect_aws_events(
                 + ([ssm_session_start] if ssm_session_start is not None else [])
                 + ([ssm_automation_window] if ssm_automation_window is not None else [])
                 + ([ssm_shell_command_b412] if ssm_shell_command_b412 is not None else [])
+                + ([directconnect_inventory_b413] if directconnect_inventory_b413 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
