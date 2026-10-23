@@ -1,4 +1,4 @@
-from peaso.least_privilege_permissions import enrich
+from peaso.least_privilege_permissions import enrich, grant_groups
 
 ACCOUNT = '123456789012'
 SCOPE = ACCOUNT + '/global'
@@ -108,3 +108,44 @@ def test_inherited_only_aws_and_custom_gcp_permissions_are_listed_as_principals(
     gcp = project('gcp', rows)
     assert gcp['items'][0]['principal'] == 'user:alice@example.test'
     assert gcp['items'][0]['severity'] in {'critical', 'high'}
+
+
+def test_policy_service_date_fills_missing_action_date_without_claiming_action_use():
+    policy_arn = f'arn:aws:iam::{ACCOUNT}:policy/Operations'
+    user = row('iam_user', {'Arn': ARN, 'AttachedManagedPolicies': [{'PolicyArn': policy_arn}]})
+    policy = row('iam_policy', {'Arn': policy_arn, 'PolicyName': 'Operations',
+        'ServicesLastAccessedStatus': {'collection_status': 'collected'},
+        'ServicesLastAccessed': [{'ServiceNamespace': 'iam', 'LastAuthenticated': '2026-10-18T00:00:00Z'}],
+        'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}})
+    permission = enrich(card(), 'aws', [user, policy], NOW)['high_risk_permissions'][0]
+    assert permission['group_key'] == policy_arn
+    assert permission['usage_basis'] == 'policy'
+    assert permission['days_since_last_access'] == 3
+    assert not permission.get('unused_finding')
+
+
+def test_unused_filter_fact_requires_exact_access_analyzer_action_finding():
+    user = row('iam_user', {'Arn': ARN, 'UserPolicyList': [{'PolicyName': 'key-admin',
+        'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}}]})
+    finding = {'kind': 'permission', 'value': 'iam:CreateAccessKey',
+        'source': 'AWS IAM Access Analyzer unused access', 'confidence': 'provider_recommendation'}
+    permission = enrich(dict(card(), suggestions=[finding]), 'aws', [user], NOW)['high_risk_permissions'][0]
+    assert permission['unused_finding'] is True
+    assert 'last_accessed' not in permission
+    wildcard = row('iam_user', {'Arn': ARN, 'PolicyDocument': {'Statement': [
+        {'Effect': 'Allow', 'Action': 'iam:*', 'Resource': '*'}]}})
+    assert not enrich(dict(card(), suggestions=[finding]), 'aws', [wildcard], NOW)['high_risk_permissions'][0].get('unused_finding')
+
+
+def test_grouped_policy_collects_distinct_principals_and_their_grants():
+    policy_arn = f'arn:aws:iam::{ACCOUNT}:policy/Operations'
+    second = f'arn:aws:iam::{ACCOUNT}:user/Bob'
+    users = [row('iam_user', {'Arn': principal, 'AttachedManagedPolicies': [{'PolicyArn': policy_arn}]})
+             for principal in (ARN, second)]
+    policy = row('iam_policy', {'Arn': policy_arn, 'PolicyName': 'Operations',
+        'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:CreateAccessKey', 'Resource': '*'}]}})
+    groups = grant_groups([card(), dict(card(), id=second, principal=second)], 'aws', [*users, policy], NOW)
+    assert len(groups) == 1
+    assert groups[0]['id'] == policy_arn
+    assert len(groups[0]['principals']) == 2
+    assert groups[0]['permission_count'] == 2

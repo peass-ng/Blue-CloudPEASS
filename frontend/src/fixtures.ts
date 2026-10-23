@@ -264,6 +264,21 @@ export function demoRequest(path: string, init: RequestInit): unknown {
     return { ...frameworkCatalog, view: "frameworks" };
   }
   if (path === "/catalog") return frameworkCatalog;
+  if (path.endsWith("/least-privilege/grants")) return {
+    id: "arn:aws:iam::111122223333:policy/demo-policy", label: "demo-policy", provider: "aws",
+    scopes: ["111122223333/us-east-1"], severity: "critical", permission_count: 1, recommendation_count: 1,
+    principals: [{ id: "demo-app-role", principal: "arn:aws:iam::111122223333:role/demo-app-role", label: "demo-app-role", severity: "critical" }],
+    permissions: [{ permission: "s3:DeleteBucket", severity: "critical", source: "demo-policy",
+      scope: "111122223333/us-east-1", resources: ["*"], group_key: "arn:aws:iam::111122223333:policy/demo-policy",
+      group_label: "demo-policy", principal: "arn:aws:iam::111122223333:role/demo-app-role", principal_id: "demo-app-role",
+      unused_finding: true }],
+  };
+  if (path.endsWith("/least-privilege") && new URLSearchParams(query).get("group_by") === "grant") return {
+    items: [{ id: "arn:aws:iam::111122223333:policy/demo-policy", label: "demo-policy", provider: "aws",
+      scopes: ["111122223333/us-east-1"], severity: "critical", permission_count: 1, recommendation_count: 1,
+      principals: [{ id: "demo-app-role", principal: "arn:aws:iam::111122223333:role/demo-app-role", label: "demo-app-role", severity: "critical" }] }],
+    total: 1, next_offset: null, coverage: { limitations: ["Fixture only. No live analyzer or principal was queried."] },
+  };
   if (path.endsWith("/least-privilege")) return {
     items: [{ id: "demo-app-role", principal: "arn:aws:iam::111122223333:role/demo-app-role",
       provider: "aws", scopes: ["111122223333/us-east-1"], recommendation_count: 1,

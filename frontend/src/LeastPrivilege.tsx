@@ -19,7 +19,8 @@ type Suggestion = {
 };
 type RiskPermission = {
   permission: string; severity: string; source: string; scope: string; resources: string[];
-  conditions?: unknown; exclusions?: string[]; last_accessed?: string; usage_basis?: "permission" | "service"; days_since_last_access?: number;
+  conditions?: unknown; exclusions?: string[]; last_accessed?: string; usage_basis?: "permission" | "service" | "policy";
+  days_since_last_access?: number; unused_finding?: boolean; group_key: string; group_label: string; principal?: string; principal_id?: string;
 };
 type Principal = {
   id: string;
@@ -37,8 +38,11 @@ type Principal = {
   observed_at?: string;
   identity_last_used?: string;
 };
+type GrantGroup = { id: string; label: string; provider: string; scopes: string[]; severity: string;
+  principals: Pick<Principal, "id" | "principal" | "label" | "severity">[];
+  permission_count: number; recommendation_count: number; permissions?: RiskPermission[] };
 type Page = {
-  items: Principal[];
+  items: Principal[] | GrantGroup[];
   total: number;
   next_offset: number | null;
   coverage: { limitations: string[]; unused_access_analyzers?: number };
@@ -50,23 +54,35 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
   const [exposure, setExposure] = useState("");
   const [sort, setSort] = useState("severity:desc");
   const [permissionSearch, setPermissionSearch] = useState("");
+  const [unusedOnly, setUnusedOnly] = useState(false);
+  const [groupBy, setGroupBy] = useState<"principal" | "grant">("principal");
   const [selected, setSelected] = useState<Principal>();
-  const page = useApi<Page>(`/scans/${encodeURIComponent(scanId)}/least-privilege?search=${encodeURIComponent(search)}${exposure ? `&exposure=${exposure}` : ""}&sort_by=${sort.split(":")[0]}&sort_order=${sort.split(":")[1]}&offset=${offset}&limit=100`, demo, !!scanId);
+  const [selectedGrant, setSelectedGrant] = useState<GrantGroup>();
+  const page = useApi<Page>(`/scans/${encodeURIComponent(scanId)}/least-privilege?group_by=${groupBy}&search=${encodeURIComponent(search)}${exposure ? `&exposure=${exposure}` : ""}&sort_by=${sort.split(":")[0]}&sort_order=${sort.split(":")[1]}&offset=${offset}&limit=100`, demo, !!scanId);
   const details = useApi<Principal>(`/scans/${encodeURIComponent(scanId)}/least-privilege/principals/${encodeURIComponent(selected?.id || "")}`, demo, !!scanId && !!selected);
+  const grantDetails = useApi<GrantGroup>(`/scans/${encodeURIComponent(scanId)}/least-privilege/grants?key=${encodeURIComponent(selectedGrant?.id || "")}`, demo, !!scanId && !!selectedGrant);
   const detail = selected ? (details.data?.id === selected.id ? { ...selected, ...details.data } : selected) : undefined;
   const permissions = detail?.high_risk_permissions || [];
-  const visiblePermissions = permissions.filter(item => [item.permission, item.source, item.scope, ...item.resources].join(" ").toLowerCase().includes(permissionSearch.trim().toLowerCase()));
+  const visiblePermissions = permissions.filter(item => (!unusedOnly || item.unused_finding) && [item.permission, item.source, item.scope, ...item.resources].join(" ").toLowerCase().includes(permissionSearch.trim().toLowerCase()));
   const rows = page.data?.items || [];
+  const principalRows = groupBy === "principal" ? rows as Principal[] : [];
+  const grantRows = groupBy === "grant" ? rows as GrantGroup[] : [];
+  const grant = selectedGrant ? (grantDetails.data?.id === selectedGrant.id ? grantDetails.data : selectedGrant) : undefined;
+  const grantPermissions = (grant?.permissions || []).filter(item => (!unusedOnly || item.unused_finding) &&
+    [item.permission, item.source, item.scope, item.principal || "", ...item.resources].join(" ").toLowerCase().includes(permissionSearch.trim().toLowerCase()));
   return <div className="least-page">
     <div className="section-top">
       <p>Review high-impact permissions, usage history and identity entry points.</p>
-      <span className="count-pill">{page.data?.total ?? 0} principals</span>
+      <span className="count-pill">{page.data?.total ?? 0} {groupBy === "principal" ? "principals" : "policies / roles"}</span>
     </div>
     <Panel className="least-panel">
       <div className="least-toolbar">
+        <select aria-label="Group least privilege by" value={groupBy} onChange={event => { setGroupBy(event.target.value as "principal" | "grant"); setOffset(0); setSelected(undefined); setSelectedGrant(undefined); }}>
+          <option value="principal">Group by principal</option><option value="grant">Group by {rows[0]?.provider === "aws" ? "policy" : rows[0]?.provider ? "role" : "policy / role"}</option>
+        </select>
         <label className="search-field">
           <Search size={17} />
-          <input aria-label="Search principals" value={search} placeholder="Search principal or scope…"
+          <input aria-label="Search principals or grants" value={search} placeholder={groupBy === "principal" ? "Search principal or scope…" : "Search policy, role, principal or scope…"}
             onChange={(event) => { setSearch(event.target.value); setOffset(0); }} />
         </label>
         <select aria-label="Sort principals" value={sort} onChange={event => { setSort(event.target.value); setOffset(0); }}>
@@ -84,9 +100,9 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
       </div>
       {!scanId ? <State empty title="Select a scan to review identities" /> :
         <State loading={page.isPending} error={page.error} onRetry={() => void page.refetch()}>
-          {rows.length ? <div className="least-list table-scroll" tabIndex={0} role="list" aria-label="Principals with access to review">
-            {rows.map((principal) => <button type="button" role="listitem" className="least-row" key={principal.id}
-              onClick={() => { setSelected(principal); setPermissionSearch(""); }}>
+          {rows.length ? <div className="least-list table-scroll" tabIndex={0} role="list" aria-label={groupBy === "principal" ? "Principals with access to review" : "Policies and roles with access to review"}>
+            {principalRows.map((principal) => <button type="button" role="listitem" className="least-row" key={principal.id}
+              onClick={() => { setSelected(principal); setPermissionSearch(""); setUnusedOnly(false); }}>
               <span className="least-provider"><ProviderIcon provider={principal.provider} size={22} /></span>
               <span className="least-identity"><strong>{principal.label || principal.principal.split("/").pop() || principal.principal}</strong><small>{principal.principal} · {principal.scopes.length} scope{principal.scopes.length === 1 ? "" : "s"}</small></span>
               <span className={`least-row-count${principal.recommendation_count ? " recommended" : ""}`}>{principal.recommendation_count
@@ -96,8 +112,15 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
               {principal.severity && <Badge value={principal.severity} />}
               <ChevronRight size={18} aria-hidden="true" />
             </button>)}
-          </div> : <div className="least-empty"><ShieldCheck size={24} /><h3>No principal suggestions in this scan</h3>
-            <p>{search ? "Try another principal or scope." : "No principal suggestions were recorded for this selection."}</p></div>}
+            {grantRows.map((item) => <button type="button" role="listitem" className="least-row" key={item.id}
+              onClick={() => { setSelectedGrant(item); setPermissionSearch(""); setUnusedOnly(false); }}>
+              <span className="least-provider"><ProviderIcon provider={item.provider} size={22} /></span>
+              <span className="least-identity"><strong>{item.label}</strong><small>{item.id} · {item.scopes.length} scope{item.scopes.length === 1 ? "" : "s"}</small></span>
+              <span className="least-row-count">{item.principals.length} principal{item.principals.length === 1 ? "" : "s"} · {item.permission_count} grants</span>
+              <Badge value={item.severity} /><ChevronRight size={18} aria-hidden="true" />
+            </button>)}
+          </div> : <div className="least-empty"><ShieldCheck size={24} /><h3>No access grants in this selection</h3>
+            <p>{search ? "Try another search." : "No high or critical grants were recorded for this selection."}</p></div>}
           {page.data && page.data.total > 100 && <div className="least-pagination">
             <button className="button" type="button" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 100))}>Previous</button>
             <span>{offset + 1}–{Math.min(offset + 100, page.data.total)} of {page.data.total}</span>
@@ -115,17 +138,18 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
           <h3>High & critical permissions</h3>
           <p>Declared permissions, including collected policy attachments and inherited role or group grants.</p>
           {details.isPending ? <p role="status">Loading permission details…</p> : details.error ? <State error={details.error} onRetry={() => void details.refetch()} /> : <>
-            <label className="search-field"><Search size={16} /><input aria-label="Filter high-risk permissions" placeholder="Filter permissions, policies or scopes…" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} /></label>
+            <div className="least-permission-toolbar"><label className="search-field"><Search size={16} /><input aria-label="Filter high-risk permissions" placeholder="Filter permissions, policies or scopes…" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} /></label>
+              {permissions.some(item => item.unused_finding) && <label className="least-unused-filter"><input type="checkbox" checked={unusedOnly} onChange={event => setUnusedOnly(event.target.checked)} /> Unused permissions (Access Analyzer)</label>}</div>
             <div className="least-permissions-scroll"><table className="least-permissions-table"><thead><tr><th>Permission & granting policy</th><th>Criticality</th><th>Applies to</th><th>Last use</th></tr></thead><tbody>
               {visiblePermissions.map((item, index) => <tr key={`${item.permission}-${item.scope}-${index}`}>
                 <td><code>{item.permission}</code><small>{item.source}</small>{item.conditions != null && <details><summary>Grant conditions</summary><pre>{JSON.stringify(item.conditions, null, 2)}</pre></details>}
                   {!!item.exclusions?.length && <details><summary>Exclusions</summary><p>{item.exclusions.join(", ")}</p></details>}</td>
                 <td><Badge value={item.severity} /></td><td><span>{item.scope}</span>{item.resources.map(resource => <small key={resource}>{resource}</small>)}</td>
                 <td>{item.days_since_last_access != null ? <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
-                  <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong><small>{item.usage_basis === "service" ? "Service activity · action usage unknown" : "Permission last used"}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
-                </div> : <span className="least-usage unknown">Usage not available</span>}</td>
+                  <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong><small>{item.usage_basis === "permission" ? "Action last accessed" : item.usage_basis === "policy" ? "Policy service activity · action usage unknown" : "Principal service activity · action usage unknown"}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
+                </div> : <span className="least-usage unknown">{item.unused_finding ? "Unused in analyzer window · no last-use date" : "Usage not available"}</span>}</td>
               </tr>)}
-              {!visiblePermissions.length && <tr><td colSpan={4}>{permissionSearch ? "No permissions match this filter." : "No high or critical permissions were resolved from the collected definitions."}</td></tr>}
+              {!visiblePermissions.length && <tr><td colSpan={4}>{permissionSearch || unusedOnly ? "No permissions match this filter." : "No high or critical permissions were resolved from the collected definitions."}</td></tr>}
             </tbody></table></div>
           </>}
           {!!detail.permission_definitions_missing?.length && <details className="least-missing"><summary>Permission definitions not collected ({detail.permission_definitions_missing.length})</summary><p>These grants are recorded, but their permission definitions are unavailable:</p><ul>{detail.permission_definitions_missing.map(role => <li key={role}>{role}</li>)}</ul></details>}
@@ -138,6 +162,33 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
             <p>{item.scope}</p>{item.last_accessed && <p>Last accessed: {item.last_accessed}</p>}
           </article>)}</div>
         </section>}
+      </div>
+    </Inspector>}
+    {grant && <Inspector title={grant.provider === "aws" ? "Policy access review" : "Role access review"} onClose={() => setSelectedGrant(undefined)} className="least-inspector">
+      <div className="least-detail">
+        <div className="least-detail-identity"><div><span className="least-eyebrow">{grant.provider === "aws" ? "POLICY ACCESS" : "ROLE ACCESS"}</span><h2>{grant.label}</h2><p>{grant.id}</p></div><Badge value={grant.severity} /></div>
+        <div className="least-detail-stats"><span><strong>{grant.principals.length}</strong> principals</span><span><strong>{grant.permission_count}</strong> high / critical grants</span><span><strong>{grant.scopes.length}</strong> scopes</span></div>
+        <section className="least-permissions" aria-label="Principals receiving this grant">
+          <h3>Principals receiving this {grant.provider === "aws" ? "policy" : "role"}</h3>
+          <ul className="least-group-principals">{grant.principals.map(item => <li key={item.id}><strong>{item.label || item.principal}</strong><small>{item.principal}</small></li>)}</ul>
+        </section>
+        <section className="least-permissions" aria-label="High and critical permissions">
+          <h3>High & critical permissions</h3>
+          {grantDetails.isPending ? <p role="status">Loading permission details…</p> : grantDetails.error ? <State error={grantDetails.error} onRetry={() => void grantDetails.refetch()} /> : <>
+            <div className="least-permission-toolbar"><label className="search-field"><Search size={16} /><input aria-label="Filter grant permissions" placeholder="Filter permission, principal or scope…" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} /></label>
+              {grant.permissions?.some(item => item.unused_finding) && <label className="least-unused-filter"><input type="checkbox" checked={unusedOnly} onChange={event => setUnusedOnly(event.target.checked)} /> Unused permissions (Access Analyzer)</label>}</div>
+            <div className="least-permissions-scroll"><table className="least-permissions-table"><thead><tr><th>Permission & principal</th><th>Criticality</th><th>Applies to</th><th>Last use</th></tr></thead><tbody>
+              {grantPermissions.map((item, index) => <tr key={`${item.principal_id}-${item.permission}-${item.scope}-${index}`}>
+                <td><code>{item.permission}</code><small>{item.principal}</small>{item.conditions != null && <details><summary>Grant conditions</summary><pre>{JSON.stringify(item.conditions, null, 2)}</pre></details>}</td>
+                <td><Badge value={item.severity} /></td><td><span>{item.scope}</span>{item.resources.map(resource => <small key={resource}>{resource}</small>)}</td>
+                <td>{item.days_since_last_access != null ? <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
+                  <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong><small>{item.usage_basis === "permission" ? "Action last accessed" : item.usage_basis === "policy" ? "Policy service activity · action usage unknown" : "Principal service activity · action usage unknown"}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
+                </div> : <span className="least-usage unknown">{item.unused_finding ? "Unused in analyzer window · no last-use date" : "Usage not available"}</span>}</td>
+              </tr>)}
+              {!grantPermissions.length && <tr><td colSpan={4}>No permissions match this filter.</td></tr>}
+            </tbody></table></div>
+          </>}
+        </section>
       </div>
     </Inspector>}
 

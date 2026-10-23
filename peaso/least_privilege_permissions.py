@@ -35,24 +35,34 @@ def enrich(card, provider, resources, observed_at):
     def same(value):
         return canonical(provider, value) == canonical(provider, target)
 
-    def append(permission, severity, row, *, scope=None, source=None, resources=None, conditions=None, exclusions=None, usage_row=None):
+    def append(permission, severity, row, *, scope=None, source=None, resources=None, conditions=None, exclusions=None, usage_row=None, group_key=None, group_label=None):
         if severity not in {'high', 'critical'}:
             return
         entry = dict(permission=str(permission), severity=severity, scope=scope or row.get('scope', ''),
-            source=source or _label(row), resources=resources or [], conditions=conditions, exclusions=exclusions or [])
-        if usage_row is not None:
-            services = usage_row['data'].get('ServicesLastAccessed', [])
-            state = usage_row['data'].get('ServicesLastAccessedStatus', {})
-            if state.get('collection_status') == 'collected':
-                service = next((s for s in services if s.get('ServiceNamespace') == str(permission).split(':')[0]), None)
-                if service and service.get('LastAuthenticated'):
-                    entry.update(last_accessed=service['LastAuthenticated'], usage_basis='service')
+            source=source or _label(row), resources=resources or [], conditions=conditions, exclusions=exclusions or [],
+            group_key=group_key or str(row.get('native_id') or native_id(row)), group_label=group_label or _label(row))
+        namespace = str(permission).split(':')[0] if ':' in str(permission) and '*' not in str(permission) else None
+        # A managed-policy report is service-level evidence for the policy, not
+        # proof that this particular action or principal used the grant.
+        for candidate, basis in ((row if row.get('type') == 'iam_policy' else None, 'policy'), (usage_row, 'service')):
+            if candidate is None or namespace is None:
+                continue
+            data = candidate['data']
+            if data.get('ServicesLastAccessedStatus', {}).get('collection_status') != 'collected':
+                continue
+            service = next((s for s in data.get('ServicesLastAccessed', [])
+                            if s.get('ServiceNamespace', '').casefold() == namespace.casefold()), None)
+            if service and service.get('LastAuthenticated'):
+                entry.update(last_accessed=service['LastAuthenticated'], usage_basis=basis)
+                break
         # Only an exact per-action provider observation can describe action usage.
         exact = [s for s in card.get('suggestions', []) if s.get('kind') == 'permission'
                  and s.get('value', '').casefold() == str(permission).casefold()
-                 and s.get('confidence') == 'provider_recommendation' and s.get('last_accessed')]
+                 and s.get('confidence') == 'provider_recommendation']
+        if any(s.get('source') == 'AWS IAM Access Analyzer unused access' for s in exact):
+            entry['unused_finding'] = True
         if exact:
-            latest = max((_date(s['last_accessed']) for s in exact), default=None, key=lambda d: d or datetime.min.replace(tzinfo=timezone.utc))
+            latest = max((_date(s.get('last_accessed')) for s in exact), default=None, key=lambda d: d or datetime.min.replace(tzinfo=timezone.utc))
             if latest:
                 entry.update(last_accessed=latest.isoformat(), usage_basis='permission')
         accessed = _date(entry.get('last_accessed'))
@@ -64,9 +74,12 @@ def enrich(card, provider, resources, observed_at):
         if entry not in permissions:
             permissions.append(entry)
 
-    def declared(row, *, source=None, scope=None, usage_row=None, extra_conditions=None):
+    def declared(row, *, source=None, scope=None, usage_row=None, extra_conditions=None, group_key=None, group_label=None):
         for grant in grants(row):
             if not grant.get('allowed_declaration'):
+                continue
+            if provider == 'aws' and grant.get('path', '').startswith('PolicySources['):
+                # Collector provenance repeats the same inline policy document.
                 continue
             native = grant.get('native_grant')
             grant_source = source or _label(row)
@@ -76,19 +89,27 @@ def enrich(card, provider, resources, observed_at):
                 name = item.get('PolicyName') or item.get('PolicyArn') or item.get('name')
                 if name:
                     grant_source += ' → ' + str(name)
+            grant_key = group_key or str(row['data'].get('Arn') or row['data'].get('name') or row.get('native_id') or native_id(row))
+            grant_label = group_label or _label(row)
+            if inline:
+                grant_key += '#inline:' + str(name or inline[2])
+                grant_label = str(name or grant_label)
             if provider == 'aws' and isinstance(native, dict):
                 if native.get('NotAction'):
                     append('All actions except ' + ', '.join(as_list(native['NotAction'])), grant['severity'], row,
                         scope=scope, source=grant_source, resources=as_list(native.get('Resource')),
-                        conditions=native.get('Condition'), exclusions=as_list(native.get('NotResource')), usage_row=usage_row)
+                        conditions=native.get('Condition'), exclusions=as_list(native.get('NotResource')), usage_row=usage_row,
+                        group_key=grant_key, group_label=grant_label)
                 for action in as_list(native.get('Action')):
                     if not isinstance(action, str):
                         continue
                     severity = permission_severity(provider, action) or ('high' if '*' in action else 'info')
                     append(action, severity, row, scope=scope, source=grant_source, resources=as_list(native.get('Resource')),
-                        conditions=native.get('Condition'), exclusions=as_list(native.get('NotResource')), usage_row=usage_row)
+                        conditions=native.get('Condition'), exclusions=as_list(native.get('NotResource')), usage_row=usage_row,
+                        group_key=grant_key, group_label=grant_label)
             elif provider == 'gcp' and isinstance(native, str):
-                append(native, grant['severity'], row, scope=scope, source=grant_source, conditions=extra_conditions)
+                append(native, grant['severity'], row, scope=scope, source=grant_source, conditions=extra_conditions,
+                       group_key=grant_key, group_label=grant_label)
             elif provider == 'azure' and isinstance(native, dict):
                 for key, exclusion in (('actions', 'notActions'), ('dataActions', 'notDataActions')):
                     for action in as_list(native.get(key)):
@@ -96,7 +117,7 @@ def enrich(card, provider, resources, observed_at):
                             continue
                         append(action, permission_severity(provider, action) or ('high' if '*' in action else 'info'), row,
                             scope=scope, source=grant_source, conditions=extra_conditions,
-                            exclusions=as_list(native.get(exclusion)))
+                            exclusions=as_list(native.get(exclusion)), group_key=grant_key, group_label=grant_label)
             elif provider == 'k8s' and isinstance(native, dict):
                 from bluepeass.k8s_risks import PermissionKey, classify_permission
                 for verb in as_list(native.get('verbs')):
@@ -106,9 +127,10 @@ def enrich(card, provider, resources, observed_at):
                             level, _ = classify_permission(PermissionKey(verb, group=group, resource=base,
                                 subresource=sub, namespace=row['data'].get('metadata', {}).get('namespace', '')))
                             append(f'{verb} {group or "core"}/{resource}', level, row, scope=scope, source=grant_source,
-                                resources=as_list(native.get('resourceNames')))
+                                resources=as_list(native.get('resourceNames')), group_key=grant_key, group_label=grant_label)
                     for url in as_list(native.get('nonResourceURLs')):
-                        append(f'{verb} {url}', grant['severity'], row, scope=scope, source=grant_source)
+                        append(f'{verb} {url}', grant['severity'], row, scope=scope, source=grant_source,
+                               group_key=grant_key, group_label=grant_label)
 
     if provider == 'aws':
         account = target.split(':')[4] if target.startswith('arn:') and len(target.split(':')) > 4 else None
@@ -166,7 +188,9 @@ def enrich(card, provider, resources, observed_at):
             ref = data.get('roleRef', {}); kind = str(ref.get('kind', '')).lower()
             definition = roles.get((_cluster(row), kind, namespace if kind == 'role' else 'default', ref.get('name')))
             if definition:
-                declared(definition, scope=row.get('scope'), source=f"{ref.get('kind')} {ref.get('name')}")
+                declared(definition, scope=row.get('scope'), source=f"{ref.get('kind')} {ref.get('name')}",
+                    group_key='|'.join((_cluster(row), kind, namespace if kind == 'role' else '*', str(ref.get('name')))),
+                    group_label=f"{ref.get('kind')} {ref.get('name')}")
             else:
                 unresolved.append(ref.get('name'))
 
@@ -183,6 +207,29 @@ def enrich(card, provider, resources, observed_at):
     return dict(card, high_risk_permissions=sorted(permissions, key=lambda p: (RANK[p['severity']], p['permission'], p['scope'], p['source'])),
         permission_definitions_missing=sorted({str(x) for x in unresolved if x}), exposures=exposures,
         observed_at=observed_at, identity_last_used=identity_last_used)
+
+
+def grant_groups(cards, provider, resources, observed_at):
+    """Build policy/role groups from the same resolved grants used by principal details."""
+    groups = {}
+    for card in cards:
+        for permission in enrich(card, provider, resources, observed_at)['high_risk_permissions']:
+            key = permission['group_key']
+            group = groups.setdefault(key, {'id': key, 'label': permission['group_label'],
+                'provider': provider, 'scopes': set(), 'principals': {}, 'permissions': [], 'severity': 'high'})
+            group['scopes'].add(permission['scope'])
+            group['principals'][card['id']] = {'id': card['id'], 'principal': card['principal'],
+                'label': card.get('label') or card['principal'], 'severity': card.get('severity'),
+                'exposures': card.get('exposures', []), 'recommendation_count': card.get('recommendation_count', 0)}
+            if permission['severity'] == 'critical':
+                group['severity'] = 'critical'
+            item = {**permission, 'principal_id': card['id'], 'principal': card['principal']}
+            if item not in group['permissions']:
+                group['permissions'].append(item)
+    return [dict(group, scopes=sorted(group['scopes']), principals=sorted(group['principals'].values(),
+                 key=lambda item: item['label'].casefold()), permission_count=len(group['permissions']),
+                 recommendation_count=sum(item['recommendation_count'] for item in group['principals'].values()))
+            for group in groups.values()]
 
 
 def include_resolved_principals(provider, rows, cards):

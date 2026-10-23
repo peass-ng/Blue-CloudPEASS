@@ -3,8 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from peaso.least_privilege_permissions import enrich
 
 
-def principal_detail(artifacts, tenant, bundle, card):
-    summary = bundle.get('summary', bundle)
+def resource_rows(artifacts, tenant, bundle):
     chunks = bundle.get('resource_chunks', [])
     if chunks:
         def read(chunk):
@@ -15,4 +14,10 @@ def principal_detail(artifacts, tenant, bundle, card):
         rows = bundle.get('resources', [])
         if not rows and bundle.get('report_json'):
             rows = artifacts.get(tenant, bundle['report_json']).get('resources', [])
-    return enrich(card, summary.get('provider', card.get('provider')), rows, summary.get('created_at'))
+    return rows
+
+
+def principal_detail(artifacts, tenant, bundle, card):
+    summary = bundle.get('summary', bundle)
+    return enrich(card, summary.get('provider', card.get('provider')),
+                  resource_rows(artifacts, tenant, bundle), summary.get('created_at'))

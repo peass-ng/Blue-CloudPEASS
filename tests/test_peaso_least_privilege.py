@@ -123,6 +123,9 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'asc', 'limit': 1}).json()['items'][0]['principal'] == 'user:alice@example.com'
         assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'desc', 'limit': 1, 'offset': 1}).json()['items'][0]['id'] == 'low-user'
         assert client.get(route, params={'sort_by': 'invented'}).status_code == 422
+        assert client.get(route, params={'group_by': 'grant'}).json()['total'] == 0
+        assert client.get(route, params={'group_by': 'invented'}).status_code == 422
+        assert client.get(route + '/grants', params={'key': 'not-owned'}).status_code == 404
         details = client.get(route + '/principals/user%3Aalice%40example.com')
         assert details.status_code == 200
         assert details.json()['high_risk_permissions'] == []
@@ -130,3 +133,4 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         client.headers["Authorization"] = "Bearer bob"
         assert client.get(route).status_code == 404
         assert client.get(route + "/principals/user%3Aalice%40example.com").status_code == 404
+        assert client.get(route + "/grants", params={'key': 'not-owned'}).status_code == 404

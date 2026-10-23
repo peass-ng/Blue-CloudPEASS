@@ -1410,33 +1410,59 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.get("/api/scans/{ident}/least-privilege")
     def least_privilege(ident: str, search: str = "", exposure: Literal["external", "federated", "internet", "unresolved"] | None = None,
                         sort_by: Literal["severity", "principal", "recommendations"] = "severity", sort_order: Literal["asc", "desc"] = "desc",
+                        group_by: Literal["principal", "grant"] = "principal",
                         offset: int = Query(default=0, ge=0), limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
-        """Filter and sort the whole principal projection before pagination."""
+        """Filter and sort the selected view before pagination."""
         row, bundle, projection = principal_projection(user.tenant_id, ident)
         needle = search.strip().casefold()[:200]
-        candidates = projection["items"]
+        if group_by == 'grant':
+            from .least_privilege_details import resource_rows
+            from peaso.least_privilege_permissions import grant_groups
+            summary = bundle.get('summary', bundle)
+            candidates = grant_groups(projection['items'], summary.get('provider', ''),
+                resource_rows(artifacts, user.tenant_id, bundle), summary.get('created_at'))
+        else:
+            candidates = projection["items"]
         if exposure:
             kinds = {"external": {"external_assumption", "external_impersonation", "external_identity"},
                      "federated": {"federated_trust"}, "internet": {"internet_workload"}}
             candidates = [card for card in candidates if any(
                 entry.get("state") == "unknown" if exposure == "unresolved" else entry.get("kind") in kinds[exposure]
-                for entry in card.get("exposures", []))]
+                for entry in (card.get("exposures", []) if group_by == 'principal' else
+                    [item_exposure for principal in card['principals'] for item_exposure in principal.get('exposures', [])]))]
         if needle:
-            candidates = [card for card in candidates if needle in card["principal"].casefold()
-                or needle in card.get("label", "").casefold()
-                or any(needle in scope.casefold() for scope in card["scopes"])]
+            candidates = [card for card in candidates if needle in card.get("principal", "").casefold()
+                or needle in card.get("label", "").casefold() or needle in card['id'].casefold()
+                or any(needle in scope.casefold() for scope in card["scopes"])
+                or (group_by == 'grant' and any(needle in principal['principal'].casefold()
+                    or needle in principal['label'].casefold() for principal in card['principals']))]
         from peaso.principal_exposure import RANK
         if sort_by == "severity":
-            candidates = sorted(candidates, key=lambda c: (RANK.get(c.get("severity"), 4), c.get("label", c["principal"]).casefold()), reverse=sort_order == "asc")
+            candidates = sorted(candidates, key=lambda c: (RANK.get(c.get("severity"), 4), c.get("label", c.get("principal", c['id'])).casefold()), reverse=sort_order == "asc")
         elif sort_by == "recommendations":
-            candidates = sorted(candidates, key=lambda c: (c.get("recommendation_count", 0), c["principal"].casefold()), reverse=sort_order == "desc")
+            candidates = sorted(candidates, key=lambda c: (c.get("recommendation_count", 0), c.get("principal", c['id']).casefold()), reverse=sort_order == "desc")
         else:
-            candidates = sorted(candidates, key=lambda c: c.get("label", c["principal"]).casefold(), reverse=sort_order == "desc")
+            candidates = sorted(candidates, key=lambda c: c.get("label", c.get("principal", c['id'])).casefold(), reverse=sort_order == "desc")
         page = candidates[offset:offset + limit]
+        if group_by == 'grant':
+            page = [{key: value for key, value in group.items() if key != 'permissions'} for group in page]
         return {"items": page, "total": len(candidates), "offset": offset,
             "recommendation_total": sum(card.get("recommendation_count", 0) for card in candidates),
             "next_offset": offset + len(page) if offset + len(page) < len(candidates) else None,
             "coverage": projection["coverage"]}
+
+    @app.get("/api/scans/{ident}/least-privilege/grants")
+    def least_privilege_grant(ident: str, key: str, user=Depends(identity)):
+        _, bundle, projection = principal_projection(user.tenant_id, ident)
+        from .least_privilege_details import resource_rows
+        from peaso.least_privilege_permissions import grant_groups
+        summary = bundle.get('summary', bundle)
+        groups = grant_groups(projection['items'], summary.get('provider', ''),
+            resource_rows(artifacts, user.tenant_id, bundle), summary.get('created_at'))
+        group = next((item for item in groups if item['id'] == key), None)
+        if group is None:
+            raise HTTPException(404, 'Grant not found')
+        return group
 
     @app.get("/api/scans/{ident}/least-privilege/principals/{principal_id:path}")
     def principal_permissions(ident: str, principal_id: str, user=Depends(identity)):
