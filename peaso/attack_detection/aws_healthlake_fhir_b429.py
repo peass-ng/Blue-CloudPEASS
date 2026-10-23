@@ -23,6 +23,8 @@ _EVENTS = {
     "SearchWithPost": (True, None, True, False),
     "ReadResource": (True, None, True, True),
     "GetHistoryByResourceId": (True, None, True, True),
+    "VersionReadResource": (True, None, True, True),
+    "PatchResource": (False, 200, True, True),
 }
 
 
@@ -62,6 +64,10 @@ def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
         response = record.get("responseElements")
         if not isinstance(response, Mapping) or str(response.get("statusCode")) != str(status):
             return None
+    elif isinstance(record.get("responseElements"), Mapping):
+        response_status = record["responseElements"].get("statusCode")
+        if response_status is not None and str(response_status) != "200":
+            return None
     resource_type = request.get("resourceType")
     resource_id = request.get("resourceId")
     if needs_type and (not isinstance(resource_type, str)
@@ -70,6 +76,10 @@ def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
     if needs_id and (not isinstance(resource_id, str) or not resource_id
                      or len(resource_id) > 128):
         return None
+    version_id = request.get("versionId")
+    if name == "VersionReadResource" and (not isinstance(version_id, str)
+                                          or not version_id or len(version_id) > 128):
+        return None
     if name == "SearchEverything" and resource_type != "Patient":
         return None
     target_parts = [account, region, store]
@@ -77,6 +87,8 @@ def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
         target_parts.append(resource_type)
     if needs_id:
         target_parts.append(resource_id)
+    if name == "VersionReadResource":
+        target_parts.append(version_id)
     target = "sha256:" + hashlib.sha256(":".join(target_parts).encode()).hexdigest()[:24]
     return {
         "cloud.provider": "aws", "event.source": "healthlake.amazonaws.com",
