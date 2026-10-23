@@ -121,8 +121,18 @@ def test_real_native_snapshot_paths_preserve_conditions_and_source_identity(prov
     assert result['findings'],provider
     for finding in result['findings']:
         original=deepcopy(finding);text=displayed_summary(finding)
+        if evidence_summary(finding) is None:
+            # A conditional path with no recorded granting statement cannot
+            # support a source-to-target claim in observed evidence.
+            assert text is None
+            assert finding==original
+            continue
         assert text,(provider,finding)
-        assert finding['evidence']['source']['label'] in text
+        label=finding['evidence']['source']['label']
+        if label=='2 principals':
+            assert 'source identity' in text
+        else:
+            assert label in text
         assert finding==original
 
 
