@@ -20,6 +20,12 @@ ACCOUNT = "111111111111"
 SCOPE = f"{ACCOUNT}/us-east-1"
 ALICE = f"arn:aws:iam::{ACCOUNT}:user/alice"
 ADMIN_ROLE = f"arn:aws:iam::{ACCOUNT}:role/ec2-admin"
+INSTANCE = f"arn:aws:ec2:us-east-1:{ACCOUNT}:instance/i-0123456789abcdef0"
+IMAGE = "arn:aws:ec2:us-east-1::image/ami-0123456789abcdef0"
+SUBNET = f"arn:aws:ec2:us-east-1:{ACCOUNT}:subnet/subnet-0123456789abcdef0"
+GROUP = f"arn:aws:ec2:us-east-1:{ACCOUNT}:security-group/sg-0123456789abcdef0"
+INTERFACE = f"arn:aws:ec2:us-east-1:{ACCOUNT}:network-interface/eni-0123456789abcdef0"
+PROFILE = f"arn:aws:iam::{ACCOUNT}:instance-profile/ec2-admin"
 
 
 def policy(*statements):
@@ -31,13 +37,30 @@ def privesc_snapshot():
              "UserPolicyList": [{"PolicyName": "alice-inline", "PolicyDocument": policy(
                  {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*"},
                  {"Effect": "Allow", "Action": "ec2:RunInstances", "Resource": "*"})}]}
-    role = {"RoleName": "ec2-admin", "Arn": ADMIN_ROLE, "Path": "/", "RolePolicyList": [],
+    role = {"RoleName": "ec2-admin", "Arn": ADMIN_ROLE, "RoleId": "AROAEC2ADMIN123456789", "Path": "/", "RolePolicyList": [],
             "AssumeRolePolicyDocument": policy({"Effect": "Allow", "Principal": {"Service": "ec2.amazonaws.com"}, "Action": "sts:AssumeRole"}),
             "AttachedManagedPolicies": [{"PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess", "PolicyName": "AdministratorAccess"}],
-            "InstanceProfileList": [{"Arn": f"arn:aws:iam::{ACCOUNT}:instance-profile/ec2-admin"}]}
+            "InstanceProfileList": [{"Arn": PROFILE}]}
+    launch = {"TechniqueId": "aws-ec2-passrole-runinstances", "SourceArn": ALICE,
+              "TargetKind": "aws_role", "TargetId": ADMIN_ROLE, "Status": "verified",
+              "VerifiedPreconditions": True, "InstanceArn": INSTANCE, "ImageArn": IMAGE,
+              "SubnetArn": SUBNET, "SecurityGroupArn": GROUP, "NetworkInterfaceArn": INTERFACE,
+              "InstanceProfileArn": PROFILE, "TargetRoleId": role["RoleId"],
+              "InstanceRoleId": role["RoleId"], "RunInstancesSucceeded": True,
+              "InstanceLaunchedSucceeded": True, "InstanceProfileApplied": True,
+              "UserDataControlledBySource": True, "UserDataExecuted": True,
+              "UserDataUsedRoleCredentials": True, "RoleAction": "s3:PutObject",
+              "RoleActionResource": "arn:aws:s3:::instance-output/result",
+              "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+              "RunInstancesAuthorizationResourcesComplete": True,
+              "RunInstancesAuthorizationResources": [INSTANCE, IMAGE, SUBNET, GROUP, INTERFACE],
+              "TagsRequested": False, "EvidenceRef": "reviewed-runinstances-integration",
+              "EvidenceObservedAt": "2026-01-01T00:00:00Z",
+              "EvidenceExpiresAt": "2026-01-01T00:05:00Z"}
     collections = [{"type": kind, "scope": SCOPE, "service": kind, "status": status, "items": items} for kind, status, items in (
         ("iam_user", "collected", [alice]), ("iam_role", "collected", [role]), ("iam_group", "empty", []),
-        ("iam_policy", "empty", []), ("scp_policy", "empty", []))]
+        ("iam_policy", "empty", []), ("scp_policy", "empty", []),
+        ("aws_privesc_challenge_evidence", "collected", [launch]))]
     return make_snapshot("aws", [SCOPE], collections, created_at="2026-01-01T00:00:00+00:00")
 
 
@@ -49,12 +72,12 @@ def report():
 def test_engine_produces_privesc_findings_graph_coverage_and_stats(report):
     privesc = [f for f in report["findings"] if f["category"] == "privesc"]
     assert privesc and len(privesc) == report["stats"]["finding_count"]
-    assert not any(f["check_id"] == "aws-ec2-passrole-runinstances" for f in privesc)
+    assert any(f["check_id"] == "aws-ec2-passrole-runinstances" for f in privesc)
     assert any(f["check_id"] == "admin-equivalent" and f["status"] == "FAIL" for f in privesc)
-    assert {f["status"] for f in privesc} <= {"FAIL", "UNKNOWN"}
+    assert {f["status"] for f in privesc} <= {"FAIL", "MANUAL", "UNKNOWN"}
     graph = report["graphs"]["privesc"]
     assert graph["nodes"] and graph["edges"] and report["graphs"]["network"] == {"nodes": [], "edges": []}
-    assert not any("aws-ec2-passrole-runinstances" in e["techniques"] for e in graph["edges"])
+    assert any("aws-ec2-passrole-runinstances" in e["techniques"] for e in graph["edges"])
     assert any(c["level"] == "privesc" for c in report["coverage"]) or report["stats"]["privesc"]["catalog_errors"] == 0
     summary = next(c for c in report["coverage"] if c["level"] == "check" and c["check_id"] == "privesc")
     assert summary["by_status"].get("FAIL")
@@ -120,7 +143,7 @@ def test_markdown_privesc_section(report):
     for heading in ("### Principals reaching admin-equivalent", "### Top escalation paths", "### Techniques with broad reach", "### Unknowns and coverage gaps"):
         assert heading in section
     assert "alice" in section and "aws-ec2-passrole-runinstances" in section
-    assert "alice-inline" in section  # granting policy evidence
+    assert "AdministratorAccess" in section  # evidence for the admin-equivalent hop
     assert "Mitigation:" in section
 
 
@@ -254,7 +277,8 @@ def test_api_finding_detail_accepts_ids_with_slashes_without_shadowing(api):
     assert "/" in finding_id
     raw = client.get(f"/api/scans/{ident}/findings/{finding_id}")
     assert raw.status_code == 200, raw.text
-    assert raw.json()["id"] == finding_id and raw.json()["evidence"]["granting_statements"]
+    assert raw.json()["id"] == finding_id
+    assert "ec2_runinstances_exact_instance_role_effect" in raw.json()["evidence"]["conditions"]
     encoded = client.get(f"/api/scans/{ident}/findings/{quote(finding_id, safe='')}")
     assert encoded.status_code == 200 and encoded.json()["id"] == finding_id
     assert client.get(f"/api/scans/{ident}/findings/{finding_id}/extra").status_code == 404
@@ -273,12 +297,11 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     edge = next(e for e in card["outgoing"] if "aws-ec2-passrole-runinstances" in e["techniques"])
     detail = next(d for d in edge["technique_details"] if d["id"] == "aws-ec2-passrole-runinstances")
     assert detail["summary"] and detail["mitigation"] and detail["source"].startswith("src/pentesting-cloud/")
-    assert any("iam:PassRole" in p for p in detail["required_permissions"]["all_of"])
+    assert detail["required_permissions"]["all_of"] == []
     assert "conditions" in detail and detail["edge_confidence"] == edge["confidence"]
-    assert detail["evidence"] == edge["evidence_refs"] and any(r.get("policy_name") == "alice-inline" for r in detail["evidence"])
+    assert detail["evidence"] == edge["evidence_refs"]
+    assert "ec2_runinstances_exact_instance_role_effect" in detail["evaluated_conditions"]
     assert card["technique_details"]["aws-ec2-passrole-runinstances"]["title"]
-    assert {p["permission"].lower() for p in detail["granting_permissions"]} >= {"iam:passrole", "ec2:runinstances"}
-    assert all(p["grant"]["statement_document"]["Resource"] == ["*"] for p in detail["granting_permissions"])
 
     role = client.get(f"/api/scans/{ident}/privesc/principals/{ADMIN_ROLE}").json()
     admin_edge = next(e for e in role["outgoing"] if "admin-equivalent" in e["techniques"])
