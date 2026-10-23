@@ -124,6 +124,8 @@ def evaluate(item,index):
             matching=[r for r in rows if r.get('digest')==desc['digest'] and r.get('status')=='collected'
                       and r.get('bytes')==desc['size'] and r.get('http_status')==200]
             if len(matching)<expected_count:raise ValueError('descriptor receipt')
+        if not source.stream.complete_blob_receipts(rows,[descriptors,descriptors[:1],descriptors[:1]]):
+            raise ValueError('descriptor occurrence receipts')
         observed=m['observation']
         if (type(observed) is not dict or observed.get('provider')!='azure'
                 or observed.get('scope')!=scope or observed.get('asset_kind')!='acr_image'
@@ -172,7 +174,7 @@ def _evaluate_index(item,index,scope,meta,ident,m,target):
                 or rows[3].get('digest')!=target['digest']):raise ValueError('native parent')
         match=source.acr._REGISTRY.fullmatch(target['registry_id'])
         host_prefix=match[3].lower()
-        observations=[];seen=set()
+        observations=[];seen=set();descriptor_groups=[]
         for child,scan in zip(children,scans):
             if (type(child) is not dict or not {'digest','size','mediaType','platform',
                     'config_digest','descriptors','rootfs_diff_ids'}<=set(child)
@@ -182,11 +184,12 @@ def _evaluate_index(item,index,scope,meta,ident,m,target):
                     or type(scan) is not dict):raise ValueError('child marker')
             seen.add(child['digest'])
             descriptors=child['descriptors'];diffs=child['rootfs_diff_ids']
+            descriptor_groups.append(descriptors)
             if (type(descriptors) is not list or not 2<=len(descriptors)<=archive.MAX_LAYERS+1
                     or archive.descriptor(descriptors[0],archive.CONFIGS,archive.MAX_CONFIG)!=descriptors[0]
                     or descriptors[0]['digest']!=child['config_digest']
                     or any(archive.descriptor(d,archive.LAYERS,archive.MAX_LAYER)!=d for d in descriptors[1:])
-                    or len({d['digest'] for d in descriptors})!=len(descriptors)
+                    or not source.stream.consistent_descriptors(descriptors)
                     or type(diffs) is not list or len(diffs)!=len(descriptors)-1
                     or any(type(d) is not str or not archive.DIGEST.fullmatch(d) for d in diffs)):
                 raise ValueError('child descriptors')
@@ -218,6 +221,8 @@ def _evaluate_index(item,index,scope,meta,ident,m,target):
                         or not 0<proof['members']<=archive.MAX_MEMBERS):
                     raise ValueError('child archive proof')
             observations.append(source._observation(scope,target,image,scan))
+        if not source.stream.complete_blob_receipts(rows,descriptor_groups):
+            raise ValueError('child descriptor occurrence receipts')
         complete=(graph['complete'] is True and len(scans)==len(children)
             and all(s.get('complete') is True and s.get('scan_complete') is True
                 and s.get('coverage_status')=='COMPLETE' and s.get('database',{}).get('fresh') is True

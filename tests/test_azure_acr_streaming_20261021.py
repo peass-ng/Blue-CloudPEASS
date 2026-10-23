@@ -31,6 +31,38 @@ def test_later_denial_retains_verified_positive(proposal,monkeypatch):
     snapshot,_=existing.capture(monkeypatch,img=img,overrides={'layer_blob':existing.Response(b'',403)})
     assert checks.evaluate(*existing.index_of(snapshot))[0]=='FAIL'
 
+
+def test_repeated_immutable_layer_is_inspected_in_manifest_order(proposal,monkeypatch):
+    from tests import test_azure_acr_image_secret_review_20261020 as existing
+    source,checks=proposal
+    img=existing.image()
+    img.manifest['layers'].append(dict(img.manifest['layers'][0]))
+    img.config['rootfs']['diff_ids'].append(source._sha(img.layer))
+    img.config_raw=existing.packed(img.config)
+    img.manifest['config']['digest']=source._sha(img.config_raw)
+    img.manifest['config']['size']=len(img.config_raw)
+    img.manifest_raw=existing.packed(img.manifest)
+    img.target['digest']=source._sha(img.manifest_raw)
+    snapshot,_=existing.capture(monkeypatch,img=img)
+    item=next(c for c in snapshot['collections'] if c['type']==source.KIND)['items'][0]
+    marker=item[source.MARKER]
+    assert marker['complete'] is True
+    assert len(marker['layers_scanned'])==2
+    assert checks.evaluate(*existing.index_of(snapshot))[0]=='PASS'
+
+
+def test_repeated_digest_with_conflicting_descriptor_is_rejected():
+    from peaso.collectors.azure_acr_image_stream_inspection_20261021 import consistent_descriptors,complete_blob_receipts
+    first={'digest':'sha256:'+'a'*64,'size':128,'mediaType':'application/vnd.oci.image.layer.v1.tar'}
+    assert consistent_descriptors([first,dict(first)]) is True
+    assert consistent_descriptors([first,{**first,'size':129}]) is False
+    assert consistent_descriptors([first,{**first,'mediaType':'application/vnd.oci.image.layer.v1.tar+gzip'}]) is False
+    receipt={'operation':'blob','status':'collected','http_status':200,'verified':True,'bound':True,
+        'digest':first['digest'],'bytes':first['size']}
+    assert complete_blob_receipts([receipt],[[first,dict(first)]]) is False
+    assert complete_blob_receipts([receipt,dict(receipt)],[[first,dict(first)]]) is True
+    assert complete_blob_receipts([receipt,{**receipt,'status':'unavailable'}],[[first,dict(first)]]) is False
+
 @pytest.mark.parametrize('failure',['wrong_digest','truncated','rootfs','denied','disk'])
 def test_incomplete_layer_is_unknown_and_cleans_scratch(proposal,monkeypatch,tmp_path,failure):
     from tests import test_azure_acr_image_secret_review_20261020 as existing

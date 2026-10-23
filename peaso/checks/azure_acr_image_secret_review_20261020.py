@@ -4,6 +4,7 @@ import json
 import re
 from peaso.secret_scanning import merge_leaks,KINGFISHER_VERSION,TRUFFLEHOG_VERSION
 from peaso import oci_index_20261021 as oci_index
+from peaso.collectors.azure_acr_image_stream_inspection_20261021 import consistent_descriptors,complete_blob_receipts
 from peaso.collectors.azure_acr_image_secret_indicators import (
     KIND,CHECK,MARKER,SCHEMA,_SCOPE,MODES,MAX_IMAGES,MAX_LAYERS,MAX_MANIFEST,
     MAX_CONFIG,MAX_LAYER,MAX_IMAGE,MAX_EXPANDED,MAX_MEMBERS,MAX_CALLS,MAX_LEAKS,MAX_LOCATIONS,MAX_PARTS,
@@ -50,7 +51,7 @@ def evaluate(item,index):
         if not isinstance(desc,list) or not 2<=len(desc)<=MAX_LAYERS+1:raise ValueError('descriptors')
         if _descriptor(desc[0],CONFIG_TYPES,MAX_CONFIG)!=desc[0]:raise ValueError('config')
         if any(_descriptor(d,TAR_TYPES,MAX_LAYER)!=d for d in desc[1:]):raise ValueError('layers')
-        if len({d['digest'] for d in desc})!=len(desc) or sum(d['size'] for d in desc)>MAX_IMAGE:raise ValueError('descriptor bound')
+        if not consistent_descriptors(desc) or sum(d['size'] for d in desc)>MAX_IMAGE:raise ValueError('descriptor bound')
         if m['layers_scanned']!=[d['digest'] for d in desc[1:]]:raise ValueError('layers incomplete')
         if (type(m['expanded_bytes']) is not int or not 1<=m['expanded_bytes']<=MAX_EXPANDED
                 or type(m['members']) is not int or not 1<=m['members']<=MAX_MEMBERS
@@ -86,6 +87,7 @@ def evaluate(item,index):
                 if r['operation']!='blob_data' or r['endpoint']!='native_dedicated_data' or r['method']!='GET' or r['digest']!=d['digest']:raise ValueError('native data provenance')
             if r['status']!='collected' or r['http_status']!=200 or r['bytes']!=d['size']:raise ValueError('blob completeness')
         if cursor!=len(receipts):raise ValueError('extra requests')
+        if not complete_blob_receipts(receipts,[desc]):raise ValueError('blob occurrence receipts')
         parts=m['parts'];versions={'kingfisher':KINGFISHER_VERSION,'trufflehog':TRUFFLEHOG_VERSION}
         if not isinstance(parts,list) or not m['regular_files']+2<=len(parts)<=MAX_PARTS or parts[0].get('part')!='manifest' or parts[1].get('part')!='config':raise ValueError('parts')
         names=[]
@@ -159,6 +161,7 @@ def _evaluate_index(item,collection,index,scope,meta,ident,m):
         if (rows[3].get('digest')!=graph['parent_digest'] or rows[3].get('status')!='collected'
                 or rows[3].get('http_status')!=200 or not 1<=rows[3].get('bytes',0)<=MAX_MANIFEST):
             raise ValueError('parent manifest')
+        descriptor_groups=[]
         for child,record in zip(children,inspections):
             if (type(child) is not dict or set(child)!={'digest','size','mediaType','platform','config_digest'}
                     or child['mediaType'] not in oci_index.LEAF_TYPES
@@ -172,11 +175,12 @@ def _evaluate_index(item,collection,index,scope,meta,ident,m):
                     or record['scan_partial']!=(record['skipped_files']>0)):
                 raise ValueError('index child')
             desc=record['descriptors']
+            descriptor_groups.append(desc)
             if (type(desc) is not list or not 2<=len(desc)<=MAX_LAYERS+1
                     or _descriptor(desc[0],CONFIG_TYPES,MAX_CONFIG)!=desc[0]
                     or desc[0]['digest']!=child['config_digest']
                     or any(_descriptor(d,TAR_TYPES,MAX_LAYER)!=d for d in desc[1:])
-                    or len({d['digest'] for d in desc})!=len(desc)
+                    or not consistent_descriptors(desc)
                     or record['layers_scanned']!=[d['digest'] for d in desc[1:]]
                     or type(record['regular_files']) is not int or record['regular_files']<1
                     or type(record['expanded_bytes']) is not int or not 1<=record['expanded_bytes']<=MAX_EXPANDED):
@@ -188,6 +192,7 @@ def _evaluate_index(item,collection,index,scope,meta,ident,m):
                 if not any(r.get('digest')==descriptor['digest'] and r.get('bytes')==descriptor['size']
                         and r.get('status')=='collected' and r.get('http_status')==200 for r in rows):
                     raise ValueError('child blob receipt')
+        if not complete_blob_receipts(rows,descriptor_groups):raise ValueError('child blob occurrence receipts')
         if complete:
             if (sum(r.get('operation')=='registry_identity' for r in rows)<2
                     or sum(r.get('operation')=='manifest' and r.get('digest')==graph['parent_digest']
@@ -261,7 +266,7 @@ def _partial_positive(item,index,scope,meta,ident,m):
                 or _descriptor(desc[0],CONFIG_TYPES,MAX_CONFIG)!=desc[0]
                 or any(_descriptor(d,TAR_TYPES,MAX_LAYER)!=d for d in desc[1:])
                 or sum(d['size'] for d in desc)>MAX_IMAGE
-                or len({d['digest'] for d in desc})!=len(desc)
+                or not consistent_descriptors(desc)
                 or not isinstance(inspected,list) or len(inspected)<2
                 or inspected[:2]!=[m['manifest_digest'],desc[0]['digest']]
                 or inspected[2:]!=[d['digest'] for d in desc[1:1+len(inspected)-2]]

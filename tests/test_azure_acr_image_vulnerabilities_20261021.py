@@ -104,6 +104,19 @@ def test_disabled_and_missing_selection_zero_io(proposal):
             '_image_vulnerability_scan_kinds':[native.KIND]},database_check=Poison())
 
 
+def test_repeated_immutable_layer_descriptor_is_preserved(proposal):
+    from tests import test_azure_acr_image_secret_review_20261020 as existing
+    acr,azure,native,check=proposal
+    img=existing.image()
+    img.manifest['layers'].append(dict(img.manifest['layers'][0]))
+    _,_,layers=native._descriptors(existing.packed(img.manifest))
+    assert len(layers)==2
+    assert layers[0]==layers[1]
+    img.manifest['layers'][1]['size']+=1
+    with pytest.raises(ValueError):
+        native._descriptors(existing.packed(img.manifest))
+
+
 @pytest.mark.parametrize('case',['wrong_digest','truncation','denied','rootfs','drift','stale'])
 def test_incomplete_native_input_never_passes(proposal,monkeypatch,tmp_path,case):
     from tests import test_azure_acr_image_secret_review_20261020 as existing

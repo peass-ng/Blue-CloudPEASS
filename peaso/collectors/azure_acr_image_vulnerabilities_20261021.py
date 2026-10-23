@@ -17,6 +17,7 @@ from peaso import oci_index_20261021 as oci_index
 from peaso import image_findings
 from peaso import trivy_container_runner_20261020 as trivy
 from . import azure_acr_image_secret_indicators as acr
+from . import azure_acr_image_stream_inspection_20261021 as stream
 
 ENABLE = 'image_vulnerability_scans'
 OPTION = 'selected_azure_acr_image_vulnerabilities'
@@ -92,7 +93,8 @@ def _descriptors(raw):
     layers=doc.get('layers')
     _require(type(layers) is list and 1<=len(layers)<=archive.MAX_LAYERS)
     layers=[archive.descriptor(d,archive.LAYERS,archive.MAX_LAYER) for d in layers]
-    _require(len({d['digest'] for d in [config]+layers})==len(layers)+1
+    # Repeated immutable layers are valid and must retain their manifest order.
+    _require(stream.consistent_descriptors([config]+layers)
         and sum(d['size'] for d in [config]+layers)<=archive.MAX_COMPRESSED)
     return doc,config,layers
 

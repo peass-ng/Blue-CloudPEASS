@@ -1,5 +1,6 @@
 """Bounded private inspection of an exact ACR leaf or finite OCI index."""
 from copy import deepcopy
+from collections import Counter
 from pathlib import Path
 import tempfile
 import time
@@ -16,6 +17,27 @@ MAX_FILE_SCAN = 64 * 1024 * 1024
 MAX_IMAGE_SCAN = 512 * 1024 * 1024
 ABORT_CODES = frozenset(('collection_cancelled', 'intentional_scan_deadline',
     'deadline_exceeded', 'scanner_deadline'))
+
+
+def consistent_descriptors(descriptors):
+    """A reused digest must keep the same size and media type."""
+    seen = {}
+    for descriptor in descriptors:
+        digest = descriptor['digest']
+        identity = (descriptor['size'], descriptor['mediaType'])
+        if digest in seen and seen[digest] != identity:
+            return False
+        seen[digest] = identity
+    return True
+
+
+def complete_blob_receipts(rows, descriptor_groups):
+    """Require a verified blob read for every manifest reference."""
+    needed = Counter((d['digest'], d['size']) for group in descriptor_groups for d in group)
+    observed = Counter((r.get('digest'), r.get('bytes')) for r in rows
+        if r.get('operation') in ('blob', 'blob_data') and r.get('status') == 'collected'
+        and r.get('http_status') == 200 and r.get('verified') is True and r.get('bound') is True)
+    return all(observed[key] >= count for key, count in needed.items())
 
 
 def _abort_code(exc):
@@ -82,7 +104,9 @@ def inspect_image(reader):
             if type(layers) is not list or not 1<=len(layers)<=native.MAX_LAYERS:
                 raise native.Incomplete('layers_unavailable')
             layers=[native._descriptor(d,native.TAR_TYPES,native.MAX_LAYER) for d in layers]
-            if (len({d['digest'] for d in [config]+layers})!=len(layers)+1
+            # A manifest may reference the same immutable layer more than once.
+            # Keep every occurrence in order and charge each against the bound.
+            if (not consistent_descriptors([config]+layers)
                     or sum(d['size'] for d in [config]+layers)>native.MAX_IMAGE):
                 raise native.Incomplete('compressed_image_bound')
             prefix=reader.ident+('.child-'+digest[7:] if index_mode else '')
