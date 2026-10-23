@@ -22,6 +22,7 @@ def test_untyped_challenge_paths_are_archived_not_active():
         if entry["id"] == "aws-deadline-passrole-fleet-createworker":
             assert entry["target"]["outcome"] == "bounded_authority"
             assert selector == {"aws_challenge_fact": entry["id"]}
+            assert entry["target"]["grants"] == ["One observed Deadline worker operation on the exact worker"]
         else:
             assert entry["target"]["outcome"] == "permission_grant"
             assert "aws_challenge_fact" not in selector

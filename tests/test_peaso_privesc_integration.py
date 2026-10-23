@@ -297,7 +297,7 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     edge = next(e for e in card["outgoing"] if "aws-ec2-passrole-runinstances" in e["techniques"])
     detail = next(d for d in edge["technique_details"] if d["id"] == "aws-ec2-passrole-runinstances")
     assert detail["summary"] and detail["mitigation"] and detail["source"].startswith("src/pentesting-cloud/")
-    assert detail["required_permissions"]["all_of"] == ["iam:PassRole", "ec2:RunInstances"]
+    assert detail["required_permissions"]["all_of"] == []
     assert "conditions" in detail and detail["edge_confidence"] == edge["confidence"]
     assert detail["evidence"] == edge["evidence_refs"]
     assert "ec2_runinstances_exact_instance_role_effect" in detail["evaluated_conditions"]

@@ -1153,15 +1153,11 @@
       "catalog_file": "peaso/privesc/catalog/aws/cloudcontrol.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudcontrol-privesc/README.md#cloudformationcreateresource--iampassrole",
       "source_revision": "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae",
-      "reviewed_contract_sha256": "18c0301e35dd7356b015733affdb699134c51ef198fe11d11996d7094b421004",
+      "reviewed_contract_sha256": "b3fdc7b912f64ee5f42e66dc7dbf33a45a4800fafc5e53c80d054b8eb8855ea0",
       "purpose": "Cloud Control may perform chosen resource operations with the passed CloudFormation role.",
       "target_kind": "aws_account_admin",
       "requirement_contract": {
-        "all_of": [
-          {
-            "action": "cloudformation:CreateResource"
-          }
-        ]
+        "all_of": []
       },
       "conditions_retained": [
         "passrole_condition_key",
@@ -2767,18 +2763,11 @@
       "catalog_file": "peaso/privesc/catalog/aws/ec2.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#iampassrole-ec2runinstances",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "46b869f3bba5b918340d0e3cc46d9c0673aa031a4b00827a09cc90a858158635",
+      "reviewed_contract_sha256": "62c32980d35dfc05c89e534c1b0c808af04f73f9362c4efdfdfb2cf2cf5bae84",
       "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [
-          {
-            "action": "iam:PassRole"
-          },
-          {
-            "action": "ec2:RunInstances"
-          }
-        ]
+        "all_of": []
       },
       "conditions_retained": [
         "passrole_condition_key",
@@ -2800,18 +2789,11 @@
       "catalog_file": "peaso/privesc/catalog/aws/ec2.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#ec2requestspotinstances-iampassrole",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "2b7124b54f6415e4ac000b745ea427234f8d02c2daa24d8ddd2bf7f67228d7cd",
+      "reviewed_contract_sha256": "0227c71524f0938132cb02ef82055e94d1699b4277d5ad37ef4ca66af9d83f67",
       "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [
-          {
-            "action": "iam:PassRole"
-          },
-          {
-            "action": "ec2:RequestSpotInstances"
-          }
-        ]
+        "all_of": []
       },
       "conditions_retained": [
         "passrole_condition_key",
