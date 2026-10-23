@@ -1070,7 +1070,7 @@ def cpu_receipt():
 
 def cpu_epoch_bytes(relative, raw):
     """Two finite signed layers, followed by the original CPU source assertions."""
-    if relative not in {'peaso/checks/__init__.py', 'peaso/collectors/aws.py', 'peaso/collectors/azure.py', 'peaso/engine.py'}:
+    if relative not in {'peaso/checks/__init__.py', 'peaso/collectors/aws.py', 'peaso/collectors/aws_facts_swc.py', 'peaso/collectors/azure.py', 'peaso/engine.py'}:
         return raw
     from peaso.checks import private_secret_shared_source_successor_20261021 as current
     if relative == 'peaso/checks/__init__.py':
