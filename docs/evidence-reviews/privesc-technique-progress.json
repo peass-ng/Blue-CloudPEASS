@@ -7098,15 +7098,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/cloud_pivot.yaml",
       "current_contract_sha256": "85cb6209d86ff9952169007f785a24772e8081b7f510bdcb390d57931d8cbed7",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "12 focused cloud pivot cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_irsa_trust.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace.",
+      "work_evidence": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
       "completion_evidence": {
         "source_and_contract": "https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html",
-        "collector_and_evaluator": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace.",
-        "positive_and_negative_test": "12 focused cloud pivot cases"
+        "collector_and_evaluator": "The created service account name must satisfy the exact EKS trust subject and issuer/audience, with create authority scoped to that namespace. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_irsa_trust.py covers matching and mismatched issuer, audience, Kubernetes authority, service-account inventory, and AWS trust Deny."
       }
     },
     {
@@ -7115,15 +7115,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/cloud_pivot.yaml",
       "current_contract_sha256": "6482c23dbf8edd9386e0ab2b1b4cd3bc7dda3c06ca76f7d93e8fbb0becedcdc8",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "12 focused cloud pivot cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_irsa_trust.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account.",
+      "work_evidence": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
       "completion_evidence": {
         "source_and_contract": "https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html",
-        "collector_and_evaluator": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account.",
-        "positive_and_negative_test": "12 focused cloud pivot cases"
+        "collector_and_evaluator": "Wildcard trust is matched to an existing inventoried service account and the exact EKS issuer/audience rather than any same-name account. Explicit AWS trust Deny is evaluated for the matching OIDC provider, subject, and audience; only a proven Deny removes the route.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_irsa_trust.py covers matching and mismatched issuer, audience, Kubernetes authority, service-account inventory, and AWS trust Deny."
       }
     },
     {
