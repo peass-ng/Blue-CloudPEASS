@@ -271,6 +271,8 @@ from .aws_healthomics_controls_b417 import normalize as normalize_aws_healthomic
 from .aws_healthomics_s3_jobs_b418 import normalize as normalize_aws_healthomics_s3_jobs_b418
 from .aws_healthomics_s3_alias_b420 import normalize as normalize_aws_healthomics_s3_alias_b420
 from .aws_healthomics_runs_b421 import normalize as normalize_aws_healthomics_runs_b421
+from .aws_healthomics_bulk_reads_b423 import correlate as correlate_aws_healthomics_bulk_reads_b423
+from .aws_healthomics_log_reads_b422 import normalize as normalize_aws_healthomics_log_reads_b422
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -324,8 +326,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "52acc71bb05d5e32d646acfde11d83ec65f4e3d6"
-DEFAULT_RULE_PACK_SHA256 = "d76e066edee1b6bbe0b26f3030c0aa250ca721bbe8941fe32717e57d1deef164"
+DEFAULT_RULE_REF = "ddf05e2e83c620a261769b5ca228ddeb0f7e898e"
+DEFAULT_RULE_PACK_SHA256 = "11da8ab53735845624159470e61213b99522367ed3ba28476a126f1e8602d9b4"
 
 
 @dataclass(frozen=True)
@@ -705,6 +707,7 @@ def detect_aws_events(
         healthomics_s3_jobs_b418 = normalize_aws_healthomics_s3_jobs_b418(record)
         healthomics_s3_alias_b420 = normalize_aws_healthomics_s3_alias_b420(record)
         healthomics_runs_b421 = normalize_aws_healthomics_runs_b421(record)
+        healthomics_log_reads_b422 = normalize_aws_healthomics_log_reads_b422(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -968,6 +971,7 @@ def detect_aws_events(
                 + ([healthomics_s3_jobs_b418] if healthomics_s3_jobs_b418 is not None else [])
                 + ([healthomics_s3_alias_b420] if healthomics_s3_alias_b420 is not None else [])
                 + ([healthomics_runs_b421] if healthomics_runs_b421 is not None else [])
+                + ([healthomics_log_reads_b422] if healthomics_log_reads_b422 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
@@ -1070,6 +1074,7 @@ def detect_aws_events(
     frauddetector_event_records: list[Mapping[str, Any]] = []
     migration_strategy_inventory_records: list[Mapping[str, Any]] = []
     emr_inventory_records: list[Mapping[str, Any]] = []
+    healthomics_read_set_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -1078,6 +1083,8 @@ def detect_aws_events(
                 continue
             if record.get("eventSource") == "frauddetector.amazonaws.com" and record.get("eventName") == "SendEvent":
                 frauddetector_event_records.append(record)
+            if record.get("eventSource") == "omics.amazonaws.com" and record.get("eventName") == "GetReadSet":
+                healthomics_read_set_records.append(record)
             if record.get("eventSource") == "migrationhub-strategy.amazonaws.com":
                 migration_strategy_inventory_records.append(record)
             if (record.get("eventSource") == "kms.amazonaws.com"
@@ -1292,6 +1299,7 @@ def detect_aws_events(
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
     correlated += correlate_aws_ssm_cross_principal_resume_b412(ssm_session_b412_records)
+    correlated += correlate_aws_healthomics_bulk_reads_b423(healthomics_read_set_records)
     correlated += correlate_aws_rds_public_clone_password_reset(rds_restore_records)
     correlated += correlate_aws_rds_sql_log_capture_path(rds_parameter_records)
     correlated += correlate_aws_rds_public_replica_controls(rds_replica_records)
