@@ -1941,6 +1941,7 @@ class K8sModel(ExactEvidenceMixin, Model):
         if not hasattr(self, "_scopes_cache"):
             self._scopes_cache = {n.scope for n in self.principals.values()} | set(self.clusters) | {
                 f"{cluster}/{ns}" for cluster, ns, *_ in self.secrets} | {
+                f"{cluster}/{ns}" for cluster, namespaces in self.namespaces.items() for ns in namespaces} | {
                 f"{cluster}/*" for cluster in self.clusters}
         return self._scopes_cache
 
