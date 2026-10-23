@@ -274,6 +274,9 @@ from .aws_healthomics_runs_b421 import normalize as normalize_aws_healthomics_ru
 from .aws_healthomics_bulk_reads_b423 import correlate as correlate_aws_healthomics_bulk_reads_b423
 from .aws_healthomics_log_reads_b422 import normalize as normalize_aws_healthomics_log_reads_b422
 from .aws_healthomics_s3_policy_b425 import normalize as normalize_aws_healthomics_s3_policy_b425
+from .aws_grafana_credentials_b427 import normalize as normalize_aws_grafana_credentials_b427
+from .aws_grafana_workspace_role_b427 import normalize as normalize_aws_grafana_workspace_role_b427
+from .aws_grafana_saml_admin_b427 import normalize as normalize_aws_grafana_saml_admin_b427
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -327,8 +330,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "0bb99da81cd64e846ee6c0c35898bb5ea6152b87"
-DEFAULT_RULE_PACK_SHA256 = "2e951ba02df87643905881a775a5adefe1381fc725255ec42d0799b3ba2e0cc7"
+DEFAULT_RULE_REF = "cff1505e85a1e4ae46e98f450656d2413e840400"
+DEFAULT_RULE_PACK_SHA256 = "917e7780c339bd6f9d45d7d65ff34be897b082232571452aeff1a370b6cc394d"
 
 
 @dataclass(frozen=True)
@@ -710,6 +713,9 @@ def detect_aws_events(
         healthomics_runs_b421 = normalize_aws_healthomics_runs_b421(record)
         healthomics_log_reads_b422 = normalize_aws_healthomics_log_reads_b422(record)
         healthomics_s3_policy_b425 = normalize_aws_healthomics_s3_policy_b425(record)
+        grafana_credentials_b427 = normalize_aws_grafana_credentials_b427(record)
+        grafana_workspace_role_b427 = normalize_aws_grafana_workspace_role_b427(record)
+        grafana_saml_admin_b427 = normalize_aws_grafana_saml_admin_b427(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -975,6 +981,9 @@ def detect_aws_events(
                 + ([healthomics_runs_b421] if healthomics_runs_b421 is not None else [])
                 + ([healthomics_log_reads_b422] if healthomics_log_reads_b422 is not None else [])
                 + ([healthomics_s3_policy_b425] if healthomics_s3_policy_b425 is not None else [])
+                + ([grafana_credentials_b427] if grafana_credentials_b427 is not None else [])
+                + ([grafana_workspace_role_b427] if grafana_workspace_role_b427 is not None else [])
+                + ([grafana_saml_admin_b427] if grafana_saml_admin_b427 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
