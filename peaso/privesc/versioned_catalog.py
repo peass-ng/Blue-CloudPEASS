@@ -2083,7 +2083,7 @@ def _history_original_pair(manifest_path, archive_path, manifest_digest, archive
             if (type(index) is not dict or set(index) != {'schema', 'block_sha256', 'versions'}
                     or index['schema'] != 'privesc-exact-history-v1'
                     or type(index['block_sha256']) is not list
-                    or type(index['versions']) is not dict or len(index['versions']) != 129):
+                    or type(index['versions']) is not dict or len(index['versions']) != 132):
                 raise ValueError("archived_history_pack_index_mismatch")
             for archive_name, version in index['versions'].items():
                 if (type(archive_name) is not str or '/' in archive_name or '\\' in archive_name
