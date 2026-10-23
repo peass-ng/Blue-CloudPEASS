@@ -2011,7 +2011,7 @@ def _omit_verified_reconstructible_privesc_history(source, root):
         manifests = archive.read('manifests.bin')
     if (index.get('schema') != 'privesc-exact-history-v1'
             or not isinstance(index.get('versions'), dict)
-            or len(index['versions']) != 136
+            or len(index['versions']) != 137
             or not isinstance(index.get('block_sha256'), list)
             or len(blocks) != 512 * len(index['block_sha256'])
             or len(index['block_sha256']) > 65536):

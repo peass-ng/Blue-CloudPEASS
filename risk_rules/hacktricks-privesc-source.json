@@ -468,7 +468,7 @@
     "azure/_excluded_sweep.yaml": "83cda037d04330b02bde8b4cbbae6284f2f5e3c2ae8f04969f232f44839e3243",
     "azure/_excluded_unauth_s07.yaml": "5e60aed6ab2cc51c694ce65207c9746ea79a5338b58983161eb6e2a9f5dc08bb",
     "azure/_excluded_verify_azure.yaml": "e227f895e0d67acd70a0bdb25183ee663c75f79e7c9aa1bccfbd38d8909d8a89",
-    "azure/adjacent_principals.yaml": "b2f6b192bbb47ad96e78a9a56551cff341c9e27d129a5959f74cc8a66a5936a3",
+    "azure/adjacent_principals.yaml": "51687ee95b5b2dea426440490a1f3d29204faea531b5c2bf314415b01bb4a422",
     "azure/analysis_services.yaml": "ea37bad0557445e4769d5054a2e978b07d8fd67ab848c31e78e50397600e5370",
     "azure/api_management.yaml": "86238f2daa178e58237cf80e3b5c1c467dcd70d673805235c44317fff1f07f58",
     "azure/app_configuration.yaml": "3d9dd84f8e9d9e3dfc8d3b7b5a5dda3676b54db04e62c872581b61161680cc91",
@@ -601,7 +601,9 @@
   },
   "effective": {
     "merge_policy": "three-way-canonical-first-v1",
-    "local_ahead_files": [],
+    "local_ahead_files": [
+      "azure/adjacent_principals.yaml"
+    ],
     "local_deleted_files": []
   },
   "ledger": {
