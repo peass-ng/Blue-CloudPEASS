@@ -1,6 +1,7 @@
 """Render one complete AWS privilege-escalation work register from the TSVs."""
 
 import csv
+import json
 from collections import Counter
 from pathlib import Path
 
@@ -47,11 +48,16 @@ def main():
     page_counts = Counter(row["review_state"] for row in pages)
     suite_counts = Counter(row["end_to_end_suite"] for row in active)
     case_counts = Counter(row["status"] for row in route_cases)
+    suite_result = ROOT / "final-suite-result.json"
+    suite = json.loads(suite_result.read_text()) if suite_result.is_file() else None
     lines = [
         "# AWS privilege escalation: complete work register", "",
         "This is the single status file for the AWS privilege escalation work. Regenerate it after changing any underlying TSV with `python3 work_aws_privesc_review/build_verification_status.py` followed by `python3 work_aws_privesc_review/build_worklog.py`. A catalog review is not end-to-end validation.", "",
         "## Current counts", "",
         f"- Active catalog: {len(active)} reviewed; {active_tests} have at least one located test file. End-to-end suite states: {dict(suite_counts)}.",
+        (f"- Final pytest run used CSPM commit `{suite['tested_revision']}` and HackTricks Cloud revision "
+         f"`{suite['hacktricks_source_revision']}`. Its result applies to those exact revisions; later changes need their own validation."
+         if suite else "- Final pytest run remains pending; no complete 19-shard result is recorded."),
         f"- ID-specific graph test audit: {case_counts['exact_cases_verified']} have a recorded passing exact case, {case_counts['partial']} have a located but partial case, and {case_counts['no_exact_case']} have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.",
         f"- External evidence: {proof} active techniques reference `aws_privesc_challenge_evidence`; {proof_modes['external_proof_required_for_conditional']} require a trusted live-effect witness for a conditional edge and {proof_modes['native_conditional_or_external_proof']} Glue routes also have a native conditional path. The IAM and resource prerequisites still run automatically; missing live-effect proof remains UNKNOWN.",
         f"- Retired cohort: {retired_counts['candidate']} candidates unresolved, {retired_counts['excluded_verified']} exclusions verified, {retired_counts['implemented']} restored or implemented.",

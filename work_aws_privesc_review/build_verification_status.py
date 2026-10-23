@@ -146,7 +146,11 @@ def main():
         assert suite["shards_total"] == 19 and suite["shards_completed"] == 19
         assert suite["state"] in {"executed_with_failures_global", "passed_global"}
         assert (suite["failed"] > 0) == (suite["state"] == "executed_with_failures_global")
-        suite_state = suite["state"]
+        tested_revision = suite["tested_revision"]
+        source_revision = suite["hacktricks_source_revision"]
+        assert all(len(value) == 40 and re.fullmatch(r"[0-9a-f]{40}", value)
+                   for value in (tested_revision, source_revision))
+        suite_state = f"{suite['state']}@{tested_revision[:12]}"
     test_texts = {str(path.relative_to(ROOT)): path.read_text(errors="replace")
                   for path in sorted((ROOT / "tests").glob("test_*.py"))}
     manifest = json.loads((ROOT / "peaso/server/evidence_static_source_manifest.json").read_text())
@@ -183,7 +187,7 @@ def main():
             pending.append(case["case_gap"])
         if suite_state == "pending_final_suite":
             pending.append("Complete all 19 final-suite shards")
-        elif suite_state == "executed_with_failures_global":
+        elif suite_state.startswith("executed_with_failures_global@"):
             pending.append("Resolve final-suite failures before end-to-end sign-off")
         if proof_mode == "external_proof_required_for_conditional":
             pending.insert(0, "Verify trusted live-effect evidence import and absent-evidence UNKNOWN behavior")

@@ -5,6 +5,7 @@ This is the single status file for the AWS privilege escalation work. Regenerate
 ## Current counts
 
 - Active catalog: 220 reviewed; 220 have at least one located test file. End-to-end suite states: {'pending_final_suite': 220}.
+- Final pytest run remains pending; no complete 19-shard result is recorded.
 - ID-specific graph test audit: 55 have a recorded passing exact case, 165 have a located but partial case, and 0 have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.
 - External evidence: 58 active techniques reference `aws_privesc_challenge_evidence`; 55 require a trusted live-effect witness for a conditional edge and 3 Glue routes also have a native conditional path. The IAM and resource prerequisites still run automatically; missing live-effect proof remains UNKNOWN.
 - Retired cohort: 0 candidates unresolved, 333 exclusions verified, 29 restored or implemented.
