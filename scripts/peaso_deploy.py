@@ -2487,7 +2487,8 @@ def write_vars(image, api_zip):
         variables.update({k: v for k, v in json.loads(existing.read_text()).items()
                           if k in {"enable_public_customer_role_template", "gcp_platform_sa_secret_arn", "worker_resources", "scan_runtime_limits", "budget_email", "monthly_budget_usd"}})
     integration_keys = ("account_id", "cognito_pool_id", "cognito_client_id", "stripe_secret_arn", "stripe_price_id",
-                        "codex_token_secret_arn", "codex_token_kms_key_arn", "gcp_platform_project", "gcp_platform_email", "platform_account_ids", "budget_email", "archived_customer_role_templates", "gcp_platform_sa_secret_arn")
+                        "codex_token_secret_arn", "codex_token_kms_key_arn", "gcp_platform_project", "gcp_platform_email", "platform_account_ids", "budget_email", "archived_customer_role_templates", "gcp_platform_sa_secret_arn",
+                        "enable_public_customer_role_template", "worker_resources", "scan_runtime_limits", "monthly_budget_usd")
     for key in integration_keys:
         configured = deployment.value(key)
         if configured != "":

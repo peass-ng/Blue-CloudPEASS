@@ -1794,3 +1794,20 @@ def test_two_hour_runtime_successor_reconstructs_the_deployed_configuration():
     assert hashlib.sha256(restored).hexdigest() == deploy.RUNTIME_LIMITS_PREDECESSOR_SHA256
     assert deploy.RUNTIME_CONFIG_SHA256['variables.tf'] == '2824bc1ff26a1cb2bdc97109bd911d301ee1df29688253d5c2cd22236b928a58'
     assert hashlib.sha256(current + b'\n# unreviewed change\n').hexdigest() != deploy.RUNTIME_LIMITS_CURRENT_SHA256
+
+
+def test_fresh_checkout_applies_explicit_operator_template_and_runtime_config(tmp_path, monkeypatch):
+    package = tmp_path / 'api.zip'
+    package.write_bytes(b'fixture')
+    monkeypatch.setattr(deploy, 'INFRA', tmp_path)
+    monkeypatch.setattr(deploy, 'BUILD', tmp_path / 'build')
+    settings = {'enable_public_customer_role_template': True,
+        'worker_resources': {'collector': {'cpu': 1024, 'memory': 8192},
+                             'analyzer': {'cpu': 512, 'memory': 4096}},
+        'scan_runtime_limits': {'collector': 7200}, 'monthly_budget_usd': 75}
+    monkeypatch.setattr(deploy.deployment, 'value', lambda name: settings.get(name, ''))
+    deploy.write_vars('fixture-image', package)
+    variables = json.loads((tmp_path / 'deployment.auto.tfvars.json').read_text())
+    for name, value in settings.items():
+        assert variables[name] == value
+    assert variables['worker_image'] == 'fixture-image'
