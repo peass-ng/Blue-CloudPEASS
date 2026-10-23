@@ -13,6 +13,7 @@ import pytest
 from botocore.stub import Stubber
 
 from peaso.collectors import aws
+from peaso.checks import resolve_check_id
 from peaso.engine import evaluate_snapshot
 
 ACCOUNT, REGION = '123456789012', 'us-east-1'
@@ -97,7 +98,8 @@ def item_of(snapshot, kind):
 
 
 def verdict(snapshot, cid):
-    rows = [row for row in evaluate_snapshot(snapshot, checks=[cid])['findings'] if row['check_id'] == cid]
+    canonical_id = resolve_check_id(cid)
+    rows = [row for row in evaluate_snapshot(snapshot, checks=[cid])['findings'] if row['check_id'] == canonical_id]
     assert len(rows) == 1, rows
     return rows[0]['status']
 
