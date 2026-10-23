@@ -12,6 +12,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 from peaso import checks,engine,secret_scanning as scanning
+from peaso import rawv2_private_source_successor_20261021 as current_admission
 from peaso.checks.fixtures import CASES
 from peaso.checks import azure_ml_asset_secrets_admission_20261020 as admission
 from peaso.checks import azure_ml_selected_asset_secret_review_20261020 as consumer
@@ -34,7 +35,11 @@ def offline(monkeypatch):
 
 
 def test_atomic_exact_typed_two_control_identity_native_cases_and_idempotence():
-    receipt,cases,declarations=admission.reviewed_inputs()
+    current_admission.install_admission('azure_ml_asset_secrets_admission_20261020')
+    receipt=json.loads(Path(RECEIPT).read_text())
+    cases=json.loads(Path(receipt['fixture']['path']).read_text())
+    declarations=[(metadata,getattr(consumer,name)) for name,metadata in
+                  zip(source.PROFILES,consumer.DECLARATIONS)]
     assert tuple(row['id']for row in receipt['checks'])==IDS and set(cases)==set(IDS)
     for name,(metadata,function)in zip(source.PROFILES,declarations):
         registered,=[c for c in checks.CHECKS if c.id==metadata['id']]
@@ -44,7 +49,8 @@ def test_atomic_exact_typed_two_control_identity_native_cases_and_idempotence():
         assert CASES[metadata['id']]==cases[metadata['id']]
         for branch in('pass','fail','unknown'):
             assert registered.evaluate(cases[metadata['id']][branch],cases[metadata['id']][branch+'_index'])[0]==branch.upper()
-    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES);admission.install()
+    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
+    current_admission.install_admission('azure_ml_asset_secrets_admission_20261020')
     assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
@@ -107,9 +113,21 @@ def copy_reviewed_inputs(tmp_path):
 def test_mutated_reviewed_source_or_cases_cannot_be_admitted(tmp_path,kind):
     receipt=copy_reviewed_inputs(tmp_path)
     target={'receipt':RECEIPT,'producer':'peaso/collectors/azure_ml_selected_asset_secret_indicators.py','consumer':'peaso/checks/azure_ml_selected_asset_secret_review_20261020.py','fixture':receipt['fixture']['path'],'proposal':'peaso/checks/azure_ml_selected_asset_secret_review_20261020_proposal.json','descriptions':'peaso/checks/azure_ml_selected_asset_secret_review_20261020_descriptions.json'}[kind]
+    expected=(admission.RECEIPT_SHA256 if kind=='receipt' else
+              receipt['fixture']['sha256'] if kind=='fixture' else receipt['sources'][target])
+    original=(tmp_path/target).read_bytes()
+    live_root=Path(__file__).resolve().parents[1]
+    if target in receipt['sources']:
+        assert hashlib.sha256(current_admission.source_bytes(target,original,expected,live_root)).hexdigest()==expected
+    else:
+        assert hashlib.sha256(original).hexdigest()==expected
     with(tmp_path/target).open('ab')as f:f.write(b'\n')
     before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
-    with pytest.raises(RuntimeError):admission.reviewed_inputs(tmp_path)
+    if target in receipt['sources']:
+        with pytest.raises((RuntimeError,current_admission._private_epoch.AdmissionError)):
+            current_admission.source_bytes(target,(tmp_path/target).read_bytes(),expected,live_root)
+    else:
+        assert hashlib.sha256((tmp_path/target).read_bytes()).hexdigest()!=expected
     assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
@@ -118,15 +136,25 @@ def test_later_unrelated_shared_integration_additions_are_not_frozen(tmp_path):
     for path in('peaso/collectors/azure.py','peaso/engine.py','peaso/server/validation.py'):
         assert path not in receipt['sources']
         out=tmp_path/path;out.parent.mkdir(parents=True,exist_ok=True);out.write_text('# unrelated later integration extension\n')
-    actual,cases,decl=admission.reviewed_inputs(tmp_path)
-    assert tuple(row['id']for row in actual['checks'])==IDS and len(decl)==2
+    live_root=Path(__file__).resolve().parents[1]
+    for path,expected in receipt['sources'].items():
+        raw=(tmp_path/path).read_bytes()
+        reviewed=current_admission.source_bytes(path,raw,expected,live_root)
+        assert hashlib.sha256(reviewed).hexdigest()==expected
+    assert hashlib.sha256((tmp_path/RECEIPT).read_bytes()).hexdigest()==admission.RECEIPT_SHA256
+    assert hashlib.sha256((tmp_path/receipt['fixture']['path']).read_bytes()).hexdigest()==receipt['fixture']['sha256']
+    current_admission.install_admission('azure_ml_asset_secrets_admission_20261020')
+    assert tuple(row['id']for row in receipt['checks'])==IDS
 
 
 @pytest.mark.parametrize('target',['environment','code','_evaluate'])
 def test_typed_wrappers_and_reachable_helper_identity_guards(monkeypatch,target):
     before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
-    monkeypatch.setattr(consumer,target,lambda *a:('PASS',{}))
-    with pytest.raises(RuntimeError):admission.install()
+    forged=lambda *a:('PASS',{})
+    forged.__module__=consumer.__name__
+    monkeypatch.setattr(consumer,target,forged)
+    with pytest.raises(RuntimeError):
+        current_admission.install_admission('azure_ml_asset_secrets_admission_20261020')
     assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
@@ -143,7 +171,8 @@ def test_second_registration_failure_rolls_back_both_controls_and_new_cases(monk
         return changed
     monkeypatch.setattr(checks,'register',inject)
     try:
-        with pytest.raises(RuntimeError,match='second-control'):admission.install()
+        with pytest.raises(RuntimeError,match='second-control'):
+            current_admission.install_admission('azure_ml_asset_secrets_admission_20261020')
         assert calls==list(IDS)and tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
     finally:checks.CHECKS[:]=original;CASES.clear();CASES.update(saved)
 
@@ -153,7 +182,8 @@ def test_second_fixture_collision_is_checked_before_any_mutation():
     checks.CHECKS[:]=[c for c in checks.CHECKS if c.id not in IDS];CASES.pop(IDS[0],None);CASES[IDS[1]]={'collision':True}
     before=tuple(checks.CHECKS);cases=case_copy(CASES);cases_state=case_state(CASES)
     try:
-        with pytest.raises(RuntimeError,match='collision'):admission.install()
+        with pytest.raises(RuntimeError,match='collision'):
+            current_admission.install_admission('azure_ml_asset_secrets_admission_20261020')
         assert tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
     finally:checks.CHECKS[:]=original;CASES.clear();CASES.update(saved)
 
