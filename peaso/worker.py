@@ -383,6 +383,10 @@ def _process(role, request, connection):
                     request.pop("_collection_callback", None)
                     request.pop("_scope_plan_callback", None)
                     ai_credentials = ai_access.finish()
+                    # The checkpoint thread has stopped and its public copies
+                    # are durable. Release that cumulative inventory before
+                    # redacting and serializing the full native snapshot.
+                    del checkpoint_session
             # Separate encrypted per-scan object; no reference or value enters
             # the native snapshot, public report, supervisor pipe or AI context.
             snapshot = secret_capture.public_snapshot(snapshot)

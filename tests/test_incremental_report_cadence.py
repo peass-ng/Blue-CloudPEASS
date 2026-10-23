@@ -116,14 +116,13 @@ def test_slow_publication_does_not_consume_next_report_interval(monkeypatch, tmp
         session.close()
 
 
-def test_cumulative_copy_does_not_hold_collector_lock(monkeypatch, tmp_path):
-    from peaso import incremental
+def test_cumulative_snapshot_does_not_hold_collector_lock(monkeypatch, tmp_path):
     session, artifacts, refs, _ = manual_session(monkeypatch, tmp_path)
     copying, release, settled = threading.Event(), threading.Event(), threading.Event()
     errors = []
-    original = incremental.copy.deepcopy
+    original = session._snapshot
     def delayed(value, *args, **kwargs):
-        if isinstance(value, dict) and ('bucket', SCOPE) in value:
+        if kwargs.get('sections') is not None:
             copying.set()
             assert release.wait(5)
         return original(value, *args, **kwargs)
@@ -134,7 +133,7 @@ def test_cumulative_copy_does_not_hold_collector_lock(monkeypatch, tmp_path):
             errors.append(exc)
     try:
         commit(session, 0)
-        monkeypatch.setattr(incremental.copy, 'deepcopy', delayed)
+        monkeypatch.setattr(session, '_snapshot', delayed)
         publisher = threading.Thread(target=publish)
         publisher.start()
         assert copying.wait(2)
@@ -143,7 +142,7 @@ def test_cumulative_copy_does_not_hold_collector_lock(monkeypatch, tmp_path):
             'items': [{'id': 'new'}]}), settled.set()))
         collector.start()
         try:
-            assert settled.wait(1), 'collector blocked on cumulative inventory copying'
+            assert settled.wait(1), 'collector blocked on cumulative snapshot construction'
         finally:
             release.set()
             publisher.join(5)
