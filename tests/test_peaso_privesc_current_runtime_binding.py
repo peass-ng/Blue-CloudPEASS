@@ -12,6 +12,58 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_beanstalk_prefilter_change_preserves_previous_report_binding():
+    ident = "aws-elasticbeanstalk-passrole-create-environment"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.BEANSTALK_685_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.BEANSTALK_685_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"] == [
+        {"action": "elasticbeanstalk:CreateEnvironment"}]
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["requires"]["any_of"] == [
+        [{"action": "elasticbeanstalk:CreateEnvironment"}],
+        [{"action": "elasticbeanstalk:UpdateEnvironment"}]]
+
+
+def test_cloud_source_predecessor_keeps_exact_stored_report_binding(monkeypatch):
+    ident = "azure-apim-developer-portal-sso-external-principal"
+    old = {
+        "schema": catalog.BINDING_SCHEMA,
+        "manifest_sha256": catalog.CLOUD_SOURCE_685_PREVIOUS_MANIFEST,
+        "effective_tree_sha256": catalog.CLOUD_SOURCE_685_PREVIOUS_TREE,
+        "source_revision": catalog.V4_REVISION,
+    }
+    assert len(catalog._verified_cloud_source_685_previous()) == 685
+    # The old bytes are current until the next Cloud source version is promoted.
+    with monkeypatch.context() as patch:
+        patch.setattr(catalog, "CURRENT_MANIFEST", "0" * 64)
+        entries, status = catalog.lookup_entries([ident], old)
+        assert status == "exact_previous_current"
+        assert entries[ident]["source"].endswith(
+            "#microsoftapimanagementserviceuserstokenaction")
+        wrong_tree = {**old, "effective_tree_sha256": "0" * 64}
+        assert catalog.lookup_entries([ident], wrong_tree) == ({}, "unknown_catalog_manifest")
+
+
+def test_reviewed_685_binding_retains_original_source_for_stored_reports():
+    ident = "azure-apim-developer-portal-sso-external-principal"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.REVIEWED_685_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.REVIEWED_685_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["source"].endswith("#microsoftapimanagementserviceusersgeneratessourlaction")
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["source"].endswith("#microsoftapimanagementserviceusersgeneratessourlaction")
+    assert len(catalog._verified_reviewed_685_previous()) == 685
+
+
 def test_reviewed_691_binding_retains_retired_techniques_without_reviving_them():
     ident = "gcp-artifactregistry-repositories-update-dependency-confusion"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
@@ -169,8 +221,9 @@ def test_elasticbeanstalk_role_execution_binding_preserves_previous_catalog():
     assert status == "exact_strict_privesc"
     entry = current[ident]
     assert "elasticbeanstalk_environment_role_effect_reviewed" in entry["preconditions"]
-    assert entry["requires"]["all_of"] == [
-        {"action": "elasticbeanstalk:CreateEnvironment"}]
+    assert entry["requires"]["any_of"] == [
+        [{"action": "elasticbeanstalk:CreateEnvironment"}],
+        [{"action": "elasticbeanstalk:UpdateEnvironment"}]]
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_TREE,

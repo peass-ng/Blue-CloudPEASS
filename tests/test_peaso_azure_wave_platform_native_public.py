@@ -7,8 +7,9 @@ from urllib.parse import urlsplit
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from peaso.engine import plan_collection
 from peaso.server.validation import validate_connector
+from peaso.collectors import azure_apim_diagnostic_evidence_native as native
 from peaso.collectors.azure_apim_diagnostic_evidence_native import CID, KIND
 
 SCOPE = "/subscriptions/11111111-1111-1111-1111-111111111111"
@@ -82,11 +83,16 @@ def test_service_diagnostic_effective_route(monkeypatch, service_kind, expected)
     options = {"concurrency": 1, "retries": 1}
     validate_connector("azure", auth, options, SimpleNamespace(auth_mode="cognito"))
     connector = {"provider": "azure", "scopes": [SCOPE], "auth": auth, "options": options}
-    required = plan_collection({"connector": connector, "checks": [CID]})
-    assert set(required) == {"api_management", KIND}
+    with pytest.raises(ValueError, match="requires external policy or manual evidence"):
+        plan_collection({"connector": connector, "checks": [CID]})
+    required = {"api_management", KIND}
     snapshot = collect_live(connector, required)
-    findings = evaluate_snapshot(snapshot, checks=[CID], include_not_applicable=True)["findings"]
-    assert findings and all(f["status"] == expected for f in findings), findings
+    inventories = {kind: {row["id"].casefold(): row for collection in snapshot["collections"]
+                   if collection["type"] == kind for row in collection["items"]}
+                   for kind in ("api_management", native.SOURCE, KIND)}
+    status, _ = native.assess(SERVICE.casefold(), snapshot, inventories[KIND],
+                              inventories[native.SOURCE], inventories["api_management"])
+    assert status == expected
     assert calls.count(SERVICE + "/diagnostics") == 1
     evidence = next(c for c in snapshot["collections"] if c["type"] == KIND)
     for row in evidence["items"]:

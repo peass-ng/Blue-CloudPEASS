@@ -21,7 +21,12 @@ def compute_path(value):
 
 
 def _values(row, field, lower, wrapper):
-    if field in {'azure_federation_app_id', 'azure_federation_identity_id'}:
+    if field == 'gcp_account_scope':
+        from .common import as_list
+        yield 'scope', row['scope']
+        for ancestor in as_list(row['data'].get('ancestors')):
+            yield 'ancestor', ancestor
+    elif field in {'azure_federation_app_id', 'azure_federation_identity_id'}:
         # These joins use sealed native identity fields. Unusual or mutable
         # sources remain candidates for the original caller predicate.
         if type(row) not in (dict, FrozenDict) or type(row['data']) is not FrozenDict:

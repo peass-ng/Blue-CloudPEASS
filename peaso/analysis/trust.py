@@ -11,7 +11,8 @@ import copy
 import re
 
 from .common import _CONTEXT, as_list
-from peaso.snapshot import freeze
+from .trust_domains import OwnedDomains, normalized as normalized_domains
+from peaso.snapshot import FrozenDict, freeze
 
 ACCOUNT = re.compile(r"^[0-9]{12}$")
 MICROSOFT_TENANTS = {"f8cdef31-a31e-4b4a-93e4-5f571e91255a", "72f988bf-86f1-41af-91ab-2d7cd011db47"}
@@ -123,6 +124,9 @@ def _trusted_scopes(snapshot):
             name = item.get("displayName")
             if isinstance(name, str) and "." in name:
                 domains.add(name)
+    context = _CONTEXT.get()
+    if provider in ("gcp", "k8s") and context is not None and context["snapshot"] is snapshot:
+        domains = OwnedDomains(domains)
     return {"ids": set(sources), "domains": domains, "sources": sources}
 
 
@@ -161,7 +165,7 @@ def classify(snapshot, principal, scope=None):
     if provider == "gcp" and trusted["domains"]:
         from .common import gcp_member
         kind, value = gcp_member(text)
-        domains = {domain.lower() for domain in trusted["domains"]}
+        domains = normalized_domains(trusted["domains"])
         # domain:X grants every identity of a Google Workspace/Cloud Identity domain.
         if kind == "domain" and value:
             return "allowlisted" if value.lower() in domains else "external"
@@ -188,7 +192,7 @@ def _k8s_subject(snapshot, text):
         return "allowlisted"
     if text.startswith(("system:", "eks:")) or text in CONTROL_PLANE_USERS or text in K8S_MANAGED_USERS:
         return "provider_service"
-    domains = {domain.lower() for domain in trusted_scopes(snapshot)["domains"]}
+    domains = normalized_domains(trusted_scopes(snapshot)["domains"])
     if domains and "@" in text:
         return "allowlisted" if text.rsplit("@", 1)[1].lower() in domains else "external"
     return "unknown"
@@ -422,8 +426,8 @@ def aws_federated_trust(snapshot, resource):
     """Return (status, severity, evidence) for AWS web-identity trust, or None."""
     document = resource["data"].get("AssumeRolePolicyDocument")
     if isinstance(document, str):
-        from .iam import document as parse
-        document = parse(document)
+        from .iam import assume_role_document, document as parse
+        document = assume_role_document(resource) if type(resource['data']) is FrozenDict and type(document) is str else parse(document)
     if not isinstance(document, dict):
         return None
     reviews = []

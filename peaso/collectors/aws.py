@@ -607,6 +607,14 @@ class Requests:
                         return copy.deepcopy(response)
                     from . import aws_additional_secret_indicators
                     if (service, operation) in aws_additional_secret_indicators.OPERATIONS:
+                        if service == "amplify":
+                            # The projector removes buildSpec content. Preserve only
+                            # whether it was present for the downstream inventory.
+                            raw_apps = response.get("apps") if operation == "list_apps" else [response.get("app")]
+                            if isinstance(raw_apps, list):
+                                for raw_app in raw_apps:
+                                    if isinstance(raw_app, dict):
+                                        raw_app["AppBuildSpecPresent"] = bool(raw_app.get("buildSpec"))
                         response = aws_additional_secret_indicators.project_response(
                             response, service=service, operation=operation, arguments=arguments, region=region)
                     from . import aws_configuration_payload_secret_indicators

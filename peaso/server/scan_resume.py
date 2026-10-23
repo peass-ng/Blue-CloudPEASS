@@ -21,6 +21,7 @@ _RECOVERABLE = {"credentials_expired", "failed", "timed_out", "cancelled"}
 
 def resume_stage(row):
     """Return the work that remains, only for an incomplete live terminal row."""
+    row = dict(row)
     if row.get("status") not in _RECOVERABLE or row.get("status") not in TERMINAL:
         return None
     try:

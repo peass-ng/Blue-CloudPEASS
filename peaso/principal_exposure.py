@@ -9,7 +9,7 @@ from collections import defaultdict
 from fnmatch import fnmatchcase
 
 from peaso.analysis.common import as_list, externality, native_id, with_analysis_context
-from peaso.analysis.iam import document, grants
+from peaso.analysis.iam import assume_role_document, grants
 from peaso.analysis.internet_exposure import assess, describe, ports_of, Assessment, pset, union, _internet, _public_ip
 from peaso.analysis.trust import restrictive_conditions, aws_federated_trust, _k8s_self_info_binding
 
@@ -57,6 +57,8 @@ def project(snapshot, resources):
     for row in resources:
         by_type[row["type"]].append(row)
     output = {}
+    from peaso.analysis.evidence_accumulator import EvidenceAccumulator
+    accumulated = EvidenceAccumulator()
 
     def record(identity, row, label=None):
         key = canonical(provider, identity, _cluster(row) if provider == "k8s" else row.get("scope", ""))
@@ -64,8 +66,7 @@ def project(snapshot, resources):
             return None
         card = output.setdefault(key, {"principal": str(identity), "label": label or str(identity),
             "scopes": [], "exposures": [], "base_severity": "info", "grant_reviews": []})
-        if row.get("scope", "") not in card["scopes"]:
-            card["scopes"].append(row.get("scope", ""))
+        accumulated.append(card["scopes"], row.get("scope", ""), 'scope')
         return card
 
     def signal(identity, row, kind, state, **evidence):
@@ -74,8 +75,7 @@ def project(snapshot, resources):
             return
         item = {"kind": kind, "state": state, "resource_id": row.get("id", str(native_id(row))),
             "scope": row.get("scope", ""), **evidence}
-        if item not in card["exposures"]:
-            card["exposures"].append(item)
+        accumulated.append(card["exposures"], item, 'signal')
 
     def review(identity, row, values=None, source_row=None, via_group=None):
         values = grants(row) if values is None else values
@@ -89,8 +89,7 @@ def project(snapshot, resources):
                 "grant_count": len(high), "grants": high[:3]}
             if via_group:
                 detail["via_group"] = via_group
-            if detail not in card["grant_reviews"]:
-                card["grant_reviews"].append(detail)
+            accumulated.append(card["grant_reviews"], detail, 'review')
 
     if provider == "aws":
         policies_by_arn = defaultdict(list)
@@ -111,7 +110,7 @@ def project(snapshot, resources):
             federation_review = aws_federated_trust(snapshot, row)
             unpinned = {(r["federated_principal"], r["statement"]) for r in federation_review[2]["federated_trusts"]
                         if r.get("multi_tenant_issuer") and any(p.get("severity") not in {"low", "review"} for p in r["problems"])} if federation_review else set()
-            policy = document(data.get("AssumeRolePolicyDocument")) or {}
+            policy = assume_role_document(row) or {}
             for statement_index, statement in enumerate(as_list(policy.get("Statement"))):
                 if not isinstance(statement, dict) or statement.get("Effect") != "Allow":
                     continue
@@ -142,6 +141,8 @@ def project(snapshot, resources):
             if set(data.get("includedPermissions") or []) & {"iam.serviceAccounts.getAccessToken", "iam.serviceAccounts.signJwt", "iam.serviceAccounts.signBlob", "iam.serviceAccounts.actAs"}:
                 impersonation.add(data.get("name"))
         accounts = by_type["service_account"]
+        from peaso.analysis.cloud_workload_index import CloudWorkloadIndex
+        account_targets = CloudWorkloadIndex(by_type)
         for row in accounts:
             record(row["data"].get("email"), row, row["data"].get("displayName"))
         for row in resources:
@@ -167,14 +168,23 @@ def project(snapshot, resources):
                     if classification not in {"external", "public", "unknown"} and not federation:
                         continue
                     # Scope ancestry must be collected; never apply an unrelated project grant.
-                    targets = [row] if row["type"] == "service_account" else [sa for sa in accounts if sa["scope"] == row["scope"]
-                        or row["type"] in {"organization", "folder"} and row["scope"] in as_list(sa["data"].get("ancestors"))]
+                    if row['type'] == 'service_account':
+                        targets = [row]
+                    else:
+                        target_keys = [('scope', row['scope'])]
+                        if row['type'] in {'organization', 'folder'}:
+                            target_keys.append(('ancestor', row['scope']))
+                        candidates = account_targets.candidates('service_account', 'gcp_account_scope', target_keys)
+                        targets = [sa for sa in candidates if sa['scope'] == row['scope']
+                            or row['type'] in {'organization', 'folder'} and row['scope'] in as_list(sa['data'].get('ancestors'))]
                     for target in targets:
                         state = "conditional" if binding.get("condition") or federation or target["data"].get("disabled") is True or role == "roles/iam.serviceAccountUser" else "unknown" if classification == "unknown" else "declared"
                         signal(target["data"].get("email"), row, "federated_trust" if federation else "external_impersonation", state,
                             caller=member, classification=classification, role=role, conditions=binding.get("condition"),
                             target_resource=target.get("id"), requires_workload_control=role == "roles/iam.serviceAccountUser")
     elif provider == "azure":
+        from peaso.analysis.azure_federation_index import AzureFederationIndex
+        federation_targets = AzureFederationIndex(by_type)
         definitions = {str(r["data"].get("name", "")).rsplit("/", 1)[-1].lower(): r for r in by_type["role_definition"]}
         for row in by_type["directory_user"] + by_type["directory_service_principal"]:
             data = row["data"]
@@ -190,12 +200,14 @@ def project(snapshot, resources):
         for row in by_type["directory_federated_credential"] + by_type["managed_identity_federated_credential"]:
             data = row["data"]
             props = data.get("properties", data)
-            targets = [r["data"].get("id") for r in by_type["directory_service_principal"] if data.get("appId") and r["data"].get("appId") == data["appId"]]
+            targets = [r["data"].get("id") for r in federation_targets.service_principals(data) if data.get("appId") and r["data"].get("appId") == data["appId"]]
             parent = str(data.get("id", "")).lower().split("/federatedidentitycredentials/")[0]
-            targets += [r["data"].get("properties", {}).get("principalId") for r in by_type["managed_identity"] if str(r["data"].get("id", "")).lower() == parent]
+            targets += [r["data"].get("properties", {}).get("principalId") for r in federation_targets.managed_identities(data, parent) if str(r["data"].get("id", "")).lower() == parent]
             for identity in targets:
                 signal(identity, row, "federated_trust", "conditional", issuer=props.get("issuer"), subject=props.get("subject"), audiences=props.get("audiences"), classification="ownership_unverified")
     elif provider == "k8s":
+        from peaso.analysis.k8s_impersonation_index import K8sImpersonationIndex
+        impersonation_accounts = K8sImpersonationIndex(by_type['serviceaccount'], _cluster)
         roles = {(_cluster(r), r["type"], r["data"].get("metadata", {}).get("namespace", "default"), r["data"].get("metadata", {}).get("name")): r
                  for r in by_type["role"] + by_type["clusterrole"]}
         accounts_by_cluster = defaultdict(list)
@@ -235,7 +247,7 @@ def project(snapshot, resources):
                     for rule in role["data"].get("rules") or [] if role else []:
                         if not set(rule.get("verbs") or []) & {"impersonate", "*"} or not set(rule.get("resources") or []) & {"serviceaccounts", "*"} or not set(rule.get("apiGroups") or []) & {"", "*"}:
                             continue
-                        for sa in by_type["serviceaccount"]:
+                        for sa in impersonation_accounts.candidates(row, namespace, rule.get('resourceNames')):
                             meta = sa["data"].get("metadata") or {}
                             sa_ns = meta.get("namespace", "default")
                             names = rule.get("resourceNames")
@@ -256,9 +268,11 @@ def project(snapshot, resources):
 
 def _workloads(snapshot, resources, by_type, signal):
     provider = snapshot["provider"]
-    if provider == "gcp":
-        from peaso.analysis.cloud_workload_index import CloudWorkloadIndex, compute_path
-        cloud_workloads = CloudWorkloadIndex(by_type)
+    if provider == 'k8s':
+        from peaso.analysis.k8s_workload_index import K8sWorkloadIndex
+        k8s_workloads = K8sWorkloadIndex(snapshot, by_type, _cluster)
+    from peaso.analysis.cloud_workload_index import CloudWorkloadIndex, compute_path
+    cloud_workloads = CloudWorkloadIndex(by_type)
     profiles = {r["data"].get("Arn"): r["data"] for r in by_type["iam_instance_profile"]}
     # IAM role inventory embeds instance profiles on some collector versions.
     for role in by_type["iam_role"]:
@@ -271,7 +285,7 @@ def _workloads(snapshot, resources, by_type, signal):
             if row["type"] == "lambda_function":
                 return [data.get("Role")]
             if row["type"] == "ecs_task":
-                definition = next((r["data"] for r in by_type["ecs_task_definition"] if r["data"].get("taskDefinitionArn") == data.get("taskDefinitionArn")), {})
+                definition = next((r["data"] for r in cloud_workloads.candidates("ecs_task_definition", "taskDefinitionArn", [data.get("taskDefinitionArn")]) if r["data"].get("taskDefinitionArn") == data.get("taskDefinitionArn")), {})
                 return [data.get("taskRoleArn") or definition.get("taskRoleArn")]
             profile = profiles.get((data.get("IamInstanceProfile") or {}).get("Arn"), {})
             return [r.get("Arn") for r in profile.get("Roles") or []]
@@ -286,19 +300,9 @@ def _workloads(snapshot, resources, by_type, signal):
             for ident, props in (identity.get("userAssignedIdentities") or {}).items():
                 result.append(props.get("principalId"))
                 if not props.get("principalId"):
-                    result.extend(r["data"].get("properties", {}).get("principalId") for r in by_type["managed_identity"] if str(r["data"].get("id", "")).lower() == ident.lower())
+                    result.extend(r["data"].get("properties", {}).get("principalId") for r in cloud_workloads.candidates("managed_identity", "id", [ident], lower=True) if str(r["data"].get("id", "")).lower() == ident.lower())
             return result
         return []
-
-    def k8s_pods(service):
-        data = service["data"]
-        selector = (data.get("spec") or {}).get("selector")
-        meta = data.get("metadata") or {}
-        if not selector:
-            return []  # Empty/missing selector must never select every Pod.
-        return [pod for pod in by_type["pod"] if _cluster(pod) == _cluster(service)
-                and pod["data"].get("metadata", {}).get("namespace", "default") == meta.get("namespace", "default")
-                and all(pod["data"].get("metadata", {}).get("labels", {}).get(k) == v for k, v in selector.items())]
 
     assessments = assess(snapshot, resources)
     if provider == "azure":
@@ -332,27 +336,27 @@ def _workloads(snapshot, resources, by_type, signal):
                         or (isinstance(port_name, str) and port_name and port.get("name") == port_name)
                         for port in (service["data"].get("spec") or {}).get("ports") or [] if isinstance(port, dict))
 
-                services = [s for s in by_type["service"] if _cluster(s) == _cluster(row)
+                services = [s for s in k8s_workloads.candidates('service', row, names=[name for name, _, _ in service_ports]) if _cluster(s) == _cluster(row)
                     and s["data"].get("metadata", {}).get("namespace", "default") == row["data"].get("metadata", {}).get("namespace", "default")
                     and any(name == s["data"].get("metadata", {}).get("name")
                         and matching_service_port(s, number, port_name)
                         for name, number, port_name in service_ports)]
-            targets = [pod for service in services for pod in k8s_pods(service)]
+            targets = [pod for service in services for pod in k8s_workloads.pods(service)]
         elif provider == "azure" and row["type"] == "nic":
             vm_id = ((row["data"].get("properties") or {}).get("virtualMachine") or {}).get("id")
-            targets = [vm for vm in by_type["vm"] if vm_id and str(vm["data"].get("id", "")).lower() == vm_id.lower()]
+            targets = [vm for vm in cloud_workloads.candidates("vm", "id", [vm_id], lower=True) if vm_id and str(vm["data"].get("id", "")).lower() == vm_id.lower()]
         elif provider == "azure" and row["type"] == "load_balancer":
             routes = [route for step in assessment.path if step.get("layer") == "backend"
                 and step.get("decision") == "allow" for route in step.get("routes", [])
                 if isinstance(route, dict)]
             for route in routes:
-                nic = next((nic for nic in by_type["nic"] if nic["id"] == route.get("nic_id")), None)
+                nic = next((nic for nic in cloud_workloads.candidates("nic", "id", [route.get("nic_id")], wrapper=True) if nic["id"] == route.get("nic_id")), None)
                 vm_id = ((nic["data"].get("properties") or {}).get("virtualMachine") or {}).get("id") if nic else None
-                vm = next((vm for vm in by_type["vm"] if vm_id and vm["data"].get("id")
+                vm = next((vm for vm in cloud_workloads.candidates("vm", "id", [str(vm_id)], lower=True) if vm_id and vm["data"].get("id")
                     and str(vm["data"]["id"]).lower() == str(vm_id).lower()), None)
                 if vm:
                     azure_target_routes.setdefault(vm["id"], []).append(route)
-            targets = [vm for vm in by_type["vm"] if vm["id"] in azure_target_routes]
+            targets = [vm for vm in cloud_workloads.candidates("vm", "id", azure_target_routes, wrapper=True) if vm["id"] in azure_target_routes]
         elif provider == "gcp" and row["type"] == "forwarding_rule":
             health_by_service = {compute_path(health["data"].get("backendService")): health["data"]
                 for health in by_type["backend_service_health"]
@@ -383,16 +387,17 @@ def _workloads(snapshot, resources, by_type, signal):
                 and compute_path(instance["data"].get("selfLink")) in backend_evidence]
         elif provider == "aws" and row["type"] == "network_interface":
             instance = (row["data"].get("Attachment") or {}).get("InstanceId")
-            targets = [vm for vm in by_type["instance"] if instance and vm["data"].get("InstanceId") == instance]
+            targets = [vm for vm in cloud_workloads.candidates("instance", "InstanceId", [instance]) if instance and vm["data"].get("InstanceId") == instance]
             eni = row["data"].get("NetworkInterfaceId")
-            targets += [task for task in by_type["ecs_task"] if eni and task["data"].get("lastStatus") == "RUNNING" and any(
+            targets += [task for task in cloud_workloads.candidates("ecs_task", "running_task_eni", [eni]) if eni and task["data"].get("lastStatus") == "RUNNING" and any(
                 d.get("name") == "networkInterfaceId" and d.get("value") == eni
                 for attachment in task["data"].get("attachments") or [] for d in attachment.get("details") or [])]
         if provider == "aws" and row["type"] == "load_balancer":
             lb_arn = row["data"].get("LoadBalancerArn")
-            tgs = {t["data"].get("TargetGroupArn") for t in by_type["target_group"] if lb_arn and lb_arn in (t["data"].get("LoadBalancerArns") or [])}
-            service_defs = {s["data"].get("taskDefinition") for s in by_type["ecs_service"] if any(b.get("targetGroupArn") in tgs for b in s["data"].get("loadBalancers") or [])}
-            targets = [task for task in by_type["ecs_task"] if task["data"].get("lastStatus") == "RUNNING" and task["data"].get("taskDefinitionArn") in service_defs]
+            tgs = {t["data"].get("TargetGroupArn") for t in cloud_workloads.candidates("target_group", "target_group_lb", [lb_arn]) if lb_arn and lb_arn in (t["data"].get("LoadBalancerArns") or [])}
+            service_defs = {s["data"].get("taskDefinition") for s in cloud_workloads.candidates("ecs_service", "ecs_service_target_group", tgs) if any(b.get("targetGroupArn") in tgs for b in s["data"].get("loadBalancers") or [])}
+            targets = [task for task in cloud_workloads.candidates("ecs_task", "running_task_definition", service_defs) if task["data"].get("lastStatus") == "RUNNING" and task["data"].get("taskDefinitionArn") in service_defs]
+            lb_tasks = CloudWorkloadIndex({"ecs_task": targets})
             confirmed_targets = set()
             listeners = (row["data"].get("Listeners") or {}).get("items") or []
             public_ports = {port for protocol, port in ports_of(assessment.ports or {}) if protocol == "tcp"}
@@ -429,7 +434,7 @@ def _workloads(snapshot, resources, by_type, signal):
                             forwards.setdefault(group["TargetGroupArn"], source)
                     if not groups and action.get("TargetGroupArn"):
                         forwards.setdefault(action["TargetGroupArn"], source)
-            for tg in by_type["target_group"]:
+            for tg in cloud_workloads.candidates("target_group", "TargetGroupArn", forwards):
                 tg_data = tg["data"]
                 tg_arn = tg_data.get("TargetGroupArn")
                 if (row["data"].get("Type") != "application" or tg_arn not in forwards
@@ -443,19 +448,19 @@ def _workloads(snapshot, resources, by_type, signal):
                 healthy_targets = {((item.get("Target") or {}).get("Id"), (item.get("Target") or {}).get("Port"))
                     for item in health.get("TargetHealthDescriptions") or [] if isinstance(item, dict)
                     and (item.get("TargetHealth") or {}).get("State") == "healthy"}
-                for service in by_type["ecs_service"]:
+                for service in cloud_workloads.candidates("ecs_service", "ecs_service_target_group", [tg_arn]):
                     svc = service["data"]
                     ports = {binding.get("containerPort") for binding in svc.get("loadBalancers") or []
                         if isinstance(binding, dict) and binding.get("targetGroupArn") == tg_arn}
                     if not ports:
                         continue
-                    for task in targets:
+                    for task in lb_tasks.candidates("ecs_task", "taskDefinitionArn", [svc.get("taskDefinition")]):
                         task_data = task["data"]
                         if task_data.get("taskDefinitionArn") != svc.get("taskDefinition") or task_data.get("group") != "service:" + str(svc.get("serviceName")):
                             continue
                         eni_ids = {detail.get("value") for attachment in task_data.get("attachments") or []
                             for detail in attachment.get("details") or [] if detail.get("name") == "networkInterfaceId"}
-                        match = next(((eni["data"].get("PrivateIpAddress"), port) for eni in by_type["network_interface"]
+                        match = next(((eni["data"].get("PrivateIpAddress"), port) for eni in cloud_workloads.candidates("network_interface", "NetworkInterfaceId", eni_ids)
                             if eni["data"].get("NetworkInterfaceId") in eni_ids for port in ports
                             if (eni["data"].get("PrivateIpAddress"), port) in healthy_targets), None)
                         if match:
@@ -544,11 +549,10 @@ def _workloads(snapshot, resources, by_type, signal):
                 meta = target["data"].get("metadata") or {}
                 namespace, name = meta.get("namespace", "default"), spec.get("serviceAccountName", "default")
                 ids = [f"system:serviceaccount:{namespace}:{name}"]
-                sa = next((s for s in by_type["serviceaccount"] if _cluster(s) == _cluster(target)
+                sa = next((s for s in k8s_workloads.candidates('serviceaccount', target, names=[name]) if _cluster(s) == _cluster(target)
                     and s["data"].get("metadata", {}).get("namespace", "default") == namespace and s["data"].get("metadata", {}).get("name") == name), None)
                 token_available = spec.get("automountServiceAccountToken", sa["data"].get("automountServiceAccountToken", True) if sa else True)
-                policies_complete = any(c.get("type") == "networkpolicy" and c.get("scope") == target["scope"]
-                    and c.get("status") in {"collected", "empty"} for c in snapshot.get("collections", []))
+                policies_complete = k8s_workloads.complete_policies(target['scope'])
                 if not policies_complete:
                     state = "unknown"
                     identity_gaps.append({"layer": "networkpolicy", "reason": "NetworkPolicy inventory is incomplete"})
@@ -557,7 +561,7 @@ def _workloads(snapshot, resources, by_type, signal):
                     identity_gaps.append({"layer": "identity", "reason": "ServiceAccount automount setting is not collected"})
                 selected_ingress_policy = False
                 open_ingress_policy = False
-                for policy in by_type["networkpolicy"]:
+                for policy in k8s_workloads.candidates('networkpolicy', target):
                     if _cluster(policy) != _cluster(target) or policy["data"].get("metadata", {}).get("namespace", "default") != namespace:
                         continue
                     policy_spec = policy["data"].get("spec") or {}

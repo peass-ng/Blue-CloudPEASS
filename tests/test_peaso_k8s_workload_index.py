@@ -235,3 +235,17 @@ def test_complete_privilege_analysis_preserves_exposed_admin_annotations():
     expected['stats'].pop('timing_seconds')
     assert actual == expected
     assert snapshot == original
+
+
+def test_many_small_namespaces_do_not_retain_per_scope_label_indexes():
+    by_type=defaultdict(list)
+    for i in range(250):
+        namespace=f'ns-{i}'
+        by_type['pod'].append(row('pod',str(i),namespace=namespace,
+            metadata={'name':str(i),'namespace':namespace,'labels':{'app':'native'}}))
+    owner=indexed.K8sWorkloadIndex({'collections':[]},by_type,_cluster)
+    for i in range(250):
+        service=row('service',namespace=f'ns-{i}',spec={'selector':{'app':'native'}})
+        assert owner.pods(service)==[by_type['pod'][i]]
+    assert owner.remaining_label_keys==indexed.MAX_LABEL_KEYS
+    assert not owner.pod_labels

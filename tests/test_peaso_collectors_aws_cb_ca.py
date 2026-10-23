@@ -49,7 +49,7 @@ def test_module_is_loaded_into_the_collector_registry():
     assert facts.GLOBAL_TYPES <= aws.GLOBAL_TYPES
     assert {"organization", "shield_subscription", "route53_domain", "trustedadvisor_check"} <= aws.GLOBAL_TYPES
     for service, operation in facts.READ_ACTIONS:
-        assert operation.startswith(("get_", "list_", "describe_", "batch_get_")), (service, operation)
+        assert operation.startswith(("get_", "list_", "describe_", "batch_get_", "search_")), (service, operation)
 
 
 def test_kinesis_streams_paginate_merge_summary_and_drive_encryption_predicate(sdk):
@@ -295,4 +295,4 @@ def test_access_analyzer_active_findings_and_coverage_on_failure(sdk):
     assert item["Findings"][0]["id"] == "f"
     denied(analyzer, "list_findings_v2")
     [blocked] = facts.ENRICHERS["access_analyzer"](aws.Requests({}), session, REGION, [{"arn": arn, "status": "ACTIVE"}])
-    assert "Findings" not in blocked and blocked["_coverage"]["Findings"]["status"] == "denied"
+    assert blocked["Findings"] == [] and blocked["_coverage"]["Findings"]["status"] == "denied"

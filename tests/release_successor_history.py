@@ -306,6 +306,9 @@ def historical_release(path):
 _IAM_HISTORICAL_BASELINE_SHA256 = "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
 _IAM_EVIDENCE_SUCCESSOR_SHA256 = "d94768357e6b0681e0b438490bfdec1383f0228636d32c0d79ca54504631ccf4"
 _IAM_SECURITY_SUCCESSOR_SHA256 = "671b51dad0a630377080f1f74a41eb6b0afa481fae9bd29c4c7da5c6d9dc8eaf"
+_IAM_UNUSED_ACCESS_SUCCESSOR_SHA256 = "5a1f81ead33c02f957be1d1ee2461afaa7a07b2cb62ec8997dcbc377f3c5c687"
+_IAM_UNUSED_ACCESS_PREDECESSOR = "tests/fixtures/post_dfaf_integration/iam_unused_access_pre_successor.py.gz"
+_IAM_UNUSED_ACCESS_PREDECESSOR_PACKED_SHA256 = "0c3be6674ed6a37b2cf0979c01303e765b1a2494f359791f3c63ca96b97278e6"
 _IAM_RETAINED_PREDECESSOR = "tests/fixtures/post_dfaf_integration/iam_evidence_pre_security_review.py.gz"
 _IAM_RETAINED_PREDECESSOR_PACKED_SHA256 = "3e3d598692b530113b37c90a795d86a866da82c728e8a1677a715d06d8f60c37"
 _IAM_EVIDENCE_ONLY_REVERSE_HUNKS = (('        matched = set()\n'
@@ -338,6 +341,14 @@ def _source414_reviewed_baseline(member, baseline, expected_sha256):
             expected_sha256 != _IAM_HISTORICAL_BASELINE_SHA256):
         raise ValueError("Historical source baseline digest differs")
     current_sha = hashlib.sha256(baseline).hexdigest()
+    if current_sha == _IAM_UNUSED_ACCESS_SUCCESSOR_SHA256:
+        # The current Access Analyzer finding logic follows the security review.
+        # Keep that logic live while reconstructing its exact predecessor.
+        packed = (ROOT / _IAM_UNUSED_ACCESS_PREDECESSOR).read_bytes()
+        if hashlib.sha256(packed).hexdigest() != _IAM_UNUSED_ACCESS_PREDECESSOR_PACKED_SHA256:
+            raise ValueError("Historical IAM unused-access predecessor digest differs")
+        baseline = gzip.decompress(packed)
+        current_sha = hashlib.sha256(baseline).hexdigest()
     if current_sha == _IAM_SECURITY_SUCCESSOR_SHA256:
         # This reviewed semantic fix follows the evidence-only successor.
         # Recover the exact pinned predecessor rather than reverting live code.

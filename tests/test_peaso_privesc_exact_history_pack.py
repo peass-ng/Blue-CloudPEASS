@@ -28,7 +28,7 @@ def test_every_packed_tar_block_and_manifest_matches_pinned_original():
         refs = archive.read('references.bin')
         manifests = archive.read('manifests.bin')
     assert index['schema'] == 'privesc-exact-history-v1'
-    assert len(index['versions']) == len(declarations()) == 129
+    assert len(index['versions']) == len(declarations()) == 133
     assert len(blocks) == 512 * len(index['block_sha256'])
     assert all(_sha(blocks[n*512:(n+1)*512]) == digest
                for n, digest in enumerate(index['block_sha256']))
@@ -85,6 +85,26 @@ def test_historical_safe_loaders_preserve_complete_entries_and_order(monkeypatch
     assert list(actual_prior[0]) == list(expected_prior[0])
 
 
+@pytest.mark.parametrize('missing', ['archive', 'manifest', 'both'])
+def test_precanonical_685_binding_recovers_only_exact_pinned_history(tmp_path, monkeypatch, missing):
+    row = next(item for item in declarations()
+               if item[1].name == 'prior-reviewed-685-99a-catalog.tar.gz')
+    manifest, archive, manifest_sha, archive_sha, tree, count, excluded = row
+    local_pack = tmp_path / catalog.RUNTIME_HISTORY_PACK.name
+    local_pack.write_bytes(catalog.RUNTIME_HISTORY_PACK.read_bytes())
+    monkeypatch.setattr(catalog, 'RUNTIME_HISTORY_PACK', local_pack)
+    local_manifest, local_archive = tmp_path / manifest.name, tmp_path / archive.name
+    if missing == 'archive':
+        local_manifest.write_bytes(manifest.read_bytes())
+    elif missing == 'manifest':
+        local_archive.write_bytes(archive.read_bytes())
+    recovered = catalog._verified_archived_current(
+        local_manifest, local_archive, manifest_sha, archive_sha, tree, count, excluded)
+    assert len(recovered) == 685
+    assert recovered['azure-apim-developer-portal-sso-external-principal']['source'].endswith(
+        '#microsoftapimanagementserviceuserstokenaction')
+
+
 @pytest.mark.parametrize('target', ['pack', 'archive', 'manifest'])
 def test_pack_and_changed_present_originals_fail_closed(tmp_path, monkeypatch, target):
     row = next(item for item in declarations()
@@ -118,7 +138,7 @@ def test_source_freeze_omits_only_verified_reconstructible_originals():
     from scripts.peaso_deploy import _omit_verified_reconstructible_privesc_history
     root, source = _history_source_bytes()
     omitted = _omit_verified_reconstructible_privesc_history(source, root)
-    assert len(omitted) == 258
+    assert len(omitted) == 266
     assert set(source) == {'peaso/privesc/versioned_catalog.py',
                            'peaso/privesc/catalog_versions/runtime-history-v1.zip'}
 

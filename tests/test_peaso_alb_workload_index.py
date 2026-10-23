@@ -1,0 +1,144 @@
+"""ALB correlation keeps listener, service, task identity and health proofs."""
+from collections import defaultdict
+import copy
+from unittest.mock import patch
+
+import pytest
+
+from examples.benchmark_peaso_alb_workloads import FormerAlbWorkloads, synthetic_snapshot
+from peaso.analysis import cloud_workload_index as indexed
+from peaso.principal_exposure import project
+from peaso.snapshot import resources, seal, validate
+
+
+def outcome(function):
+    try:
+        return 'value', function()
+    except (KeyError, TypeError, AttributeError) as error:
+        return 'error', type(error)
+
+
+@pytest.mark.parametrize('relation,field,native', [
+    ('target_group_lb', 'LoadBalancerArns', ['match', 'other']),
+    ('target_group_lb', 'LoadBalancerArns', 'prefix-match-suffix'),
+    ('target_group_lb', 'LoadBalancerArns', {'match': 'value'}),
+    ('target_group_lb', 'LoadBalancerArns', 4),
+    ('ecs_service_target_group', 'loadBalancers', [{'targetGroupArn': 'match'}]),
+    ('ecs_service_target_group', 'loadBalancers', [{'targetGroupArn': 'match'}, None]),
+    ('ecs_service_target_group', 'loadBalancers', [{'targetGroupArn': []}]),
+    ('running_task_definition', 'taskDefinitionArn', 'match'),
+    ('running_task_definition', 'taskDefinitionArn', [])])
+@pytest.mark.parametrize('keys', [['match'], ['absent'], [], [None]])
+def test_candidates_retain_original_membership_errors_and_order(relation, field, native, keys):
+    rows = [{'data': {'lastStatus': 'RUNNING', field: value}} for value in (None, native)]
+    rows += [rows[-1], {'data': {'lastStatus': 'STOPPED', field: []}}]
+    owner = indexed.CloudWorkloadIndex(defaultdict(list, test=rows))
+
+    def match(source):
+        if relation == 'target_group_lb':
+            # Original outer predicate uses native membership, including strings.
+            key = keys[0] if keys else None
+            return [row for row in source if key and key in (row['data'].get(field) or [])]
+        if relation == 'ecs_service_target_group':
+            return [row for row in source if any(b.get('targetGroupArn') in set(keys)
+                    for b in row['data'].get(field) or [])]
+        return [row for row in source if row['data'].get('lastStatus') == 'RUNNING'
+                and row['data'].get(field) in set(keys)]
+
+    assert outcome(lambda: match(owner.candidates('test', relation, keys))) == outcome(lambda: match(rows))
+
+
+@pytest.mark.parametrize('scenario', ['healthy', 'unhealthy', 'wrong_ip', 'wrong_port', 'health_missing',
+    'other_service', 'stopped', 'missing_eni', 'no_forward', 'zero_weight', 'private_source',
+    'public_source', 'capacity', 'duplicates', 'shared_definition', 'substring'])
+def test_complete_projection_keeps_exact_health_and_routing_evidence(scenario):
+    snapshot = synthetic_snapshot(6)
+    facts = {c['type']: c['items'] for c in snapshot['collections']}
+    listener = facts['load_balancer'][0]['Listeners']['items'][0]
+    tg = facts['target_group'][0]
+    health = tg['TargetHealth']['TargetHealthDescriptions'][0]
+    if scenario == 'unhealthy':
+        health['TargetHealth']['State'] = 'unhealthy'
+    elif scenario == 'wrong_ip':
+        health['Target']['Id'] = '10.10.10.10'
+    elif scenario == 'wrong_port':
+        health['Target']['Port'] = 9999
+    elif scenario == 'health_missing':
+        tg['TargetHealth']['collection_status'] = 'denied'
+    elif scenario == 'other_service':
+        facts['ecs_task'][0]['group'] = 'service:unrelated'
+    elif scenario == 'stopped':
+        facts['ecs_task'][0]['lastStatus'] = 'STOPPED'
+    elif scenario == 'missing_eni':
+        facts['network_interface'].pop(0)
+    elif scenario == 'no_forward':
+        listener['DefaultActions'] = [{'Type': 'fixed-response'}]
+    elif scenario == 'zero_weight':
+        listener['DefaultActions'] = [{'Type': 'forward', 'ForwardConfig': {
+            'TargetGroups': [{'TargetGroupArn': tg['TargetGroupArn'], 'Weight': 0}]}}]
+    elif scenario in ('private_source', 'public_source'):
+        listener['DefaultActions'] = []
+        listener['Rules'] = {'collection_status': 'collected', 'items': [{'RuleArn': 'rule-first',
+            'Conditions': [{'Field': 'source-ip', 'Values': ['10.0.0.0/8' if scenario == 'private_source' else '0.0.0.0/0']}],
+            'Actions': [{'Type': 'forward', 'TargetGroupArn': tg['TargetGroupArn']}]}]}
+    elif scenario == 'duplicates':
+        for kind in ('target_group', 'ecs_service', 'ecs_task', 'network_interface'):
+            facts[kind].append(copy.deepcopy(facts[kind][0]))
+    elif scenario == 'shared_definition':
+        facts['ecs_task'][1]['taskDefinitionArn'] = facts['ecs_task'][0]['taskDefinitionArn']
+        facts['ecs_service'][1]['taskDefinition'] = facts['ecs_service'][0]['taskDefinition']
+    elif scenario == 'substring':
+        tg['LoadBalancerArns'] = 'prefix-' + tg['LoadBalancerArns'][0] + '-suffix'
+    snapshot = validate(seal(snapshot))
+    before, rows = copy.deepcopy(snapshot), resources(snapshot)
+    with patch.object(indexed, 'CloudWorkloadIndex', FormerAlbWorkloads):
+        expected = project(snapshot, rows)
+    with patch.object(indexed, 'MAX_KEYS', 1 if scenario == 'capacity' else indexed.MAX_KEYS):
+        actual = project(snapshot, rows)
+    assert actual == expected
+    assert snapshot == before
+    key = 'arn:aws:iam::111122223333:role/task-0'
+    if scenario == 'stopped':
+        assert key not in actual
+    else:
+        target_id = next(r['id'] for r in rows if r['type'] == 'ecs_task'
+                         and r['data']['taskArn'].endswith('/task-0'))
+        signal = next(s for s in actual[key]['exposures'] if s['workload_resource'] == target_id
+                      and s['public_addresses'] == ['web-0.example.elb.amazonaws.com'])
+        confirmed = scenario in ('healthy', 'public_source', 'capacity', 'duplicates', 'shared_definition', 'substring')
+        assert signal['state'] == ('declared' if confirmed else 'unknown')
+        assert ('backend_evidence' in signal) == confirmed
+        if confirmed:
+            assert signal['backend_evidence']['healthy_target'] == {'ip': '10.0.0.1', 'port': 8080}
+
+
+def test_whole_privilege_pipeline_preserves_alb_exposure_annotations():
+    from peaso.privesc import analyze
+
+    snapshot = synthetic_snapshot(4)
+    roles = [{'Arn': f'arn:aws:iam::111122223333:role/task-{i}', 'RoleName': f'task-{i}',
+        'AssumeRolePolicyDocument': {'Statement': []}, 'RolePolicyList': [{'PolicyName': 'admin',
+        'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': '*', 'Resource': '*'}]}}]} for i in range(4)]
+    snapshot['collections'].append({'type': 'iam_role', 'scope': snapshot['scopes'][0],
+                                    'status': 'collected', 'items': roles})
+    snapshot = validate(seal(snapshot))
+    before = copy.deepcopy(snapshot)
+    with patch.object(indexed, 'CloudWorkloadIndex', FormerAlbWorkloads):
+        expected = analyze(snapshot)
+    actual = analyze(snapshot)
+    expected['stats'].pop('timing_seconds')
+    actual['stats'].pop('timing_seconds')
+    assert actual == expected
+    assert snapshot == before
+    assert actual['graph']['nodes']
+
+
+def test_shared_load_balancer_keeps_all_workload_health_pairs():
+    snapshot = synthetic_snapshot(30, 'shared')
+    rows = resources(snapshot)
+    with patch.object(indexed, 'CloudWorkloadIndex', FormerAlbWorkloads):
+        expected = project(snapshot, rows)
+    actual = project(snapshot, rows)
+    assert actual == expected
+    assert len(actual) == 30
+    assert all(len(card['exposures']) == 1 and card['exposures'][0]['state'] == 'declared' for card in actual.values())

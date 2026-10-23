@@ -158,6 +158,8 @@ def plan(case, branch='good'):
                 r.setdefault('selfLink',C+('/regions/us-central1/' if k=='instance_group_manager' else '/global/')+endpoint.split('/')[-1]+'/'+r['name'])
             location='zones/us-central1-a' if k=='instance_group_manager' and rows and '/zones/' in rows[0].get('selfLink','') else 'regions/us-central1' if k=='instance_group_manager' else 'global'
             add(C+'/'+endpoint, {'items':{location:{key:items}}} if agg else {'items':items},primary=primary and chosen)
+        if k == 'forwarding_rule':
+            add(C+'/global/forwardingRules', {'items': []})
     if kind in {ck for ck,*_ in gcp.COMPUTE}: compute(kind,[row],True)
     elif kind in ('project','organization'):
         row.update(name='organizations/123' if kind=='organization' else 'projects/123')
@@ -165,11 +167,15 @@ def plan(case, branch='good'):
         add('https://cloudresourcemanager.googleapis.com/v3/'+scope,row,primary=True)
     elif kind=='function':
         row['name']=FN; policy=row.pop('iamPolicy',{'bindings':[]})
+        add('https://cloudfunctions.googleapis.com/v2/'+P+'/locations',
+            {'locations':[{'name':P+'/locations/us-central1','locationId':'us-central1'}]})
         add('https://cloudfunctions.googleapis.com/v2/'+P+'/locations/-/functions',{'functions':[row]},primary=True)
         add('https://cloudfunctions.googleapis.com/v2/'+FN+':getIamPolicy',policy)
     elif kind=='dataproc_cluster':
         row.update(clusterName='review',projectId='native-one',clusterUuid='11111111-1111-4111-8111-111111111111');row.pop('name')
         add('https://dataproc.googleapis.com/v1/'+P+'/regions/us-central1/clusters',{'clusters':[row]},primary=True)
+        add('https://dataproc.googleapis.com/v1/'+P+'/regions/us-central1/clusters/review:getIamPolicy',
+            {'bindings':[]},method='POST')
     elif kind=='api_key':
         row['name']='projects/123/locations/global/keys/key-1'
         add('https://apikeys.googleapis.com/v2/'+P+'/locations/global/keys',{'keys':[row]},primary=True)

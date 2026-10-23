@@ -203,7 +203,7 @@ def test_digest_and_kubernetes_pull_defaults_are_not_literal_always_only(predica
 
 def test_version_tag_check_does_not_establish_content_addressing():
     assert _pod_status("pinned_image", {"image": "app:v2"}) == "PASS"
-    assert _pod_status("pinned_image", {"image": "app@not-a-validated-digest"}) == "PASS"
+    assert _pod_status("pinned_image", {"image": "app@not-a-validated-digest"}) == "UNKNOWN"
     assert _pod_status("pinned_image", {"image": "app:latest"}) == "FAIL"
 
 

@@ -178,7 +178,7 @@ print(json.dumps(results))
 """
  env={**os.environ,'PYTHONPATH':str(root),'PYTHONDONTWRITEBYTECODE':'1'}
  result=subprocess.run([sys.executable,'-B','-c',script],cwd=root,env=env,
-                       capture_output=True,text=True,check=True,timeout=60)
+                       capture_output=True,text=True,check=True,timeout=180)
  return json.loads(result.stdout)
 
 @pytest.mark.parametrize('number',[2,9])

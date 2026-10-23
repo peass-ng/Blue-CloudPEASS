@@ -105,8 +105,7 @@ def test_exact_kind_component_comparison_and_declaration_scope(check_id):
         if branch == "pass" and check_id.endswith(".container_argument_kubelet_authorization_mode_no_always_allow"):
             pod = get(item, binding["pod_spec_path"], dict)
             flags = pod["containers"][0]["_component_config"]["flags"]
-            assert flags["authorization-mode"] == "RBAC"  # Immutable historical input.
-            flags["authorization-mode"] = "Webhook"  # Actual supported kubelet mode.
+            assert flags["authorization-mode"] == "Webhook"
         return item
     for branch, expected_status in [("pass", "PASS"), ("fail", "FAIL")]:
         item = current_input(branch)

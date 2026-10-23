@@ -70,7 +70,7 @@ def catalog(target):
 
 
 def upstream(book):
-    return book / 'src/privilege-escalation-paths-cspm-reviewed'
+    return book / 'src/privilege-escalation-paths'
 
 
 def snapshot(root):
@@ -352,7 +352,7 @@ def test_fetch_with_privesc_sparse_checks_out_catalog_and_pages(tmp_path, monkey
     fetcher.fetch(tmp_path / 'optional', with_privesc=True)
     sparse = [c for c in calls if 'sparse-checkout' in c][0]
     assert sparse[-3:] == ['src/permission-categorizations',
-                           'src/privilege-escalation-paths-cspm-reviewed', 'src/pentesting-cloud']
+                           'src/privilege-escalation-paths', 'src/pentesting-cloud']
     calls.clear()
     with pytest.raises(RuntimeError, match='five attempts'):
         fetcher.fetch(tmp_path / 'required', require_privesc=True)

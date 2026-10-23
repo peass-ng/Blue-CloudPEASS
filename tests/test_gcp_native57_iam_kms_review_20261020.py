@@ -68,7 +68,7 @@ SPECS = [
     declaration('gcp.ports.iam_user_not_assigned_service_account_user_role_project_level', 'policy', 'PASS'),
     declaration('gcp.ports.iam_user_separation_of_duty_scoped', 'policy', 'PASS'),
     declaration('gcp.ports.kms_key_separation_of_duties_enforced', 'policy', 'PASS'),
-    declaration('gcp.claude.service_account.recently_used', 'account-activity', 'FAIL'),
+    declaration('gcp.claude.service_account.recently_used', 'account-activity'),
     declaration('gcp.gap.iam_user_managed_sa_no_admin_roles', 'account-role', 'PASS'),
     declaration('gcp.htbp.iam.sa_no_pool_wide_workload_principal_set', 'account-policy', 'PASS'),
     declaration('gcp.ports.service_account_mutating_role_declarations', 'role-definition'),
@@ -190,6 +190,8 @@ class NativeAPI:
             if path == '/v1/' + ACCOUNT + '/keys':
                 assert method == 'GET'
                 key = {'name': SA_KEY, 'keyType': 'USER_MANAGED', 'keyOrigin': 'GOOGLE_PROVIDED', 'keyAlgorithm': 'KEY_ALG_RSA_2048', 'validAfterTime': '2026-10-01T00:00:00Z', 'validBeforeTime': '9999-12-31T23:59:59Z', 'disabled': False}
+                if family == 'key-activity' and mode in ('bad', 'omitted', 'activity-absent', 'activity-denied'):
+                    key['validAfterTime'] = '2025-01-01T00:00:00Z'
                 if family in ('key-type', 'account-keys') and mode != 'bad': key['keyType'] = 'SYSTEM_MANAGED'
                 if key['keyType'] == 'SYSTEM_MANAGED': key['validBeforeTime'] = '2026-11-01T00:00:00Z'
                 if family == 'key-age' and mode == 'bad': key['validAfterTime'] = '2026-01-01T00:00:00Z'
@@ -384,7 +386,8 @@ def test_native_pagination_preserves_coverage_uncertainty(cid, mode, record_prop
 def test_activity_absence_or_denial_is_not_unused_proof(cid, mode, record_property):
     rows, _, _ = run_case(BY_ID[cid], mode, record_property)
     resources = [r for r in rows if 'native_resource_id' in r]
-    assert len(resources) == 1 and resources[0]['status'] == 'UNKNOWN', rows
+    expected = 'DENIED' if mode == 'activity-denied' else 'UNKNOWN'
+    assert len(resources) == 1 and resources[0]['status'] == expected, rows
 
 
 @pytest.mark.parametrize('cid', ['gcp.gap.iam_user_managed_sa_no_admin_roles', 'gcp.ports.service_account_mutating_role_declarations'])

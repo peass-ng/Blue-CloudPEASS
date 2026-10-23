@@ -80,7 +80,7 @@ def test_real_http_persists_encrypted_connector_and_admits_only_active_native_ch
  monkeypatch.setattr(gcp,'Credentials',lambda *a,**kw:None);monkeypatch.setattr(gcp,'Transport',lambda *a,**kw:api)
  app_module=importlib.import_module('peaso.server.app')
  dispatched=[]
- monkeypatch.setattr(app_module,'WorkflowDispatcher',lambda:SimpleNamespace(dispatch=lambda *a,**kw:dispatched.append((a,kw))))
+ monkeypatch.setattr(app_module,'WorkflowDispatcher',lambda **kw:SimpleNamespace(dispatch=lambda *a,**kwargs:dispatched.append((a,kwargs))))
  class Identities:
   def authenticate(self,*args):return Identity('sbom-customer',True,cognito_username='sbom-customer')
   def is_paid(self,*args):return True
