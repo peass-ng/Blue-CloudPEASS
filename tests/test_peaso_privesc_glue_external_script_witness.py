@@ -72,8 +72,13 @@ def test_update_uses_external_script_witness():
     assert reached(result, update.SOURCE, update.ID) == {update.TARGET: "conditional"}
 
 
-def test_external_script_wrong_role_id_stays_unresolved():
+def test_external_script_wrong_role_id_does_not_override_native_route():
+    native = override._case(writer=OBJECT, reader=OBJECT)
+    native_result = privesc.analyze(native, entries=[override.ENTRY], include_unknown=True)
+    native_reaches = reached(native_result, override.SOURCE, override.ID)
+    assert native_reaches == {override.TARGET: "conditional"}
+
     snap = override._case(writer=OBJECT, reader=OBJECT)
     add_proof(snap, override.ID, override.JOB, "StartJobRun", wrong_role=True)
     result = privesc.analyze(snap, entries=[override.ENTRY], include_unknown=True)
-    assert override.TARGET not in reached(result, override.SOURCE, override.ID)
+    assert reached(result, override.SOURCE, override.ID) == native_reaches
