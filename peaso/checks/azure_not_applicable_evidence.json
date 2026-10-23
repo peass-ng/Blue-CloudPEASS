@@ -1,0 +1,1072 @@
+{
+  "Subscription predicate does not apply to a tenant or management-group anchor": [
+    "The recorded scope is a tenant or management group.",
+    "This setting has a value only at subscription scope.",
+    "No subscription resource is represented by this record."
+  ],
+  "no applicable resources in complete inventory": [
+    "The complete inventory has no matching resources.",
+    "No resource here has the condition described by this setting.",
+    "No resource owner is affected in this scope."
+  ],
+  "VM operating system outside this baseline": [
+    "This VM's operating system is outside the recorded baseline.",
+    "The baseline has no setting for this operating system.",
+    "The VM's users are outside this baseline's scope."
+  ],
+  "Complete effective subject inventory has no applicable users/assignments": [
+    "The complete subject list has no relevant users or assignments.",
+    "No account here carries the access covered by this setting.",
+    "No account owner has an affected assignment in this scope."
+  ],
+  "Upstream web-app table excludes function apps": [
+    "This resource is a function app outside the web app list.",
+    "The web app setting does not apply to this function app.",
+    "Its users are outside the scope of that setting."
+  ],
+  "no dedicated SQL pools": [
+    "No dedicated SQL pools were found in this scope.",
+    "No pool here has the setting in question.",
+    "There is no pool owner affected in this scope."
+  ],
+  "Disabled user": [
+    "This directory user is disabled.",
+    "The account cannot start a new sign-in while it stays disabled.",
+    "It does not offer a current sign-in path for this user."
+  ],
+  "complete container inventory is empty": [
+    "The complete inventory has no containers in this scope.",
+    "No container here has the setting in question.",
+    "There is no container owner affected in this scope."
+  ],
+  "Pricing is subscription-scoped": [
+    "The recorded scope is outside a subscription.",
+    "The pricing value exists at subscription scope.",
+    "No subscription resource is represented by this record."
+  ],
+  "This is not a blob service": [
+    "The recorded service is not a blob service.",
+    "The blob setting does not apply to it.",
+    "Its data is outside the scope of that blob setting."
+  ],
+  "VM is not Windows": [
+    "The recorded VM does not run Windows.",
+    "The Windows setting does not apply to this VM.",
+    "Its users are outside the scope of that setting."
+  ],
+  "VM is not Linux": [
+    "The recorded VM does not run Linux.",
+    "The Linux setting does not apply to this VM.",
+    "Its users are outside the scope of that setting."
+  ],
+  "no applicable sites in complete inventory": [
+    "The complete inventory has no matching sites.",
+    "No site here has the setting in question.",
+    "There is no site owner affected in this scope."
+  ],
+  "complete empty VMSS inventory": [
+    "The complete inventory has no VM scale sets.",
+    "No scale set here has the setting in question.",
+    "There is no scale set owner affected in this scope."
+  ],
+  "complete in-scope API inventory is empty": [
+    "The complete inventory has no APIs in this scope.",
+    "No API here has the setting in question.",
+    "There is no API owner affected in this scope."
+  ],
+  "complete classified ML compute inventory has no sensitive instances": [
+    "The complete ML compute inventory has no sensitive instances.",
+    "No sensitive instance here has the setting in question.",
+    "There is no sensitive compute owner affected in this scope."
+  ],
+  "complete empty Data Box job inventory": [
+    "The complete inventory has no Data Box jobs.",
+    "No job here has the setting in question.",
+    "There is no job owner affected in this scope."
+  ],
+  "issuer is not GitHub Actions": [
+    "The recorded token issuer is not GitHub Actions.",
+    "The GitHub Actions setting does not apply to this token.",
+    "Its users are outside the scope of that trust setting."
+  ],
+  "Complete classified scope has no applicable compute": [
+    "The complete scope has no matching compute resources.",
+    "No compute resource here has the setting in question.",
+    "There is no compute owner affected in this scope."
+  ],
+  "authoritative protected container scope is empty": [
+    "The verified scope has no protected containers.",
+    "No container here has the setting in question.",
+    "There is no protected container owner affected in this scope."
+  ],
+  "Built-in role": [
+    "The recorded role is built in.",
+    "This custom role setting does not apply to it.",
+    "Its permissions come from the built-in role definition."
+  ],
+  "Burstable tier does not support high availability": [
+    "The recorded database uses the Burstable tier.",
+    "High availability is not available for this tier.",
+    "Its users do not get that availability option on this tier."
+  ],
+  "System master database is excluded upstream": [
+    "The recorded database is the system master database.",
+    "This setting applies to user databases.",
+    "No user database is represented by this record."
+  ],
+  "Premium account is excluded upstream": [
+    "The recorded account uses the Premium tier.",
+    "This setting applies to a different account tier.",
+    "The Premium account is outside the scope of that setting."
+  ],
+  "Plan is deprecated by Microsoft": [
+    "The recorded plan is deprecated.",
+    "This plan setting no longer applies to it.",
+    "No current resource is described by that retired setting."
+  ],
+  "Directory facts were collected for a different tenant": [
+    "The directory facts belong to a different tenant.",
+    "They cannot describe users in this tenant.",
+    "Tenant admins cannot use these facts to judge current access."
+  ],
+  "Named Defender assessment is not reported for this subscription": [
+    "The named Defender assessment is absent for this subscription.",
+    "It provides no health result for these resources.",
+    "Resource owners have no current signal from that assessment."
+  ],
+  "legacy Log Analytics agent baseline is not required": [
+    "This scope does not require the legacy Log Analytics agent.",
+    "That agent setting does not apply to its VMs.",
+    "Their owners are not affected by its absence."
+  ],
+  "Recurring-scan settings apply to the classic storage-based VA configuration": [
+    "This database uses a vulnerability setup outside the classic storage-based mode.",
+    "Recurring scan settings belong to that classic mode.",
+    "Database owners do not get a recurring scan setting here."
+  ],
+  "Vault authorization mode excluded by pinned source": [
+    "This vault uses an authorization mode outside the recorded scope.",
+    "Its access is governed by a different mode.",
+    "This setting does not describe who can use the vault."
+  ],
+  "Guest Configuration extension not installed": [
+    "The VM has no Guest Configuration extension installed.",
+    "No guest configuration report is available from that extension.",
+    "The owner has no guest setting result from it."
+  ],
+  "current independent applicability evidence excludes VM": [
+    "The current scope evidence excludes this VM.",
+    "Its settings are outside the approved resource set.",
+    "No VM owner is affected by this scoped setting."
+  ],
+  "sensitive compute is outside this control": [
+    "The recorded compute is sensitive and outside this setting’s scope.",
+    "Its configuration is governed by a different requirement.",
+    "This setting does not describe protection of that data."
+  ],
+  "Upstream function-app table selects function apps only": [
+    "The source list contains function apps only.",
+    "This resource is outside that function app list.",
+    "Its users are outside this function app setting."
+  ],
+  "compute outside classified scope": [
+    "The compute resource is outside the classified scope.",
+    "This scoped setting does not apply to it.",
+    "Its owner is not affected by this scoped condition."
+  ],
+  "no HTTPS listener": [
+    "No HTTPS listener is recorded on this gateway.",
+    "No HTTPS route has this setting.",
+    "No user traffic uses such a listener here."
+  ],
+  "complete applicable inventory is empty": [
+    "The complete inventory has no applicable resources.",
+    "No resource here has this setting.",
+    "No resource owner is affected in this scope."
+  ],
+  "Complete domain inventory is empty": [
+    "The complete inventory has no domains in this scope.",
+    "No domain here has this setting.",
+    "No domain owner is affected in this scope."
+  ],
+  "Complete inventory has no applicable enabled routes/custom origins": [
+    "The complete inventory has no matching enabled routes or custom origins.",
+    "No matching path carries user requests here.",
+    "Users are outside the scope of this route setting."
+  ],
+  "complete AKS inventory has no clusters": [
+    "The complete AKS inventory has no clusters.",
+    "No cluster here has this setting.",
+    "No cluster owner is affected in this scope."
+  ],
+  "Defender VirtualMachines pricing extension is evaluated at subscription scope": [
+    "The recorded scope is outside the subscription pricing record.",
+    "The VM pricing extension has a value at subscription scope.",
+    "No VM plan value is represented by this record."
+  ],
+  "complete VM inventory is empty": [
+    "The complete VM inventory has no virtual machines.",
+    "No VM here has this setting.",
+    "No VM owner is affected in this scope."
+  ],
+  "complete VM inventory has no unmanaged VHD": [
+    "The complete VM inventory has no unmanaged VHDs.",
+    "No VM disk uses the storage setting in question.",
+    "No VM owner is affected by this VHD condition here."
+  ],
+  "complete resource scope is empty": [
+    "The complete resource scope is empty.",
+    "No resource here has this setting.",
+    "No resource owner is affected in this scope."
+  ],
+  "directory user is privileged": [
+    "This directory user has a privileged role.",
+    "The recorded setting applies to users without that role.",
+    "This user is outside the scope of that setting."
+  ],
+  "Complete approved administrative scope contains no enabled principals": [
+    "The approved admin scope has no enabled principals.",
+    "No active admin account here has this setting.",
+    "No admin user is affected in this scope."
+  ],
+  "complete applicable inventory empty": [
+    "The complete inventory has no applicable resources.",
+    "No resource here has this setting.",
+    "No resource owner is affected in this scope."
+  ],
+  "complete storage account inventory is empty": [
+    "The complete inventory has no storage accounts.",
+    "No account here has this setting.",
+    "No storage owner is affected in this scope."
+  ],
+  "no diagnostic setting exports the activity log to a storage account": [
+    "No diagnostic setting sends the activity log to a storage account.",
+    "There is no log storage account to receive this setting.",
+    "Storage owners have no such log destination here."
+  ],
+  "Private cluster API server": [
+    "This AKS cluster has a private API server.",
+    "Public source IP ranges do not govern that private endpoint.",
+    "Cluster users need its private network path."
+  ],
+  "workspace uses the Databricks-managed virtual network": [
+    "This workspace uses a Databricks-managed virtual network.",
+    "Customer subnet settings do not apply to that network.",
+    "Workspace users are outside that subnet setting’s scope."
+  ],
+  "No SecurityCenterBuiltIn assignment applies to this subscription in the complete policy assignment list": [
+    "The complete policy list has no SecurityCenterBuiltIn assignment for this subscription.",
+    "There is no such assignment here to govern resources.",
+    "Resource owners are outside that policy assignment’s scope."
+  ],
+  "no SecurityCenterBuiltIn assignment visible in scope": [
+    "No SecurityCenterBuiltIn assignment is recorded in this scope.",
+    "There is no such assignment here to govern resources.",
+    "Resource owners are outside that policy assignment’s scope."
+  ],
+  "Plan is absent from the complete pricing list": [
+    "The complete pricing list has no matching plan.",
+    "No plan tier is available for this setting here.",
+    "Resource owners have no value from that plan in this scope."
+  ],
+  "No IoT security solution or IoT Hub exists in the complete subscription inventories": [
+    "The complete subscription inventories have no IoT Hub or security solution.",
+    "No IoT resource here has this setting.",
+    "No IoT owner is affected in this scope."
+  ],
+  "Application has no password or certificate credentials": [
+    "This application has no password or certificate credentials.",
+    "No stored app credential can expire here.",
+    "Its users are not affected by credential expiry in this record."
+  ],
+  "Policy targets workload identities, not user MFA grants": [
+    "This policy targets workload identities.",
+    "User MFA grants do not apply to those identities.",
+    "No person’s sign-in is governed by this policy setting."
+  ],
+  "Conditional Access policy is not enforced": [
+    "This Conditional Access policy is not enforced.",
+    "Its grant rules do not govern current sign-ins.",
+    "Users are not affected by those rules while it stays unenforced."
+  ],
+  "Country named locations cannot be marked trusted": [
+    "This named location uses country rules.",
+    "Trusted status applies to IP-based named locations.",
+    "Users are outside that IP trust setting here."
+  ],
+  "User is assigned an active directory role": [
+    "This user has an active directory role.",
+    "The user belongs to the privileged account group.",
+    "Their sign-in is covered by the privileged account setting."
+  ],
+  "User is not assigned an active directory role": [
+    "This user has no active directory role.",
+    "The user belongs to the non-privileged account group.",
+    "Their sign-in is covered by the non-privileged account setting."
+  ],
+  "Account is disabled": [
+    "This directory account is disabled.",
+    "It cannot start a normal sign-in while disabled.",
+    "Its owner has no active sign-in path through this account."
+  ],
+  "Assignment is not a user VM-access role": [
+    "This assignment is not a user VM-access role.",
+    "It does not grant the user the VM access covered here.",
+    "No VM sign-in is tied to this assignment."
+  ],
+  "Basic tier does not support private endpoints": [
+    "This Event Hubs namespace uses the Basic tier.",
+    "That tier has no private endpoint option.",
+    "Its users need a network path available to Basic namespaces."
+  ],
+  "not a GatewaySubnet": [
+    "This subnet is not a GatewaySubnet.",
+    "It does not carry the gateway traffic covered here.",
+    "Its users are outside this gateway subnet setting."
+  ],
+  "Cluster is not provisioned": [
+    "This HDInsight cluster is not provisioned.",
+    "It has no active cluster disks for this key setting.",
+    "No running cluster data is affected here."
+  ],
+  "Principal is not a user": [
+    "This principal is not a user account.",
+    "The user assignment setting has no account to evaluate here.",
+    "No person is assigned through this principal as a user."
+  ],
+  "account holds no insights-activity-logs container": [
+    "This account has no insights-activity-logs container.",
+    "It holds no such log container for this key setting.",
+    "No activity logs in that container are affected."
+  ],
+  "Object is disabled": [
+    "This Key Vault object is disabled.",
+    "It cannot be used as an active key while disabled.",
+    "Its expiration does not affect current key use."
+  ],
+  "Vault has no private endpoint connections": [
+    "This vault has no private endpoint connections.",
+    "There is no private endpoint path to require here.",
+    "Vault clients must use another permitted path."
+  ],
+  "Parent vault uses access policies": [
+    "This vault uses access policies.",
+    "Its secret access is not managed through Azure RBAC.",
+    "The RBAC secret setting does not apply to its users."
+  ],
+  "server parameter not offered by this engine version": [
+    "This server version does not offer the connection throttle parameter.",
+    "The setting cannot be enabled on this version.",
+    "Database users have no throttle option through that parameter."
+  ],
+  "no daily-schedule retention policies": [
+    "This vault has no daily backup retention policy.",
+    "There is no daily recovery window to measure here.",
+    "No protected item uses a daily policy in this record."
+  ],
+  "Namespace is not Active": [
+    "This Service Bus namespace is disabled.",
+    "It is not serving active message clients.",
+    "Its local sign-in setting has no current client path here."
+  ],
+  "Private endpoints require the Premium tier": [
+    "This Service Bus namespace is below the Premium tier.",
+    "That tier has no private endpoint option.",
+    "Its message clients need another supported network path."
+  ],
+  "Customer-managed keys require the Premium tier": [
+    "This Service Bus namespace is below the Premium tier.",
+    "That tier has no customer-managed key option.",
+    "The team cannot use its own key for this namespace tier."
+  ],
+  "Private endpoints are not available on the Free tier": [
+    "This SignalR service uses the Free tier.",
+    "That tier has no private endpoint option.",
+    "Its clients need another supported network path."
+  ],
+  "Upstream evaluates the Standard tier only": [
+    "This Spring Apps service uses the Enterprise tier.",
+    "The Standard-tier network setting has no value here.",
+    "Its app traffic follows the Enterprise-tier configuration."
+  ],
+  "Auditing to a storage account is not enabled": [
+    "SQL auditing to storage is disabled.",
+    "No storage audit retention period is set here.",
+    "The team has no storage audit history from this setting."
+  ],
+  "No access key creation times are reported": [
+    "No access key creation times are reported.",
+    "The age of those keys is unknown.",
+    "The team cannot tell when they were last rotated."
+  ],
+  "Predicate applies to the blob service": [
+    "This record is outside the blob service.",
+    "It has no blob soft-delete setting to read.",
+    "Blob recovery cannot be judged from this record."
+  ],
+  "Storage account has no file shares": [
+    "This storage account has no file shares.",
+    "There are no share deletions to recover here.",
+    "No shared files are affected by share soft delete."
+  ],
+  "Predicate applies to the file service": [
+    "This record is outside the file service.",
+    "It has no SMB protocol setting to read.",
+    "File-share connections are not represented here."
+  ],
+  "Azure-managed subnet must not carry a custom NSG": [
+    "This is an Azure-managed gateway subnet.",
+    "It must not carry a custom network security group.",
+    "Gateway users rely on the managed network path."
+  ],
+  "VM is not protected by Azure Backup": [
+    "This VM is not protected by Azure Backup.",
+    "It has no daily backup retention policy here.",
+    "Its users have no restore window from this backup service."
+  ],
+  "no user-assigned identity": [
+    "This VM has no user-assigned identity.",
+    "There is no such identity to pair with its system identity.",
+    "No app owner uses a user-assigned identity on this VM."
+  ],
+  "ephemeral OS disk": [
+    "This VM uses an ephemeral OS disk.",
+    "It has no persistent managed OS disk here.",
+    "Its users have no managed OS disk data in this record."
+  ],
+  "not a VPN gateway": [
+    "This gateway is not a VPN gateway.",
+    "It has no point-to-site VPN clients here.",
+    "No remote user sign-in uses this gateway as a VPN."
+  ],
+  "Subscription has no resource groups, so no deployed service can raise health events": [
+    "This subscription has no resource groups.",
+    "It has no deployed service to raise a health event.",
+    "No service owner is waiting for an event from this scope."
+  ],
+  "Subscription has no App Service or Functions apps to instrument": [
+    "This subscription has no App Service or Functions apps.",
+    "There is no app here to send Application Insights data.",
+    "No app owner loses that telemetry in this scope."
+  ],
+  "Upstream skips registration rows without a user principal name": [
+    "This registration row has no user principal name.",
+    "It cannot be tied to a named user account.",
+    "No person’s MFA registration is established by this row."
+  ],
+  "NSG is not attached to any subnet or network interface": [
+    "This network security group is not attached to a subnet or interface.",
+    "It carries no traffic from those resources.",
+    "No app traffic is affected by its flow-log setting here."
+  ],
+  "Subscription has no network security group or virtual network to capture flow logs for": [
+    "This subscription has no NSG or virtual network.",
+    "There is no network traffic source here for those flow logs.",
+    "No app owner has flow records from such a resource in this scope."
+  ],
+  "Subscription has no virtual network to capture flow logs for": [
+    "This subscription has no virtual network.",
+    "There is no VNet traffic source here for flow logs.",
+    "No app owner has VNet flow records in this scope."
+  ],
+  "Flow log does not target a virtual network, subnet or network interface": [
+    "This flow log targets no VNet, subnet, or interface.",
+    "It has no such network path to record.",
+    "The team gets no traffic record for those resources from it."
+  ],
+  "VM has no security profile (not a Trusted Launch VM)": [
+    "This VM has no Trusted Launch security profile.",
+    "It has no Secure Boot or vTPM setting in that profile.",
+    "Its users cannot rely on those profile settings here."
+  ],
+  "no Linux pods in complete inventory": [
+    "The complete inventory has no Linux pods.",
+    "There is no Linux pod setting to review here.",
+    "No Linux workload owner is affected in this scope."
+  ],
+  "No applicable Function App": [
+    "No matching Function App is recorded.",
+    "There is no function runtime setting to read here.",
+    "No function user is affected in this scope."
+  ],
+  "complete image template inventory is empty": [
+    "The complete inventory has no image templates.",
+    "There is no image build to use a private link here.",
+    "No new VM image is affected in this scope."
+  ],
+  "Complete VMSS instance inventory is empty": [
+    "The complete scale-set inventory has no instances.",
+    "No instance here can report missing system updates.",
+    "No running scale-set user is affected in this scope."
+  ],
+  "complete SQL VM inventory proves VM is not a SQL VM": [
+    "This VM is not a SQL VM.",
+    "It has no SQL workload for this vulnerability setting.",
+    "No database user is affected through this VM as a SQL server."
+  ],
+  "complete subscription principal universe is empty": [
+    "The complete subscription inventory has no principals.",
+    "No person has the subscription access covered here.",
+    "No account owner is affected in this scope."
+  ],
+  "complete DPS inventory is empty": [
+    "The complete inventory has no Device Provisioning Service.",
+    "No DPS data is stored under this key setting here.",
+    "No device registration is affected in this scope."
+  ],
+  "All workloads are non-Linux and explicit policy excludes them": [
+    "All recorded workloads run outside Linux.",
+    "The Linux AppArmor setting has no workload here.",
+    "No container user is affected by that setting in this scope."
+  ],
+  "complete AKS cluster inventory is empty": [
+    "The complete inventory has no AKS clusters.",
+    "There is no cluster endpoint to secure here.",
+    "No cluster user is affected in this scope."
+  ],
+  "No applicable declared Service ports in complete cluster inventory": [
+    "The complete cluster record has no matching Service ports.",
+    "No Service here listens on a port covered by this setting.",
+    "No app user is affected through those ports in this scope."
+  ],
+  "complete ML workspace inventory is empty": [
+    "The complete inventory has no machine learning workspaces.",
+    "There is no workspace private link to use here.",
+    "No workspace user is affected in this scope."
+  ],
+  "Workspace outside explicit Query-CMK policy": [
+    "This workspace is outside the recorded Query-CMK policy.",
+    "The policy does not require its logs to use that key.",
+    "Its users are outside the policy’s key scope."
+  ],
+  "Authoritative server feature evidence excludes Private Link": [
+    "The recorded server features exclude Private Link.",
+    "This server has no supported private-link setting here.",
+    "Its database clients need another supported network path."
+  ],
+  "Complete empty server inventory": [
+    "The complete inventory has no servers.",
+    "No server data here needs this key setting.",
+    "No database user is affected in this scope."
+  ],
+  "Complete empty legacy PostgreSQL inventory": [
+    "The complete inventory has no legacy PostgreSQL servers.",
+    "No server here has this infrastructure encryption setting.",
+    "No database user is affected in this scope."
+  ],
+  "Explicitly measured vault does not support CMK": [
+    "This vault does not support customer-managed keys.",
+    "The team cannot select its own key for this vault.",
+    "Stored recovery data uses another supported key option."
+  ],
+  "job has no private assets requiring external storage": [
+    "This Stream Analytics job has no private assets needing external storage.",
+    "It has no such stored data for this key setting.",
+    "No app data is affected by that external-storage option."
+  ],
+  "FTP and FTPS are disabled": [
+    "FTP and FTPS are disabled for this app.",
+    "Users cannot sign in through those transfer paths.",
+    "No app files are transferred through them here."
+  ],
+  "workflow state Disabled": [
+    "This Logic App workflow is disabled.",
+    "Its request trigger is not running.",
+    "No caller can start this workflow while it stays disabled."
+  ],
+  "public network access disabled": [
+    "Public network access is disabled for this Synapse workspace.",
+    "Public firewall allow rules cannot carry traffic to it.",
+    "Workspace users need another permitted network path."
+  ],
+  "no declared admin-to-application pairs": [
+    "The policy declares no admin-to-app connection pairs.",
+    "There is no such path to separate here.",
+    "No app user is affected by a declared pair in this scope."
+  ],
+  "no effective privileged RBAC tuple in complete inventory": [
+    "The complete inventory has no effective privileged RBAC grants.",
+    "No account here has that privileged access.",
+    "No resource owner has a privileged grant to review in this scope."
+  ],
+  "Complete vault inventory has no protected items": [
+    "The complete vault inventory has no protected items.",
+    "No recovery point here needs an immutability period.",
+    "No backed-up workload is affected in this scope."
+  ],
+  "Complete approved critical workload scope is empty": [
+    "The approved critical workload list is empty.",
+    "There is no listed workload needing restore evidence here.",
+    "No owner is waiting on a restore record in this scope."
+  ],
+  "no protected containers": [
+    "No protected blob containers are recorded.",
+    "There is no protected container access to restrict here.",
+    "No protected files are affected in this scope."
+  ],
+  "complete database universe is empty": [
+    "The complete database inventory is empty.",
+    "No database here needs a backup role.",
+    "No database user is affected in this scope."
+  ],
+  "Complete exposed-port inventory has no certificate-based endpoints": [
+    "The exposed-port list has no certificate-based endpoints.",
+    "There is no listed certificate trust decision.",
+    "No user reaches a listed certificate endpoint in this scope."
+  ],
+  "no affinity route": [
+    "No affinity route is recorded for this gateway.",
+    "There is no route to hold a client to one backend.",
+    "No app session uses that affinity setting here."
+  ],
+  "Complete empty in-scope API listener set": [
+    "The complete scope has no API listeners.",
+    "No API caller can use a listener here.",
+    "No API user is affected by its address rules in this scope."
+  ],
+  "No Application Gateways in complete subscription inventory": [
+    "The complete inventory has no Application Gateways.",
+    "There is no gateway backend to report health here.",
+    "No app user is affected by a gateway alert in this scope."
+  ],
+  "gateway not publicly reachable": [
+    "This gateway is not publicly reachable.",
+    "Public callers cannot use its client route.",
+    "No public app user reaches it through that route."
+  ],
+  "incident outside approved observation window": [
+    "This incident falls outside the approved time window.",
+    "It has no event record in the current period.",
+    "No current-period response is tied to this incident."
+  ],
+  "authoritative policy declares no required configuration resources": [
+    "The policy names no required configuration resources.",
+    "There is no listed configuration to back up here.",
+    "No app owner is affected by a required copy in this scope."
+  ],
+  "no bound certificate entered renewal window": [
+    "No bound certificate is in its renewal window.",
+    "There is no certificate due for renewal here.",
+    "Users have no near-term expiry on a listed bound certificate."
+  ],
+  "Complete policy sensitive compute set is empty": [
+    "The policy lists no sensitive compute resources.",
+    "There are no access roles to limit for that set.",
+    "No compute user is affected in this scope."
+  ],
+  "Complete nonsensitive MLDE instance set is empty": [
+    "The complete set has no matching ML data-explorer instances.",
+    "There is no such download path to log here.",
+    "No dataset user is affected in this scope."
+  ],
+  "complete snapshot inventory is empty": [
+    "The complete inventory has no snapshots.",
+    "There is no snapshot to share here.",
+    "No stored image is affected in this scope."
+  ],
+  "authoritative complete scope contains no customer-data resources": [
+    "The complete scope has no customer-data resources.",
+    "There is no customer file here for geo-replication.",
+    "No customer data is affected in this scope."
+  ],
+  "authoritative policy contains no protected blockBlob prefixes": [
+    "The policy lists no protected block-blob prefixes.",
+    "There is no named blob set for lifecycle rules here.",
+    "No protected file is affected in this scope."
+  ],
+  "Complete empty ACR inventory under explicit scope policy": [
+    "The complete scope has no container registries.",
+    "There is no registry image path to review here.",
+    "No app deployment uses a registry in this scope."
+  ],
+  "authoritative policy excludes this account from audit storage": [
+    "The policy excludes this account from audit storage.",
+    "It has no required audit-log role here.",
+    "No audit user relies on this account under that policy."
+  ],
+  "Pinned Prowler logic reports only when all four database plans are listed": [
+    "Only some database Defender plans are listed.",
+    "There is no complete four-plan set for this pricing condition.",
+    "Database owners cannot use this record for a full plan view."
+  ],
+  "CustomRole has supported non-root assignable scopes; evaluate wildcard actions with the generic custom-role check": [
+    "This custom role has non-root assignable scopes.",
+    "Its grants do not reach the root scope here.",
+    "Root-scope users are outside this role’s assignments."
+  ],
+  "Pinned source evaluates Active Premium namespaces only; Standard IP filtering is outside this check": [
+    "This Service Bus namespace uses the Standard tier.",
+    "The Premium network rule setting has no value here.",
+    "Its message clients use the Standard-tier network options."
+  ],
+  "Site kind is outside the upstream selection (api)": [
+    "This app is not recorded as an API app.",
+    "The API app client-certificate setting has no value here.",
+    "Its callers use the settings for this app kind."
+  ],
+  "Upstream selects sites whose kind is exactly 'api'": [
+    "This app kind is not exactly API.",
+    "The API-only remote debugging setting has no value here.",
+    "Its users rely on settings for this app kind."
+  ],
+  "enableClientCertificate is only meant for the Consumption SKU; other tiers negotiate client certificates per hostname": [
+    "This API Management service uses another tier.",
+    "Its client certificates are set per hostname.",
+    "Callers use those hostname settings for certificate sign-in."
+  ],
+  "Setting is not customized in any directory setting object; upstream emits no row": [
+    "No custom lockout threshold is recorded for this directory.",
+    "Its sign-in lockout follows another configured or default value.",
+    "The team cannot infer a custom threshold from this record."
+  ],
+  "Site kind is outside the upstream selection (linux_function)": [
+    "This site is not recorded as a Linux function app.",
+    "The Linux function HTTP/2 setting has no value here.",
+    "Its users rely on the protocol settings for this site kind."
+  ],
+  "Predicate applies to Linux virtual machines": [
+    "This VM runs outside Linux.",
+    "The Linux SSH key setting has no value here.",
+    "Its users sign in through this VM’s own operating system."
+  ],
+  "No Application Gateway is deployed in this virtual network (upstream: DDoS protection not required)": [
+    "This virtual network has no Application Gateway.",
+    "There is no gateway path needing this DDoS setting.",
+    "No gateway user is affected in this network."
+  ],
+  "Site kind is outside the upstream selection (web)": [
+    "This site is not recorded as a web app.",
+    "The web app client-certificate setting has no value here.",
+    "Its callers use settings for this site kind."
+  ],
+  "Detailed errors, IIS web-server logs and failed-request tracing are Windows-only; Linux application and Azure Monitor logs are separate": [
+    "This app runs on Linux.",
+    "Windows IIS logging settings have no value here.",
+    "Its users rely on Linux or Azure Monitor logs for app events."
+  ],
+  "IIS failed-request tracing is Windows-only; Linux application and Azure Monitor logs are separate": [
+    "This app runs on Linux.",
+    "Windows IIS failed-request tracing has no value here.",
+    "Its users rely on Linux or Azure Monitor logs for request details."
+  ],
+  "Upstream skips sites whose kind is exactly 'api'": [
+    "This site is an API app.",
+    "The web app remote debugging setting has no value here.",
+    "Its users rely on the API app debugging setting."
+  ],
+  "Plan is outside reviewed pricing names": [
+    "This Defender plan name is outside the recorded pricing list.",
+    "Its tier has no mapped value in that list.",
+    "The team cannot infer this plan’s coverage from the list."
+  ],
+  "Complete empty Arc cluster inventory": [
+    "The complete inventory has no Arc Kubernetes clusters.",
+    "There is no Arc extension to install here.",
+    "No Arc workload is affected in this scope."
+  ],
+  "CMK unsupported or not required by authoritative policy": [
+    "The recorded policy does not require a customer key for this bot.",
+    "Its key choice is outside that policy’s scope.",
+    "No bot user is affected by a required customer key here."
+  ],
+  "Complete VM declaration has no NIC attachment": [
+    "This VM declaration has no network interface attached.",
+    "It has no declared network path here.",
+    "Its users cannot reach it through a listed interface."
+  ],
+  "complete direct-public-IP and load-balancer inventory proves no Internet-facing NIC": [
+    "This VM has no Internet-facing network interface in the complete inventory.",
+    "No direct public IP or load balancer path reaches it.",
+    "Its users need another network path."
+  ],
+  "authoritative policy excludes subnet": [
+    "The policy excludes this subnet.",
+    "It does not require firewall protection here.",
+    "No subnet user is covered by that policy setting."
+  ],
+  "main site has no access restrictions (exposure tracked by native checks)": [
+    "The main app site has no access restrictions.",
+    "There is no main-site rule set for its SCM site to match.",
+    "App admins use another control for SCM access here."
+  ],
+  "SAML SSO service principals hold the signing-certificate password credential": [
+    "This SAML service principal has a signing-certificate password credential.",
+    "That credential supports its SSO setup.",
+    "Its users rely on that sign-in path."
+  ],
+  "Temporary Access Pass disabled": [
+    "Temporary Access Pass is disabled.",
+    "No user can start a pass-based sign-in here.",
+    "No one-time pass is active for this tenant."
+  ],
+  "no Microsoft Entra administrator (azure.claude.sql_server_entra_admin)": [
+    "This SQL server has no Microsoft Entra administrator.",
+    "There is no Entra-only admin path to require here.",
+    "Database admins use another sign-in path."
+  ],
+  "no applicable Internet-facing HTTP or HTTPS paths": [
+    "No Internet-facing HTTP or HTTPS path is recorded.",
+    "There is no public web route to restrict here.",
+    "No web user reaches a listed public path."
+  ],
+  "Pinned source skips complete empty private-connection list": [
+    "This vault has no private endpoint connections.",
+    "There is no listed private connection to approve here.",
+    "Vault clients use another permitted network path."
+  ],
+  "Subscription pricing predicate does not apply to a tenant/management-group anchor": [
+    "The recorded scope is a tenant or management group.",
+    "A subscription Defender price is not set at that level.",
+    "No subscription plan is represented by this record."
+  ],
+  "System master database is outside this check": [
+    "This is the system master database.",
+    "Its encryption setting differs from user databases.",
+    "No user database data is represented by this record."
+  ],
+  "Secret metadata is explicitly disabled": [
+    "This Key Vault secret is disabled.",
+    "It cannot be used as an active secret now.",
+    "Its users have no current use for its expiry date."
+  ],
+  "Ephemeral OS disk; managed persistent OS disk baseline does not apply": [
+    "This VM uses an ephemeral OS disk.",
+    "It has no persistent managed OS disk here.",
+    "No user data on a managed OS disk is represented."
+  ],
+  "no applicable pods or ACI groups": [
+    "No matching pods or container groups are recorded.",
+    "There is no container workload for this setting.",
+    "No app user is affected in this scope."
+  ],
+  "complete API inventory is empty": [
+    "The complete inventory has no APIs.",
+    "There is no API setting to review here.",
+    "No API caller is affected in this scope."
+  ],
+  "Complete deployed operation inventory is empty": [
+    "The complete inventory has no deployed API operations.",
+    "There is no operation traffic to log here.",
+    "No API caller is affected in this scope."
+  ],
+  "Proven Container package or OS-only Runtime exception": [
+    "This function app uses a container package or OS-only runtime.",
+    "The named language runtime version has no value here.",
+    "Its users rely on updates to that package or OS."
+  ],
+  "No HTTP listener in the complete gateway declaration": [
+    "This gateway has no HTTP listener.",
+    "It has no HTTP requests to redirect here.",
+    "No gateway user uses a listed HTTP route."
+  ],
+  "VM excluded by explicit software inventory scope": [
+    "The policy excludes this VM from software inventory.",
+    "No software list is required for it here.",
+    "Its users are outside that inventory scope."
+  ],
+  "authoritative policy lists no SIEM archive containers": [
+    "The policy lists no SIEM archive containers.",
+    "There is no archive destination to protect here.",
+    "No archived event data is affected in this scope."
+  ],
+  "VM excluded by explicit confidentialVmIds classification": [
+    "The policy does not classify this VM as confidential.",
+    "Its confidential VM setting is outside that scope.",
+    "Its users are outside the classified group."
+  ],
+  "Linux VM is outside Windows patch configuration aspect": [
+    "This VM runs Linux.",
+    "The Windows patch setting has no value here.",
+    "Its users rely on Linux update settings."
+  ],
+  "no customer-federated apps in complete policy": [
+    "The complete policy lists no customer-federated apps.",
+    "There is no federation path covered here.",
+    "No customer sign-in uses a listed app in this scope."
+  ],
+  "no Blob container origins": [
+    "This CDN profile has no Blob container origins.",
+    "It serves no listed Blob data through that path.",
+    "No file user is affected by a Blob origin here."
+  ],
+  "no applicable custom domains": [
+    "No matching custom domain is recorded.",
+    "There is no domain path for this setting.",
+    "No site user reaches a listed custom domain here."
+  ],
+  "No NSG flow log targets the NSG and no VNet flow log covers its subnets, VNets or NICs; NSG flow log creation is retired, so flow logging coverage is evaluated by the VNet flow log checks": [
+    "No flow log covers this network security group.",
+    "There is no log retention period to measure here.",
+    "The team has no traffic history from a flow log for it."
+  ],
+  "complete subscription inventory contains no Cosmos DB accounts": [
+    "The complete subscription inventory has no Cosmos DB accounts.",
+    "There is no database account setting to read here.",
+    "No Cosmos DB user is affected in this scope."
+  ],
+  "complete project inventory empty": [
+    "The complete inventory has no DevOps projects.",
+    "There is no project setting to read here.",
+    "No project user is affected in this scope."
+  ],
+  "No groups required by complete tenant policy": [
+    "The tenant policy requires no groups.",
+    "There is no required group membership to measure here.",
+    "No user is affected by a required group in this scope."
+  ],
+  "complete disk inventory is empty": [
+    "The complete inventory has no disks.",
+    "There is no disk setting to read here.",
+    "No stored disk data is affected in this scope."
+  ],
+  "no rule collection group": [
+    "This firewall policy has no rule collection group.",
+    "There is no group of rules to inspect here.",
+    "No traffic is governed by a listed group in this policy."
+  ],
+  "Policy has no attached in-scope WAF v2 path": [
+    "This policy has no attached WAF v2 path in scope.",
+    "No listed web route uses it.",
+    "No web user is affected by this policy in this scope."
+  ],
+  "no servers in complete inventories": [
+    "The complete inventory has no listed database servers.",
+    "There is no server network route to restrict here.",
+    "No database user is affected in this scope."
+  ],
+  "complete empty publicly routed Front Door domain/path scope": [
+    "The complete scope has no public Front Door route.",
+    "There is no public domain path to configure here.",
+    "No site user reaches a listed route in this scope."
+  ],
+  "complete empty in-scope resource inventory": [
+    "The complete scope has no matching resources.",
+    "There is no diagnostic setting for a listed resource here.",
+    "No resource owner is affected in this scope."
+  ],
+  "Complete subscription scope is empty": [
+    "The complete scope has no subscriptions.",
+    "There is no subscription setting to read here.",
+    "No subscription owner is affected in this scope."
+  ],
+  "Complete inventory contains no ComputeInstance": [
+    "The complete inventory has no machine learning compute instances.",
+    "There is no instance setting to read here.",
+    "No compute user is affected in this scope."
+  ],
+  "container group is inactive": [
+    "This container group is inactive.",
+    "It has no running workload traffic here.",
+    "No current app user is served by this group."
+  ],
+  "Complete in-scope vault has no backup policies": [
+    "This vault has no backup policies in scope.",
+    "There is no policy retention period to measure here.",
+    "No protected workload uses a listed policy."
+  ],
+  "Complete vault has no active protected items": [
+    "This vault has no active protected items.",
+    "There is no active backup item to measure here.",
+    "No workload has an active recovery copy in this vault."
+  ],
+  "no enabled effective subscription owner users": [
+    "No enabled user has effective subscription Owner access.",
+    "There is no Owner account sign-in to protect here.",
+    "No current Owner user is affected in this scope."
+  ],
+  "no enabled effective subscription writer users": [
+    "No enabled user has effective subscription write access.",
+    "There is no writer account sign-in to protect here.",
+    "No current writer user is affected in this scope."
+  ],
+  "route table outside approved policy scope": [
+    "The policy excludes this route table.",
+    "It has no required route rule under that policy.",
+    "Its users are outside this route setting’s scope."
+  ],
+  "complete Search service inventory is empty": [
+    "The complete inventory has no Azure Search services.",
+    "There is no search setting to read here.",
+    "No search user is affected in this scope."
+  ],
+  "complete empty SQL/MySQL/PostgreSQL server inventory": [
+    "The complete inventory has no SQL, MySQL, or PostgreSQL servers.",
+    "There is no database server route to restrict here.",
+    "No database user is affected in this scope."
+  ],
+  "complete scoped Blob container inventory is empty": [
+    "The complete scope has no Blob containers.",
+    "There is no container setting to read here.",
+    "No stored file is affected in this scope."
+  ],
+  "no containers in a versioning-enabled account": [
+    "This versioning-enabled account has no containers.",
+    "There are no blobs to use version history here.",
+    "No stored file is affected in this scope."
+  ],
+  "Frozen policy explicitly specifies no resources/metrics": [
+    "The policy names no resources or metrics for this alert.",
+    "There is no metric stream to watch here.",
+    "No resource owner is waiting for this alert in the policy."
+  ],
+  "no storage containers": [
+    "This account has no storage containers.",
+    "There is no container access path to set here.",
+    "No stored blob is affected in this account."
+  ],
+  "account outside policy scope": [
+    "The policy excludes this storage account.",
+    "Its access setting is outside that policy.",
+    "No listed user is affected by the policy here."
+  ],
+  "complete empty Azure Files share inventory": [
+    "The complete inventory has no Azure Files shares.",
+    "There is no share setting to read here.",
+    "No shared file is affected in this scope."
+  ],
+  "Complete workspace inventory is empty": [
+    "The complete inventory has no workspaces.",
+    "There is no workspace setting to read here.",
+    "No workspace user is affected in this scope."
+  ],
+  "no current enabled certificates in complete inventory": [
+    "The complete inventory has no enabled certificates.",
+    "There is no active certificate expiry to measure here.",
+    "No current certificate user is affected in this scope."
+  ],
+  "base secret is disabled": [
+    "This base secret is disabled.",
+    "It cannot be used as an active secret now.",
+    "Its users have no current use for its expiry date."
+  ],
+  "authoritative current version is disabled": [
+    "The current secret version is disabled.",
+    "It cannot be used as an active secret now.",
+    "Its users have no current use for its expiry date."
+  ],
+  "no required DSC nodes": [
+    "The policy names no required DSC nodes.",
+    "There is no node configuration to measure here.",
+    "No VM user is affected by a required node in this scope."
+  ],
+  "approved disk-to-VM map explicitly empty": [
+    "The approved disk-to-VM map is empty.",
+    "No disk attachment is listed here.",
+    "No VM user is affected by a mapped disk in this scope."
+  ],
+  "Gateway does not support VPN clients": [
+    "This gateway does not support VPN clients.",
+    "No remote user connects through a VPN client here.",
+    "Its client sign-in setting has no current use."
+  ],
+  "Complete empty gateway inventory": [
+    "The complete inventory has no gateways.",
+    "There is no gateway route to restrict here.",
+    "No network user is affected in this scope."
+  ],
+  "no applicable Linux pods": [
+    "No Linux pods are recorded in this scope.",
+    "There is no Linux pod setting to read here.",
+    "No Linux workload user is affected."
+  ]
+}

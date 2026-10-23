@@ -15,117 +15,122 @@
   service: functions
   title: Modify Function App files through the host runtime VFS
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsiteshostruntimevfswrite
-  source_revision: 171e422
-  summary: The source can obtain the privileges of the Function App's managed identities.
+  source_revision: b2319b83d9
+  summary: Writing executable Function App content through the ARM runtime VFS may let it run with the app's managed identity.
   requires:
     all_of:
       - action: Microsoft.Web/sites/hostruntime/vfs/write
-        scope: "{target.host_resource}"
+        scope: "*"
   target:
     kind: azure_managed_identity
     selector:
       attached_to_service: Microsoft.Web/sites
       azure_site_kind: functionapp
+      azure_function_host_vfs_code_path: true
     scope: inherited_scope
     aggregate_as: "Managed identities of Function App {target.host_resource}"
-  conditions: []
+  conditions:
+    - id: writable_runtime_content
+      description: The running host must accept the VFS write to executable content and load the changed code.
   blockers:
     - azure_deny_assignment
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict hostruntime/vfs/write.
-  references: []
-  notes: Not applicable when the app runs from a read-only package.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-functions/deployment-zip-push
+  notes: The ARM hostruntime VFS permission is distinct from Kudu/SCM VFS authorization. The exact Function App host and a non-Flex, non-container, writable-content route are required. A known run-from-package mount blocks this file-editing path; unknown deployment mode and later execution remain conditional.
 
 - id: azure-functions-functions-write
   provider: azure
   service: functions
   title: Create or update a function definition
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#replace-a-functions-code-with-microsoftwebsitesfunctionswrite
-  source_revision: 171e422
+  source_revision: 3d70185315
   summary: The source can obtain the privileges of the Function App's managed identities.
   requires:
     all_of:
       - action: Microsoft.Web/sites/functions/write
-        scope: "{target.host_resource}"
+        scope: "*"
   target:
     kind: azure_managed_identity
     selector:
       attached_to_service: Microsoft.Web/sites
       azure_site_kind: functionapp
+      azure_function_definition_code_path: true
     scope: inherited_scope
     aggregate_as: "Managed identities of Function App {target.host_resource}"
   conditions:
     - id: writable_content
-      description: Not applicable when the app runs from a read-only package.
+      description: Function content must be writable and the changed function must run before its managed identity is reached.
   blockers:
     - azure_deny_assignment
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict Microsoft.Web/sites/functions/write.
-  references: []
-  notes: ""
+  references:
+    - https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/create-function?view=rest-appservice-2026-07-15
+    - https://learn.microsoft.com/en-us/azure/azure-functions/deployment-zip-push
+  notes: The dynamic selector binds this action to the exact Function App hosting the identity, including a role scoped to an existing function child. Flex/package-based content cannot be modified through this route. Where package mode is not recorded, runtime execution remains conditional.
 
 - id: azure-functions-sites-write-source-control
   provider: azure
   service: functions
-  title: Repoint a Function App's deployment source through a site write
+  title: Repoint a Function App's deployment source
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#change-github-repo
-  source_revision: a66f094ede
-  summary: Rewriting the app's source-control configuration to an attacker repository makes the next deployment run attacker code with the Function App's managed identities.
+  source_revision: 14edac2ecb
+  summary: Rewriting the app's source-control configuration to an attacker repository may deploy code with the Function App's managed identities.
   requires:
     all_of:
-      - action: Microsoft.Web/sites/write
-        scope: "{target.host_resource}"
+      - action: Microsoft.Web/sites/sourcecontrols/write
+        scope: "*"
   target:
     kind: azure_managed_identity
     selector:
       attached_to_service: Microsoft.Web/sites
       azure_site_kind: functionapp
+      azure_appservice_sourcecontrol_code_path: true
     scope: inherited_scope
     aggregate_as: "Managed identities of Function App {target.host_resource}"
   conditions:
     - id: deployment_runs
       description: Changing the source-control metadata does not push code; a deployment from the new source must authenticate and succeed.
-    - id: site_write_covers_source_control
-      description: HackTricks lists sites/write for this route; deployments that use the sourcecontrols child resource are authorized by sites/sourcecontrols/write (azure-appservice-sourcecontrols-write).
   blockers:
     - azure_deny_assignment
   confidence: conditional
   severity: high
-  mitigation: Restrict Microsoft.Web/sites/write and sourcecontrols/write, and monitor deployment source changes.
+  mitigation: Restrict sourcecontrols/write and monitor deployment source changes.
   references:
     - https://learn.microsoft.com/en-us/azure/app-service/deploy-continuous-deployment
-  notes: The sourcecontrols/write variant is azure-appservice-sourcecontrols-write.
+    - https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/create-or-update-source-control?view=rest-appservice-2026-07-15
+  notes: The same source-control operation is also modeled by azure-appservice-sourcecontrols-write. The selector binds the permission to this Function App's sourcecontrols/web child and leaves successful deployment and code execution conditional.
 
 - id: azure-functions-remote-debugging
   provider: azure
   service: functions
   title: Enable remote debugging and attach a debugger to the Function App worker
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#remote-debugging
-  source_revision: 171e422
-  summary: Enabling remote debugging and attaching with publishing credentials gives code execution in the worker process, exposing the Function App's managed identities.
+  source_revision: 9772b41e74
+  summary: Publishing credentials may permit remote debugger attachment to a supported running Function App after debugging is enabled, exposing its managed identity in the worker process.
   requires:
-    all_of:
-      - action: Microsoft.Web/sites/config/write
-        scope: "{target.host_resource}"
     any_of:
       - - action: Microsoft.Web/sites/publishxml/action
-          scope: "{target.host_resource}"
+          scope: "*"
       - - action: Microsoft.Web/sites/config/list/action
-          scope: "{target.host_resource}"
+          scope: "*"
   target:
     kind: azure_managed_identity
     selector:
       attached_to_service: Microsoft.Web/sites
       azure_site_kind: functionapp
+      azure_function_remote_debug_path: true
     scope: inherited_scope
     aggregate_as: "Managed identities of Function App {target.host_resource}"
   conditions:
     - id: remote_debugging_supported
-      description: Remote debugging is only available on Windows plans and is automatically turned off after 48 hours.
+      description: Remote debugging requires a running Windows C# Function App on Premium or an App Service plan and is automatically turned off after 48 hours.
     - id: basic_auth_allowed
-      description: The debugger authenticates with publishing credentials, so SCM basic auth must be allowed.
+      description: The debugger needs usable publishing credentials and a reachable debug endpoint; SCM basic auth must be allowed or enableable.
   blockers:
     - scm_and_ftp_basic_auth_disabled
   confidence: conditional
@@ -133,4 +138,6 @@
   mitigation: Keep remote debugging off, disable basic auth and restrict config/write.
   references:
     - https://learn.microsoft.com/en-us/azure/app-service/configure-common#configure-general-settings
-  notes: config/write alone already yields code execution (azure-appservice-config-write); this entry records the debugger route separately.
+    - https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-vs
+    - https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-publishing-credentials?view=rest-appservice-2026-07-15
+  notes: The exact app must grant publishing-profile read or config/list on its publishingcredentials child. If remote debugging is not already enabled, config/write on that app's config/web child is also required. If SCM basic auth is disabled, basicPublishingCredentialsPolicies/write on that app's scm child is required. The worker language and debugger reachability remain conditional when not recorded.

@@ -26,7 +26,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'b5e56997930799b0c6194b64f4031ea924a9d9591191181b480148c47f03049b'
+REVIEWED_691_PREVIOUS_MANIFEST = '16e83c81081977912ae81f40981ba0a6ed5ad4cb939ecf3801ef5bd4302e8917'
+REVIEWED_691_PREVIOUS_TREE = 'bd33c3dc1d491a0daf045d73f7cfcc335b8341456bc47681fe20550d18a63a4c'
+REVIEWED_691_PREVIOUS_ARCHIVE_SHA256 = 'fc6ee9346dbec5e670118b5f87efb624424ff03a84f2c0d798ab56bb00139577'
+REVIEWED_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-691-source-manifest.json'
+REVIEWED_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-691-catalog.tar.gz'
+CURRENT_MANIFEST = 'faee1d9f348246d4c69330c03a371fb83fde135413e9c3b204cae7b34e0c97f4'
 APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST = '9c3c20a056723d3a6628f52361c658ed63fa7a6553a799c7d215546b5bc3cd97'
 APPSTREAM_RESOURCE_700_PREVIOUS_TREE = 'e2aebb783f31913ad6eb37a511a57cb7a4ec2754cb4c0a33a15e52849aa21833'
 APPSTREAM_RESOURCE_700_PREVIOUS_ARCHIVE_SHA256 = '9088e3d467efc69f56e5db4bab566ca26eeb78b40475457c5bd6ff51585c0aa3'
@@ -713,10 +718,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'a1b650e6918e9d847f51610d5d729f055797ae362dd377c91a55079731e710e5'
+CURRENT_TREE = '2e30181ac85c7af8d49d093a3abfb19dc1113304f473540c8344d90004690e79'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 700
-CURRENT_EXCLUDED_COUNT = 3734
+CURRENT_ENTRY_COUNT = 685
+CURRENT_EXCLUDED_COUNT = 3777
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_CATALOG_ARCHIVE_SHA256 = "498459a1979833e9e1a09b64bbeb859beb004980ad7baa81818621e5c810c030"
@@ -757,6 +762,15 @@ def _verified_current(catalog_dir, manifest_path):
     if len(loaded["entries"]) != CURRENT_ENTRY_COUNT or loaded["excluded"] != CURRENT_EXCLUDED_COUNT:
         raise ValueError("v4_catalog_counts_mismatch")
     return {entry["id"]: entry for entry in loaded["entries"]}
+
+
+@lru_cache(maxsize=1)
+def _verified_reviewed_691_previous():
+    """Keep the exact prior 691-entry catalog for existing report bindings."""
+    return _verified_archived_current(
+        REVIEWED_691_PREVIOUS_MANIFEST_PATH, REVIEWED_691_PREVIOUS_ARCHIVE,
+        REVIEWED_691_PREVIOUS_MANIFEST, REVIEWED_691_PREVIOUS_ARCHIVE_SHA256,
+        REVIEWED_691_PREVIOUS_TREE, 691, 3737)
 
 
 @lru_cache(maxsize=1)
@@ -2210,6 +2224,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == REVIEWED_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == REVIEWED_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "reviewed_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == APPSTREAM_RESOURCE_700_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2218,10 +2236,6 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == SOURCE_REPIN_700_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "source_repin_700_previous", "exact_previous_current"
-    elif (binding.get("manifest_sha256") == FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST and
-          binding.get("effective_tree_sha256") == FINAL_AWS_AUDIT_691_PREVIOUS_TREE and
-          binding.get("source_revision") == V4_REVISION):
-        version, status = "final_aws_audit_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == FINAL_TWO_ROLE_EFFECTS_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2757,14 +2771,14 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "reviewed_691_previous":
+            previous = _verified_reviewed_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "appstream_resource_700_previous":
             previous = _verified_appstream_resource_700_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "source_repin_700_previous":
             previous = _verified_source_repin_700_previous()
-            return {ident: previous[ident] for ident in ids if ident in previous}, status
-        if version == "final_aws_audit_691_previous":
-            previous = _verified_final_aws_audit_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "final_two_role_effects_691_previous":
             previous = _verified_final_two_role_effects_691_previous()

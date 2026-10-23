@@ -312,7 +312,11 @@ class GraphBuilder:
                     self.node(node)
                     out.append((tid, grant, 1))
         else:
-            full_scopes = [k for k, g in per_scope.items() if len(g) == len(cset.by_scope.get(k[0], ())) - (1 if source.id in cset.by_scope.get(k[0], ()) else 0)]
+            def full_scope(scope, group):
+                members = set(cset.by_scope.get(scope, ()))
+                return set(group) == members
+
+            full_scopes = [k for k, g in per_scope.items() if full_scope(k[0], g)]
             if len(per_scope) > GLOBAL_SCOPES and len(full_scopes) == len(per_scope) and len({k[1] for k in per_scope}) == 1:
                 members = {tid for g in per_scope.values() for tid in g}
                 live = {tid for tid in members if not self._suppressed(source, cset.members[tid].scope, cset.kind)}
@@ -331,10 +335,9 @@ class GraphBuilder:
                         self.suppressed += len(group)
                         continue
                     best_grant = _best_of(group.values())
-                    full = len(group) >= 2 and len(group) == len(cset.by_scope.get(scope, ())) - (1 if source.id in cset.by_scope.get(scope, ()) else 0)
+                    full = len(group) >= 2 and full_scope(scope, group)
                     if full:
-                        # "Every candidate in the scope" is one shared node: list every candidate, not this
-                        # source's view of it (which omits the source itself and would depend on who came first).
+                        # The reached IDs exactly match this scope's candidates, so a shared node is safe.
                         ident = f"agg:{cset.id}:{scope}:{conf}{tag}"
                         self.aggregate(ident, cset, scope, cset.by_scope[scope], source, conf,
                                        label=_label(template, scope, src_for_label, cset))

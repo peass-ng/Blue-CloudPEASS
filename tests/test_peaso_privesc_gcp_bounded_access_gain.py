@@ -2,18 +2,28 @@
 from __future__ import annotations
 
 import copy
-from pathlib import Path
-
-import yaml
 
 from peaso import privesc
+from peaso.privesc.effective_permissions.gcp_bounded_access_gain import _valid
 from peaso.privesc.schema import validate_entry
-from tests.test_peaso_privesc_schema_ext import reached, snapshot
+from peaso.privesc.versioned_catalog import _verified_previous_current
+from tests.test_peaso_privesc_schema_ext import snapshot
 
 SCOPE = "projects/p1"
 SOURCE = "user:alice@corp.com"
-ENTRIES = yaml.safe_load((Path(__file__).resolve().parents[1]
-                          / "peaso/privesc/catalog/gcp/bounded_access.yaml").read_text())
+RETIRED_IDS = (
+    "gcp-biglake-connection-table-bounded-storage-read",
+    "gcp-bigquery-remote-function-bounded-cloudrun-invoke",
+    "gcp-bigquery-authorized-routine-bounded-table-access",
+    "gcp-bigquery-authorized-view-bounded-table-access",
+    "gcp-bigquery-authorized-dataset-existing-view-bounded-table-access",
+)
+# Preserve the exact-proof negative regressions against the archived contracts.
+# These techniques require performed before/after authorization proof and are
+# excluded from the automatic catalog.
+_ARCHIVED = _verified_previous_current()
+ENTRIES = tuple({key: value for key, value in _ARCHIVED[ident].items() if key != "_file"}
+                for ident in RETIRED_IDS)
 
 
 def proof(entry):
@@ -90,30 +100,23 @@ def case(entry, records=None, *, status="collected", permissions=None):
     return snap
 
 
-def paths(entry, snap):
-    result = privesc.analyze(snap, entries=[entry])
-    return {target: confidence for target, confidence in reached(result, SOURCE, entry["id"]).items()
-            if not target.startswith(("unknown:", "unresolved:"))}
+def valid(entry, record):
+    return _valid(record, SCOPE, case(entry, [record]))
 
 
-def test_all_five_narrow_bounded_gains_need_unique_exact_proof():
+def test_all_five_bounded_paths_are_retired_but_archived_proofs_are_well_formed():
+    active = {entry["id"] for entry in privesc.catalog()["entries"]}
+    assert not active.intersection(RETIRED_IDS)
     for entry in ENTRIES:
         assert validate_entry(entry)[0] == []
-        got = paths(entry, case(entry))
-        assert len(got) == 1, entry["id"]
-        assert next(iter(got)).startswith("gcp_verified_authority:bounded:")
-        assert set(got.values()) == {"conditional"}
-        assert paths(entry, case(entry, [])) == {}
-        assert paths(entry, case(entry, status="partial")) == {}
-        assert paths(entry, case(entry, [proof(entry), proof(entry)])) == {}
+        assert valid(entry, proof(entry)), entry["id"]
 
 
 def test_wrong_action_resource_scope_connection_acl_or_after_result_fails_closed():
     for entry in ENTRIES:
         base = proof(entry)
         action = next(iter(base["ActionResources"]))
-        for field, value in (("SourceId", "user:bob@corp.com"),
-                             ("TargetScope", "projects/p2"),
+        for field, value in (("TargetScope", "projects/p2"),
                              ("PriorSourceAccessDenied", False),
                              ("MutationAccepted", False),
                              ("AfterIndirectActionAllowed", False),
@@ -123,33 +126,31 @@ def test_wrong_action_resource_scope_connection_acl_or_after_result_fails_closed
                              ("EvidenceRef", "")):
             altered = copy.deepcopy(base)
             altered[field] = value
-            assert paths(entry, case(entry, [altered])) == {}, (entry["id"], field)
+            assert not valid(entry, altered), (entry["id"], field)
         altered = copy.deepcopy(base)
         altered["ActionResources"][action] = SCOPE + "/datasets/wrong"
-        assert paths(entry, case(entry, [altered])) == {}
+        assert not valid(entry, altered)
         altered = copy.deepcopy(base)
         altered["IntermediateResource"] = SCOPE + "/datasets/d1/services/wrong"
         altered["AfterAccessPath"] = altered["IntermediateResource"]
-        assert paths(entry, case(entry, [altered])) == {}
+        assert not valid(entry, altered)
         altered = copy.deepcopy(base)
         altered["ProtectedResource"] = SCOPE + "/datasets/sensitive/views/wrong"
         altered["BeforeTestedResource"] = altered["ProtectedResource"]
         altered["AfterTestedResource"] = altered["ProtectedResource"]
-        assert paths(entry, case(entry, [altered])) == {}
-        missing = entry["requires"]["all_of"][0]["action"]
-        assert paths(entry, case(entry, permissions=[a for a in base["ActionResources"] if a != missing])) == {}
+        assert not valid(entry, altered)
         if base["Mechanism"] in ("biglake_connection_table", "bigquery_remote_function"):
             altered = {**base, "ConnectionResource": SCOPE + "/locations/x/connections/wrong"}
         else:
             altered = {**base, "AuthorizationEntryResource": SCOPE + "/datasets/wrong"}
-        assert paths(entry, case(entry, [altered])) == {}
+        assert not valid(entry, altered)
         if base["Mechanism"] not in ("biglake_connection_table", "bigquery_remote_function"):
             altered = {**base, "IntermediateExistingBeforeMutation": False}
-            assert paths(entry, case(entry, [altered])) == {}
+            assert not valid(entry, altered)
         if base["Mechanism"] == "bigquery_authorized_dataset":
             for field, value in (("AuthorizedDatasetResource", SCOPE + "/datasets/wrong"),
                                  ("AuthorizationTargetTypes", ["ROUTINES"]),
                                  ("AuthorizationEntryMatchesDataset", False)):
                 altered = copy.deepcopy(base)
                 altered[field] = value
-                assert paths(entry, case(entry, [altered])) == {}, (entry["id"], field)
+                assert not valid(entry, altered), (entry["id"], field)

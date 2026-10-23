@@ -17,22 +17,19 @@
         resource: "{target.email}"
       - action: appengine.versions.create
         resource: "*"
-      - action: storage.objects.create
-        resource: "*"
-      - action: cloudbuild.builds.create
-        resource: "*"
   target:
     kind: gcp_service_account
     selector:
       gcp_actas_granted_on_target: true
       gcp_sa_in_scope_of_permission: true
+      gcp_appengine_deploy_path: true
     scope: same_project
     aggregate_as: "Service accounts usable as App Engine runtime SA in {project}"
   conditions:
     - id: app_exists
       description: An App Engine application must already exist in the project.
     - id: deploy_prereqs
-      description: The effective deploy permission set varies (Google recommends App Engine Deployer, Service Account User, Cloud Build Editor and Storage Object Admin); read and operation-polling permissions used by the CLI may be avoidable.
+      description: The direct Admin API can deploy from staged source without the caller creating a Cloud Build; gcloud adds build and operation-polling permissions.
     - id: legacy_default_sa_actas_exception
       description: In legacy-affected organizations the auto-created appspot default SA can be deployed as without actAs until constraints/appengine.enforceServiceAccountActAsCheck is enforced; this entry conservatively still requires actAs.
     - id: version_sa_artifact_registry
@@ -45,7 +42,7 @@
   mitigation: Grant actAs only on specific SAs, remove roles/editor from the App Engine default SA and restrict roles/appengine.deployer.
   references:
     - https://cloud.google.com/appengine/docs/standard/configure-service-accounts
-  notes: A no-promote version is reachable without moving production traffic. Also covers replacing a named version and environment-variable startup injection in app.yaml. The SA must be in the App Engine application's project.
+  notes: An existing App Engine application, write access to its staging bucket, and a Docker repository the chosen runtime SA can upload to establish the standard-environment path. Other possible source or image paths remain unresolved. The selected SA must be in the application's project.
 
 - id: gcp-appengine-versions-create-legacy-default-sa-no-actas
   provider: gcp
@@ -58,35 +55,31 @@
     all_of:
       - action: appengine.versions.create
         resource: "*"
-      - action: storage.objects.create
-        resource: "*"
-      - action: cloudbuild.builds.create
-        resource: "*"
   target:
     kind: gcp_service_account
     selector:
       target_id_glob: ["*@appspot.gserviceaccount.com"]
       gcp_sa_in_scope_of_permission: true
+      gcp_appengine_deploy_path: true
+      gcp_appengine_legacy_actas_unenforced: true
     scope: same_project
     aggregate_as: "App Engine default SA deployable without actAs in {project}"
   conditions:
     - id: legacy_affected_org
       description: Only legacy-affected organizations have the exemption; where constraints/appengine.enforceServiceAccountActAsCheck is not visible the check is already enforced and this edge does not exist.
     - id: app_exists
-      description: An App Engine application must already exist and the version must run as the app-level default SA (no per-version SA and no user-managed app default).
+      description: An App Engine application must already exist and the version must run as the auto-created appspot service account.
     - id: version_sa_artifact_registry
       description: The default SA itself needs artifactregistry.repositories.uploadArtifacts (and downloadArtifacts for flexible) or the deployment never reaches execution.
   blockers:
     - gcp_deny_policy
     - vpc_sc_perimeter
-    - id: org_policy_constraint
-      constraint: appengine.enforceServiceAccountActAsCheck
   confidence: conditional
   severity: critical
   mitigation: Enforce constraints/appengine.enforceServiceAccountActAsCheck and remove roles/editor from the App Engine default SA.
   references:
     - https://docs.cloud.google.com/iam/docs/service-accounts-actas
-  notes: Complements gcp-appengine-versions-create-actas (which requires actAs) for the documented legacy exception; it does not cover per-version or user-managed default SAs.
+  notes: Complements gcp-appengine-versions-create-actas (which requires actAs) for the documented legacy exception. The project must expose the legacy constraint and its effective policy must leave the actAs check unenforced; missing policy evidence remains unresolved.
 - id: gcp-appengine-instances-enabledebug
   provider: gcp
   service: appengine
@@ -110,6 +103,7 @@
     kind: gcp_service_account
     selector:
       attached_to_service: appengine_version
+      gcp_appengine_instance_ssh_path: true
     scope: same_project
     aggregate_as: SAs of App Engine flexible versions the source can debug
   conditions:
@@ -127,4 +121,4 @@
   references:
   - https://docs.cloud.google.com/appengine/docs/flexible/debugging-an-instance
   - https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin
-  notes: The debug branch does not require actAs or Compute setMetadata (the debug request carries the SSH key). The OS Login branch requires actAs because the VM has an attached SA. OS Login resource "*" is project-level; the VM is the version's flexible instance.
+  notes: The debug branch does not require actAs or Compute setMetadata (the debug request carries the SSH key). The OS Login branch requires actAs because the VM has an attached SA. Both branches join the exact flexible instance, backing VM and runtime service account; a public IP or authorized IAP route remains conditional on SSH firewall access.

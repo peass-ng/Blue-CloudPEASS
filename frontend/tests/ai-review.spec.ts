@@ -31,7 +31,7 @@ test('Settings starts and cancels personal Codex sign-in', async ({ page }) => {
   await page.route('**/api/ai/codex', route => route.request().method() === 'DELETE' ? route.fulfill({ status: 204 }) : route.fulfill({ json: { connected: false, platform_configured: true, available: true } }));
   await page.route('**/api/ai/codex/login', route => route.fulfill({ json: { user_code: 'TEST-123', verification_url: 'https://auth.openai.com/codex/device', interval: 5, expires_at: Date.now() / 1000 + 900 } }));
   await page.goto('/#Settings');
-  await expect(page.getByText('HackTricks AI is used.', { exact: true })).toBeVisible();
+  await expect(page.getByText(/HackTricks AI is the default when no personal configuration is selected/)).toBeVisible();
   await page.getByLabel('AI provider').selectOption('codex');
   await page.getByRole('button', { name: 'Sign in with Codex', exact: true }).click();
   await expect(page.getByText('TEST-123', { exact: true })).toBeVisible();

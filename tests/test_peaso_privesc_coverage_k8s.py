@@ -8,6 +8,7 @@ the heading-completeness check runs only against a checkout at the ledger revisi
 import os
 import re
 import subprocess
+import json
 from collections import Counter
 from pathlib import Path
 
@@ -33,7 +34,17 @@ SCOPE = [
 STATUSES = {"covered", "excluded", "structural", "out-of-scope"}
 
 ROW = re.compile(r"^\| `([^`#]+\.md)#([^`]+)` \| (.*?) \| (.*?) \| ([a-z-]+) \| (.*) \|$")
+CURRENT = re.compile(r"^\| `(k8s-[a-z0-9-]+)` \| `([^`]+)` \| (ACTIVE|RETIRED) \| (.*) \|$")
 _HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
+
+
+def _current_rows():
+    text = LEDGER.read_text(encoding="utf-8")
+    revision = json.loads((ROOT / "risk_rules/hacktricks-privesc-source.json").read_text())["revision"]
+    assert f"## Current CSPM catalog reconciliation (HackTricks Cloud `{revision}`)" in text
+    section = text.split("## Current CSPM catalog reconciliation", 1)[1]
+    return {m.group(1): (m.group(2), m.group(3), m.group(4))
+            for line in section.splitlines() if (m := CURRENT.match(line))}
 
 
 def _ledger_rows():
@@ -100,6 +111,18 @@ def test_every_k8s_catalog_entry_is_referenced_by_the_ledger():
     referenced |= set(re.findall(r"`(k8s-[a-z0-9-]+)`", text.split("## Catalog-only entries", 1)[-1]))
     unreferenced = sorted(_catalog_ids() - referenced)
     assert not unreferenced, "k8s catalog entries not mapped by any ledger row: " + ", ".join(unreferenced)
+
+
+def test_current_k8s_reconciliation_matches_active_catalog():
+    catalog = {e["id"]: e for e in load_catalog()["entries"] if e["provider"] == "k8s"}
+    historical = {ident for _, _, _, mapping in _ledger_rows()
+                  for ident in re.findall(r"`(k8s-[a-z0-9-]+)`", mapping)}
+    current = _current_rows()
+    assert {i for i, (_, status, _) in current.items() if status == "ACTIVE"} == set(catalog) - historical
+    assert not {i for i, (_, status, _) in current.items() if status == "RETIRED"}
+    for ident, (source, _, reason) in current.items():
+        assert source == catalog[ident]["source"]
+        assert reason.strip()
 
 
 def test_needs_schema_section_present():

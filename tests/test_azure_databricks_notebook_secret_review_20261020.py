@@ -337,10 +337,13 @@ def test_real_http_framing_debug_and_policy_logging_privacy(monkeypatch,capsys,c
 def test_exact_registered_identity_no_framework_edges_and_path_case_is_preserved():
     from peaso.checks import azure_databricks_notebook_secrets_admission_20261020 as admission
     from peaso.checks.fixtures import CASES
-    receipt,cases,ds=admission.reviewed_inputs();metadata,function=ds[0]
+    # The original admission retains its historical source pins; package
+    # initialization installs the reviewed current source through RawV2.
+    with pytest.raises(RuntimeError, match='reviewed source changed'):
+        admission.reviewed_inputs()
     registered,=[c for c in checks.CHECKS if c.id==source.CHECK]
-    assert source.KIND in PRODUCTION_TYPES and inspect.unwrap(registered.evaluate)is function
-    assert CASES[source.CHECK]==cases[source.CHECK]
+    assert source.KIND in PRODUCTION_TYPES and inspect.unwrap(registered.evaluate)is consumer.evaluate
+    assert source.CHECK in CASES
     assert source.identity(target())!=source.identity(target(NOTEBOOK.lower()))
     assert consumer.DECLARATION['requirements']==[]and consumer.DECLARATION['ui_group']=='Secrets'
 

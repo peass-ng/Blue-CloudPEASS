@@ -13,6 +13,14 @@ def evidence_summary(finding):
     if correction:
         return correction
     provider = finding.get('provider')
+    if finding.get('category') == 'privesc' or finding.get('check_id') == 'admin-equivalent':
+        if provider == 'aws':
+            from peaso.privesc.aws_observed_evidence_v3 import evidence_summary as privilege_path
+        elif provider == 'gcp':
+            from peaso.privesc.gcp_observed_impact import evidence_summary as privilege_path
+        else:
+            from peaso.privesc.finding_explanation import evidence_summary as privilege_path
+        return privilege_path(finding)
     from peaso.checks.aws_evidence_explanations import evidence_summary as aws
     from peaso.checks.gcp_evidence_explanations import evidence_summary as gcp
     from peaso.checks.azure_evidence_explanations import evidence_summary as azure

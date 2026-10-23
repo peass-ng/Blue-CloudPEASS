@@ -13,40 +13,28 @@
   title: Run a Dataform workflow invocation as a chosen service account
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataform-privesc.md#dataformrepositoriescreate--iamserviceaccountsactas--create-an-attacker-controlled-run-as-repository
   source_revision: 171e422
-  summary: The source can obtain the BigQuery privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
+  summary: A caller that can act as a service account may run authored Dataform SQL through an exact repository or enabled creator grant when the Dataform service agent can use that account and the SQL can read or export a protected table or create a table in a protected dataset.
   requires:
     all_of:
       - action: iam.serviceAccounts.actAs
-        resource: "{target.email}"
-    any_of:
-      - - action: dataform.repositories.create
-          resource: "*"
-      - - action: dataform.repositories.setIamPolicy
-          resource: "*"
-      - - action: dataform.workspaces.create
-          resource: "*"
-        - action: dataform.workspaces.writeFile
-          resource: "*"
-        - action: dataform.compilationResults.create
-          resource: "*"
-        - action: dataform.workflowInvocations.create
-          resource: "*"
-      - - action: dataform.repositories.commit
-          resource: "*"
-        - action: dataform.compilationResults.create
-          resource: "*"
-        - action: dataform.workflowInvocations.create
-          resource: "*"
+        resource: "{target.resource}"
   target:
-    kind: gcp_service_account
+    kind: gcp_verified_authority
     selector:
+      gcp_bounded_service_execution: dataform_workflow
       gcp_actas_granted_on_target: true
-      gcp_sa_in_scope_of_permission: true
-    scope: same_project
+    scope: any
+    outcome: bounded_authority
     aggregate_as: "Service accounts usable as Dataform workflow identity in {project}"
   conditions:
+    - id: exact_repository_route
+      description: The caller must hold a complete code-write, compilation, and invocation route on one repository, or be eligible for the creator admin grant in one enabled location.
+    - id: exact_bigquery_gain
+      description: The service account must run jobs and either read a named ordinary table into a same-location caller-readable dataset, export it to a caller-readable bucket, or create a table in a named dataset where the caller lacks write access.
     - id: service_agent_token_creator
       description: The Dataform service agent (service-<number>@gcp-sa-dataform) must hold Token Creator on the target SA, otherwise invocations fail.
+    - id: cross_project_attachment
+      description: A repository using a service account from another project also needs the target project's effective cross-project attachment policy explicitly disabled.
     - id: create_self_admin
       description: repositories.create alone suffices because the creator can be granted roles/dataform.admin on the new repository at creation; repositories.setIamPolicy self-grants the same on an existing repository.
     - id: bigquery_only

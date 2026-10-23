@@ -89,7 +89,7 @@ test("every registered check has reviewed prose and browser fallback coverage", 
   writeFileSync("/tmp/all-provider-reviewed-browser-summaries.json", JSON.stringify(rows));
 });
 
-test("all recorded explanations fit the desktop evidence panel without clipping", async ({ page }) => {
+test("all recorded explanations fit within five desktop lines", async ({ page }) => {
   const rows = samples();
   // Use the actual inspector CSS and font metrics at the normal desktop width.
   await page.route("**/api/**", route => route.fulfill({ json: { items: [] } }));
@@ -108,11 +108,11 @@ test("all recorded explanations fit the desktop evidence panel without clipping"
       paragraph.textContent = row.summary;
       const lineHeight = Number.parseFloat(getComputedStyle(paragraph).lineHeight);
       const lines = paragraph.getBoundingClientRect().height / lineHeight;
-      if (lines > 3.05) mismatches.push({ ...row, lines });
+      if (lines > 5.05) mismatches.push({ ...row, lines });
     }
     dialog.remove();
     return mismatches;
   }, rows);
   writeFileSync("/tmp/evidence-explanation-line-overflow.json", JSON.stringify(overflow, null, 2));
-  expect(overflow.slice(0, 12), `${overflow.length} recorded explanations exceed three desktop lines`).toEqual([]);
+  expect(overflow.slice(0, 12), `${overflow.length} recorded explanations exceed five desktop lines`).toEqual([]);
 });

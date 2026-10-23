@@ -83,6 +83,7 @@ NOTES = {
     'sg_common_ports': 'IPv4/IPv6 exact-world, COMMON20 literal port overlap via _turbot; no protocol or route filter.',
     'br_vpc_endpoints': 'ENI-use and regional Bedrock-activity gate; requires five available service-suffix endpoints; endpoint interface type not independently checked.',
     'dhcp': 'Vpc.DhcpOptionsId exact join to complete native DHCP inventory; exactly one domain-name-servers option whose value set equals AmazonProvidedDNS; partial join cannot PASS.',
+    'route_table': 'A current route table has a main, subnet, or gateway association in the same scoped EC2 inventory. A recorded association is structural use, not traffic; absence requires a complete current collection and projection. Missing or malformed association evidence remains UNKNOWN.',
     '_security_group': 'Scoped complete SG inventory; validated IPv6 world CIDR and TCP/name/6 ports for SSH/common variants, TCP/UDP/name/numeric or -1 for protocol variant; no IPv4/route inference.',
 }
 

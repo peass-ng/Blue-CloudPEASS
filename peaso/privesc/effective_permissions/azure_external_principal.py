@@ -7,6 +7,7 @@ subject and a newly authorized action after the credential or grant was used.
 from __future__ import annotations
 
 import hashlib
+import re
 from datetime import datetime
 from urllib.parse import urlsplit
 
@@ -21,11 +22,17 @@ CONTRACT = {
     "azure-avs-run-command-vcenter-grant-external-principal":
         ("microsoft.avs/privateclouds/scriptexecutions/write", "vmware_vcenter", "identity_grant"),
     "azure-apim-developer-portal-sso-external-principal":
+        ("microsoft.apimanagement/service/users/generatessourl/action", "apim_developer_portal", "credential"),
+    "azure-apim-developer-portal-shared-token-external-principal":
         ("microsoft.apimanagement/service/users/token/action", "apim_developer_portal", "credential"),
     "azure-datafactory-github-oauth-external-principal":
         ("microsoft.datafactory/factories/getgithubaccesstoken/action", "github_repository", "credential"),
     "azure-eventgrid-mqtt-client-grant-external-principal":
         ("microsoft.eventgrid/namespaces/permissionbindings/write", "eventgrid_mqtt", "identity_grant"),
+    "azure-arc-resource-bridge-credential-export":
+        (("microsoft.resourceconnector/appliances/listkeys/action",
+          "microsoft.resourceconnector/appliances/listclusterusercredential/action"),
+         "arc_bridge_appliance", "credential"),
 }
 
 
@@ -47,8 +54,9 @@ def _valid(record, scope, snapshot):
     if not isinstance(record, dict) or not scope.startswith("/subscriptions/"):
         return False
     contract = CONTRACT.get(record.get("TechniqueId"))
-    if contract is None or (record.get("AccessPermission", "").casefold(), record.get("TargetPlane"),
-                            record.get("AccessArtifactKind")) != contract:
+    allowed_actions = (contract[0] if isinstance(contract[0], tuple) else (contract[0],)) if contract else ()
+    if (contract is None or record.get("AccessPermission", "").casefold() not in allowed_actions
+            or (record.get("TargetPlane"), record.get("AccessArtifactKind")) != contract[1:]):
         return False
     fields = ("TechniqueId", "SourceId", "ActionResource", "AccessPermission",
               "TargetPlane", "TargetServiceResource", "TargetPrincipalId",
@@ -63,6 +71,16 @@ def _valid(record, scope, snapshot):
     action_resource = record["ActionResource"].casefold()
     if action_resource != scope.casefold() and not action_resource.startswith(scope.casefold() + "/"):
         return False
+    if record["TechniqueId"] == "azure-arc-resource-bridge-credential-export":
+        if not re.fullmatch(r"/subscriptions/[^/]+/resourcegroups/[^/]+/providers/microsoft\.resourceconnector/appliances/[^/]+",
+                            action_resource):
+            return False
+    if record["TechniqueId"] == "azure-datafactory-github-oauth-external-principal":
+        if not re.fullmatch(
+            r"/subscriptions/[^/]+/resourcegroups/[^/]+/providers/microsoft\.datafactory/factories/[^/]+",
+            action_resource,
+        ):
+            return False
     target_resource = record["TargetServiceResource"]
     try:
         url = urlsplit(target_resource)
@@ -72,6 +90,27 @@ def _valid(record, scope, snapshot):
         external_ok = False
     if not (external_ok or target_resource.casefold().startswith(scope.casefold() + "/")):
         return False
+    if record["TechniqueId"] == "azure-datafactory-github-oauth-external-principal":
+        repo_path = url.path.strip("/").split("/") if external_ok else []
+        enterprise = url.hostname != "github.com" if external_ok else False
+        try:
+            github_port_ok = external_ok and url.port in (None, 443)
+        except ValueError:
+            github_port_ok = False
+        if (not external_ok or len(repo_path) != 2 or not all(repo_path)
+                or not github_port_ok
+                or record.get("GitHubHost", "").casefold() != url.hostname.casefold()
+                or record.get("GitHubRepositoryOwner") != repo_path[0]
+                or record.get("GitHubRepositoryName") != repo_path[1]
+                or not all(_exact(record.get(key)) for key in (
+                    "GitHubAuthorizationCodeEvidenceRef", "GitHubTokenResponseEvidenceRef",
+                    "GitHubAuthenticatedSubjectEvidenceRef", "GitHubRepositoryActionEvidenceRef"))
+                or not all(record.get(key) is True for key in (
+                    "GitHubAuthorizationCodeSupplied", "GitHubTokenFromActionResponseVerified",
+                    "GitHubTokenUsedForAuthenticationVerified", "GitHubRepositoryActionAuthorizedVerified"))
+                or (enterprise and (record.get("GitHubEnterpriseHostVerified") is not True
+                                    or not _exact(record.get("GitHubEnterpriseHostEvidenceRef"))))):
+            return False
     if (record["PriorTestedPermission"] != record["GainedPermission"]
             or record["AfterTestedPermission"] != record["GainedPermission"]
             or record["PriorTestedResource"] != target_resource
@@ -80,18 +119,90 @@ def _valid(record, scope, snapshot):
         return False
     if record.get("AccessArtifactKind") not in ("credential", "identity_grant"):
         return False
+    if record["TechniqueId"] == "azure-avs-list-vcenter-cloudadmin-external-principal":
+        vcenter_action = record.get("VcenterGainedAction")
+        vcenter_privilege = isinstance(vcenter_action, str) and re.fullmatch(
+            r"[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)+", vcenter_action)
+        vcenter_ui = (isinstance(vcenter_action, str)
+                      and vcenter_action.startswith("vCenter UI: ") and len(vcenter_action) > 16)
+        if (not (vcenter_privilege or vcenter_ui)
+                or record.get("ReturnedVcenterUsername") != record["TargetPrincipalId"]
+                or record.get("VcenterPasswordReturnedVerified") is not True
+                or record.get("VcenterActionAuthorizedVerified") is not True
+                or vcenter_action != record["GainedPermission"]
+                or not all(_exact(record.get(key)) for key in (
+                    "CredentialResponseEvidenceRef", "VcenterActionEvidenceRef"))):
+            return False
+    if record["TechniqueId"] == "azure-avs-list-nsxt-admin-external-principal":
+        nsx_action = record.get("NsxtGainedAction")
+        nsx_api = isinstance(nsx_action, str) and re.fullmatch(
+            r"(?:GET|POST|PUT|PATCH|DELETE) /(?:policy/)?api/v1/[^\s]+", nsx_action)
+        nsx_ui = isinstance(nsx_action, str) and nsx_action.startswith("NSX UI: ") and len(nsx_action) > 12
+        if (not (nsx_api or nsx_ui)
+                or record.get("ReturnedNsxtUsername") != record["TargetPrincipalId"]
+                or record.get("NsxtPasswordReturnedVerified") is not True
+                or record.get("NsxtActionAuthorizedVerified") is not True
+                or record.get("NsxtGainedAction") != record["GainedPermission"]
+                or not all(_exact(record.get(key)) for key in (
+                    "CredentialResponseEvidenceRef", "NsxtActionEvidenceRef"))):
+            return False
     if record["TechniqueId"] == "azure-avs-run-command-vcenter-grant-external-principal":
+        package = str(record.get("ExecutedPackageId") or "").casefold()
+        cmdlet = str(record.get("ExecutedCmdletId") or "").casefold()
+        execution = str(record.get("ScriptExecutionResourceId") or "").casefold()
+        expected_package = re.fullmatch(
+            re.escape(action_resource) + r"/scriptpackages/microsoft\.avs\.identity@[^/]+", package)
+        expected_cmdlet = (package + "/scriptcmdlets/" + cmdlet.rsplit("/", 1)[-1]
+                           if expected_package else "")
+        known_grants = {"add-grouptocloudadmins", "new-ldapidentitysource",
+                        "new-ldapsidentitysource"}
         if (not all(_exact(record.get(key)) for key in (
-                "ExecutedPackageId", "ExecutedCmdletId", "GrantOperationEvidenceRef"))
+                "ExecutedPackageId", "ExecutedCmdletId", "GrantOperationEvidenceRef",
+                "ScriptExecutionResourceId", "GrantedGroupName", "ExecutedGroupName",
+                "GroupMembershipEvidenceRef", "SourceLoginEvidenceRef"))
+                or not expected_package or cmdlet != expected_cmdlet
+                or cmdlet.rsplit("/", 1)[-1] not in known_grants
+                or not re.fullmatch(re.escape(action_resource) + r"/scriptexecutions/[^/]+", execution)
+                or record["GrantedGroupName"] != record["ExecutedGroupName"]
+                or record.get("AuthenticatedPrincipalId") != record["TargetPrincipalId"]
+                or record.get("SourceControlsTargetLogin") is not True
+                or record.get("TargetInGrantedGroupVerified") is not True
                 or record.get("GrantOperationSucceeded") is not True):
             return False
     if record["TechniqueId"] == "azure-eventgrid-mqtt-client-grant-external-principal":
+        namespace = action_resource
+        topic_space = record["TargetServiceResource"].casefold()
+        topic_prefix = namespace + "/topicspaces/"
+        topic_name = topic_space[len(topic_prefix):] if topic_space.startswith(topic_prefix) else ""
+        client_id = str(record.get("MqttClientId") or "")
+        group_id = str(record.get("MqttClientGroupId") or "")
+        binding_id = str(record.get("PermissionBindingId") or "")
         if (not all(_exact(record.get(key)) for key in (
                 "MqttClientId", "MqttClientGroupId", "PermissionBindingId",
-                "OwnedCredentialEvidenceRef", "GrantOperationEvidenceRef"))
+                "OwnedCredentialEvidenceRef", "GrantOperationEvidenceRef",
+                "MqttClientResourceId", "PermissionBindingResourceId",
+                "PermissionBindingClientGroupName", "PermissionBindingTopicSpaceName",
+                "PermissionBindingPermission", "ClientGroupQueryEvidenceRef"))
+                or not re.fullmatch(
+                    r"/subscriptions/[^/]+/resourcegroups/[^/]+/providers/microsoft\.eventgrid/namespaces/[^/]+",
+                    namespace)
+                or not topic_name or "/" in topic_name
+                or not re.fullmatch(r"[-a-zA-Z0-9:._]{1,128}", client_id)
+                or not (group_id == "$all" or re.fullmatch(r"[a-zA-Z0-9-]{3,50}", group_id))
+                or not re.fullmatch(r"[a-zA-Z0-9-]{3,50}", binding_id)
+                or not re.fullmatch(r"[a-zA-Z0-9-]{3,50}", topic_name)
+                or record["MqttClientResourceId"].casefold() != namespace + "/clients/" + client_id.casefold()
+                or record["PermissionBindingResourceId"].casefold() != namespace + "/permissionbindings/" + binding_id.casefold()
+                or record["PermissionBindingClientGroupName"].casefold() != group_id.casefold()
+                or record["PermissionBindingTopicSpaceName"].casefold() != topic_name
+                or record["PermissionBindingPermission"].casefold() not in ("publisher", "subscriber")
+                or record["PermissionBindingPermission"].casefold() != record["GainedPermission"].casefold()
                 or record.get("MqttClientId") != record["TargetPrincipalId"]
+                or not (record.get("ClientCreated") is True or record.get("ClientPreexistingOwned") is True)
+                or not (record.get("PermissionBindingCreated") is True
+                        or record.get("PermissionBindingUpdated") is True)
                 or not all(record.get(key) is True for key in (
-                    "ClientCreated", "ClientGroupBound", "PermissionBindingCreated",
+                    "ClientGroupBound", "ClientGroupQueryMatchedClient",
                     "CredentialOwnedBySource", "GrantOperationSucceeded"))):
             return False
     try:
@@ -193,7 +304,10 @@ def select(model, candidates, source):
                 or record["AccessPermission"].casefold() not in required
                 or node.attrs.get("resource") != record["ActionResource"]):
             continue
-        authority = model.check(source, {"action": record["AccessPermission"]}, record["ActionResource"])
+        authority_resource = (record["ScriptExecutionResourceId"]
+                              if record["TechniqueId"] == "azure-avs-run-command-vcenter-grant-external-principal"
+                              else record["ActionResource"])
+        authority = model.check(source, {"action": record["AccessPermission"]}, authority_resource)
         if authority is not None and authority.confidence != "unknown":
             out[ident] = ("conditional", "reviewed_external_principal_gain")
     return out

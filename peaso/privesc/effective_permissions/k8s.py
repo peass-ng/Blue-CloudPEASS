@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 import fnmatch
+import hashlib
 import json
 import re
 
@@ -60,9 +61,16 @@ SECRET_CLOUD_HINTS = {
 }
 NON_CLOUD_SECRET_TYPES = {"kubernetes.io/service-account-token", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson",
                           "kubernetes.io/dockercfg", "helm.sh/release.v1", "bootstrap.kubernetes.io/token"}
+MODIFIABLE_OBJECTS = {"pods": "pod", "deployments": "deployment", "daemonsets": "daemonset",
+                      "statefulsets": "statefulset", "replicasets": "replicaset", "replicationcontrollers": "replicationcontroller",
+                      "jobs": "job", "cronjobs": "cronjob", "roles": "role", "clusterroles": "clusterrole",
+                      "rolebindings": "rolebinding", "clusterrolebindings": "clusterrolebinding",
+                      "namespaces": "namespace", "persistentvolumes": "persistentvolume",
+                      "mutatingwebhookconfigurations": "admission_configuration"}
 REMOTE_CLUSTER_MARKERS = ("argocd.argoproj.io/secret-type=cluster", "cluster.x-k8s.io/cluster-name")
-# OpenShift SCC fields that make an SCC host-level (node access from a pod admitted under it).
-HOST_SCC_FIELDS = ("allowPrivilegedContainer", "allowHostPID", "allowHostNetwork", "allowHostIPC", "allowHostDirVolumePlugin")
+# These settings can let an admitted pod reach host resources. Host network,
+# PID, or IPC sharing alone does not establish node authority.
+HOST_SCC_FIELDS = ("allowPrivilegedContainer", "allowHostDirVolumePlugin")
 
 
 def _managed_meta(meta):
@@ -119,6 +127,10 @@ class RelatedClouds:
         ref = str(ref)
         if ref in self.aws_roles:
             return self.aws_roles[ref]
+        # An annotated or associated ARN names one role in one account.
+        # Falling back to a same-named role in another account invents a pivot.
+        if ref.startswith("arn:"):
+            return None
         name = ref.rsplit("/", 1)[-1]
         for arn in self.aws_roles_by_name.get(name, ()):
             if ref == name or arn.endswith("/" + name):
@@ -129,23 +141,40 @@ class RelatedClouds:
         match = re.match(r"arn:[^:]+:iam::(\d{12}):", str(ref))
         return bool(match and match.group(1) in self.aws_accounts)
 
-    def oidc_subjects(self, role_model, role):
-        """[subject patterns] admitted by OIDC-provider web-identity trust statements ('*' when no sub condition)."""
+    def oidc_subjects(self, role_model, role, issuer=None):
+        """Subject patterns in trust statements for this issuer and the STS audience.
+
+        Without a known cluster issuer this is useful only for candidate discovery;
+        callers must not turn those candidates into reachable IRSA identities.
+        """
         out = []
+        issuer_path = str(issuer or "").removeprefix("https://").rstrip("/")
         for st in role_model.trust.get(role.id, []):
             if st.effect != "allow" or not st.action_matches("sts:AssumeRoleWithWebIdentity"):
                 continue
             principal = st.principals if isinstance(st.principals, dict) else {}
-            if not any("oidc-provider/" in str(f) for f in as_list(principal.get("Federated"))):
+            providers = [str(f).split("oidc-provider/", 1)[-1].rstrip("/")
+                         for f in as_list(principal.get("Federated")) if "oidc-provider/" in str(f)]
+            if not providers or (issuer_path and issuer_path not in providers):
                 continue
             raw = _trust_raw(role_model, role, st)
             subjects = []
+            audience_seen = False
+            audience_allowed = True
             for op, block in ((raw.get("Condition") or {}).items()):
-                if not str(op).startswith(("StringEquals", "StringLike", "ForAnyValue:String")):
-                    continue
                 for key, value in (block or {}).items():
-                    if str(key).endswith(":sub"):
+                    if str(key).endswith(":aud") and (not issuer_path or str(key) == issuer_path + ":aud"):
+                        audience_seen = True
+                        if str(op).startswith(("StringEquals", "StringLike", "ForAnyValue:String")):
+                            audience_allowed &= any(glob_match(str(v), "sts.amazonaws.com", False)
+                                                    for v in as_list(value))
+                        else:
+                            audience_allowed = False
+                    if str(key).endswith(":sub") and (not issuer_path or str(key) == issuer_path + ":sub") and \
+                            str(op).startswith(("StringEquals", "StringLike", "ForAnyValue:String")):
                         subjects.extend(str(v) for v in as_list(value))
+            if audience_seen and not audience_allowed:
+                continue
             out.extend(subjects or ["*"])
         return out
 
@@ -161,15 +190,28 @@ class RelatedClouds:
         project = "projects/" + domain.split(".", 1)[0]
         return any(project in m.scopes or any(n.scope == project for n in m.sas.values()) for m in self.models["gcp"])
 
-    def gcp_wi_grant(self, email, namespace, name):
+    def gke_workload_pool(self, cluster_ids):
+        """The exact GKE cluster's workload pool, or None when the join is unavailable."""
+        for model in self.models["gcp"]:
+            resources = {model._match_gke(cid) for cid in cluster_ids if cid}
+            resources.discard(None)
+            if len(resources) != 1:
+                continue
+            cluster = model.gke[next(iter(resources))]
+            return str((cluster.get("workloadIdentityConfig") or {}).get("workloadPool") or "")
+        return None
+
+    def gcp_wi_grant(self, email, namespace, name, pool=None):
         found = self.gcp_sa(email)
         if found is None:
             return None
         model, sa = found
         suffix = f".svc.id.goog[{namespace}/{name}]"
+        exact_member = f"serviceAccount:{pool}[{namespace}/{name}]" if pool else None
         chain = set(model.ancestors(sa.attrs["resource"]))
         for member, grants in model.grants.items():
-            if not (member.startswith("serviceAccount:") and member.endswith(suffix)):
+            if not (member == exact_member if exact_member else
+                    (member.startswith("serviceAccount:") and member.endswith(suffix))):
                 continue
             for node, role_name, conditional, ref in grants:
                 role = model.roles.get(role_name)
@@ -184,6 +226,41 @@ class RelatedClouds:
                 if str(node.attrs.get("client_id") or node.attrs.get("app_id") or "").lower() == low or str(node.id).lower() == low:
                     return model, node
         return None
+
+    def azure_fic(self, client_id, subject, cluster_ids):
+        """Exact Entra federated credential match, or a reason it remains conditional."""
+        found = self.azure_principal(client_id)
+        if found is None:
+            return "federated_identity_not_in_related_snapshot"
+        model, principal = found
+        app_id = str(principal.attrs.get("app_id") or "").lower()
+        uai = str(principal.attrs.get("uai_resource") or "").lower().rstrip("/")
+        kind = "managed_identity_federated_credential" if uai else "directory_federated_credential"
+        credentials = []
+        for _, row in items(model.snapshot, kind):
+            if uai:
+                belongs = str(row.get("id") or "").lower().startswith(uai + "/federatedidentitycredentials/")
+            else:
+                belongs = app_id and str(row.get("appId") or "").lower() == app_id
+            if belongs:
+                credentials.append(row.get("properties") or row)
+        names = {str(v or "").lower().rsplit("/", 1)[-1] for v in cluster_ids if v}
+        issuers = {str(((row.get("properties") or {}).get("oidcIssuerProfile") or {}).get("issuerURL") or "").rstrip("/")
+                   for _, row in items(model.snapshot, "aks_cluster")
+                   if str(row.get("name") or str(row.get("id") or "").rsplit("/", 1)[-1]).lower() in names}
+        issuers.discard("")
+        issuer = next(iter(issuers)) if len(issuers) == 1 else None
+        matched = [c for c in credentials if str(c.get("subject") or "") == subject
+                   and "api://AzureADTokenExchange" in as_list(c.get("audiences") or c.get("audience"))]
+        if issuer and any(str(c.get("issuer") or "").rstrip("/") == issuer for c in matched):
+            return True
+        if matched and not issuer:
+            return "federated_issuer_not_verified"
+        states = inventory_status(model.snapshot, kind)
+        complete = bool(states) and not unavailable(states)
+        if complete:
+            return False
+        return "federated_identity_credential_not_collected"
 
     # ---------------------------------------------------------------- node cloud identities
     def gke_pool(self, cluster_ids, pool_name, project):
@@ -269,8 +346,9 @@ class RelatedClouds:
                     continue
                 endpoint = str(body.get("endpoint") or "").lower().rstrip("/")
                 digest = "k8s-cluster:" + hashlib.sha256(endpoint.encode()).hexdigest() if endpoint else None
-                clusters[name] = (digest, str(((body.get("accessConfig") or {}).get("authenticationMode")) or "") or None)
-            wanted = {n for n in names} | {n for n, (d, _) in clusters.items() if d and d in digests}
+                issuer = str((((body.get("identity") or {}).get("oidc") or {}).get("issuer")) or "") or None
+                clusters[name] = (digest, str(((body.get("accessConfig") or {}).get("authenticationMode")) or "") or None, issuer)
+            wanted = {n for n in names} | {n for n, (d, _, _) in clusters.items() if d and d in digests}
             entries = [it for _, it in items(model.snapshot, "eks_access_entry") if it.get("clusterName") in wanted]
             assoc = [it for _, it in items(model.snapshot, "eks_pod_identity_association") if it.get("clusterName") in wanted]
             if not (entries or assoc or wanted & set(clusters)):
@@ -280,18 +358,27 @@ class RelatedClouds:
                 statuses = inventory_status(model.snapshot, kind)
                 return "collected" if statuses and not unavailable(statuses) else None
             mode = next((clusters[n][1] for n in sorted(wanted) if n in clusters and clusters[n][1]), None)
+            issuer = next((clusters[n][2] for n in sorted(wanted) if n in clusters and clusters[n][2]), None)
             return {"entries": entries, "associations": assoc, "entries_state": state("eks_access_entry"),
-                    "associations_state": state("eks_pod_identity_association"), "auth_mode": mode}
+                    "associations_state": state("eks_pod_identity_association"), "auth_mode": mode,
+                    "oidc_issuer": issuer}
         return None
 
     def pods_trust(self, ref):
-        """True / False / None: the role trust admits the EKS Pod Identity service (pods.eks.amazonaws.com)."""
+        """True / False / None: the role trust admits EKS Pod Identity's STS call."""
         found = self.aws_role(ref)
         if not found:
             return None
         model, role = found
-        return any(st.effect == "allow" and st.action_matches("sts:AssumeRole") and "pods.eks.amazonaws.com" in as_list(
-            (st.principals if isinstance(st.principals, dict) else {}).get("Service")) for st in model.trust.get(role.id, []))
+        eligible = [st for st in model.trust.get(role.id, []) if st.effect == "allow"
+                    and "pods.eks.amazonaws.com" in as_list(
+                        (st.principals if isinstance(st.principals, dict) else {}).get("Service"))]
+        assume = [st for st in eligible if st.action_matches("sts:AssumeRole")]
+        tag = [st for st in eligible if st.action_matches("sts:TagSession")]
+        if not assume or not tag:
+            return False
+        return True if all(any(not (_trust_raw(model, role, st).get("Condition") or {}) for st in group)
+                           for group in (assume, tag)) else None
 
     def aks_kubelet(self, node_resource_group):
         """Kubelet identity id (client id, else object id) of the AKS cluster owning a node resource group, or None."""
@@ -378,6 +465,8 @@ class K8sModel(ExactEvidenceMixin, Model):
                     "labels": meta.get("labels") or {},
                     "aggregation": [((s or {}).get("matchLabels") or {}) for s in
                                     as_list((item.get("aggregationRule") or {}).get("clusterRoleSelectors"))],
+                    "aggregation_selectable": any(_aggregation_selector_satisfiable(s) for s in
+                                                  as_list((item.get("aggregationRule") or {}).get("clusterRoleSelectors"))),
                     "name": meta.get("name"), "namespace": ns, "kind": "ClusterRole" if ns is None else "Role"}
         for key, role in list(self.roles.items()):
             if role["aggregation"]:
@@ -389,9 +478,17 @@ class K8sModel(ExactEvidenceMixin, Model):
                 role["rules"] = role["rules"] + [r for r in extra if r not in role["rules"]]
         # Cluster-flavour and secret facts (metadata only; Secret data is never collected).
         self.api_groups, self.node_providers, self.legacy_tokens, self.configmaps = {}, {}, {}, set()
+        self.admission_api_resources = {}
+        self.server_versions = {}
         for scope, item in items(snap, "api_discovery"):
             self.api_groups.setdefault(_cluster(item), set()).update(
                 str((g or {}).get("name")) for g in as_list(item.get("groups")) if isinstance(g, dict))
+            if isinstance(item.get("admissionPolicyResources"), list):
+                self.admission_api_resources.setdefault(_cluster(item), set()).update(
+                    str(name) for name in item["admissionPolicyResources"])
+            version = (item.get("serverVersion") or {}).get("gitVersion")
+            if isinstance(version, str):
+                self.server_versions[_cluster(item)] = version
         self.secrets = []                # (cluster, namespace, name, type, labels, annotations) - metadata only
         self.secret_uids = {}
         self.secret_versions = {}
@@ -448,6 +545,8 @@ class K8sModel(ExactEvidenceMixin, Model):
             node = Node(f"k8s:{cluster}:node:{name}", "k8s_node", "k8s", cluster, name,
                         attrs={"cluster": cluster, "name": name, "labels": meta.get("labels") or {}, "provider_id": provider_id,
                                "unschedulable": bool((item.get("spec") or {}).get("unschedulable")),
+                               "ready": next((str(c.get("status")) for c in as_list((item.get("status") or {}).get("conditions"))
+                                              if isinstance(c, dict) and c.get("type") == "Ready"), None),
                                "groups": ["system:nodes", "system:authenticated"], "user": f"system:node:{name}"})
             self.nodes[node.id] = node
             self.principals[node.id] = node
@@ -458,12 +557,35 @@ class K8sModel(ExactEvidenceMixin, Model):
             sa = spec.get("serviceAccountName") or spec.get("serviceAccount") or "default"
             privileged, host_mount = pod_escape_primitives(spec)
             phase = (item.get("status") or {}).get("phase")
+            exec_privileged, exec_host_mount = active_pod_escape_primitives(spec, item.get("status") or {})
+            token_volumes = {str(volume.get("name") or "") for volume in as_list(spec.get("volumes"))
+                             if isinstance(volume, dict) and any(
+                                 isinstance(source, dict) and source.get("serviceAccountToken") is not None
+                                 for source in as_list((volume.get("projected") or {}).get("sources")))}
+            token_mounts = {str(container.get("name") or ""): bool(token_volumes & {
+                str(mount.get("name") or "") for mount in as_list(container.get("volumeMounts"))
+                if isinstance(mount, dict)}) for container in as_list(spec.get("containers"))
+                if isinstance(container, dict)}
             pod_role = (meta.get("annotations") or {}).get("iam.amazonaws.com/role")
             if pod_role:
                 self.pod_roles.setdefault(cluster, set()).add(str(pod_role))
-            self.pods.append({"cluster": cluster, "ns": ns, "sa": sa, "node": spec.get("nodeName"), "privileged": privileged,
-                              "host_mount": host_mount, "configmaps": pod_configmap_refs(spec),
-                              "owned": bool(meta.get("ownerReferences")), "running": phase in (None, "Running", "Pending"),
+            self.pods.append({"cluster": cluster, "ns": ns, "name": meta.get("name"), "sa": sa,
+                              "node": spec.get("nodeName"), "privileged": privileged,
+                              "host_mount": host_mount, "exec_privileged": exec_privileged,
+                              "exec_host_mount": exec_host_mount, "configmaps": pod_configmap_refs(spec),
+                              "stdin_containers": tuple(str(c.get("name") or "") for c in as_list(spec.get("containers"))
+                                                        if isinstance(c, dict) and c.get("stdin") is True),
+                              "running_containers": tuple(str(c.get("name") or "")
+                                                          for c in as_list((item.get("status") or {}).get("containerStatuses"))
+                                                          if isinstance(c, dict) and (c.get("state") or {}).get("running") is not None),
+                              "token_volumes": frozenset(token_volumes), "token_mounts": token_mounts,
+                              "automount_disabled": spec.get("automountServiceAccountToken") is False,
+                              "deleting": bool(meta.get("deletionTimestamp")),
+                              "owned": any((ref or {}).get("kind") in (
+                                  "ReplicaSet", "ReplicationController", "DaemonSet", "StatefulSet", "Job")
+                                  and (ref or {}).get("controller") is True
+                                  for ref in as_list(meta.get("ownerReferences"))),
+                              "running": phase == "Running",
                               "phase": phase})
             self.namespaces.setdefault(cluster, set()).add(ns)
         self.scc_users = {}              # (cluster, ns, name) -> [SCC names] (OpenShift SCC users[] entries)
@@ -473,7 +595,8 @@ class K8sModel(ExactEvidenceMixin, Model):
             cluster = _cluster(item)
             if any(item.get(f) is True for f in HOST_SCC_FIELDS):
                 self.host_sccs.setdefault(cluster, {})[str(meta.get("name"))] = {
-                    "users": [str(u) for u in as_list(item.get("users"))], "groups": [str(g) for g in as_list(item.get("groups"))]}
+                    "users": [str(u) for u in as_list(item.get("users"))], "groups": [str(g) for g in as_list(item.get("groups"))],
+                    "impact": "derived" if item.get("allowPrivilegedContainer") is True else "conditional"}
             for user in as_list(item.get("users")):
                 parts = str(user).split(":")
                 if len(parts) == 4 and parts[:2] == ["system", "serviceaccount"] and parts[2] and parts[3]:
@@ -485,6 +608,8 @@ class K8sModel(ExactEvidenceMixin, Model):
                 cluster = _cluster(item)
                 self.clusters.add(cluster)
                 ns = meta.get("namespace") if kind == "rolebinding" else None
+                if ns:
+                    self.namespaces.setdefault(cluster, set()).add(ns)
                 ref = item.get("roleRef") or {}
                 role_ns = ns if ref.get("kind") == "Role" else None
                 role_key = (cluster, role_ns, ref.get("name"))
@@ -550,6 +675,17 @@ class K8sModel(ExactEvidenceMixin, Model):
             keys = [f"user:{node.attrs['user']}"]
         return keys + [f"group:{g}" for g in node.attrs.get("groups", [])]
 
+    def external_user(self, cluster, name):
+        """Resolve exact User and system:authenticated RBAC grants for a cloud identity."""
+        node = self._subject(cluster, "k8s_user", name)
+        bound = []
+        for key in self._subject_keys(node):
+            bound.extend((ns, role, tuple(sorted(ev.items())))
+                         for ns, role, ev in self.bindings.get((cluster, key), []))
+        node.attrs["bound"] = tuple(sorted(set(bound), key=repr))
+        node.perm_key = (cluster, tuple((ns, role) for ns, role, _ in node.attrs["bound"]))
+        return node
+
     # ----------------------------------------------------------------- rules
     def requirement_key(self, req):
         verb = PREFIX + str(req["verb_prefix"]).lower() if req.get("verb_prefix") else str(req.get("verb", "")).lower()
@@ -584,21 +720,31 @@ class K8sModel(ExactEvidenceMixin, Model):
         del cluster
 
     def possible(self, principal):
-        key = ("possible", principal.perm_key)
+        indexes, signature = self.prefilter_indexes()
+        key = ("possible", signature, principal.perm_key)
         if key in self._check_cache:
             return self._check_cache[key]
         keys, universal = set(), False
-        for ns, rule, ev in self._rules(principal):
-            if rule is None:
+        role_keys = indexes.setdefault("k8s_role_keys", {})
+        for ns, role_key, evidence in principal.attrs.get("bound", ()):
+            role = self.roles.get(role_key)
+            if role is None:
                 continue
-            verbs, groups, resources = (as_list(rule.get(k)) for k in ("verbs", "apiGroups", "resources"))
-            if "*" in verbs and "*" in resources and "*" in groups:
-                universal = True
-                continue
-            for k in self.catalog_keys:
-                verb, group, resource, sub = k.split("|")
-                if _rule_matches(rule, verb, group, resource, sub, None, partial=True):
-                    keys.add(k)
+            if role_key not in role_keys:
+                matched, all_permissions = set(), False
+                for rule in role["rules"]:
+                    verbs, groups, resources = (as_list(rule.get(k)) for k in ("verbs", "apiGroups", "resources"))
+                    if "*" in verbs and "*" in resources and "*" in groups:
+                        all_permissions = True
+                        continue
+                    for k in self.catalog_keys:
+                        verb, group, resource, sub = k.split("|")
+                        if _rule_matches(rule, verb, group, resource, sub, None, partial=True):
+                            matched.add(k)
+                role_keys[role_key] = frozenset(matched), all_permissions
+            matched, all_permissions = role_keys[role_key]
+            keys.update(matched)
+            universal = universal or all_permissions
         self._check_cache[key] = (frozenset(keys), universal)
         return self._check_cache[key]
 
@@ -613,7 +759,10 @@ class K8sModel(ExactEvidenceMixin, Model):
         else:
             ns, name = ANY, None
         # namespace: "*" = cluster-wide: only ClusterRoleBindings count.
-        cluster_scoped = resource in CLUSTER_SCOPED or (ns is ANY and req.get("namespace") == "*")
+        # OpenShift authorizes SCC `use` for a pod's namespace, including from a
+        # namespaced RoleBinding, despite SCC objects themselves being cluster scoped.
+        scoped_scc_use = verb == "use" and resource == "securitycontextconstraints" and ns not in (ANY, "*")
+        cluster_scoped = (resource in CLUSTER_SCOPED and not scoped_scc_use) or (ns is ANY and req.get("namespace") == "*")
         best_grant = None
         for bind_ns, rule, evidence in self._rules(principal):
             if rule is None:
@@ -625,18 +774,46 @@ class K8sModel(ExactEvidenceMixin, Model):
                     continue
                 if ns == "*":
                     # cluster-wide requirement ('*' = in every namespace) needs a ClusterRoleBinding
-                    pass
+                    continue
             match = _rule_matches(rule, verb, group, resource, sub, name)
             if not match:
                 continue
+            existence = True if req.get("_rbac_only") else self._modify_target_exists(principal, verb, resource, ns, name, rule)
+            if existence is False:
+                continue
+            if (match == "restricted_by_resourceNames" and existence is True and not req.get("_rbac_only") and
+                    verb in ("patch", "update") and resource in MODIFIABLE_OBJECTS):
+                match = True  # a collected object matches one of the granted names
             conf = "derived" if match is True else "conditional"
             conditions = [] if match is True else [match]
+            if existence is None:
+                conf = "conditional"
+                conditions.append("modify_target_inventory_not_collected")
             grant = Grant(conf, [{**evidence, "namespace": bind_ns or "*"}], conditions)
             if best_grant is None or (best_grant.confidence != "derived" and conf == "derived"):
                 best_grant = grant
                 if conf == "derived" and bind_ns is None:
                     break
         return best_grant
+
+    def _modify_target_exists(self, principal, verb, resource, namespace, name, rule):
+        """A patch/update route needs a real object; missing inventory keeps it conditional."""
+        if verb not in ("patch", "update") or resource not in MODIFIABLE_OBJECTS:
+            return True
+        kind = MODIFIABLE_OBJECTS[resource]
+        cluster = principal.attrs.get("cluster")
+        names = set(str(v) for v in as_list(rule.get("resourceNames")))
+        for _, item in items(self.snapshot, kind):
+            meta = item.get("metadata") or {}
+            if resource == "mutatingwebhookconfigurations" and item.get("kind") != "MutatingWebhookConfiguration":
+                continue
+            if _cluster(item) != cluster or (namespace not in (ANY, "*") and meta.get("namespace") != namespace):
+                continue
+            object_name = str(meta.get("name") or "")
+            if object_name and (name in (None, ANY) or object_name == name) and (not names or object_name in names):
+                return True
+        states = inventory_status(self.snapshot, kind)
+        return False if states and not unavailable(states) else None
 
     def scope_only(self, req, template, localized):
         # Node / SA scopes are "<cluster>" / "<cluster>/<ns>", so namespace-only templates are scope-only.
@@ -649,20 +826,27 @@ class K8sModel(ExactEvidenceMixin, Model):
         return not name_tpl and not res_tpl and {n for n in refs if n.startswith("target.")} <= {"target.namespace"}
 
     def check_targets(self, principal, req, template, candidates, localized=False):
-        if isinstance(req, dict) and req.get("resource_name") == "{source_rolebound_clusterrole}":
+        placeholder = req.get("resource_name") if isinstance(req, dict) else None
+        if placeholder in ("{source_rolebound_clusterrole}", "{source_bound_clusterrole}", "{source_bound_role}"):
             result = {}
             for target in candidates:
                 ns = target.attrs.get("namespace")
                 names = {role[2] for bind_ns, role, _ in principal.attrs.get("bound", ())
-                         if bind_ns == ns and self.roles.get(role, {}).get("kind") == "ClusterRole"
-                         and role[0] == target.attrs.get("cluster")}
+                         if role[0] == target.attrs.get("cluster")
+                         and ((placeholder == "{source_rolebound_clusterrole}" and bind_ns == ns
+                               and bind_ns is not None and self.roles.get(role, {}).get("kind") == "ClusterRole")
+                              or (placeholder == "{source_bound_clusterrole}" and bind_ns is None
+                                  and self.roles.get(role, {}).get("kind") == "ClusterRole")
+                              or (placeholder == "{source_bound_role}" and bind_ns == ns
+                                  and self.roles.get(role, {}).get("kind") == "Role"))}
+                resource = "roles" if placeholder == "{source_bound_role}" else "clusterroles"
                 for name in names:
                     grants = {}
                     for verb in ("escalate", "update", "patch"):
                         for bind_ns, rule, evidence in self._rules(principal):
-                            if rule is None or bind_ns is not None:
+                            if rule is None or (bind_ns is not None and (resource != "roles" or bind_ns != ns)):
                                 continue
-                            match = _rule_matches(rule, verb, "rbac.authorization.k8s.io", "clusterroles", "", name)
+                            match = _rule_matches(rule, verb, "rbac.authorization.k8s.io", resource, "", name)
                             if match:
                                 conf = "derived" if match is True else "conditional"
                                 grants[verb] = best(grants.get(verb), Grant(conf, [{**evidence, "namespace": bind_ns or "*"}],
@@ -675,20 +859,33 @@ class K8sModel(ExactEvidenceMixin, Model):
                         companion = (best(grants.get("update"), grants.get("patch"))
                                      if req["verb"] == "escalate" else grants["escalate"])
                         grant = combine(grants[req["verb"]], companion)
-                        if self.roles.get((target.attrs.get("cluster"), None, name), {}).get("aggregation"):
+                        if resource == "clusterroles" and self.roles.get((target.attrs.get("cluster"), None, name), {}).get("aggregation"):
                             grant = downgrade(grant, "conditional", "aggregated_clusterrole_rules_may_be_overwritten")
                         result[target.id] = best(result.get(target.id), grant)
             return result
         # Most templates depend on the target only through its namespace: evaluate once per namespace.
         by_ns = localized
+        target_namespace = localized
         if not localized and template is not None:
             ns_tpl, name_tpl, res_tpl = template.split(SEP)
+            target_namespace = ns_tpl == "{target.namespace}"
             target_refs = set(_PH.findall(template))
             by_ns = {n for n in target_refs if n.startswith("target.")} <= {"target.namespace"}
             if not name_tpl and not res_tpl and self.cached_check(principal, req, (ANY, None, "")) is None:
                 return {}  # not held in any namespace
+        bound_namespaces = None
+        if target_namespace:
+            bindings = principal.attrs.get("bound", ())
+            if not any(namespace is None for namespace, _, _ in bindings):
+                bound_namespaces = {namespace for namespace, _, _ in bindings}
         memo, result = {}, {}
         for target in candidates:
+            namespace = target.attrs.get("namespace")
+            # A RoleBinding cannot authorize a concrete different namespace.
+            # Keep unknown namespaces for the ordinary resolver's uncertainty
+            # handling, and keep every namespace when a ClusterRoleBinding exists.
+            if bound_namespaces is not None and namespace and namespace != "*" and namespace not in bound_namespaces:
+                continue
             key = (target.attrs.get("namespace"), target.attrs.get("cluster")) if by_ns else target.id
             if key not in memo:
                 if localized:
@@ -729,7 +926,9 @@ class K8sModel(ExactEvidenceMixin, Model):
         if name == "admin_equivalent_clusterrole":
             cluster = source.attrs["cluster"]
             return sorted(k[2] for k, r in self.roles.items() if k[0] == cluster and k[1] is None and any(
-                "*" in as_list(x.get("verbs")) and "*" in as_list(x.get("resources")) for x in r["rules"]))
+                "*" in as_list(x.get("verbs")) and "*" in as_list(x.get("resources"))
+                and "*" in as_list(x.get("apiGroups")) and not as_list(x.get("resourceNames"))
+                for x in r["rules"]))
         owner, _, attr = name.partition(".")
         if not attr:
             owner, attr = "source", owner
@@ -804,6 +1003,8 @@ class K8sModel(ExactEvidenceMixin, Model):
         # not only ClusterRoleBindings ("*" would demand a cluster-wide grant).
         namespace = "{target.namespace}" if kind == "k8s_service_account" else "*"
         req = {"verb": verb, "resource": resource, "namespace": namespace}
+        if verb.startswith("impersonate:"):
+            req["api_group"] = "authentication.k8s.io"
         if name:
             req["resource_name"] = name
         return req
@@ -883,13 +1084,16 @@ class K8sModel(ExactEvidenceMixin, Model):
     def _blocker_resources(self, compiled):
         """(api group, resource[/subresource]) pairs the technique sends through admission: Pods (controllers create
         them too) plus every requirement resource."""
-        out = {("", "pods")}
+        out = {("", "pods")} if compiled["entry"].get("service") == "workloads" else set()
         for alt in compiled["alternatives"]:
             for req in alt:
                 raw = req.raw
                 if isinstance(raw, dict) and raw.get("resource"):
                     res = str(raw["resource"]) + ("/" + str(raw["subresource"]) if raw.get("subresource") else "")
                     out.add((str(raw.get("api_group") or ""), res))
+                    if raw.get("resource") in ("pods", "deployments", "daemonsets", "statefulsets", "replicasets",
+                                               "replicationcontrollers", "jobs", "cronjobs", "deploymentconfigs"):
+                        out.add(("", "pods"))
                     if raw.get("subresource"):
                         out.add(("", "pods/" + str(raw["subresource"])) if raw["resource"] == "pods" else ("", "pods"))
         return out
@@ -934,10 +1138,23 @@ class K8sModel(ExactEvidenceMixin, Model):
         mode, fixed = self._workload_namespaces(compiled)
         resources = self._blocker_resources(compiled)
         if mode == "pivot":
-            if not pivots:
+            namespaces = {p.get("pivot.namespace") for p in pivots or () if p.get("pivot.namespace")}
+            # This OpenShift path also has fixed default-project alternatives.
+            # Evaluate their admission blockers when the source can create a
+            # workload there, even if no run-level namespace pivot was chosen.
+            if compiled["entry"].get("id") == "k8s-openshift-privileged-default-projects":
+                for alternative in compiled["alternatives"]:
+                    for requirement in alternative:
+                        raw = requirement.raw
+                        ns = raw.get("namespace") if isinstance(raw, dict) else None
+                        if (not isinstance(ns, str) or not ns or "{" in ns
+                                or ns not in self.ns_inventoried.get(cluster, ())):
+                            continue
+                        if self.check(source, raw, (ns, raw.get("resource_name"), None)) is not None:
+                            namespaces.add(ns)
+            if not namespaces:
                 return None
-            return self._ns_verdict(blocker, cluster, sorted({p.get("pivot.namespace") for p in pivots if p.get("pivot.namespace")}),
-                                    resources)
+            return self._ns_verdict(blocker, cluster, sorted(namespaces), resources)
         if mode == "target":
             if not isinstance(reached, dict) or cset is None:
                 return None
@@ -1026,8 +1243,14 @@ class K8sModel(ExactEvidenceMixin, Model):
 
     # --------------------------------------------------------------- targets
     def targets(self, kind):
+        if kind == "gcp_verified_authority" and (self.current_selector or {}).get("k8s_kcc_project_policy_grant"):
+            from .k8s_config_connector_project_policy import targets
+            return list(targets(self).values())
+        if kind == "gcp_service_account":
+            return [sa for cloud in self.related.models["gcp"] for sa in cloud.sas.values()
+                    if sa.attrs.get("resource")]
         if kind == "k8s_verified_authority":
-            return list(self.helm_values_rbac_targets.values()) + [
+            return list(self.helm_values_rbac_targets.values()) + list(self._bound_role_gain_targets().values()) + [
                 node for node in self.verified_pivot_targets.values() if node.kind == kind]
         if kind == "k8s_service_account":
             return list(self.sas.values())
@@ -1038,7 +1261,8 @@ class K8sModel(ExactEvidenceMixin, Model):
         if kind == "k8s_cluster_admin":
             return [self.entity(c) for c in sorted(self.clusters)]
         if kind == "cloud_identity":
-            return [n for n in self._cloud_identities().values() if n.attrs.get("variant") is None] + [
+            return [n for n in self._cloud_identities().values()
+                    if n.attrs.get("variant") in (None, "oidc_wildcard")] + [
                 node for node in self.verified_pivot_targets.values() if node.kind == kind]
         if kind == "k8s_admission_control":
             return [self.admission_entity(c) for c in sorted(self.clusters)]
@@ -1099,7 +1323,8 @@ class K8sModel(ExactEvidenceMixin, Model):
             # A ServiceAccount only named by a binding subject does not exist: pods, TokenRequests and token Secrets
             # need it. Only the dangling-reference technique (create it) and impersonation (any name) target it.
             # The variant is part of the evaluator's candidate-set key, so the two sets are never shared.
-            if {"k8s_sa_absent_but_bound", "k8s_sa_namespace_absent", "k8s_sa_named_in_scc_users"} & set(selector) \
+            if {"k8s_sa_absent_but_bound", "k8s_sa_namespace_absent", "k8s_sa_named_in_scc_users",
+                    "k8s_sa_missing_in_host_scc_users", "k8s_csr_sa_subject"} & set(selector) \
                     or str(selector.get("resource_permission_covers_target") or "").startswith("serviceaccounts:impersonate"):
                 return "with_binding_only_sas"
             return None
@@ -1114,6 +1339,295 @@ class K8sModel(ExactEvidenceMixin, Model):
         if "trust_allows_oidc_subject_wildcard" in selector:
             return "oidc_wildcard"
         return None
+
+    def _constrained_impersonation_gain(self, source, target, mode):
+        """Join the impersonation action to an actual target right the source lacks."""
+        if source is None or source.attrs.get("cluster") != target.attrs.get("cluster"):
+            return False
+        prefix = f"impersonate-on:{mode}:"
+        action_rules = [(ns, rule) for ns, rule, _ in self._rules(source)
+                        if rule and ("*" in as_list(rule.get("verbs")) or
+                                     any(str(verb).startswith(prefix) for verb in as_list(rule.get("verbs"))))]
+        if not action_rules:
+            return False
+
+        def choices(first, second, defaults):
+            left, right = set(map(str, as_list(first))), set(map(str, as_list(second)))
+            if "*" in left:
+                left = set()
+            if "*" in right:
+                right = set()
+            return sorted((left & right) if left and right else (left or right or set(defaults)))
+
+        def new_right(verb, group, resource, ns, name):
+            base, _, sub = resource.partition("/")
+            own = self.check(source, {"verb": verb, "api_group": group, "resource": base,
+                                      "subresource": sub, "_rbac_only": True}, (ns, name, None))
+            if own is None:
+                return None
+            return ("conditional", "source_direct_permission_not_fully_resolved") if own.confidence != "derived" else False
+
+        if target.kind == "k8s_node":
+            # Node authorization grants a kubelet get on pods bound to its node. A
+            # concrete pod name avoids claiming unrelated node powers from any
+            # impersonate-on rule (for example, one limited to deployments).
+            pods = self._pods_on_node(target.attrs.get("name"), target.attrs.get("cluster"))
+            for pod in pods:
+                ns, name = pod.get("ns"), pod.get("name")
+                if not ns or not name:
+                    continue
+                for action_ns, action in action_rules:
+                    if action_ns is not None and action_ns != ns:
+                        continue
+                    if _rule_matches(action, prefix + "get", "", "pods", "", name) is True:
+                        verdict = new_right("get", "", "pods", ns, name)
+                        if verdict is not False:
+                            return verdict
+                    sa_name = pod.get("sa")
+                    if sa_name and _rule_matches(action, prefix + "create", "", "serviceaccounts", "token", sa_name) is True:
+                        verdict = new_right("create", "", "serviceaccounts/token", ns, sa_name)
+                        if verdict is not False:
+                            return verdict
+            return (("unknown", "node_pod_or_action_inventory_incomplete")
+                    if not self._complete("pod") else False)
+
+        if target.kind not in ("k8s_user", "k8s_service_account"):
+            return False
+        target_rules = [(ns, rule) for ns, rule, _ in self._rules(target) if rule]
+        cluster = target.attrs.get("cluster")
+        known_ns = sorted(ns for ns in self.namespaces.get(cluster, ()) if ns)
+        for action_ns, action in action_rules:
+            action_verbs = [str(verb)[len(prefix):] for verb in as_list(action.get("verbs"))
+                            if str(verb).startswith(prefix)]
+            if "*" in as_list(action.get("verbs")):
+                action_verbs.append("*")
+            for target_ns, rule in target_rules:
+                if action_ns is not None and target_ns is not None and action_ns != target_ns:
+                    continue
+                namespaces = ([action_ns or target_ns] if action_ns or target_ns else known_ns)
+                verbs = choices(action_verbs, rule.get("verbs"), ("get", "list", "create", "update", "patch", "delete"))
+                groups = choices(action.get("apiGroups"), rule.get("apiGroups"), ("", "apps", "rbac.authorization.k8s.io"))
+                resources = choices(action.get("resources"), rule.get("resources"), ("secrets", "pods", "roles"))
+                action_names = set(map(str, as_list(action.get("resourceNames"))))
+                target_names = set(map(str, as_list(rule.get("resourceNames"))))
+                names = sorted(action_names & target_names if action_names and target_names else
+                               (action_names or target_names)) or [None]
+                for verb in verbs:
+                    if verb == "*" or verb.startswith("impersonate"):
+                        continue
+                    for group in groups:
+                        for resource in resources:
+                            base, _, sub = resource.partition("/")
+                            scoped = ["*"] if base in CLUSTER_SCOPED else namespaces
+                            for ns in scoped:
+                                for name in names:
+                                    if (_rule_matches(action, prefix + verb, group, base, sub, name) is True
+                                            and _rule_matches(rule, verb, group, base, sub, name) is True):
+                                        verdict = new_right(verb, group, resource, ns, name)
+                                        if verdict is not False:
+                                            return verdict
+        if not all(self._complete(kind) for kind in ("role", "clusterrole", "rolebinding", "clusterrolebinding")):
+            return ("unknown", "target_rbac_rules_incomplete")
+        return False
+
+    def _dangling_sa_binding_gain(self, source, target):
+        """A missing SA name is useful only when its direct binding adds a right."""
+        if source is None or target.kind != "k8s_service_account" or source.attrs.get("cluster") != target.attrs.get("cluster"):
+            return False
+        cluster, namespace, name = (target.attrs.get(key) for key in ("cluster", "namespace", "name"))
+        direct = self.bindings.get((cluster, f"sa:{namespace}:{name}"), ())
+        if not direct:
+            return False
+        incomplete = not all(self._complete(kind) for kind in ("role", "clusterrole", "rolebinding", "clusterrolebinding"))
+        uncertain = False
+        probes = []
+        for bind_ns, role_key, _ in direct:
+            role = self.roles.get(role_key)
+            if role is None:
+                uncertain = uncertain or incomplete
+                continue
+            for rule in role["rules"]:
+                verbs = [str(v) for v in as_list(rule.get("verbs"))]
+                groups = [str(g) for g in as_list(rule.get("apiGroups"))]
+                resources = [str(r) for r in as_list(rule.get("resources"))]
+                names = [str(n) for n in as_list(rule.get("resourceNames"))] or [None]
+                for verb in (verbs if "*" not in verbs else ("get", "list", "create", "patch")):
+                    for group in (groups if "*" not in groups else ("", "apps", "rbac.authorization.k8s.io")):
+                        for resource in (resources if "*" not in resources else ("secrets", "pods", "roles")):
+                            base = resource.partition("/")[0]
+                            scopes = (["*"] if base in CLUSTER_SCOPED else
+                                      ([bind_ns] if bind_ns else [namespace, *sorted(self.namespaces.get(cluster, ()))]) )
+                            for scope in scopes:
+                                for resource_name in names:
+                                    probes.append((bind_ns, rule, verb, group, resource, scope, resource_name))
+        for _bind_ns, rule, verb, group, resource, scope, resource_name in probes:
+            base, _, sub = resource.partition("/")
+            if _rule_matches(rule, verb, group, base, sub, resource_name) is not True:
+                continue
+            own = self.check(source, {"verb": verb, "api_group": group, "resource": base,
+                                      "subresource": sub, "_rbac_only": True}, (scope, resource_name, None))
+            if own is None:
+                return None
+            if own.confidence != "derived":
+                uncertain = True
+        def covers(have, wanted):
+            for field in ("verbs", "apiGroups", "resources"):
+                existing, requested = set(map(str, as_list(have.get(field)))), set(map(str, as_list(wanted.get(field))))
+                if "*" not in existing and not requested <= existing:
+                    return False
+            existing_names = set(map(str, as_list(have.get("resourceNames"))))
+            requested_names = set(map(str, as_list(wanted.get("resourceNames"))))
+            if existing_names and (not requested_names or not requested_names <= existing_names):
+                return False
+            return set(map(str, as_list(wanted.get("nonResourceURLs")))) <= set(
+                map(str, as_list(have.get("nonResourceURLs"))))
+
+        held = [(ns, rule) for ns, rule, _ in self._rules(source) if rule]
+        for bind_ns, role_key, _ in direct:
+            role = self.roles.get(role_key)
+            if role is None:
+                continue
+            if any(not any((own_ns is None or own_ns == bind_ns) and covers(own_rule, wanted)
+                           for own_ns, own_rule in held) for wanted in role["rules"]):
+                uncertain = True  # wildcard and non-resource grants may not have a safe concrete probe
+        return ("unknown", "service_account_binding_rights_incomplete") if uncertain else False
+
+    def _bound_role_gain_targets(self):
+        """One bounded authority per collected role and known binding namespace."""
+        if "_role_gain_targets" not in self.__dict__:
+            out = {}
+            for key, role in sorted(self.roles.items(), key=lambda row: repr(row[0])):
+                cluster, role_ns, name = key
+                if not name or not role["rules"]:
+                    continue
+                namespaces = [role_ns] if role_ns else ["*", *sorted(n for n in self.namespaces.get(cluster, ()) if n)]
+                for ns in namespaces:
+                    digest = hashlib.sha1(repr((key, ns)).encode()).hexdigest()[:16]
+                    node_id = f"k8s:role-gain:{cluster}:{ns}:{digest}"
+                    out[node_id] = Node(node_id, "k8s_verified_authority", "k8s", f"{cluster}/{ns}",
+                                        f"{role['kind']} {name} permissions {'cluster-wide' if ns == '*' else 'in ' + ns}",
+                                        attrs={"cluster": cluster, "namespace": ns, "role_key": key,
+                                               "role_name": name, "role_kind": role["kind"]}, entity=True)
+            self._role_gain_targets = out
+        return self._role_gain_targets
+
+    def _bound_role_gain(self, source, target):
+        """True only if the exact role supplies a concrete permission the source lacks."""
+        if source is None or source.attrs.get("cluster") != target.attrs.get("cluster"):
+            return False
+        role = self.roles.get(target.attrs["role_key"])
+        if role is None:
+            return False
+        ns = target.attrs["namespace"]
+        role_rules = []
+        for rule in role["rules"]:
+            if ns == "*":
+                role_rules.append(rule)
+                continue
+            namespaced_resources = [res for res in as_list(rule.get("resources"))
+                                    if str(res).partition("/")[0] not in CLUSTER_SCOPED]
+            if namespaced_resources:
+                role_rules.append({**rule, "resources": namespaced_resources, "nonResourceURLs": []})
+        if not role_rules:
+            return False
+        resource = "clusterroles" if role["kind"] == "ClusterRole" else "roles"
+        bind = self.check(source, {"verb": "bind", "resource": resource,
+                                   "api_group": "rbac.authorization.k8s.io"},
+                          (ns, target.attrs["role_name"], None))
+        if bind is None:
+            return False
+        bind_uncertain = bind.confidence != "derived"
+        probes = set()
+        for rule in role_rules:
+            names = as_list(rule.get("resourceNames")) or [None]
+            for verb in as_list(rule.get("verbs")):
+                for group in as_list(rule.get("apiGroups")):
+                    for res in as_list(rule.get("resources")):
+                        if "*" not in (verb, group, res) and "*/" not in str(res):
+                            if ns != "*" and str(res).partition("/")[0] in CLUSTER_SCOPED:
+                                continue
+                            probes.update((str(verb).lower(), str(group), str(res), name) for name in names)
+        for key in self.catalog_keys:
+            try:
+                verb, group, resource_name, sub = key.split("|")
+            except ValueError:
+                continue
+            if verb.startswith(PREFIX) or group == ANY_MATCH or resource_name == ANY_MATCH:
+                continue
+            resource_full = resource_name + ("/" + sub if sub else "")
+            if ns != "*" and resource_name in CLUSTER_SCOPED:
+                continue
+            probes.add((verb, group, resource_full, None))
+        incomplete = not all(self._complete(kind) for kind in
+                             ("role", "clusterrole", "rolebinding", "clusterrolebinding"))
+        possible = False
+        for verb, group, resource_full, name in sorted(probes, key=repr):
+            resource_name, _, sub = resource_full.partition("/")
+            if not any(_rule_matches(rule, verb, group, resource_name, sub, name) is True for rule in role_rules):
+                continue
+            req = {"verb": verb, "api_group": group, "resource": resource_name, "_rbac_only": True,
+                   **({"subresource": sub} if sub else {})}
+            own = self.check(source, req, (ns, name, None))
+            if own is None:
+                if incomplete:
+                    return ("conditional", "source_rbac_inventory_incomplete")
+                return ("conditional", "bind_permission_not_fully_resolved") if bind_uncertain else None
+            if own.confidence != "derived":
+                possible = True
+        if possible:
+            return ("conditional", "existing_rights_not_fully_resolved")
+        def dimension_covers(have, want):
+            have, want = set(map(str, as_list(have))), set(map(str, as_list(want)))
+            return "*" in have or want <= have
+
+        def rule_covers(have, want):
+            if not all(dimension_covers(have.get(field), want.get(field))
+                       for field in ("verbs", "apiGroups", "resources")):
+                return False
+            wanted_names = set(map(str, as_list(want.get("resourceNames"))))
+            held_names = set(map(str, as_list(have.get("resourceNames"))))
+            if not wanted_names and held_names:
+                return False
+            if wanted_names and held_names and not wanted_names <= held_names:
+                return False
+            return set(map(str, as_list(want.get("nonResourceURLs")))) <= set(map(str, as_list(have.get("nonResourceURLs"))))
+
+        held_rules = [rule for bind_ns, rule, _ in self._rules(source)
+                      if rule is not None and (bind_ns is None or (ns != "*" and bind_ns == ns))]
+        if all(any(rule_covers(held, wanted) for held in held_rules) for wanted in role_rules):
+            return False
+        return ("conditional", "role_rule_gain_not_fully_probed")
+
+    def _existing_rolebinding_gain(self, source, target):
+        """Require an existing binding to the selected role that can gain this subject."""
+        role = self.roles.get(target.attrs["role_key"])
+        if role is None or source is None:
+            return False
+        cluster, ns = target.attrs["cluster"], target.attrs["namespace"]
+        kind = "clusterrolebinding" if ns == "*" else "rolebinding"
+        binding_ns = None if ns == "*" else ns
+        possible = False
+        for _, item in items(self.snapshot, kind):
+            meta, ref = item.get("metadata") or {}, item.get("roleRef") or {}
+            if (_cluster(item), meta.get("namespace")) != (cluster, binding_ns):
+                continue
+            if (ref.get("kind"), ref.get("name")) != (role["kind"], role["name"]):
+                continue
+            binding_name = meta.get("name")
+            if not binding_name:
+                continue
+            for verb in ("patch", "update"):
+                grant = self.check(source, {"verb": verb, "resource": kind + "s",
+                                            "api_group": "rbac.authorization.k8s.io"},
+                                   (ns, binding_name, None))
+                if grant is not None:
+                    if grant.confidence == "derived":
+                        return self._bound_role_gain(source, target)
+                    possible = True
+        if possible:
+            gain = self._bound_role_gain(source, target)
+            return False if gain is False else ("conditional", "existing_binding_write_not_fully_resolved")
+        return False
 
     def targets_for(self, kind, selector):
         from .credential_evidence import ARGOCD_MOUNT, LEGACY_SA_TOKEN, CREATED_SA_TOKEN
@@ -1143,6 +1657,8 @@ class K8sModel(ExactEvidenceMixin, Model):
     def set_related(self, snapshots):
         self.related = RelatedClouds(snapshots)
         self.cloud, self._cloud_built = {}, False
+        self.__dict__.pop("_kcc_project_policy_targets", None)
+        self.__dict__.pop("_kcc_project_policy_ambiguous", None)
 
     def _cloud_node(self, binding, external, cluster, label, variant=None):
         nid = f"cloud:{binding}:{external}"
@@ -1165,13 +1681,35 @@ class K8sModel(ExactEvidenceMixin, Model):
                     if ann.get(key):
                         node = self._cloud_node(binding, ann[key], sa.attrs["cluster"], label)
                         node.attrs["bound_sas"].append(sa.id)
+            # AKS federation authorizes the projected token's issuer, subject,
+            # and audience. The annotation is only webhook configuration;
+            # a pod can request the exchange audience itself.
+            if self.related.has("azure"):
+                context = (self.snapshot.get("metadata") or {}).get("context")
+                azure_clients = {str(n.attrs.get("client_id") or n.attrs.get("app_id") or "")
+                                 for model in self.related.models["azure"] for n in model.principals.values()}
+                for sa in self.sas.values():
+                    if not sa.attrs.get("inventoried"):
+                        continue
+                    subject = f"system:serviceaccount:{sa.attrs['namespace']}:{sa.attrs['name']}"
+                    for client_id in azure_clients - {""}:
+                        if self.related.azure_fic(client_id, subject, (sa.attrs["cluster"], context)) is True:
+                            node = self._cloud_node("azure_workload_identity", client_id,
+                                                    sa.attrs["cluster"], "Entra app")
+                            if sa.id not in node.attrs["bound_sas"]:
+                                node.attrs["bound_sas"].append(sa.id)
             clusters = sorted(self.clusters) or ["cluster"]
             context = str((self.snapshot.get("metadata") or {}).get("context") or "")
             # EKS Pod Identity associations (eks:DescribePodIdentityAssociation) of the matching EKS cluster.
             for cluster in clusters:
                 eks = self.related.eks_facts((cluster, context)) if self.related.has("aws") else None
                 for assoc in (eks or {}).get("associations") or ():
-                    role = assoc.get("targetRoleArn") or assoc.get("roleArn")
+                    if str(assoc.get("status") or "ACTIVE").upper() in ("DELETING", "DELETED"):
+                        continue
+                    # EKS first assumes roleArn with the pods.eks.amazonaws.com
+                    # service principal. A targetRoleArn is a separate AWS role
+                    # chain and must pass the AWS trust/permission evaluator.
+                    role = assoc.get("roleArn")
                     if not (role and assoc.get("namespace") and assoc.get("serviceAccount")):
                         continue
                     node = self._cloud_node("eks_pod_identity", role, cluster, "IAM role")
@@ -1261,8 +1799,56 @@ class K8sModel(ExactEvidenceMixin, Model):
         if None in states:
             return ("conditional", "node_metadata_access_not_verified")
         if "concealed" in states:
-            return ("conditional", "node_metadata_concealed")  # GKE_METADATA / IMDSv2 hop limit 1
+            # GKE metadata server hides the node credential, and IMDSv2 with
+            # a one-hop response limit blocks ordinary (non-hostNetwork) pods.
+            # The hostNetwork route is evaluated by its separate technique.
+            return False
         return False
+
+    def _privileged_controller_write(self, source, pivot):
+        """Create a controller, or modify one inventoried controller by name."""
+        if source is None:
+            return False
+        namespaces = {p.get("pivot.namespace") for p in (pivot or ()) if p.get("pivot.namespace")}
+        resources = (("deployments", "apps"), ("daemonsets", "apps"),
+                     ("statefulsets", "apps"), ("replicasets", "apps"),
+                     ("replicationcontrollers", ""), ("jobs", "batch"),
+                     ("cronjobs", "batch"))
+        uncertain = False
+        for namespace in namespaces:
+            for resource, group in resources:
+                create = self.check(source, {"verb": "create", "resource": resource,
+                                             "api_group": group, "namespace": namespace},
+                                    (namespace, None, None))
+                if create is not None:
+                    if create.confidence == "derived":
+                        return True
+                    uncertain = True
+                if resource == "jobs":
+                    continue  # this contract has no jobs patch/update branch
+                kind = MODIFIABLE_OBJECTS.get(resource)
+                if kind is None:
+                    continue
+                status = inventory_status(self.snapshot, kind)
+                if not status or unavailable(status):
+                    uncertain = True
+                    continue
+                for _, obj in items(self.snapshot, kind):
+                    meta = obj.get("metadata") or {}
+                    if _cluster(obj) != source.attrs.get("cluster") or meta.get("namespace") != namespace:
+                        continue
+                    name = meta.get("name")
+                    if not name:
+                        continue
+                    for verb in ("patch", "update"):
+                        grant = self.check(source, {"verb": verb, "resource": resource,
+                                                    "api_group": group, "namespace": namespace},
+                                           (namespace, name, None))
+                        if grant is not None:
+                            if grant.confidence == "derived":
+                                return True
+                            uncertain = True
+        return None if uncertain else False
 
     def join(self, node):
         """(public dict of the joined cloud principal, Grant) or None."""
@@ -1301,6 +1887,9 @@ class K8sModel(ExactEvidenceMixin, Model):
 
     def unknown_target_scopes(self, kind):
         from .credential_evidence import LEGACY_SA_TOKEN, CREATED_SA_TOKEN
+        if kind == "gcp_verified_authority" and (self.current_selector or {}).get("k8s_kcc_project_policy_grant"):
+            from .k8s_config_connector_project_policy import unknown_scopes
+            return unknown_scopes(self)
         if (self.current_selector or {}).get("k8s_challenge_fact") in (LEGACY_SA_TOKEN, CREATED_SA_TOKEN):
             return {}
         if kind == "k8s_verified_authority":
@@ -1318,6 +1907,18 @@ class K8sModel(ExactEvidenceMixin, Model):
         return {}
 
     def allowed_scopes(self, rule, source):
+        if (self.current_entry or {}).get("id") == "k8s-configconnector-project-iam-grant":
+            from .k8s_config_connector_project_policy import targets, unknown_scopes
+            cluster = source.attrs.get("cluster")
+            scopes = {target.scope for target in targets(self).values()
+                      if target.attrs.get("cluster") == cluster}
+            if isinstance(cluster, str) and "/locations/" in cluster:
+                project = cluster.split("/locations/", 1)[0]
+                scopes.update(scope for scope in unknown_scopes(self) if scope == project)
+            return scopes
+        if (self.current_entry or {}).get("id") == "k8s-configconnector-service-account-key":
+            return {sa.scope for cloud in self.related.models["gcp"] for sa in cloud.sas.values()
+                    if sa.attrs.get("resource")}
         # RBAC never crosses clusters, whatever the entry's scope rule says.
         cluster = source.attrs.get("cluster")
         cache = self.__dict__.setdefault("_allowed_cache", {})
@@ -1328,7 +1929,8 @@ class K8sModel(ExactEvidenceMixin, Model):
     def _all_scopes(self):
         if not hasattr(self, "_scopes_cache"):
             self._scopes_cache = {n.scope for n in self.principals.values()} | set(self.clusters) | {
-                f"{cluster}/{ns}" for cluster, ns, *_ in self.secrets}
+                f"{cluster}/{ns}" for cluster, ns, *_ in self.secrets} | {
+                f"{cluster}/*" for cluster in self.clusters}
         return self._scopes_cache
 
     def sources(self):
@@ -1338,6 +1940,14 @@ class K8sModel(ExactEvidenceMixin, Model):
         return out
 
     def source_matches(self, source, kinds, selector):
+        if ((self.current_entry or {}).get("id") in (
+                "k8s-nodes-replacement-pod-to-controlled-node",
+                "k8s-nodes-pods-binding-pending-pod-to-controlled-node",
+                "k8s-nodes-attract-pending-pod-to-controlled-node")
+                and source.kind == "k8s_node"):
+            # NodeRestriction does not turn a kubelet credential into the
+            # non-node write authority these scheduling techniques require.
+            return False
         technique = (self.current_selector or {}).get("k8s_challenge_fact")
         if technique and not self.exact_source_matches(technique, source):
             return False
@@ -1351,8 +1961,10 @@ class K8sModel(ExactEvidenceMixin, Model):
             if types and entry_type not in types:
                 return False  # access entry of another type; no entry / facts missing: decided by the target selector
         aggregated = (selector or {}).get("source_bound_to_aggregated_clusterrole")
-        if aggregated and not any(self.roles.get(role, {}).get("aggregation") and role[1] is None
-                                  and (ns is None or aggregated is True)
+        if aggregated and not any(self.roles.get(role, {}).get("aggregation_selectable") and role[1] is None
+                                  and ((aggregated == "cluster" and ns is None)
+                                       or (aggregated == "namespace" and ns is not None)
+                                       or aggregated is True)
                                   for ns, role, ev in source.attrs.get("bound", ())):
             return False
         role = (selector or {}).get("k8s_node_role")
@@ -1363,27 +1975,30 @@ class K8sModel(ExactEvidenceMixin, Model):
         return True
 
     def _ns_has_sa_with_host_scc(self, cluster, namespaces):
-        """An SA of one of the namespaces (None = any) may use a host-level SCC: SCC users[]/groups[] or RBAC `use`."""
+        """True, conditional, unknown, or False for an inventoried SA and exact SCC."""
+        if not self._complete("serviceaccount") or not self._complete("namespace"):
+            return None
         sccs = self.host_sccs.get(cluster) or {}
         if not sccs:
             return False
-        for scc in sccs.values():
-            for group in scc["groups"]:
-                if group in ("system:authenticated", "system:serviceaccounts") or (
-                        group.startswith("system:serviceaccounts:") and (namespaces is None or group.split(":", 2)[2] in namespaces)):
-                    return True
-            for user in scc["users"]:
-                parts = user.split(":")
-                if len(parts) == 4 and parts[:2] == ["system", "serviceaccount"] and (namespaces is None or parts[2] in namespaces):
-                    return True
+        conditional = False
         for sa in self.sas.values():
-            if sa.attrs.get("cluster") != cluster or (namespaces is not None and sa.attrs.get("namespace") not in namespaces):
+            namespace = sa.attrs.get("namespace")
+            if (sa.attrs.get("cluster") != cluster or not sa.attrs.get("inventoried") or
+                    namespace not in self.ns_inventoried.get(cluster, ()) or
+                    (namespaces is not None and namespace not in namespaces)):
                 continue
-            for _ns, rule, _ev in self._rules(sa):
-                if rule is not None and any(_rule_matches(rule, "use", "security.openshift.io", "securitycontextconstraints", "", name) is True
-                                            for name in sccs):
+            for name, scc in sccs.items():
+                direct = sa.attrs.get("user") in scc["users"] or bool(set(sa.attrs.get("groups") or ()) & set(scc["groups"]))
+                grant = self.check(sa, {"verb": "use", "resource": "securitycontextconstraints",
+                                        "api_group": "security.openshift.io", "namespace": namespace,
+                                        "resource_name": name}, (namespace, name, None))
+                if not direct and grant is None:
+                    continue
+                if scc["impact"] == "derived" and (direct or grant.confidence == "derived"):
                     return True
-        return False
+                conditional = True
+        return "conditional" if conditional else False
 
     def _pod_index(self):
         """({(cluster, ns, sa): [pods]}, {(node, cluster): [pods]}), each list in self.pods order; rebuilt if self.pods grows.
@@ -1432,6 +2047,277 @@ class K8sModel(ExactEvidenceMixin, Model):
         return any(p["node"] == node.attrs["name"] and p["cluster"] == node.attrs["cluster"] for p in self.pods)
 
     def selector(self, key, value, candidates, source, pivot=None):
+        if key == "openshift_source_host_scc_path":
+            if source is None:
+                return {}
+            cluster = source.attrs.get("cluster")
+            if not self._complete("securitycontextconstraint"):
+                return {tid: ("unknown", "securitycontextconstraint_inventory_incomplete") for tid in candidates}
+            namespaces = {row.get("pivot.namespace") for row in pivot or () if isinstance(row, dict)}
+            if not namespaces:
+                return {}
+            source_user = source.attrs.get("user")
+            source_groups = set(source.attrs.get("groups") or ())
+            if source.kind == "k8s_group":
+                source_groups.add(source.attrs.get("name"))
+            conditional = False
+            for namespace in namespaces:
+                for scc_name, scc in self.host_sccs.get(cluster, {}).items():
+                    direct = source_user in scc["users"] or bool(source_groups & set(scc["groups"]))
+                    grant = self.check(source, {"verb": "use", "resource": "securitycontextconstraints",
+                                                "api_group": "security.openshift.io", "namespace": namespace,
+                                                "resource_name": scc_name}, (namespace, scc_name, None))
+                    if not direct and grant is None:
+                        continue
+                    if scc["impact"] == "derived" and (direct or grant.confidence == "derived"):
+                        return dict.fromkeys(candidates)
+                    conditional = True
+            return ({tid: ("conditional", "host_scc_access_or_impact_conditional") for tid in candidates}
+                    if conditional else {})
+        if key == "openshift_unlabeled_existing_namespace":
+            cluster = source.attrs.get("cluster") if source is not None else None
+            names = {row.get("pivot.namespace") for row in pivot or () if isinstance(row, dict)}
+            if any(ns in self.ns_inventoried.get(cluster, ()) and
+                   "openshift.io/run-level" not in self.ns_labels.get((cluster, ns), {}) for ns in names):
+                return dict.fromkeys(candidates)
+            if names and not self._complete("namespace"):
+                return {tid: ("unknown", "namespace_run_level_label_not_collected") for tid in candidates}
+            return {}
+        if key == "openshift_namespace_without_scc":
+            cluster = source.attrs.get("cluster") if source is not None else None
+            defaults = {"default", "kube-system", "kube-public", "openshift-node", "openshift-infra", "openshift"}
+            if pivot is None:
+                if not self._complete("namespace"):
+                    return {tid: ("unknown", "namespace_inventory_incomplete") for tid in candidates}
+                # A fixed namespace alternative may refer to a project that is absent.
+                # Require the same workload-create permission on one inventoried project.
+                resources = (("pods", ""), ("deployments", "apps"), ("daemonsets", "apps"),
+                             ("statefulsets", "apps"), ("replicasets", "apps"),
+                             ("replicationcontrollers", ""), ("jobs", "batch"),
+                             ("cronjobs", "batch"))
+                for ns in defaults & self.ns_inventoried.get(cluster, set()):
+                    for resource, group in resources:
+                        grant = self.check(source, {"verb": "create", "resource": resource,
+                                                    "api_group": group, "namespace": ns}, (ns, None, None))
+                        if grant is not None:
+                            return dict.fromkeys(candidates)
+                return {}
+            names = {row.get("pivot.namespace") for row in pivot if isinstance(row, dict)}
+            if any(ns in self.ns_inventoried.get(cluster, ()) and
+                   (ns in defaults or "openshift.io/run-level" in self.ns_labels.get((cluster, ns), {}))
+                   for ns in names):
+                return dict.fromkeys(candidates)
+            if names and not self._complete("namespace"):
+                return {tid: ("unknown", "namespace_run_level_label_not_collected") for tid in candidates}
+            return {}
+        if key == "k8s_pod_access_path":
+            if source is None:
+                return {}
+            if not inventory_status(self.snapshot, "pod"):
+                return {tid: ("unknown", "pod_inventory_not_collected") for tid in candidates}
+            routes = {
+                "modify_image": (("patch", ""), ("update", "")),
+                "exec": (("create", "exec"),),
+                "exec_get_websocket": (("get", "exec"),),
+                "attach": (("create", "attach"),),
+                "ephemeral_container": (("patch", "ephemeralcontainers"), ("update", "ephemeralcontainers")),
+            }
+            if value not in routes:
+                return {}
+            out = {}
+            for tid, target in candidates.items():
+                if target.kind != "k8s_service_account" or target.attrs.get("cluster") != source.attrs.get("cluster"):
+                    continue
+                for pod in self._pods_for_sa(target):
+                    if not pod["name"] or pod["deleting"] or pod["phase"] in ("Succeeded", "Failed", "Pending"):
+                        continue
+                    grants = [self.check(source, {"verb": verb, "resource": "pods", "subresource": sub,
+                                                 "namespace": pod["ns"]}, (pod["ns"], pod["name"], None))
+                              for verb, sub in routes[value]]
+                    grants = [grant for grant in grants if grant is not None]
+                    if not grants:
+                        continue
+                    if pod["phase"] != "Running":
+                        verdict = ("unknown", "pod_phase_not_collected")
+                    elif value == "attach" and not pod["stdin_containers"]:
+                        continue
+                    elif value == "attach" and not set(pod["stdin_containers"]) & set(pod["running_containers"]):
+                        verdict = ("unknown", "interactive_container_running_not_recorded")
+                    elif pod["automount_disabled"] and not pod["token_volumes"]:
+                        continue
+                    elif not pod["token_volumes"]:
+                        verdict = ("unknown", "pod_service_account_token_volume_not_recorded")
+                    elif value != "ephemeral_container" and not any(
+                            has_token for name, has_token in pod["token_mounts"].items()
+                            if value != "attach" or name in pod["stdin_containers"]):
+                        verdict = ("unknown", "service_account_token_mount_not_recorded")
+                    else:
+                        verdict = ("conditional", "pod_access_runtime_conditions") if value == "attach" else None
+                    if any(grant.confidence != "derived" for grant in grants) and verdict is None:
+                        verdict = ("conditional", "pod_permission_not_fully_resolved")
+                    previous = out.get(tid)
+                    if tid not in out or (previous is not None and previous[0] == "unknown" and
+                                          (verdict is None or verdict[0] != "unknown")):
+                        out[tid] = verdict
+                    if verdict is None:
+                        break
+                if tid not in out and not self._complete("pod"):
+                    out[tid] = ("unknown", "pod_inventory_incomplete")
+            return out
+        if key == "k8s_websocket_exec_get_usable":
+            cluster = source.attrs.get("cluster") if source is not None else None
+            raw_version = self.server_versions.get(cluster, "")
+            match = re.match(r"^v?(\d+)\.(\d+)(?:\.|$)", raw_version)
+            if match and (int(match.group(1)), int(match.group(2))) < (1, 35):
+                return dict.fromkeys(candidates)
+            for _, pod in items(self.snapshot, "pod"):
+                if _cluster(pod) != cluster or (pod.get("metadata") or {}).get("namespace") != "kube-system":
+                    continue
+                for container in as_list((pod.get("spec") or {}).get("containers")):
+                    if not isinstance(container, dict) or "kube-apiserver" not in str(container.get("image") or ""):
+                        continue
+                    flags = " ".join(str(arg) for arg in as_list(container.get("command")) + as_list(container.get("args")))
+                    if re.search(r"(?:^|[=,\s])AuthorizePodWebsocketUpgradeCreatePermission=false(?:[,\s]|$)", flags):
+                        return {tid: ("conditional", "api_server_websocket_create_gate_disabled") for tid in candidates}
+            reason = "websocket_create_feature_gate_not_recorded" if match else "kubernetes_server_version_not_collected"
+            return {tid: ("unknown", reason) for tid in candidates}
+        if key == "k8s_mutating_admission_policy_served":
+            cluster = source.attrs.get("cluster") if source is not None else None
+            advertised = self.admission_api_resources.get(cluster)
+            if advertised is None:
+                return {tid: ("unknown", "mutating_admission_api_discovery_not_collected") for tid in candidates}
+            if {"mutatingadmissionpolicies", "mutatingadmissionpolicybindings"} <= advertised:
+                return dict.fromkeys(candidates)
+            return {}
+        if key == "k8s_kcc_project_policy_grant":
+            from .k8s_config_connector_project_policy import select
+            return select(self, candidates, source) if value is True else {}
+        if key == "k8s_kcc_service_account_key_path":
+            from .k8s_config_connector_key import select
+            return select(self, candidates, source) if value is True else {}
+        if key == "k8s_aggregated_rolebinding_namespace":
+            if source is None:
+                return {}
+            cluster = source.attrs.get("cluster")
+            namespaces = {ns for ns, role, _ in source.attrs.get("bound", ())
+                          if ns and role[0] == cluster and role[1] is None
+                          and self.roles.get(role, {}).get("aggregation_selectable")}
+            selected = {}
+            for tid, target in candidates.items():
+                ns = target.attrs.get("namespace")
+                if target.attrs.get("cluster") != cluster or ns not in namespaces:
+                    continue
+                pods = self.check(source, {"verb": "create", "resource": "pods", "_rbac_only": True},
+                                  (ns, None, None))
+                tokens = self.check(source, {"verb": "create", "resource": "serviceaccounts",
+                                             "subresource": "token", "_rbac_only": True},
+                                    (ns, target.attrs.get("name"), None))
+                if pods is not None and pods.confidence == "derived" and tokens is not None and tokens.confidence == "derived":
+                    continue
+                selected[tid] = None
+            return selected
+        if key == "k8s_aggregation_new_role_path":
+            if source is None:
+                return {}
+            cluster = source.attrs.get("cluster")
+            complete = self._complete("clusterrole")
+            possible, uncertain = False, False
+            for bound_ns, rule, _ in self._rules(source):
+                if bound_ns is not None or rule is None:
+                    continue
+                if _rule_matches(rule, "escalate", "rbac.authorization.k8s.io",
+                                 "clusterroles", "", None) is False:
+                    continue
+                names = [str(name) for name in as_list(rule.get("resourceNames"))]
+                if not names:
+                    possible = True
+                    break
+                if not complete:
+                    uncertain = True
+                    continue
+                if any(re.fullmatch(r"[a-z0-9]([-a-z0-9.]*[a-z0-9])?", name)
+                       and (cluster, None, name) not in self.roles for name in names):
+                    possible = True
+                    break
+            if possible:
+                return dict.fromkeys(candidates)
+            if uncertain:
+                return {tid: ("unknown", "clusterrole_names_not_fully_collected") for tid in candidates}
+            return {}
+        if key == "k8s_csr_same_name_path":
+            if source is None:
+                return {}
+            reads, approvals = [], []
+            for bound_ns, rule, _ in self._rules(source):
+                if bound_ns is not None or rule is None:
+                    continue
+                names = set(map(str, as_list(rule.get("resourceNames"))))
+                if any(_rule_matches(rule, verb, "certificates.k8s.io", "certificatesigningrequests", "", None)
+                       is not False for verb in ("get", "list", "watch")):
+                    reads.append(names)
+                if any(_rule_matches(rule, verb, "certificates.k8s.io", "certificatesigningrequests", "approval", None)
+                       is not False for verb in ("update", "patch")):
+                    approvals.append(names)
+            compatible = [(read, approval) for read in reads for approval in approvals
+                          if not read or not approval or read & approval]
+            if any(not read and not approval for read, approval in compatible):
+                return dict.fromkeys(candidates)
+            if compatible:
+                # CSR objects are not collected, so a resourceNames-limited
+                # permission cannot establish that the chosen name is free.
+                return {tid: ("unknown", "new_csr_name_availability_not_collected") for tid in candidates}
+            return {}
+        if key == "k8s_csr_sa_subject":
+            out = {}
+            for tid, target in candidates.items():
+                if target.kind != "k8s_service_account" or not target.attrs.get("binding_ref"):
+                    continue
+                if any(self.roles.get(role, {}).get("rules") for _ns, role, _ in target.attrs.get("bound", ())):
+                    out[tid] = None
+                elif not all(self._complete(kind) for kind in ("role", "clusterrole", "rolebinding", "clusterrolebinding")):
+                    out[tid] = ("unknown", "service_account_binding_role_not_collected")
+            return out
+        if key == "k8s_bound_role_gain":
+            return {tid: verdict for tid, target in candidates.items()
+                    if target.id in self._bound_role_gain_targets()
+                    and target.attrs.get("namespace") != "*"
+                    and (verdict := self._bound_role_gain(source, target)) is not False}
+        if key == "k8s_constrained_impersonation_gain":
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._constrained_impersonation_gain(source, target, str(value))) is not False}
+        if key == "k8s_dangling_sa_permission_gain":
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._dangling_sa_binding_gain(source, target)) is not False}
+        if key == "k8s_cluster_admin_role_exists":
+            out = {}
+            for tid, target in candidates.items():
+                role = self.roles.get((target.attrs.get("cluster"), None, "cluster-admin"))
+                if role is None:
+                    if not self._complete("clusterrole"):
+                        out[tid] = ("unknown", "cluster_admin_clusterrole_not_collected")
+                    continue
+                rules = role["rules"]
+                sa_name = target.attrs.get("name")
+                if any(_rule_matches(rule, "create", "", "pods", "", None) is True for rule in rules) or any(
+                        _rule_matches(rule, "create", "", "serviceaccounts", "token", sa_name) is True
+                        for rule in rules):
+                    out[tid] = None
+            return out
+        if key == "k8s_existing_rolebinding_gain":
+            return {tid: verdict for tid, target in candidates.items()
+                    if target.id in self._bound_role_gain_targets()
+                    and target.attrs.get("namespace") != "*"
+                    and (verdict := self._existing_rolebinding_gain(source, target)) is not False}
+        if key == "k8s_clusterrolebinding_gain":
+            return {tid: verdict for tid, target in candidates.items()
+                    if target.id in self._bound_role_gain_targets()
+                    and target.attrs.get("namespace") == "*"
+                    and (verdict := self._bound_role_gain(source, target)) is not False}
+        if key == "k8s_existing_clusterrolebinding_gain":
+            return {tid: verdict for tid, target in candidates.items()
+                    if target.id in self._bound_role_gain_targets()
+                    and target.attrs.get("namespace") == "*"
+                    and (verdict := self._existing_rolebinding_gain(source, target)) is not False}
         if key == "k8s_verified_pivot":
             from .k8s_verified_pivots import select
             return select(self, value, candidates, source, pivot)
@@ -1513,11 +2399,16 @@ class K8sModel(ExactEvidenceMixin, Model):
             if not self._complete("securitycontextconstraint"):
                 return None  # securitycontextconstraints not collected (or incomplete)
             if value == "{pivot.namespace}":
-                namespaces = {p["pivot.namespace"] for p in pivot or []} if pivot else None
+                if not pivot:
+                    return {}
+                namespaces = {p["pivot.namespace"] for p in pivot if "pivot.namespace" in p}
             else:
                 namespaces = None if value in ("*", True) else {value}
-            hosting = {c for c in clusters if self._ns_has_sa_with_host_scc(c, namespaces)}
-            return {tid: None for tid, n in candidates.items() if n.attrs.get("cluster") in hosting}
+            verdicts = {c: self._ns_has_sa_with_host_scc(c, namespaces) for c in clusters}
+            return {tid: (None if verdicts[n.attrs.get("cluster")] is True else
+                          ("conditional", "host_scc_impact_conditional") if verdicts[n.attrs.get("cluster")] == "conditional" else
+                          ("unknown", "serviceaccount_or_namespace_inventory_incomplete"))
+                    for tid, n in candidates.items() if verdicts.get(n.attrs.get("cluster")) is not False}
         if key == "k8s_sa_in_namespace":
             if value in ("*", "{target.namespace}"):
                 return dict.fromkeys(candidates)
@@ -1533,8 +2424,36 @@ class K8sModel(ExactEvidenceMixin, Model):
         if key == "k8s_sa_used_by_pending_pod":
             if not pods_known:
                 return None
-            return {tid: None for tid, n in candidates.items() if n.kind == "k8s_service_account"
-                    and any(p["phase"] == "Pending" and not p["node"] for p in self._pods_for_sa(n))}
+            out = {}
+            technique = (self.current_entry or {}).get("id")
+            for tid, n in candidates.items():
+                if n.kind != "k8s_service_account":
+                    continue
+                pods = [p for p in self._pods_for_sa(n) if not p["node"] and not p["deleting"]]
+                pending = [p for p in pods if p["phase"] == "Pending"]
+                if pending and technique == "k8s-nodes-pods-binding-pending-pod-to-controlled-node":
+                    pending = [p for p in pending if any(self.check(source, {
+                        "verb": "create", "resource": resource, "subresource": sub,
+                        "namespace": p["ns"]}, (p["ns"], p["name"], None)) is not None
+                        for resource, sub in (("pods", "binding"), ("bindings", None)))]
+                elif pending and technique == "k8s-nodes-attract-pending-pod-to-controlled-node":
+                    node_grants = [grant for sub in (None, "status") for verb in ("patch", "update")
+                                   if (grant := self.check(source, {
+                        "verb": verb, "resource": "nodes", "subresource": sub,
+                        "namespace": "*"}, (None, None, None))) is not None]
+                    node_write = any(grant.confidence == "derived" for grant in node_grants)
+                    if not node_write:
+                        pending = [p for p in pending if any(self.check(source, {
+                            "verb": verb, "resource": "pods", "subresource": "status",
+                            "namespace": p["ns"]}, (p["ns"], p["name"], None)) is not None
+                            for verb in ("patch", "update"))]
+                    if not pending and node_grants:
+                        out[tid] = ("conditional", "node_write_name_must_match_controlled_node")
+                if pending:
+                    out[tid] = None
+                elif any(p["phase"] is None for p in pods):
+                    out[tid] = ("unknown", "pending_pod_phase_not_collected")
+            return out
         if key == "k8s_node_hosting_pod_of_source":
             if source is None or source.kind != "k8s_service_account":
                 return {}
@@ -1552,12 +2471,40 @@ class K8sModel(ExactEvidenceMixin, Model):
                     continue
                 if ns in self.ns_inventoried.get(cluster, ()):
                     continue
+                # An SCC users[] entry is only a useful privilege path when the
+                # referenced SCC grants host access. A binding must resolve to
+                # rules and add a right the source does not already hold.
+                host_scc = bool(set(self.scc_users.get((cluster, ns, n.attrs.get("name")), ())) &
+                                set(self.host_sccs.get(cluster, ())))
+                binding_gain = self._dangling_sa_binding_gain(source, n) if n.attrs.get("binding_ref") else False
+                if not host_scc and binding_gain is False:
+                    continue
                 out[tid] = None if complete else ("unknown", "namespace_inventory_incomplete")
+                if complete and not host_scc and binding_gain is not None:
+                    out[tid] = binding_gain
             return out
         if key == "k8s_sa_named_in_scc_users":
             if self._complete("securitycontextconstraint"):
                 return {tid: None for tid, n in candidates.items()
                         if (n.attrs.get("cluster"), n.attrs.get("namespace"), n.attrs.get("name")) in self.scc_users}
+            clusters = {n.attrs.get("cluster") for n in candidates.values()}
+            if clusters and all(self._is_openshift(c) is False for c in clusters):
+                return {}
+            return None
+        if key == "k8s_sa_missing_in_host_scc_users":
+            if self._complete("securitycontextconstraint"):
+                out = {}
+                sa_complete, ns_complete = self._complete("serviceaccount"), self._complete("namespace")
+                for tid, n in candidates.items():
+                    cluster, ns, name = n.attrs.get("cluster"), n.attrs.get("namespace"), n.attrs.get("name")
+                    if n.attrs.get("inventoried") or not set(self.scc_users.get((cluster, ns, name), ())) & set(
+                            self.host_sccs.get(cluster, ())):
+                        continue
+                    if ns_complete and ns not in self.ns_inventoried.get(cluster, ()):
+                        continue  # the source cannot create the named SA in an absent namespace
+                    out[tid] = (None if sa_complete and ns_complete else
+                                ("unknown", "serviceaccount_or_namespace_inventory_incomplete"))
+                return out
             clusters = {n.attrs.get("cluster") for n in candidates.values()}
             if clusters and all(self._is_openshift(c) is False for c in clusters):
                 return {}
@@ -1587,8 +2534,13 @@ class K8sModel(ExactEvidenceMixin, Model):
             for tid, n in candidates.items():
                 if n.kind != "k8s_service_account" or n.attrs.get("inventoried") or not n.attrs.get("binding_ref"):
                     continue
+                cluster, ns = n.attrs.get("cluster"), n.attrs.get("namespace")
+                if self._complete("namespace") and ns not in self.ns_inventoried.get(cluster, ()):
+                    continue
                 complete = statuses and all(st in ("collected", "empty") for st in statuses.values())
                 out[tid] = None if complete else ("unknown", "serviceaccount_inventory_incomplete")
+                if not self._complete("namespace") and ns not in self.ns_inventoried.get(cluster, ()):
+                    out[tid] = ("unknown", "namespace_inventory_incomplete")
             return out
         if key == "kube2iam_namespace_permits_role":
             annotations = self.ns_annotations.get(source.attrs.get("cluster") if source else None, {})
@@ -1614,6 +2566,11 @@ class K8sModel(ExactEvidenceMixin, Model):
             if source is None or source.kind != "k8s_service_account":
                 return {}
             out = {}
+            cluster_facts = self.related.eks_facts((source.attrs.get("cluster"),
+                                                    (self.snapshot.get("metadata") or {}).get("context")))
+            issuer = (cluster_facts or {}).get("oidc_issuer")
+            if not issuer:
+                return {tid: ("unknown", "eks_cluster_oidc_issuer_not_collected") for tid in candidates}
             for tid, n in candidates.items():
                 arn = n.attrs.get("external_id")
                 found = self.related.aws_role(arn)
@@ -1622,32 +2579,66 @@ class K8sModel(ExactEvidenceMixin, Model):
                         continue  # the annotated role does not exist in the related account snapshot
                     out[tid] = ("conditional", "cloud_side_trust_not_verified")
                     continue
-                subjects = self.related.oidc_subjects(*found)
+                subjects = self.related.oidc_subjects(*found, issuer=issuer)
                 if any(_subject_matches(p, source.attrs["namespace"], source.attrs["name"]) for p in subjects):
-                    out[tid] = None if "*" not in subjects else ("conditional", "trust_has_no_sub_condition")
+                    # A matching subject is insufficient: the federated provider
+                    # must be this cluster's issuer and the audience must admit STS.
+                    out[tid] = ("conditional", "oidc_issuer_and_audience_not_verified")
             return out
         if key == "trust_allows_oidc_subject_wildcard":
             if not self.related.has("aws"):
                 return None
             namespaces = [p["pivot.namespace"] for p in pivot or [] if "pivot.namespace" in p]
+            cluster_facts = self.related.eks_facts(((source.attrs.get("cluster") if source else None),
+                                                    (self.snapshot.get("metadata") or {}).get("context")))
+            issuer = (cluster_facts or {}).get("oidc_issuer")
+            if not issuer:
+                return {tid: ("unknown", "eks_cluster_oidc_issuer_not_collected") for tid in candidates}
             out = {}
+            create_new = (self.current_entry or {}).get("id") == "k8s-cloud-eks-irsa-create-matching-sa"
             for tid, n in candidates.items():
                 found = self.related.aws_role(n.attrs.get("external_id"))
                 if found is None:
                     continue
-                subjects = self.related.oidc_subjects(*found)
-                if any(_subject_matches(p, ns) for p in subjects for ns in namespaces):
-                    out[tid] = None
+                subjects = self.related.oidc_subjects(*found, issuer=issuer)
+                def applicable(pattern, namespace):
+                    existing = [sa.attrs.get("name") for sa in self.sas.values()
+                                if sa.attrs.get("cluster") == source.attrs.get("cluster")
+                                and sa.attrs.get("namespace") == namespace and sa.attrs.get("inventoried")]
+                    if create_new:
+                        # A new ServiceAccount is useful only when the trust
+                        # accepts a name not already represented by an SA.
+                        if not _subject_matches(pattern, namespace):
+                            return False
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":")
+                        if len(parts) != 4:
+                            return False
+                        name_pattern = parts[3]
+                        if "*" in name_pattern or "?" in name_pattern:
+                            return True
+                        return bool(re.fullmatch(r"[a-z0-9]([-a-z0-9]*[a-z0-9])?", name_pattern)) and \
+                            name_pattern not in existing
+                    return any(_subject_matches(pattern, namespace, name) for name in existing)
+                if any(applicable(p, ns) for p in subjects for ns in namespaces):
+                    out[tid] = ("conditional", "oidc_issuer_and_audience_not_verified")
             return out
         if key == "gcp_workload_identity_user_granted_to_k8s_sa":
             if source is None or source.kind != "k8s_service_account":
                 return {}
             if not self.related.has("gcp"):
                 return None
+            pool = self.related.gke_workload_pool((source.attrs.get("cluster"),
+                                                   (self.snapshot.get("metadata") or {}).get("context")))
+            if pool is None:
+                return {tid: ("unknown", "gke_cluster_workload_pool_not_collected") for tid in candidates}
+            if not pool:
+                return {}
             out = {}
             for tid, n in candidates.items():
                 email = n.attrs.get("external_id")
-                verdict = self.related.gcp_wi_grant(email, source.attrs["namespace"], source.attrs["name"])
+                verdict = self.related.gcp_wi_grant(email, source.attrs["namespace"], source.attrs["name"], pool)
                 if verdict is None:
                     if not self.related.gcp_project_covered(email):
                         out[tid] = ("conditional", "cloud_side_trust_not_verified")
@@ -1659,17 +2650,34 @@ class K8sModel(ExactEvidenceMixin, Model):
                 return None
             out = {}
             for tid, n in candidates.items():
-                found = self.related.azure_principal(n.attrs.get("external_id"))
-                creds = found[1].attrs.get("federated_credentials") if found else None
-                if creds is None:
-                    out[tid] = ("conditional", "federated_identity_credential_not_collected")
-                    continue
                 subject = f"system:serviceaccount:{source.attrs.get('namespace')}:{source.attrs.get('name')}"
-                if any(str((c or {}).get("subject")) == subject for c in as_list(creds)):
-                    out[tid] = None
+                verdict = self.related.azure_fic(n.attrs.get("external_id"), subject,
+                                                 (source.attrs.get("cluster"),
+                                                  (self.snapshot.get("metadata") or {}).get("context")))
+                if verdict is not False:
+                    out[tid] = None if verdict is True else ("conditional", verdict)
             return out
         if key == "k8s_node_schedulable":
-            return {tid: None for tid, n in candidates.items() if not n.attrs.get("unschedulable")}
+            if (self.current_entry or {}).get("id") == "k8s-nodes-privileged-controller-create":
+                controller = self._privileged_controller_write(source, pivot)
+                if controller is False:
+                    return {}
+                if controller is None:
+                    return {tid: ("unknown", "writable_controller_not_collected") for tid in candidates}
+            if (self.current_entry or {}).get("id") == "k8s-nodes-namespace-psa-relabel":
+                namespaces = {p.get("pivot.namespace") for p in (pivot or ()) if p.get("pivot.namespace")}
+                labels = [self.ns_labels.get((source.attrs.get("cluster"), ns)) for ns in namespaces]
+                if not any((row or {}).get("pod-security.kubernetes.io/enforce") in ("baseline", "restricted")
+                           for row in labels):
+                    if any(row is None for row in labels):
+                        return {tid: ("unknown", "namespace_psa_label_not_collected") for tid in candidates}
+                    return {}
+            # Pod creators can set spec.nodeName and bypass the scheduler, so
+            # cordoning alone does not make a node unreachable. A non-Ready
+            # kubelet remains a possible route rather than a definite one.
+            return {tid: (None if n.attrs.get("ready") == "True" else
+                          ("conditional", "node_readiness_not_confirmed"))
+                    for tid, n in candidates.items()}
         if key == "k8s_sa_name":
             names = {str(v) for v in as_list(value)}
             return {tid: None for tid, n in candidates.items() if n.attrs.get("name") in names}
@@ -1696,9 +2704,47 @@ class K8sModel(ExactEvidenceMixin, Model):
                 elif key == "k8s_sa_used_by_running_pod":
                     pods = [p for p in pods if p["running"]]
                 else:
-                    pods = [p for p in pods if p["owned"]]
-                if pods:
+                    pods = [p for p in pods if p["owned"] and not p["deleting"]]
+                    if (self.current_entry or {}).get("id") == "k8s-nodes-replacement-pod-to-controlled-node" and source is not None:
+                        broad_node_write = any(
+                            (grant := self.check(source, {"verb": verb, "resource": "nodes",
+                                                         "namespace": "*"}, (None, None, None))) is not None
+                            and grant.confidence == "derived" for verb in ("patch", "update"))
+                        if not broad_node_write:
+                            actions = (("delete", "pods", ""), ("create", "pods", "eviction"),
+                                       ("patch", "pods", ""), ("update", "pods", ""),
+                                       ("patch", "pods", "status"), ("update", "pods", "status"))
+                            pods = [p for p in pods if p["name"] and any(
+                                self.check(source, {"verb": verb, "resource": resource,
+                                                    "subresource": sub, "namespace": p["ns"]},
+                                           (p["ns"], p["name"], None)) is not None
+                                for verb, resource, sub in actions)]
+                if key == "k8s_node_hosting_pods_with_sa":
+                    if any(p["running"] and not p["deleting"] for p in pods):
+                        out[tid] = None
+                    elif any(p["phase"] in ("Pending", None) and not p["deleting"] for p in pods):
+                        out[tid] = ("conditional", "pod_bound_to_node_but_not_running")
+                elif pods:
                     out[tid] = None
+                elif key == "k8s_sa_used_by_running_pod" and any(
+                        p["phase"] is None for p in self._pods_for_sa(n)):
+                    out[tid] = ("unknown", "pod_phase_not_collected")
+            return out
+        if key == "k8s_sa_used_by_interactive_pod":
+            if not pods_known:
+                return None
+            out = {}
+            for tid, n in candidates.items():
+                if n.kind != "k8s_service_account":
+                    continue
+                for pod in self._pods_for_sa(n):
+                    if not pod["stdin_containers"] or pod["phase"] in ("Succeeded", "Failed"):
+                        continue
+                    if pod["running"] and set(pod["stdin_containers"]) & set(pod["running_containers"]):
+                        out[tid] = ("conditional", "interactive_process_accepts_commands_not_verified")
+                        break
+                    if pod["running"] or pod["phase"] is None:
+                        out[tid] = ("unknown", "interactive_container_running_not_recorded")
             return out
         if key in ("k8s_node_hosting_pods_in_namespace", "k8s_node_hosting_privileged_pod_in_namespace",
                    "k8s_node_hosting_host_mount_pod_in_namespace"):
@@ -1715,17 +2761,38 @@ class K8sModel(ExactEvidenceMixin, Model):
                 for p in self._pods_on_node(n.attrs.get("name"), n.attrs.get("cluster")):
                     if namespaces is not None and p["ns"] not in namespaces:
                         continue
-                    field = {"k8s_node_hosting_privileged_pod_in_namespace": "privileged",
-                             "k8s_node_hosting_host_mount_pod_in_namespace": "host_mount"}.get(key)
+                    technique = (self.current_entry or {}).get("id") or ""
+                    if technique in ("k8s-nodes-exec-into-host-privileged-pod",
+                                     "k8s-nodes-exec-into-host-mount-pod"):
+                        grant = self.check(source, {"verb": "create", "resource": "pods",
+                                                    "subresource": "exec", "namespace": p["ns"]},
+                                           (p["ns"], p["name"], None))
+                        if grant is None:
+                            continue
+                    elif technique == "k8s-nodes-privileged-ephemeral-container":
+                        grant = self.check(source, {"verb": "patch", "resource": "pods",
+                                                    "subresource": "ephemeralcontainers", "namespace": p["ns"]},
+                                           (p["ns"], p["name"], None)) or self.check(
+                                               source, {"verb": "update", "resource": "pods",
+                                                        "subresource": "ephemeralcontainers", "namespace": p["ns"]},
+                                               (p["ns"], p["name"], None))
+                        if grant is None:
+                            continue
+                    field = {"k8s_node_hosting_privileged_pod_in_namespace": "exec_privileged",
+                             "k8s_node_hosting_host_mount_pod_in_namespace": "exec_host_mount"}.get(key)
                     if field is None:
-                        out[tid] = None
-                        break
+                        if p["phase"] == "Running":
+                            out[tid] = None
+                            break
+                        elif p["phase"] is None and tid not in out:
+                            out[tid] = ("unknown", "pod_phase_not_collected")
+                        continue
                     verdict = p.get(field)
                     if verdict is True:
                         out[tid] = None
                         break
                     if verdict and tid not in out:
-                        out[tid] = ("conditional", verdict)
+                        out[tid] = ("unknown" if verdict == "pod_phase_not_collected" else "conditional", verdict)
             return out
         if key == "k8s_sa_cloud_binding":
             if source is None or source.kind != "k8s_service_account":
@@ -1738,7 +2805,10 @@ class K8sModel(ExactEvidenceMixin, Model):
                         "irsa", "gke_workload_identity", "azure_workload_identity")
                     if value == "eks_pod_identity":
                         # The association itself comes from the EKS API; the role trust must admit pods.eks.amazonaws.com.
-                        verified = self.related.pods_trust(n.attrs.get("external_id")) is True
+                        trust = self.related.pods_trust(n.attrs.get("external_id"))
+                        if trust is False:
+                            continue
+                        verified = trust is True
                     out[tid] = None if verified else ("conditional", "cloud_side_trust_not_verified")
             return out
         return None
@@ -1892,6 +2962,40 @@ def _label_matches(labels, selector):
     return key in labels and (not eq or str(labels[key]) == value)
 
 
+def _aggregation_selector_satisfiable(selector):
+    """Whether a new ClusterRole can carry labels matching one selector."""
+    if not isinstance(selector, dict):
+        return False
+    constraints = {}
+    for key, value in (selector.get("matchLabels") or {}).items():
+        constraints.setdefault(str(key), {"required": True, "absent": False, "allowed": None,
+                                          "forbidden": set()})["allowed"] = {str(value)}
+    for expression in as_list(selector.get("matchExpressions")):
+        if not isinstance(expression, dict) or not expression.get("key"):
+            return False
+        key, operator = str(expression["key"]), expression.get("operator")
+        values = {str(value) for value in as_list(expression.get("values"))}
+        state = constraints.setdefault(key, {"required": False, "absent": False,
+                                             "allowed": None, "forbidden": set()})
+        if operator == "In":
+            state["required"] = True
+            state["allowed"] = values if state["allowed"] is None else state["allowed"] & values
+        elif operator == "NotIn":
+            state["forbidden"].update(values)
+        elif operator == "Exists":
+            state["required"] = True
+        elif operator == "DoesNotExist":
+            state["absent"] = True
+        else:
+            return False
+    for state in constraints.values():
+        if state["required"] and state["absent"]:
+            return False
+        if state["allowed"] is not None and not state["allowed"] - state["forbidden"]:
+            return False
+    return True
+
+
 def _rule_matches(rule, verb, group, resource, sub, name, partial=False):
     """True, a condition string (partial match) or False."""
     verbs = [str(v).lower() for v in as_list(rule.get("verbs"))]
@@ -1991,6 +3095,29 @@ def pod_escape_primitives(spec):
         if "SYS_PTRACE" in caps and spec.get("hostPID") and priv is None:
             priv = "ptrace_restricted_by_apparmor_or_yama"
     return priv, _host_mount_verdict(spec)
+
+
+def active_pod_escape_primitives(spec, status):
+    """Host escape primitives in containers that can currently accept exec."""
+    if status.get("phase") not in ("Running", None):
+        return None, None
+    if status.get("phase") is None:
+        privileged, mount = pod_escape_primitives(spec)
+        reason = "pod_phase_not_collected"
+        return (reason if privileged else None, reason if mount else None)
+    active = {str(c.get("name") or "") for kind in (
+        "containerStatuses", "initContainerStatuses", "ephemeralContainerStatuses")
+        for c in as_list(status.get(kind)) if isinstance(c, dict)
+        and (c.get("state") or {}).get("running") is not None}
+    if not active:
+        privileged, mount = pod_escape_primitives(spec)
+        reason = "active_container_not_recorded"
+        return (reason if privileged else None, reason if mount else None)
+    active_spec = {"volumes": spec.get("volumes") or []}
+    for kind in ("containers", "initContainers", "ephemeralContainers"):
+        active_spec[kind] = [c for c in as_list(spec.get(kind)) if isinstance(c, dict)
+                             and str(c.get("name") or "") in active]
+    return pod_escape_primitives(active_spec)
 
 
 def _host_mount_verdict(spec):

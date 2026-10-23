@@ -7,6 +7,7 @@ import { azureReviewObservation } from "./azureReviewEvidence";
 import { publicSourceSecretObservation } from "./publicSourceSecretEvidence";
 import { gcpWorkbenchHead3Observation } from "./gcpWorkbenchHead3Evidence";
 import { gcpCloudRunJobImageObservation } from "./gcpCloudRunJobImageEvidence";
+import { formatAzureObservedEvidence } from "./azureObservedEvidenceFormat";
 
 type EvidenceReview = {
   purpose: string;
@@ -30,13 +31,19 @@ export function explainObservedEvidence(finding: Finding, observation: string): 
   if (grouped) return grouped;
   const workbench = gcpWorkbenchHead3Observation(finding);
   if (workbench) return workbench;
-  observation = selectedContentObservation(finding) || azureAIServiceObservation(finding) || azureReviewObservation(finding) || observation;
+  const nativeObservation = selectedContentObservation(finding) || azureAIServiceObservation(finding) || azureReviewObservation(finding);
+  observation = nativeObservation || observation;
   if (finding.check_id === "k8s.review.selected_metadata.secret_indicators"
       && ["selected object labels and annotations", "selected object labels or annotations"].some(scope => observation.includes(scope))) return observation;
   const declaration = kubeletDeclarationObservation(finding);
   if (declaration) return declaration;
   const row = reviews[finding.provider]?.[finding.check_id];
-  if (!row || observation.includes(row.purpose)) return observation;
+  if (!row) return observation;
+  if (finding.provider === "azure" && !nativeObservation) {
+    const reviewed = formatAzureObservedEvidence(finding, observation, row);
+    if (reviewed) return reviewed;
+  }
+  if (observation.includes(row.purpose)) return observation;
   if (finding.provider === "azure") {
     if (["UNKNOWN", "DENIED", "EMPTY"].includes(finding.status)) observation = row.missing_observation || observation;
     else if (finding.status === "MANUAL") observation = row.manual_observation || observation;

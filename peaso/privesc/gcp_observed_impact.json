@@ -1,0 +1,3138 @@
+{
+  "admin-equivalent": {
+    "FAIL": [
+      "These grants may let alice manage resources in that scope.",
+      "That could let alice change access or data across the scope."
+    ],
+    "MANUAL": [
+      "The recorded grants may give alice administrative control.",
+      "That could let alice change access or data across the scope."
+    ],
+    "UNKNOWN": [
+      "Missing evidence prevents confirming administrative control.",
+      "The team cannot judge what identity or data alice could reach this way."
+    ]
+  },
+  "gcp-agentidentity-retrieve-credentials": {
+    "FAIL": [
+      "An active provider authorization may let the source retrieve a Google OAuth token for the recorded client user ID.",
+      "That token could reach data in the consenting account within its granted scopes."
+    ],
+    "MANUAL": [
+      "An active provider authorization may let the source retrieve a Google OAuth token for the recorded client user ID.",
+      "That token could reach data in the consenting account within its granted scopes."
+    ],
+    "UNKNOWN": [
+      "The active Google OAuth provider authorization or granted scopes are unknown.",
+      "If a usable Google OAuth token exists, it could reach data in the consenting account within those scopes."
+    ]
+  },
+  "gcp-agentidentity-update-token-url": {
+    "FAIL": [
+      "Changing the provider's token URL may send a stored refresh token to the new endpoint when a client refreshes it.",
+      "That could give someone access to the consenting account’s data within the granted scopes."
+    ],
+    "MANUAL": [
+      "Changing the provider's token URL may send a stored refresh token to the new endpoint when a client refreshes it.",
+      "That could give someone access to the consenting account’s data within the granted scopes."
+    ],
+    "UNKNOWN": [
+      "The provider authorization or a later token refresh is unknown.",
+      "If both exist, a changed token URL could expose a refresh token and its granted access."
+    ]
+  },
+  "gcp-agentregistry-service-redirect-exact-external-principal": {
+    "FAIL": [
+      "A redirected agent endpoint may capture a usable credential for the exact external principal.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A redirected agent endpoint may capture a usable credential for the exact external principal.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A redirected agent endpoint may capture a usable credential for the exact external principal.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-agentregistry-skill-default-revision-replace": {
+    "FAIL": [
+      "Replacing a floating Skill revision may run changed code with the consuming agent’s runtime identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Replacing a floating Skill revision may run changed code with the consuming agent’s runtime identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Replacing a floating Skill revision may run changed code with the consuming agent’s runtime identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-analyticshub-dataexchanges-setiampolicy-data-exchange-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to subscribe to the exact Analytics Hub exchange.",
+      "This could let alice subscribe to listings within that exchange."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to subscribe to the exact Analytics Hub exchange.",
+      "This could let alice subscribe to listings within that exchange."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to subscribe to the exact Analytics Hub exchange.",
+      "If this path is usable, alice could subscribe to listings within that exchange."
+    ]
+  },
+  "gcp-analyticshub-listings-setiampolicy-listing-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to subscribe to the exact Analytics Hub listing.",
+      "This could let alice subscribe to that listing and receive its shared data."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to subscribe to the exact Analytics Hub listing.",
+      "This could let alice subscribe to that listing and receive its shared data."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to subscribe to the exact Analytics Hub listing.",
+      "If this path is usable, alice could subscribe to that listing and receive its shared data."
+    ]
+  },
+  "gcp-apigee-proxy-deploy-with-sa-actas": {
+    "FAIL": [
+      "A deployed Apigee proxy or shared flow may exercise the selected service account’s API privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A deployed Apigee proxy or shared flow may exercise the selected service account’s API privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A deployed Apigee proxy or shared flow may exercise the selected service account’s API privileges.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-apigee-sharedflow-flowhook-with-sa-actas": {
+    "FAIL": [
+      "A deployed Apigee proxy or shared flow may exercise the selected service account’s API privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A deployed Apigee proxy or shared flow may exercise the selected service account’s API privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A deployed Apigee proxy or shared flow may exercise the selected service account’s API privileges.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-apikeys-authorization-key-bound-sa": {
+    "FAIL": [
+      "An authorization key bound to a service account may exercise only APIs that accept those keys.",
+      "This could let alice call only the APIs that accept the bound key."
+    ],
+    "MANUAL": [
+      "An authorization key bound to a service account may exercise only APIs that accept those keys.",
+      "This could let alice call only the APIs that accept the bound key."
+    ],
+    "UNKNOWN": [
+      "An authorization key bound to a service account may exercise only APIs that accept those keys.",
+      "If this path is usable, alice could call only the APIs that accept the bound key."
+    ]
+  },
+  "gcp-appengine-instances-enabledebug": {
+    "FAIL": [
+      "A usable App Engine flexible debug login may expose the version’s service-account credentials.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A usable App Engine flexible debug login may expose the version’s service-account credentials.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A usable App Engine flexible debug login may expose the version’s service-account credentials.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-appengine-versions-create-actas": {
+    "FAIL": [
+      "A new App Engine version may run controlled application code with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A new App Engine version may run controlled application code with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A new App Engine version may run controlled application code with the selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-appengine-versions-create-legacy-default-sa-no-actas": {
+    "FAIL": [
+      "A legacy deployment without the actAs guardrail may run as the default App Engine service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A legacy deployment without the actAs guardrail may run as the default App Engine service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A legacy deployment without the actAs guardrail may run as the default App Engine service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-appintegration-runas-sa-actas": {
+    "FAIL": [
+      "A published controlled integration may run API steps as the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A published controlled integration may run API steps as the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A published controlled integration may run API steps as the selected service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-artifactregistry-gcrio-namespace-squat": {
+    "FAIL": [
+      "Claiming a legacy gcr.io repository namespace may replace artifacts consumed by an existing workload.",
+      "A later workload could run a replaced artifact under its own identity."
+    ],
+    "MANUAL": [
+      "Claiming a legacy gcr.io repository namespace may replace artifacts consumed by an existing workload.",
+      "A later workload could run a replaced artifact under its own identity."
+    ],
+    "UNKNOWN": [
+      "Claiming a legacy gcr.io repository namespace may replace artifacts consumed by an existing workload.",
+      "If this path is usable, a later workload could run a replaced artifact under its own identity."
+    ]
+  },
+  "gcp-artifactregistry-repositories-setiampolicy": {
+    "FAIL": [
+      "Changing repository IAM may enable artifact replacement and code execution by a consuming workload.",
+      "A consuming workload could run a replaced artifact under its own identity."
+    ],
+    "MANUAL": [
+      "Changing repository IAM may enable artifact replacement and code execution by a consuming workload.",
+      "A consuming workload could run a replaced artifact under its own identity."
+    ],
+    "UNKNOWN": [
+      "Changing repository IAM may enable artifact replacement and code execution by a consuming workload.",
+      "If this path is usable, a consuming workload could run a replaced artifact under its own identity."
+    ]
+  },
+  "gcp-artifactregistry-repositories-setiampolicy-repository-self-grant": {
+    "FAIL": [
+      "The new grant could let the source upload artifacts to that repository.",
+      "A replaced artifact may affect software or data in systems that consume it."
+    ],
+    "MANUAL": [
+      "The new grant could let the source upload artifacts to that repository.",
+      "A replaced artifact may affect software or data in systems that consume it."
+    ],
+    "UNKNOWN": [
+      "If that policy change grants upload access, the source could replace artifacts.",
+      "A replaced artifact may affect software or data in systems that consume it."
+    ]
+  },
+  "gcp-artifactregistry-upload-artifacts": {
+    "FAIL": [
+      "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-batch-jobs-create-actas": {
+    "FAIL": [
+      "A controlled Batch job may execute code with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Batch job may execute code with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Batch job may execute code with the selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-biglake-catalogs-setiampolicy-catalog-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read the exact BigLake catalog metadata.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read the exact BigLake catalog metadata.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read the exact BigLake catalog metadata.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-biglake-namespaces-setiampolicy-namespace-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read the exact BigLake namespace metadata.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read the exact BigLake namespace metadata.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read the exact BigLake namespace metadata.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-biglake-tables-setiampolicy-table-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read the exact BigLake table metadata.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read the exact BigLake table metadata.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read the exact BigLake table metadata.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigquery-connections-setiampolicy-connection-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact BigQuery connection.",
+      "This could let alice use the connection within its granted scope."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact BigQuery connection.",
+      "This could let alice use the connection within its granted scope."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact BigQuery connection.",
+      "If this path is usable, alice could use the connection within its granted scope."
+    ]
+  },
+  "gcp-bigquery-continuous-query-actas": {
+    "FAIL": [
+      "A transfer or continuous query may exercise the selected service account’s BigQuery privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A transfer or continuous query may exercise the selected service account’s BigQuery privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A transfer or continuous query may exercise the selected service account’s BigQuery privileges.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-bigquery-datasets-setiampolicy-dataset-iam-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read table data within the exact dataset.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read table data within the exact dataset.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read table data within the exact dataset.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigquery-datasets-update-dataset-acl-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read table data within the exact dataset ACL scope.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read table data within the exact dataset ACL scope.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read table data within the exact dataset ACL scope.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigquery-row-policy-create-self-grant": {
+    "FAIL": [
+      "A self-targeted row policy may newly permit filtered reads of that exact BigQuery table.",
+      "This could let alice read rows allowed by that one table policy."
+    ],
+    "MANUAL": [
+      "A self-targeted row policy may newly permit filtered reads of that exact BigQuery table.",
+      "This could let alice read rows allowed by that one table policy."
+    ],
+    "UNKNOWN": [
+      "A self-targeted row policy may newly permit filtered reads of that exact BigQuery table.",
+      "If this path is usable, alice could read rows allowed by that one table policy."
+    ]
+  },
+  "gcp-bigquery-spark-procedure-connection-identity": {
+    "FAIL": [
+      "A Spark stored procedure may execute code with the delegated connection’s service identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A Spark stored procedure may execute code with the delegated connection’s service identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A Spark stored procedure may execute code with the delegated connection’s service identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-bigquery-tables-setiampolicy-table-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read data from the exact BigQuery table.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read data from the exact BigQuery table.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read data from the exact BigQuery table.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigquery-transfers-scheduled-query-actas": {
+    "FAIL": [
+      "A transfer or continuous query may exercise the selected service account’s BigQuery privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A transfer or continuous query may exercise the selected service account’s BigQuery privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A transfer or continuous query may exercise the selected service account’s BigQuery privileges.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-bigtable-authorizedviews-setiampolicy-authorized-view-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read rows through the exact authorized view.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read rows through the exact authorized view.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read rows through the exact authorized view.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigtable-backups-setiampolicy-backup-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to restore the exact Bigtable backup.",
+      "This could let alice restore data from that backup."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to restore the exact Bigtable backup.",
+      "This could let alice restore data from that backup."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to restore the exact Bigtable backup.",
+      "If this path is usable, alice could restore data from that backup."
+    ]
+  },
+  "gcp-bigtable-instances-setiampolicy-instance-admin-self-grant": {
+    "FAIL": [
+      "The new grant could let the source change that Bigtable instance.",
+      "Changes may affect applications and people relying on its data."
+    ],
+    "MANUAL": [
+      "The new grant could let the source change that Bigtable instance.",
+      "Changes may affect applications and people relying on its data."
+    ],
+    "UNKNOWN": [
+      "If that policy change grants update access, the source could change the instance.",
+      "Changes may affect applications and people relying on its data."
+    ]
+  },
+  "gcp-bigtable-instances-setiampolicy-instance-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read rows within the exact Bigtable instance.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read rows within the exact Bigtable instance.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read rows within the exact Bigtable instance.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigtable-materializedviews-setiampolicy-materialized-view-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read rows through the exact materialized view.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read rows through the exact materialized view.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read rows through the exact materialized view.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-bigtable-tables-setiampolicy-table-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read rows from the exact Bigtable table.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read rows from the exact Bigtable table.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read rows from the exact Bigtable table.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-cloudbuild-builds-create-cross-project-actas": {
+    "FAIL": [
+      "The target project's policy and the Cloud Build service-agent grant permit cross-project attachment.",
+      "A build may run code as that account and could use its access to data or services."
+    ],
+    "MANUAL": [
+      "The target project's policy and the Cloud Build service-agent grant permit cross-project attachment.",
+      "A build may run code as that account and could use its access to data or services."
+    ],
+    "UNKNOWN": [
+      "The target project's policy or Cloud Build service-agent grant is unknown.",
+      "If both allow attachment, a build could run as that account and use its access to data or services."
+    ]
+  },
+  "gcp-cloudbuild-builds-create-custom-sa-actas": {
+    "FAIL": [
+      "A controlled Cloud Build job may execute steps with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Cloud Build job may execute steps with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Cloud Build job may execute steps with the selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudbuild-builds-create-default-identity": {
+    "FAIL": [
+      "An enabled legacy Cloud Build identity may run controlled build steps without caller actAs.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "An enabled legacy Cloud Build identity may run controlled build steps without caller actAs.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "An enabled legacy Cloud Build identity may run controlled build steps without caller actAs.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudbuild-connections-setiampolicy-token-access": {
+    "FAIL": [
+      "Repository-token access may change code later executed by connected build triggers.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Repository-token access may change code later executed by connected build triggers.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Repository-token access may change code later executed by connected build triggers.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudbuild-repositories-accessreadwritetoken": {
+    "FAIL": [
+      "Repository-token access may change code later executed by connected build triggers.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Repository-token access may change code later executed by connected build triggers.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Repository-token access may change code later executed by connected build triggers.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-clouddeploy-custom-target-render-actas": {
+    "FAIL": [
+      "A changed custom target type may run controlled render tasks with its render service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A changed custom target type may run controlled render tasks with its render service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A changed custom target type may run controlled render tasks with its render service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-clouddeploy-pipeline-target-release-actas": {
+    "FAIL": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-clouddeploy-release-existing-pipeline": {
+    "FAIL": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-clouddeploy-resource-setiampolicy": {
+    "FAIL": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudfunctions-create-actas": {
+    "FAIL": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudfunctions-source-deploy-build-identity": {
+    "FAIL": [
+      "A source-based function build may run controlled build steps with the project’s default build identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A source-based function build may run controlled build steps with the project’s default build identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A source-based function build may run controlled build steps with the project’s default build identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudfunctions-update-env-actas": {
+    "FAIL": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudfunctions-update-sourcecodeset-actas": {
+    "FAIL": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled function deployment or reconfiguration may execute with its selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-cloudidentity-add-member-to-group": {
+    "FAIL": [
+      "Adding a controlled member to a Google group may confer that group’s assigned privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Adding a controlled member to a Google group may confer that group’s assigned privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Adding a controlled member to a Google group may confer that group’s assigned privileges.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-cloudkms-cryptokeys-setiampolicy-crypto-key-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to decrypt with the exact crypto key.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to decrypt with the exact crypto key.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to decrypt with the exact crypto key.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-cloudscheduler-jobs-create-actas": {
+    "FAIL": [
+      "A changed Scheduler job may send authenticated API requests as the selected service account.",
+      "The job could send requests that change data or services allowed to that account."
+    ],
+    "MANUAL": [
+      "A changed Scheduler job may send authenticated API requests as the selected service account.",
+      "The job could send requests that change data or services allowed to that account."
+    ],
+    "UNKNOWN": [
+      "A changed Scheduler job may send authenticated API requests as the selected service account.",
+      "If this path is usable, the job could send requests that change data or services allowed to that account."
+    ]
+  },
+  "gcp-cloudscheduler-jobs-update-actas": {
+    "FAIL": [
+      "A changed Scheduler job may send authenticated API requests as the selected service account.",
+      "The job could send requests that change data or services allowed to that account."
+    ],
+    "MANUAL": [
+      "A changed Scheduler job may send authenticated API requests as the selected service account.",
+      "The job could send requests that change data or services allowed to that account."
+    ],
+    "UNKNOWN": [
+      "A changed Scheduler job may send authenticated API requests as the selected service account.",
+      "If this path is usable, the job could send requests that change data or services allowed to that account."
+    ]
+  },
+  "gcp-cloudtasks-queues-setiampolicy-actas": {
+    "FAIL": [
+      "A controlled queued task may send authenticated requests as the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled queued task may send authenticated requests as the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled queued task may send authenticated requests as the selected service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-cloudtasks-tasks-create-actas": {
+    "FAIL": [
+      "A controlled queued task may send authenticated requests as the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled queued task may send authenticated requests as the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled queued task may send authenticated requests as the selected service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-composer-bucket-write": {
+    "FAIL": [
+      "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+      "The command or DAG could use the environment identity to reach data or services."
+    ],
+    "MANUAL": [
+      "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+      "The command or DAG could use the environment identity to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+      "If this path is usable, the command or DAG could use the environment identity to reach data or services."
+    ]
+  },
+  "gcp-composer-environments-create-actas": {
+    "FAIL": [
+      "A controlled Composer environment and delivered DAG may execute with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Composer environment and delivered DAG may execute with the selected service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Composer environment and delivered DAG may execute with the selected service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-composer-environments-update": {
+    "FAIL": [
+      "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+      "The command or DAG could use the environment identity to reach data or services."
+    ],
+    "MANUAL": [
+      "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+      "The command or DAG could use the environment identity to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+      "If this path is usable, the command or DAG could use the environment identity to reach data or services."
+    ]
+  },
+  "gcp-compute-disks-setiampolicy-disk-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact disk read-only.",
+      "This could let alice read the disk, within that read-only grant."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact disk read-only.",
+      "This could let alice read the disk, within that read-only grant."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact disk read-only.",
+      "If this path is usable, alice could read the disk, within that read-only grant."
+    ]
+  },
+  "gcp-compute-images-setiampolicy-image-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact Compute image read-only.",
+      "This could let alice read and use the image, within that read-only grant."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact Compute image read-only.",
+      "This could let alice read and use the image, within that read-only grant."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact Compute image read-only.",
+      "If this path is usable, alice could read and use the image, within that read-only grant."
+    ]
+  },
+  "gcp-compute-instancegroupmanagers-update-template": {
+    "FAIL": [
+      "A changed instance template may use the Google APIs Service Agent’s actAs authority to launch VMs.",
+      "New VMs could run with the service account selected by that template."
+    ],
+    "MANUAL": [
+      "A changed instance template may use the Google APIs Service Agent’s actAs authority to launch VMs.",
+      "New VMs could run with the service account selected by that template."
+    ],
+    "UNKNOWN": [
+      "A changed instance template may use the Google APIs Service Agent’s actAs authority to launch VMs.",
+      "If this path is usable, new VMs could run with the service account selected by that template."
+    ]
+  },
+  "gcp-compute-instances-create-actas": {
+    "FAIL": [
+      "A controlled Compute VM may run code with the selected attached service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Compute VM may run code with the selected attached service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Compute VM may run code with the selected attached service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-compute-instances-osadminlogin": {
+    "FAIL": [
+      "A usable OS Login session may expose the VM’s attached service-account credentials.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A usable OS Login session may expose the VM’s attached service-account credentials.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A usable OS Login session may expose the VM’s attached service-account credentials.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-compute-instances-oslogin": {
+    "FAIL": [
+      "A usable OS Login session may expose the VM’s attached service-account credentials.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A usable OS Login session may expose the VM’s attached service-account credentials.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A usable OS Login session may expose the VM’s attached service-account credentials.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-compute-instances-setiampolicy": {
+    "FAIL": [
+      "Changing VM IAM may enable a login path to the attached service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Changing VM IAM may enable a login path to the attached service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Changing VM IAM may enable a login path to the attached service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-compute-instances-setmetadata-existing-vm": {
+    "FAIL": [
+      "A later startup script or usable metadata SSH login may expose the existing VM service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A later startup script or usable metadata SSH login may expose the existing VM service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A later startup script or usable metadata SSH login may expose the existing VM service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-compute-instances-setserviceaccount-actas": {
+    "FAIL": [
+      "A controlled Compute VM may run code with the selected attached service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Compute VM may run code with the selected attached service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Compute VM may run code with the selected attached service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-compute-instancetemplates-mig-actas": {
+    "FAIL": [
+      "A changed instance template may use the Google APIs Service Agent’s actAs authority to launch VMs.",
+      "New VMs could run with the service account selected by that template."
+    ],
+    "MANUAL": [
+      "A changed instance template may use the Google APIs Service Agent’s actAs authority to launch VMs.",
+      "New VMs could run with the service account selected by that template."
+    ],
+    "UNKNOWN": [
+      "A changed instance template may use the Google APIs Service Agent’s actAs authority to launch VMs.",
+      "If this path is usable, new VMs could run with the service account selected by that template."
+    ]
+  },
+  "gcp-compute-machineimages-setiampolicy-machine-image-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact machine image read-only.",
+      "This could let alice read the machine image, within that read-only grant."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact machine image read-only.",
+      "This could let alice read the machine image, within that read-only grant."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact machine image read-only.",
+      "If this path is usable, alice could read the machine image, within that read-only grant."
+    ]
+  },
+  "gcp-compute-projects-setcommoninstancemetadata": {
+    "FAIL": [
+      "Changed project metadata may run startup or login code on VMs carrying the selected service accounts.",
+      "Startup code could use the service account attached to an affected VM."
+    ],
+    "MANUAL": [
+      "Changed project metadata may run startup or login code on VMs carrying the selected service accounts.",
+      "Startup code could use the service account attached to an affected VM."
+    ],
+    "UNKNOWN": [
+      "Changed project metadata may run startup or login code on VMs carrying the selected service accounts.",
+      "If this path is usable, startup code could use the service account attached to an affected VM."
+    ]
+  },
+  "gcp-compute-recoverablesnapshots-setiampolicy-recoverable-snapshot-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to recover the exact recoverable snapshot.",
+      "This could let alice recover data from that snapshot."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to recover the exact recoverable snapshot.",
+      "This could let alice recover data from that snapshot."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to recover the exact recoverable snapshot.",
+      "If this path is usable, alice could recover data from that snapshot."
+    ]
+  },
+  "gcp-compute-snapshots-setiampolicy-snapshot-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact snapshot read-only.",
+      "This could let alice read the snapshot, within that read-only grant."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact snapshot read-only.",
+      "This could let alice read the snapshot, within that read-only grant."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact snapshot read-only.",
+      "If this path is usable, alice could read the snapshot, within that read-only grant."
+    ]
+  },
+  "gcp-configcontroller-kcc-resource-write": {
+    "FAIL": [
+      "A policy resource could grant the source a project role.",
+      "That may let the source change access to cloud resources and data in the project."
+    ],
+    "MANUAL": [
+      "A policy resource could grant the source a project role.",
+      "That may let the source change access to cloud resources and data in the project."
+    ],
+    "UNKNOWN": [
+      "If the missing cluster and controller facts match, the resource could grant project IAM access.",
+      "That may let the source change access to cloud resources and data in the project."
+    ]
+  },
+  "gcp-configcontroller-kcc-service-account-key": {
+    "FAIL": [
+      "A generated key could let someone act as that service account.",
+      "They may then reach data or services allowed to the account."
+    ],
+    "MANUAL": [
+      "A generated key could let someone act as that service account.",
+      "They may then reach data or services allowed to the account."
+    ],
+    "UNKNOWN": [
+      "If the key access and target account match, a generated key could be usable.",
+      "It may then allow access to data or services allowed to that account."
+    ]
+  },
+  "gcp-configdelivery-fleetpackage-publish": {
+    "FAIL": [
+      "A published fleet package may apply manifests with the target cluster’s root reconciler privileges.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A published fleet package may apply manifests with the target cluster’s root reconciler privileges.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A published fleet package may apply manifests with the target cluster’s root reconciler privileges.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-connectors-connections-setiampolicy-connection-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to execute a query through the exact connector.",
+      "This could let alice run a query through that connector within its granted scope."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to execute a query through the exact connector.",
+      "This could let alice run a query through that connector within its granted scope."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to execute a query through the exact connector.",
+      "If this path is usable, alice could run a query through that connector within its granted scope."
+    ]
+  },
+  "gcp-contactcenterinsights-authorizedviews-setiampolicy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read the exact Contact Center authorized view.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read the exact Contact Center authorized view.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read the exact Contact Center authorized view.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-container-clusterroles-bind": {
+    "FAIL": [
+      "A cluster-role binding may grant the controlled identity cluster-admin permissions.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "A cluster-role binding may grant the controlled identity cluster-admin permissions.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "A cluster-role binding may grant the controlled identity cluster-admin permissions.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-container-clusterroles-escalate": {
+    "FAIL": [
+      "Expanding an already bound ClusterRole may confer cluster-admin permissions.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Expanding an already bound ClusterRole may confer cluster-admin permissions.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Expanding an already bound ClusterRole may confer cluster-admin permissions.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-clusters-impersonate": {
+    "FAIL": [
+      "GKE identity impersonation may exercise the target cluster’s privileged Kubernetes identity.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "GKE identity impersonation may exercise the target cluster’s privileged Kubernetes identity.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "GKE identity impersonation may exercise the target cluster’s privileged Kubernetes identity.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-clusters-nodepools-create-actas": {
+    "FAIL": [
+      "A new node pool may run nodes carrying the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A new node pool may run nodes carrying the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A new node pool may run nodes carrying the selected service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-mutatingwebhookconfigurations-write": {
+    "FAIL": [
+      "A changed admission webhook may inject code into later pods and reach their mounted KSA identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A changed admission webhook may inject code into later pods and reach their mounted KSA identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A changed admission webhook may inject code into later pods and reach their mounted KSA identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-container-namespaced-rbac-ksa": {
+    "FAIL": [
+      "Namespaced RBAC changes may enable workloads under KSAs of only the affected namespaces.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "Namespaced RBAC changes may enable workloads under KSAs of only the affected namespaces.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "Namespaced RBAC changes may enable workloads under KSAs of only the affected namespaces.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-container-nodes-proxy-node-sa": {
+    "FAIL": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-nodes-proxy-running-ksa": {
+    "FAIL": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-pod-template-ksa": {
+    "FAIL": [
+      "A controlled pod template may run as a selected KSA and any cloud identity explicitly bound to it.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled pod template may run as a selected KSA and any cloud identity explicitly bound to it.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled pod template may run as a selected KSA and any cloud identity explicitly bound to it.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-pod-template-node-sa": {
+    "FAIL": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-pods-exec-node-sa": {
+    "FAIL": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Pod execution or a usable node proxy may expose the GKE node service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-pods-exec-running-ksa": {
+    "FAIL": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-pods-update-running-ksa": {
+    "FAIL": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-secrets-read-ksa-token-secret": {
+    "FAIL": [
+      "Reading an existing service-account-token Secret may provide only its verified KSA’s permissions.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Reading an existing service-account-token Secret may provide only its verified KSA’s permissions.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Reading an existing service-account-token Secret may provide only its verified KSA’s permissions.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-container-serviceaccounts-createtoken": {
+    "FAIL": [
+      "Minting a KSA token may provide that account’s Kubernetes permissions, including any admin grant.",
+      "This could let alice use that KSA’s granted actions in the cluster."
+    ],
+    "MANUAL": [
+      "Minting a KSA token may provide that account’s Kubernetes permissions, including any admin grant.",
+      "This could let alice use that KSA’s granted actions in the cluster."
+    ],
+    "UNKNOWN": [
+      "Minting a KSA token may provide that account’s Kubernetes permissions, including any admin grant.",
+      "If this path is usable, alice could use that KSA’s granted actions in the cluster."
+    ]
+  },
+  "gcp-container-updatenodepool-expose-node-sa": {
+    "FAIL": [
+      "Changing a Standard node pool’s metadata mode may expose its node identity to a running pod.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Changing a Standard node pool’s metadata mode may expose its node identity to a running pod.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Changing a Standard node pool’s metadata mode may expose its node identity to a running pod.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-containeranalysis-notes-setiampolicy-note-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to attach an occurrence to the exact analysis note.",
+      "This could let alice add an occurrence tied to that analysis note."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to attach an occurrence to the exact analysis note.",
+      "This could let alice add an occurrence tied to that analysis note."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to attach an occurrence to the exact analysis note.",
+      "If this path is usable, alice could add an occurrence tied to that analysis note."
+    ]
+  },
+  "gcp-datacatalog-categories-setiampolicy-policy-tag-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read data protected by the exact policy tag.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read data protected by the exact policy tag.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read data protected by the exact policy tag.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-datacatalog-taxonomies-setiampolicy-taxonomy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read data protected by the exact taxonomy.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read data protected by the exact taxonomy.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read data protected by the exact taxonomy.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-dataflow-datapipelines-create-actas": {
+    "FAIL": [
+      "A controlled Dataflow pipeline may run with the selected worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataflow pipeline may run with the selected worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataflow pipeline may run with the selected worker service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-dataflow-jobs-create-actas": {
+    "FAIL": [
+      "A controlled Dataflow pipeline may run with the selected worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataflow pipeline may run with the selected worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataflow pipeline may run with the selected worker service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-dataflow-udf-template-bucket-write": {
+    "FAIL": [
+      "Replacing a loaded Dataflow UDF or template may execute code with its existing worker identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Replacing a loaded Dataflow UDF or template may execute code with its existing worker identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Replacing a loaded Dataflow UDF or template may execute code with its existing worker identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-dataform-workflow-invocation-actas": {
+    "FAIL": [
+      "A controlled Dataform workflow may exercise the selected service account’s BigQuery permissions.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataform workflow may exercise the selected service account’s BigQuery permissions.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataform workflow may exercise the selected service account’s BigQuery permissions.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-datafusion-artifacts-create-plugin-poison": {
+    "FAIL": [
+      "A planted plugin may run with the pipeline identity when a legitimate Data Fusion job loads it.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A planted plugin may run with the pipeline identity when a legitimate Data Fusion job loads it.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A planted plugin may run with the pipeline identity when a legitimate Data Fusion job loads it.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-datafusion-pipelines-create-execute": {
+    "FAIL": [
+      "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-datafusion-setiampolicy-self-grant": {
+    "FAIL": [
+      "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-dataplex-tasks-create-actas": {
+    "FAIL": [
+      "A controlled Dataplex Spark task may run with the selected execution service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataplex Spark task may run with the selected execution service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataplex Spark task may run with the selected execution service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-dataproc-clusters-batches-create-actas": {
+    "FAIL": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-dataproc-clusters-setiampolicy": {
+    "FAIL": [
+      "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-dataproc-component-gateway-existing-cluster": {
+    "FAIL": [
+      "A usable Component Gateway notebook may run code as the existing cluster identity without job creation.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A usable Component Gateway notebook may run code as the existing cluster identity without job creation.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A usable Component Gateway notebook may run code as the existing cluster identity without job creation.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-dataproc-jobs-create-existing-cluster": {
+    "FAIL": [
+      "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-dataproc-sessions-create-actas": {
+    "FAIL": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-dataproc-staging-object-replace": {
+    "FAIL": [
+      "The named Dataproc cluster references an initialization script at the recorded object path.",
+      "A new node may run changed script code as the cluster account and reach data or services."
+    ],
+    "MANUAL": [
+      "The named Dataproc cluster references an initialization script at the recorded object path.",
+      "A new node may run changed script code as the cluster account and reach data or services."
+    ],
+    "UNKNOWN": [
+      "The initialization script path or object permission evidence is incomplete.",
+      "A new node could run changed code with access to cluster data, but the missing link leaves that risk unresolved."
+    ]
+  },
+  "gcp-dataproc-workflowtemplates-actas": {
+    "FAIL": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-deploymentmanager-deployments-create": {
+    "FAIL": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-deploymentmanager-deployments-setiampolicy": {
+    "FAIL": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-deploymentmanager-deployments-update": {
+    "FAIL": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Deployment Manager deployment may exercise the project’s Google APIs Service Agent.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-developerconnect-readwrite-token-pipeline-poison": {
+    "FAIL": [
+      "A writable connected repository may alter code later run by an automated build or deployment identity.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A writable connected repository may alter code later run by an automated build or deployment identity.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A writable connected repository may alter code later run by an automated build or deployment identity.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-discoveryengine-collections-setiampolicy-collection-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read the exact Discovery Engine collection.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read the exact Discovery Engine collection.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read the exact Discovery Engine collection.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-discoveryengine-datastores-setiampolicy-data-store-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact Discovery Engine data store.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact Discovery Engine data store.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact Discovery Engine data store.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-discoveryengine-engines-setiampolicy-engine-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact Discovery Engine engine.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact Discovery Engine engine.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact Discovery Engine engine.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-domains-configuredns-workspace-admin-recovery": {
+    "FAIL": [
+      "Usable control of a tenant’s primary-domain DNS may support Workspace super-admin recovery.",
+      "This could let alice try to recover the tenant’s Workspace super-admin account."
+    ],
+    "MANUAL": [
+      "Usable control of a tenant’s primary-domain DNS may support Workspace super-admin recovery.",
+      "This could let alice try to recover the tenant’s Workspace super-admin account."
+    ],
+    "UNKNOWN": [
+      "Usable control of a tenant’s primary-domain DNS may support Workspace super-admin recovery.",
+      "If this path is usable, alice could try to recover the tenant’s Workspace super-admin account."
+    ]
+  },
+  "gcp-domains-configuremanagement-transfer-workspace-admin-recovery": {
+    "FAIL": [
+      "Usable control of a tenant’s primary-domain DNS may support Workspace super-admin recovery.",
+      "This could let alice try to recover the tenant’s Workspace super-admin account."
+    ],
+    "MANUAL": [
+      "Usable control of a tenant’s primary-domain DNS may support Workspace super-admin recovery.",
+      "This could let alice try to recover the tenant’s Workspace super-admin account."
+    ],
+    "UNKNOWN": [
+      "Usable control of a tenant’s primary-domain DNS may support Workspace super-admin recovery.",
+      "If this path is usable, alice could try to recover the tenant’s Workspace super-admin account."
+    ]
+  },
+  "gcp-domains-registrations-setiampolicy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to change DNS for the exact domain registration.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to change DNS for the exact domain registration.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to change DNS for the exact domain registration.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-eventarc-pipeline-oauth-token-actas": {
+    "FAIL": [
+      "A controlled Eventarc HTTPS destination may receive an OAuth token for the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "A controlled Eventarc HTTPS destination may receive an OAuth token for the selected service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "A controlled Eventarc HTTPS destination may receive an OAuth token for the selected service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-firebase-signblob-exact-custom-token-user": {
+    "FAIL": [
+      "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+      "This could let alice perform only the verified action as that application user."
+    ],
+    "MANUAL": [
+      "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+      "This could let alice perform only the verified action as that application user."
+    ],
+    "UNKNOWN": [
+      "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+      "If this path is usable, alice could perform only the verified action as that application user."
+    ]
+  },
+  "gcp-firebase-signjwt-exact-custom-token-user": {
+    "FAIL": [
+      "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+      "This could let alice perform only the verified action as that application user."
+    ],
+    "MANUAL": [
+      "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+      "This could let alice perform only the verified action as that application user."
+    ],
+    "UNKNOWN": [
+      "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+      "If this path is usable, alice could perform only the verified action as that application user."
+    ]
+  },
+  "gcp-firebaseapphosting-backends-update-actas": {
+    "FAIL": [
+      "A changed App Hosting backend may deploy controlled code under the selected service account.",
+      "The deployed code could use the selected service account’s access."
+    ],
+    "MANUAL": [
+      "A changed App Hosting backend may deploy controlled code under the selected service account.",
+      "The deployed code could use the selected service account’s access."
+    ],
+    "UNKNOWN": [
+      "A changed App Hosting backend may deploy controlled code under the selected service account.",
+      "If this path is usable, the deployed code could use the selected service account’s access."
+    ]
+  },
+  "gcp-firebaseapphosting-build-rollout-existing-backend": {
+    "FAIL": [
+      "A controlled build and rollout may execute as the existing App Hosting backend identity without caller actAs.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled build and rollout may execute as the existing App Hosting backend identity without caller actAs.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled build and rollout may execute as the existing App Hosting backend identity without caller actAs.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-gkehub-features-configmanagement": {
+    "FAIL": [
+      "Changed Config Management reconciliation may apply privileged manifests on the selected member cluster.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "Changed Config Management reconciliation may apply privileged manifests on the selected member cluster.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "Changed Config Management reconciliation may apply privileged manifests on the selected member cluster.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-gkehub-memberships-setiampolicy-membership-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to generate gateway credentials for the exact fleet membership.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to generate gateway credentials for the exact fleet membership.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to generate gateway credentials for the exact fleet membership.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-gkehub-rbacrolebindings-gateway": {
+    "FAIL": [
+      "A usable Fleet RBAC binding and API path may grant cluster administration within Fleet role limits.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "A usable Fleet RBAC binding and API path may grant cluster administration within Fleet role limits.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "A usable Fleet RBAC binding and API path may grant cluster administration within Fleet role limits.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-healthcare-consentstores-setiampolicy-consent-store-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read consents in the exact consent store.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read consents in the exact consent store.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read consents in the exact consent store.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-healthcare-datasets-setiampolicy-dataset-self-grant": {
+    "FAIL": [
+      "The named FHIR store inherits that dataset policy, and no earlier search grant was recorded for alice.",
+      "A new reader grant may let alice search clinical records there when access rules allow it."
+    ],
+    "MANUAL": [
+      "The named FHIR store inherits that dataset policy, and no earlier search grant was recorded for alice.",
+      "A new reader grant may let alice search clinical records there when access rules allow it."
+    ],
+    "UNKNOWN": [
+      "The missing policy facts leave any new search grant unresolved.",
+      "If gained, alice could search clinical records when the store access rules allow it."
+    ]
+  },
+  "gcp-healthcare-dicomstores-setiampolicy-dicom-store-self-grant": {
+    "FAIL": [
+      "The named DICOM store has no earlier DICOMweb read grant recorded for alice.",
+      "A new viewer grant may let alice read medical images there when present."
+    ],
+    "MANUAL": [
+      "The named DICOM store has no earlier DICOMweb read grant recorded for alice.",
+      "A new viewer grant may let alice read medical images there when present."
+    ],
+    "UNKNOWN": [
+      "The missing policy facts leave any new DICOMweb read grant unresolved.",
+      "If gained, alice could read medical images in that store when present."
+    ]
+  },
+  "gcp-healthcare-fhirstores-setiampolicy-fhir-store-self-grant": {
+    "FAIL": [
+      "The named FHIR store has no earlier FHIR resource read grant recorded for alice.",
+      "A new reader grant may let alice read clinical records there when access rules allow it."
+    ],
+    "MANUAL": [
+      "The named FHIR store has no earlier FHIR resource read grant recorded for alice.",
+      "A new reader grant may let alice read clinical records there when access rules allow it."
+    ],
+    "UNKNOWN": [
+      "The missing policy facts leave any new FHIR resource read grant unresolved.",
+      "If gained, alice could read clinical records when the store access rules allow it."
+    ]
+  },
+  "gcp-healthcare-hl7v2stores-setiampolicy-hl7v2-store-self-grant": {
+    "FAIL": [
+      "The named HL7v2 store has no earlier message-list grant recorded for alice.",
+      "A new consumer grant may let alice list clinical messages there when present."
+    ],
+    "MANUAL": [
+      "The named HL7v2 store has no earlier message-list grant recorded for alice.",
+      "A new consumer grant may let alice list clinical messages there when present."
+    ],
+    "UNKNOWN": [
+      "The missing policy facts leave any new message-list grant unresolved.",
+      "If gained, alice could list clinical messages in that store when present."
+    ]
+  },
+  "gcp-hypercomputecluster-login-node-startup-actas": {
+    "FAIL": [
+      "A changed Cluster Director login-node startup script may execute with the selected node identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A changed Cluster Director login-node startup script may execute with the selected node identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A changed Cluster Director login-node startup script may execute with the selected node identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-iam-roles-update-own-custom-role": {
+    "FAIL": [
+      "Expanding a custom role already bound to the source may add owner-level scope privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Expanding a custom role already bound to the source may add owner-level scope privileges.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Expanding a custom role already bound to the source may add owner-level scope privileges.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-iam-serviceaccountkeys-create": {
+    "FAIL": [
+      "A newly created service-account key may enable requests as that service account.",
+      "This could let alice send requests using that service account’s granted access."
+    ],
+    "MANUAL": [
+      "A newly created service-account key may enable requests as that service account.",
+      "This could let alice send requests using that service account’s granted access."
+    ],
+    "UNKNOWN": [
+      "A newly created service-account key may enable requests as that service account.",
+      "If this path is usable, alice could send requests using that service account’s granted access."
+    ]
+  },
+  "gcp-iam-serviceaccounts-getaccesstoken": {
+    "FAIL": [
+      "Access-token creation may enable requests as the target service account.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "Access-token creation may enable requests as the target service account.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "Access-token creation may enable requests as the target service account.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-iam-serviceaccounts-implicitdelegation": {
+    "FAIL": [
+      "An authorized delegation chain may mint credentials for its end account; intermediate delegates are not reached.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "An authorized delegation chain may mint credentials for its end account; intermediate delegates are not reached.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "An authorized delegation chain may mint credentials for its end account; intermediate delegates are not reached.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-iam-serviceaccounts-setiampolicy": {
+    "FAIL": [
+      "Changing a service account’s IAM policy may add authority to impersonate that account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Changing a service account’s IAM policy may add authority to impersonate that account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Changing a service account’s IAM policy may add authority to impersonate that account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-iam-serviceaccounts-signblob": {
+    "FAIL": [
+      "Signing authority may mint usable authentication material for the target service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Signing authority may mint usable authentication material for the target service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Signing authority may mint usable authentication material for the target service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-iam-serviceaccounts-signjwt": {
+    "FAIL": [
+      "Signing authority may mint usable authentication material for the target service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "MANUAL": [
+      "Signing authority may mint usable authentication material for the target service account.",
+      "This could give alice access to data or controls linked to the target."
+    ],
+    "UNKNOWN": [
+      "Signing authority may mint usable authentication material for the target service account.",
+      "If this path is usable, alice could gain access to data or controls linked to the target."
+    ]
+  },
+  "gcp-iap-tunnelinstances-setiampolicy-instance-self-grant": {
+    "FAIL": [
+      "That policy change could grant access through an IAP tunnel to the named VM.",
+      "The new permission could expose services and data on that VM if a tunnel can be opened."
+    ],
+    "MANUAL": [
+      "That policy change could grant access through an IAP tunnel to the named VM.",
+      "The new permission could expose services and data on that VM if a tunnel can be opened."
+    ],
+    "UNKNOWN": [
+      "The missing evidence leaves the policy change or prior tunnel access unresolved.",
+      "Access to services and data on that VM therefore remains uncertain."
+    ]
+  },
+  "gcp-iap-tunnelzones-setiampolicy-zone-self-grant": {
+    "FAIL": [
+      "That zone policy change could grant IAP tunnel access to the named VM.",
+      "The new permission could expose services and data on that VM if a tunnel can be opened."
+    ],
+    "MANUAL": [
+      "That zone policy change could grant IAP tunnel access to the named VM.",
+      "The new permission could expose services and data on that VM if a tunnel can be opened."
+    ],
+    "UNKNOWN": [
+      "The missing evidence leaves the zone policy change or prior tunnel access unresolved.",
+      "Access to services and data on that VM therefore remains uncertain."
+    ]
+  },
+  "gcp-identitytoolkit-tenants-setiampolicy-tenant-self-grant": {
+    "FAIL": [
+      "That policy change could grant new permission to update users in this tenant.",
+      "Changed user accounts could affect the people and data served by this tenant."
+    ],
+    "MANUAL": [
+      "That policy change could grant new permission to update users in this tenant.",
+      "Changed user accounts could affect the people and data served by this tenant."
+    ],
+    "UNKNOWN": [
+      "The missing evidence leaves any new user-update permission unresolved.",
+      "The effect on this tenant's user accounts therefore remains uncertain."
+    ]
+  },
+  "gcp-inframanager-deployments-create-actas": {
+    "FAIL": [
+      "The submitted Terraform may run as that service account.",
+      "Its permissions could let the deployment change resources or data that account can reach."
+    ],
+    "MANUAL": [
+      "The submitted Terraform may run as that service account.",
+      "Its permissions could let the deployment change resources or data that account can reach."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the deployment's run-as identity unresolved.",
+      "The possible effect on resources or data therefore remains uncertain."
+    ]
+  },
+  "gcp-krmapihosting-krmapihosts-setiampolicy-krm-api-host-self-grant": {
+    "FAIL": [
+      "That policy change could grant new permission to update the Config Controller host.",
+      "A changed host could alter the configuration that manages cloud resources and people’s data."
+    ],
+    "MANUAL": [
+      "That policy change could grant new permission to update the Config Controller host.",
+      "A changed host could alter the configuration that manages cloud resources and people’s data."
+    ],
+    "UNKNOWN": [
+      "The missing evidence leaves any new host-update permission unresolved.",
+      "The possible effect on cloud resources and people’s data remains uncertain."
+    ]
+  },
+  "gcp-logging-views-setiampolicy-self-grant": {
+    "FAIL": [
+      "That policy change could give new access to logs visible through this view.",
+      "Those logs may contain details about people, actions, or data."
+    ],
+    "MANUAL": [
+      "That policy change could give new access to logs visible through this view.",
+      "Those logs may contain details about people, actions, or data."
+    ],
+    "UNKNOWN": [
+      "The missing evidence leaves any new log access unresolved.",
+      "The possible effect on people and their data remains uncertain."
+    ]
+  },
+  "gcp-metastore-services-setiampolicy-metastore-service-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact Metastore service.",
+      "This could let alice use that Metastore service within its granted scope."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact Metastore service.",
+      "This could let alice use that Metastore service within its granted scope."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact Metastore service.",
+      "If this path is usable, alice could use that Metastore service within its granted scope."
+    ]
+  },
+  "gcp-networkconnectivity-groups-setiampolicy-group-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to use the exact Network Connectivity group.",
+      "This could let alice use that connectivity group within its granted scope."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to use the exact Network Connectivity group.",
+      "This could let alice use that connectivity group within its granted scope."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to use the exact Network Connectivity group.",
+      "If this path is usable, alice could use that connectivity group within its granted scope."
+    ]
+  },
+  "gcp-networkconnectivity-hubs-setiampolicy-group-use-self-grant": {
+    "FAIL": [
+      "The new grant could let the source use groups attached to that hub.",
+      "That may change which networks can connect and reach private services."
+    ],
+    "MANUAL": [
+      "The new grant could let the source use groups attached to that hub.",
+      "That may change which networks can connect and reach private services."
+    ],
+    "UNKNOWN": [
+      "If that policy change grants group use, the source could join networks through the hub.",
+      "That may change which networks can reach private services."
+    ]
+  },
+  "gcp-networkconnectivity-hubs-setiampolicy-hub-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact Network Connectivity hub.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact Network Connectivity hub.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact Network Connectivity hub.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-networksecurity-addressgroups-setiampolicy-address-group-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact network address group.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact network address group.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact network address group.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-networksecurity-authorizationpolicies-setiampolicy-authorization-policy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact authorization policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact authorization policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact authorization policy.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-networksecurity-authzpolicies-setiampolicy-authz-policy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact authz policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact authz policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact authz policy.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-networksecurity-clienttlspolicies-setiampolicy-client-tls-policy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact client TLS policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact client TLS policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact client TLS policy.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-networksecurity-servertlspolicies-setiampolicy-server-tls-policy-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to update the exact server TLS policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to update the exact server TLS policy.",
+      "This could let alice change the named resource or its access rules."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to update the exact server TLS policy.",
+      "If this path is usable, alice could change the named resource or its access rules."
+    ]
+  },
+  "gcp-osconfig-guestpolicies-recipe": {
+    "FAIL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-osconfig-ospolicyassignments-create": {
+    "FAIL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-osconfig-patchjobs-exec": {
+    "FAIL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-osconfig-policyorchestrators": {
+    "FAIL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-privateca-capools-setiampolicy-ca-pool-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to create certificates within the exact CA pool.",
+      "This could let alice issue certificates within that CA pool."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to create certificates within the exact CA pool.",
+      "This could let alice issue certificates within that CA pool."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to create certificates within the exact CA pool.",
+      "If this path is usable, alice could issue certificates within that CA pool."
+    ]
+  },
+  "gcp-privatecatalog-product-version-poison": {
+    "FAIL": [
+      "A changed shared solution may exercise a consumer project’s Google APIs Service Agent when deployed.",
+      "A consumer deployment could run the changed solution with its own service identity."
+    ],
+    "MANUAL": [
+      "A changed shared solution may exercise a consumer project’s Google APIs Service Agent when deployed.",
+      "A consumer deployment could run the changed solution with its own service identity."
+    ],
+    "UNKNOWN": [
+      "A changed shared solution may exercise a consumer project’s Google APIs Service Agent when deployed.",
+      "If this path is usable, a consumer deployment could run the changed solution with its own service identity."
+    ]
+  },
+  "gcp-pubsub-subscriptions-setiampolicy-subscription-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to consume the exact Pub/Sub subscription.",
+      "This could let alice read messages delivered to that subscription."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to consume the exact Pub/Sub subscription.",
+      "This could let alice read messages delivered to that subscription."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to consume the exact Pub/Sub subscription.",
+      "If this path is usable, alice could read messages delivered to that subscription."
+    ]
+  },
+  "gcp-pubsub-topics-setiampolicy-topic-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to publish to the exact Pub/Sub topic.",
+      "This could let alice publish messages that subscribers may act on."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to publish to the exact Pub/Sub topic.",
+      "This could let alice publish messages that subscribers may act on."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to publish to the exact Pub/Sub topic.",
+      "If this path is usable, alice could publish messages that subscribers may act on."
+    ]
+  },
+  "gcp-resourcemanager-folders-setiampolicy": {
+    "FAIL": [
+      "A new Folder Admin role could let alice change the folder and control access in its projects.",
+      "That could expose or disrupt data held in those projects."
+    ],
+    "MANUAL": [
+      "A new Folder Admin role could let alice change the folder and control access in its projects.",
+      "That could expose or disrupt data held in those projects."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible Folder Admin gain unresolved.",
+      "If the role could be granted, access to project data could change."
+    ]
+  },
+  "gcp-resourcemanager-organizations-setiampolicy": {
+    "FAIL": [
+      "A new Organization Policy Admin role could let alice change security rules across projects.",
+      "Those changes could weaken protection for people's data."
+    ],
+    "MANUAL": [
+      "A new Organization Policy Admin role could let alice change security rules across projects.",
+      "Those changes could weaken protection for people's data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible policy-admin gain unresolved.",
+      "If the role could be granted, project security rules and data protection could change."
+    ]
+  },
+  "gcp-resourcemanager-organizations-setiampolicy-deny-admin": {
+    "FAIL": [
+      "A new Deny Admin role could let alice set rules that block access across the organization.",
+      "Those rules could interrupt services or keep people from reaching their data."
+    ],
+    "MANUAL": [
+      "A new Deny Admin role could let alice set rules that block access across the organization.",
+      "Those rules could interrupt services or keep people from reaching their data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible Deny Admin gain unresolved.",
+      "If the role could be granted, access to services and data could change."
+    ]
+  },
+  "gcp-resourcemanager-organizations-setiampolicy-role-admin": {
+    "FAIL": [
+      "A new Organization Role Administrator role could let alice create or change custom roles.",
+      "Those changes could alter who can reach services and people’s data."
+    ],
+    "MANUAL": [
+      "A new Organization Role Administrator role could let alice create or change custom roles.",
+      "Those changes could alter who can reach services and people’s data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible custom-role access unresolved.",
+      "If the role could be granted, access to services and data could change."
+    ]
+  },
+  "gcp-resourcemanager-projects-setiampolicy": {
+    "FAIL": [
+      "A new Editor role could let alice change services and resources in the project.",
+      "Those changes could expose or disrupt data held in the project."
+    ],
+    "MANUAL": [
+      "A new Editor role could let alice change services and resources in the project.",
+      "Those changes could expose or disrupt data held in the project."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible Editor gain unresolved.",
+      "If the role could be granted, access to project data could change."
+    ]
+  },
+  "gcp-resourcemanager-projects-setiampolicy-project-delete": {
+    "FAIL": [
+      "A new Project Deleter role could let alice delete the project.",
+      "That could interrupt services people use and put their data at risk."
+    ],
+    "MANUAL": [
+      "A new Project Deleter role could let alice delete the project.",
+      "That could interrupt services people use and put their data at risk."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible deletion right unresolved.",
+      "If the role could be granted, project services and data could be at risk."
+    ]
+  },
+  "gcp-resourcemanager-projects-setiampolicy-sa-token": {
+    "FAIL": [
+      "That role could let alice mint a token as the service account.",
+      "The token could give alice the account’s access to people’s data."
+    ],
+    "MANUAL": [
+      "That role could let alice mint a token as the service account.",
+      "The token could give alice the account’s access to people’s data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave new token access unresolved.",
+      "If the role could be granted, the account’s access to data could be exposed."
+    ]
+  },
+  "gcp-run-instances-create-update-actas": {
+    "FAIL": [
+      "A controlled Cloud Run instance could run code as that service account.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "MANUAL": [
+      "A controlled Cloud Run instance could run code as that service account.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave the possible instance run-as path unresolved.",
+      "If usable, that path could expose data available to the service account."
+    ]
+  },
+  "gcp-run-instances-create-update-cross-project-actas": {
+    "FAIL": [
+      "A Cloud Run instance could then run code as that account from another project.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "MANUAL": [
+      "A Cloud Run instance could then run code as that account from another project.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave cross-project attachment to a Cloud Run instance unresolved.",
+      "If usable, that path could expose data available to the service account."
+    ]
+  },
+  "gcp-run-instances-ssh": {
+    "FAIL": [
+      "An SSH session could let alice run commands inside that container.",
+      "Those commands could use the attached account’s access to people’s data."
+    ],
+    "MANUAL": [
+      "An SSH session could let alice run commands inside that container.",
+      "Those commands could use the attached account’s access to people’s data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave root SSH access to that container unresolved.",
+      "If available, that access could expose data available to its service account."
+    ]
+  },
+  "gcp-run-jobs-create-run-actas": {
+    "FAIL": [
+      "A new job could run code as that service account.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "MANUAL": [
+      "A new job could run code as that service account.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave creation and execution of a new job unresolved.",
+      "If usable, the job could expose data available to the service account."
+    ]
+  },
+  "gcp-run-jobs-create-run-cross-project-actas": {
+    "FAIL": [
+      "A new job could run code as that account from another project.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "MANUAL": [
+      "A new job could run code as that account from another project.",
+      "That code could use the account’s access to people’s data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave cross-project job execution unresolved.",
+      "If usable, the job could expose data available to the service account."
+    ]
+  },
+  "gcp-run-jobs-runwithoverrides": {
+    "FAIL": [
+      "Overridden arguments could supply code to that interpreter.",
+      "The code could use the service account’s access to people’s data."
+    ],
+    "MANUAL": [
+      "Overridden arguments could supply code to that interpreter.",
+      "The code could use the service account’s access to people’s data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave execution through overridden arguments unresolved.",
+      "If usable, that code could reach data available to the service account."
+    ]
+  },
+  "gcp-run-jobs-setiampolicy": {
+    "FAIL": [
+      "Those new rights may let alice run code as the pinned service account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "MANUAL": [
+      "Those new rights may let alice run code as the pinned service account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave code execution under the pinned account unresolved.",
+      "If usable, that code could reach people's data or connected services."
+    ]
+  },
+  "gcp-run-jobs-update-run-actas": {
+    "FAIL": [
+      "The changed job may run new code as that service account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "MANUAL": [
+      "The changed job may run new code as that service account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave execution under that service account unresolved.",
+      "If usable, the code could reach people's data or connected services."
+    ]
+  },
+  "gcp-run-services-create-actas": {
+    "FAIL": [
+      "The new service may start code as that service account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "MANUAL": [
+      "The new service may start code as that service account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave creation under that service account unresolved.",
+      "If usable, the code could reach people's data or connected services."
+    ]
+  },
+  "gcp-run-services-create-cross-project-actas": {
+    "FAIL": [
+      "The service agent can obtain tokens for the attached account.",
+      "New service code could use that account's access to people's data or services."
+    ],
+    "MANUAL": [
+      "The service agent can obtain tokens for the attached account.",
+      "New service code could use that account's access to people's data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave cross-project attachment unresolved.",
+      "If usable, new service code could reach people's data or connected services."
+    ]
+  },
+  "gcp-run-services-setiampolicy-actas": {
+    "FAIL": [
+      "Those new rights may let alice deploy code under the pinned service account.",
+      "If the service starts, that code could use the account's access to people's data."
+    ],
+    "MANUAL": [
+      "Those new rights may let alice deploy code under the pinned service account.",
+      "If the service starts, that code could use the account's access to people's data."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave code deployment under that account unresolved.",
+      "If usable, that code could reach people's data or connected services."
+    ]
+  },
+  "gcp-run-services-update-actas": {
+    "FAIL": [
+      "The changed service may start new code as that account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "MANUAL": [
+      "The changed service may start new code as that account.",
+      "That code could use the account's access to people's data or services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave deployment under that account unresolved.",
+      "If usable, that code could reach people's data or connected services."
+    ]
+  },
+  "gcp-run-ssh-into-running-instance": {
+    "FAIL": [
+      "An allowed SSH session could expose the service account inside the container.",
+      "That account could reach data or controls tied to people's services."
+    ],
+    "MANUAL": [
+      "An allowed SSH session could expose the service account inside the container.",
+      "That account could reach data or controls tied to people's services."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave SSH access to the service unresolved.",
+      "If available, it could expose data or controls tied to people's services."
+    ]
+  },
+  "gcp-run-workerpools-create-update-actas": {
+    "FAIL": [
+      "A created or updated worker pool may run new code as that account.",
+      "That code could reach data or services available to the account."
+    ],
+    "MANUAL": [
+      "A created or updated worker pool may run new code as that account.",
+      "That code could reach data or services available to the account."
+    ],
+    "UNKNOWN": [
+      "The missing facts leave deployment under that account unresolved.",
+      "If usable, that code could reach data or connected services."
+    ]
+  },
+  "gcp-run-workerpools-setiampolicy-actas": {
+    "FAIL": [
+      "A new update grant may let the pool run changed code as that account.",
+      "That code could reach data or services available to the account."
+    ],
+    "MANUAL": [
+      "A new update grant may let the pool run changed code as that account.",
+      "That code could reach data or services available to the account."
+    ],
+    "UNKNOWN": [
+      "The missing policy or role facts leave the new update grant unresolved.",
+      "If usable, changed code could reach data or connected services."
+    ]
+  },
+  "gcp-secretmanager-secrets-setiampolicy-secret-self-grant": {
+    "FAIL": [
+      "The caller could grant itself permission to read a version of the exact secret.",
+      "This could expose the named data to alice."
+    ],
+    "MANUAL": [
+      "The caller could grant itself permission to read a version of the exact secret.",
+      "This could expose the named data to alice."
+    ],
+    "UNKNOWN": [
+      "The caller could grant itself permission to read a version of the exact secret.",
+      "If this path is usable, alice could read the named data."
+    ]
+  },
+  "gcp-sourcerepos-setiampolicy": {
+    "FAIL": [
+      "Changing that policy could let the caller grant itself write access and push build content.",
+      "If the trigger accepts the push, the build account's access could expose data or change services."
+    ],
+    "MANUAL": [
+      "Changing that policy could let the caller grant itself write access and push build content.",
+      "If the trigger accepts the push, the build account's access could expose data or change services."
+    ],
+    "UNKNOWN": [
+      "Changing that policy may let the caller grant itself write access and push build content.",
+      "If the trigger accepts the push, the build account's access could expose data or change services."
+    ]
+  },
+  "gcp-sourcerepos-update-build-trigger": {
+    "FAIL": [
+      "A push accepted by that trigger could run repository-controlled build content as the named build account.",
+      "That account's additional access could expose data or change services."
+    ],
+    "MANUAL": [
+      "A push accepted by that trigger could run repository-controlled build content as the named build account.",
+      "That account's additional access could expose data or change services."
+    ],
+    "UNKNOWN": [
+      "A push may run build content as the named account if the trigger accepts it.",
+      "That account's additional access could expose data or change services."
+    ]
+  },
+  "gcp-storage-buckets-setiampolicy-code-consumers": {
+    "FAIL": [
+      "The recorded bucket holds code referenced by a Dataproc cluster or non-triggered Cloud Build.",
+      "A later node startup or build retry may run changed code as its service account and reach data or services."
+    ],
+    "MANUAL": [
+      "The recorded bucket holds code referenced by a Dataproc cluster or non-triggered Cloud Build.",
+      "A later node startup or build retry may run changed code as its service account and reach data or services."
+    ],
+    "UNKNOWN": [
+      "The code-bearing bucket or workload identity link is incomplete.",
+      "Changed code could run as the service account and reach data, but the missing workload link leaves that risk unresolved."
+    ]
+  },
+  "gcp-storage-buckets-setiampolicy-composer": {
+    "FAIL": [
+      "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "MANUAL": [
+      "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+      "That code could use the named identity's access to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+      "If this path is usable, that code could use its workload identity's access to reach data or services."
+    ]
+  },
+  "gcp-storage-cloudbuild-unpinned-storagesource-poison": {
+    "FAIL": [
+      "The recorded non-triggered build uses an unpinned StorageSource archive in the named bucket.",
+      "A later retry may run changed archive code as the build account and reach data or services."
+    ],
+    "MANUAL": [
+      "The recorded non-triggered build uses an unpinned StorageSource archive in the named bucket.",
+      "A later retry may run changed archive code as the build account and reach data or services."
+    ],
+    "UNKNOWN": [
+      "The build source, generation, bucket, or service account evidence is incomplete.",
+      "A later build could run changed code with access to data, but the missing source details leave that risk unresolved."
+    ]
+  },
+  "gcp-storage-hmackeys-create": {
+    "FAIL": [
+      "An HMAC key may provide only the named account's Cloud Storage XML API access.",
+      "The limited key access could let alice reach data in buckets that account can access."
+    ],
+    "MANUAL": [
+      "An HMAC key may provide only the named account's Cloud Storage XML API access.",
+      "The limited key access could let alice reach data in buckets that account can access."
+    ],
+    "UNKNOWN": [
+      "The effective HMAC key policy or key quota facts are missing.",
+      "If a key can be created, its holder could reach bucket data allowed to that account."
+    ]
+  },
+  "gcp-storage-managedfolders-setiampolicy-composer": {
+    "FAIL": [
+      "A managed folder covering Composer DAGs may let alice grant write access to that folder.",
+      "A new DAG could then run as the environment account and reach data it can access."
+    ],
+    "MANUAL": [
+      "A managed folder covering Composer DAGs may let alice grant write access to that folder.",
+      "A new DAG could then run as the environment account and reach data it can access."
+    ],
+    "UNKNOWN": [
+      "The managed folder's coverage of the Composer DAG path is unknown.",
+      "If it covers that path and write access is granted, a new DAG could run as the environment account."
+    ]
+  },
+  "gcp-storage-managedfolders-setiampolicy-dataproc-init": {
+    "FAIL": [
+      "The named managed folder holds a Dataproc initialization script and its IAM policy can be changed.",
+      "A changed script may run on a new cluster node and use the cluster account to reach data or services."
+    ],
+    "MANUAL": [
+      "The named managed folder holds a Dataproc initialization script and its IAM policy can be changed.",
+      "A changed script may run on a new cluster node and use the cluster account to reach data or services."
+    ],
+    "UNKNOWN": [
+      "The Dataproc initialization script path, managed folder, or policy setting is unknown.",
+      "If the script can be changed, a new cluster node could run it with the cluster account and reach data."
+    ]
+  },
+  "gcp-vertex-batchprediction-create-actas": {
+    "FAIL": [
+      "A batch prediction job could run a chosen container as that service account.",
+      "The container may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A batch prediction job could run a chosen container as that service account.",
+      "The container may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-customjob-custom-code-agent": {
+    "FAIL": [
+      "A custom job without a chosen service account could run as that service agent.",
+      "Its code may reach data or services allowed to the agent."
+    ],
+    "MANUAL": [
+      "A custom job without a chosen service account could run as that service agent.",
+      "Its code may reach data or services allowed to the agent."
+    ],
+    "UNKNOWN": [
+      "If the creation grant and service agent binding match, a custom job could run as that agent.",
+      "Its code may then reach data or services allowed to the agent."
+    ]
+  },
+  "gcp-vertex-customjobs-create-actas": {
+    "FAIL": [
+      "A custom job could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A custom job could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-hptuningjobs-create-actas": {
+    "FAIL": [
+      "A tuning trial could run controlled training code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A tuning trial could run controlled training code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-models-upload-endpoint-deploy-actas": {
+    "FAIL": [
+      "A deployed model could run a chosen container as that service account.",
+      "The container may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A deployed model could run a chosen container as that service account.",
+      "The container may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-notebookexecutionjobs-create-actas": {
+    "FAIL": [
+      "A notebook job could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A notebook job could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-pipelinejobs-create-actas": {
+    "FAIL": [
+      "A pipeline task could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A pipeline task could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-reasoningengines-create-actas": {
+    "FAIL": [
+      "A reasoning engine could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A reasoning engine could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vertex-reasoningengines-create-default-agent": {
+    "FAIL": [
+      "A reasoning engine without a chosen service account could run as that service agent.",
+      "Its code may reach data or services allowed to the agent."
+    ],
+    "MANUAL": [
+      "A reasoning engine without a chosen service account could run as that service agent.",
+      "Its code may reach data or services allowed to the agent."
+    ],
+    "UNKNOWN": [
+      "If the creation grant and service agent binding match, a reasoning engine could run as that agent.",
+      "Its code may then reach data or services allowed to the agent."
+    ]
+  },
+  "gcp-vertex-workbench-instance-update-or-setiampolicy": {
+    "FAIL": [
+      "A changed startup script could run when that Workbench instance restarts.",
+      "The script may use the attached account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A changed startup script could run when that Workbench instance restarts.",
+      "The script may use the attached account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the instance and takeover grants match, a changed startup script could run after restart.",
+      "The script may then reach data or services allowed to the attached account."
+    ]
+  },
+  "gcp-vertex-workbench-instances-create-actas": {
+    "FAIL": [
+      "A new Workbench instance could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "A new Workbench instance could run controlled code as that service account.",
+      "The code may use that account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the missing grant and target account are confirmed, the workload could run as that service account.",
+      "Its code may then reach data or services allowed to that account."
+    ]
+  },
+  "gcp-vmmigration-migratingvm-metadata-clone": {
+    "FAIL": [
+      "Changed startup metadata could run when that VM is cloned.",
+      "The script may use the configured account to reach data or services available to it."
+    ],
+    "MANUAL": [
+      "Changed startup metadata could run when that VM is cloned.",
+      "The script may use the configured account to reach data or services available to it."
+    ],
+    "UNKNOWN": [
+      "If the VM account and grants match, changed startup metadata could run on a clone.",
+      "The script may then reach data or services allowed to the configured account."
+    ]
+  },
+  "gcp-vmwareengine-privateclouds-setiampolicy-private-cloud-self-grant": {
+    "FAIL": [
+      "That new grant could expose the private cloud’s generated vCenter credential.",
+      "A usable credential may allow management actions affecting the cloud’s virtual machines and data."
+    ],
+    "MANUAL": [
+      "That new grant could expose the private cloud’s generated vCenter credential.",
+      "A usable credential may allow management actions affecting the cloud’s virtual machines and data."
+    ],
+    "UNKNOWN": [
+      "If the policy change grants new access, it could reveal the generated vCenter credential.",
+      "A usable credential may allow management actions affecting virtual machines and their data."
+    ]
+  },
+  "gcp-vmwareengine-show-nsx-credentials-external-principal": {
+    "FAIL": [
+      "The reviewed credential could allow actions as the named NSX administrator.",
+      "Those actions may change network access to virtual machines and their data."
+    ],
+    "MANUAL": [
+      "The reviewed credential could allow actions as the named NSX administrator.",
+      "Those actions may change network access to virtual machines and their data."
+    ],
+    "UNKNOWN": [
+      "If the credential is current, it could permit actions as the named NSX administrator.",
+      "Those actions may affect virtual machines or their data in that private cloud."
+    ]
+  },
+  "gcp-vmwareengine-show-vcenter-credentials-external-principal": {
+    "FAIL": [
+      "The reviewed credential could allow actions as the named vCenter CloudOwner.",
+      "Those actions may affect virtual machines and their data in that private cloud."
+    ],
+    "MANUAL": [
+      "The reviewed credential could allow actions as the named vCenter CloudOwner.",
+      "Those actions may affect virtual machines and their data in that private cloud."
+    ],
+    "UNKNOWN": [
+      "If the credential is current, it could permit actions as the named vCenter CloudOwner.",
+      "Those actions may affect virtual machines or their data in that private cloud."
+    ]
+  },
+  "gcp-wif-pool-provider-restore": {
+    "FAIL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-wif-provider-create": {
+    "FAIL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-wif-provider-update": {
+    "FAIL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-wif-workforce-provider-control": {
+    "FAIL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "MANUAL": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "Those credentials or rights could let alice act as the named identity."
+    ],
+    "UNKNOWN": [
+      "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+      "If this path is usable, alice could act as the named identity."
+    ]
+  },
+  "gcp-workflows-create-actas-execute": {
+    "FAIL": [
+      "A newly created workflow may run changed steps as that service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A newly created workflow may run changed steps as that service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A newly created workflow may run changed steps as that service account.",
+      "Those steps could read or change data the account can access."
+    ]
+  },
+  "gcp-workflows-create-cross-project-actas": {
+    "FAIL": [
+      "A workflow may run with the account from the other project if attachment succeeds.",
+      "Its steps could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A workflow may run with the account from the other project if attachment succeeds.",
+      "Its steps could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A workflow may run with the account from the other project if attachment succeeds.",
+      "Its steps could read or change data the account can access."
+    ]
+  },
+  "gcp-workflows-update-actas": {
+    "FAIL": [
+      "The existing workflow may run changed steps with the selected service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "The existing workflow may run changed steps with the selected service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "The existing workflow may run changed steps with the selected service account.",
+      "Those steps could read or change data the account can access."
+    ]
+  },
+  "gcp-workflows-update-source-await-execution": {
+    "FAIL": [
+      "A later trigger may run the changed workflow with its attached service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A later trigger may run the changed workflow with its attached service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A later trigger may run the changed workflow with its attached service account.",
+      "Those steps could read or change data the account can access."
+    ]
+  },
+  "gcp-workflows-update-source-retain-sa": {
+    "FAIL": [
+      "The existing workflow may run changed steps with its attached service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "The existing workflow may run changed steps with its attached service account.",
+      "Those steps could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "The existing workflow may run changed steps with its attached service account.",
+      "Those steps could read or change data the account can access."
+    ]
+  },
+  "gcp-workstations-config-create-actas": {
+    "FAIL": [
+      "A workstation from the new configuration may run code with the selected service account.",
+      "That code could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A workstation from the new configuration may run code with the selected service account.",
+      "That code could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A workstation from the new configuration may run code with the selected service account.",
+      "That code could read or change data the account can access."
+    ]
+  },
+  "gcp-workstations-config-update-code": {
+    "FAIL": [
+      "A workstation using the changed configuration may run code with its pinned service account.",
+      "That code could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A workstation using the changed configuration may run code with its pinned service account.",
+      "That code could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A workstation using the changed configuration may run code with its pinned service account.",
+      "That code could read or change data the account can access."
+    ]
+  },
+  "gcp-workstations-create-from-existing-config": {
+    "FAIL": [
+      "A new workstation may run code with the service account pinned in its configuration.",
+      "That code could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A new workstation may run code with the service account pinned in its configuration.",
+      "That code could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A new workstation may run code with the service account pinned in its configuration.",
+      "That code could read or change data the account can access."
+    ]
+  },
+  "gcp-workstations-use-existing-workstation": {
+    "FAIL": [
+      "A usable workstation may run code with the service account pinned in its configuration.",
+      "That code could read or change data the account can access."
+    ],
+    "MANUAL": [
+      "A usable workstation may run code with the service account pinned in its configuration.",
+      "That code could read or change data the account can access."
+    ],
+    "UNKNOWN": [
+      "A usable workstation may run code with the service account pinned in its configuration.",
+      "That code could read or change data the account can access."
+    ]
+  }
+}

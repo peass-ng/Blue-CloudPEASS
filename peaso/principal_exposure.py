@@ -256,6 +256,9 @@ def project(snapshot, resources):
 
 def _workloads(snapshot, resources, by_type, signal):
     provider = snapshot["provider"]
+    if provider == "gcp":
+        from peaso.analysis.cloud_workload_index import CloudWorkloadIndex, compute_path
+        cloud_workloads = CloudWorkloadIndex(by_type)
     profiles = {r["data"].get("Arn"): r["data"] for r in by_type["iam_instance_profile"]}
     # IAM role inventory embeds instance profiles on some collector versions.
     for role in by_type["iam_role"]:
@@ -351,19 +354,20 @@ def _workloads(snapshot, resources, by_type, signal):
                     azure_target_routes.setdefault(vm["id"], []).append(route)
             targets = [vm for vm in by_type["vm"] if vm["id"] in azure_target_routes]
         elif provider == "gcp" and row["type"] == "forwarding_rule":
-            def compute_path(value):
-                return value.split("/compute/v1/", 1)[-1] if isinstance(value, str) and "/compute/v1/" in value else None
-
             health_by_service = {compute_path(health["data"].get("backendService")): health["data"]
                 for health in by_type["backend_service_health"]
                 if health["scope"] == row["scope"] and health["data"].get("backendService")}
             services = {compute_path(item.get("backend_service")) for step in assessment.path
                 if step.get("layer") == "cloud_armor"
                 for item in step.get("unprotected", []) if isinstance(item, dict)}
-            for backend in by_type["backend_service"]:
+            for backend in cloud_workloads.candidates("backend_service", "gcp_backend_path",
+                                                      [(row["scope"], service) for service in services]):
                 if backend["scope"] != row["scope"] or compute_path(backend["data"].get("selfLink")) not in services:
                     continue
-                for group in (health_by_service.get(compute_path(backend["data"].get("selfLink"))) or {}).get("groups") or []:
+                embedded_health = backend["data"].get("BackendHealth")
+                health = (embedded_health if isinstance(embedded_health, dict) else
+                          health_by_service.get(compute_path(backend["data"].get("selfLink")))) or {}
+                for group in health.get("groups") or []:
                     if group.get("collection_status") != "collected":
                         continue
                     for status in group.get("healthStatus") or []:
@@ -372,7 +376,9 @@ def _workloads(snapshot, resources, by_type, signal):
                             backend_evidence[instance_path] = {"backend_service": backend["data"].get("selfLink"),
                                 "group": group.get("group"), "health_state": "HEALTHY",
                                 "source_requests": group.get("source_requests", [])}
-            targets = [instance for instance in by_type["instance"] if instance["scope"] == row["scope"]
+            targets = [instance for instance in cloud_workloads.candidates(
+                "instance", "gcp_running_instance_path", [(row["scope"], path) for path in backend_evidence])
+                if instance["scope"] == row["scope"]
                 and instance["data"].get("status") == "RUNNING"
                 and compute_path(instance["data"].get("selfLink")) in backend_evidence]
         elif provider == "aws" and row["type"] == "network_interface":

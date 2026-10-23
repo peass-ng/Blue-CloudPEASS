@@ -128,14 +128,14 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
-      k8s_sa_used_by_running_pod: true
+      k8s_pod_access_path: modify_image
     scope: same_namespace
     aggregate_as: "ServiceAccounts of running pods in {target.namespace}"
   conditions:
     - id: admission_restricts_images
       description: Image policy admission may reject the image change.
   blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Do not grant pods update/patch to non-controller identities.
   references:
@@ -159,14 +159,14 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
-      k8s_sa_used_by_running_pod: true
+      k8s_pod_access_path: exec
     scope: same_namespace
     aggregate_as: "ServiceAccounts of running pods in {target.namespace}"
   conditions:
     - id: token_mounted_in_pod
       description: The pod must mount a ServiceAccount token (automount not disabled) and contain an executable entrypoint usable for exec.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict pods/exec to break-glass operators, especially in namespaces with privileged workloads.
   references:
@@ -190,16 +190,17 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
-      k8s_sa_used_by_running_pod: true
+      k8s_pod_access_path: exec_get_websocket
+      k8s_websocket_exec_get_usable: true
     scope: same_namespace
     aggregate_as: "ServiceAccounts of running pods in {target.namespace}"
   conditions:
     - id: websocket_upgrade_create_check_disabled
-      description: Applies only when the API server is older than v1.35 or the AuthorizePodWebsocketUpgradeCreatePermission feature gate is disabled.
+      description: The collected server version is checked. On v1.35 or later, a kube-apiserver pod with an explicit disabled AuthorizePodWebsocketUpgradeCreatePermission gate is conditional; otherwise the gate state remains unresolved.
     - id: token_mounted_in_pod
       description: The pod must mount a ServiceAccount token.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Upgrade to Kubernetes 1.35+ (or keep AuthorizePodWebsocketUpgradeCreatePermission enabled) and avoid granting get on pods/* subresources.
   references:
@@ -223,19 +224,19 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
-      k8s_sa_used_by_running_pod: true
+      k8s_pod_access_path: attach
     scope: same_namespace
     aggregate_as: "ServiceAccounts of interactive running pods in {target.namespace}"
   conditions:
     - id: container_stdin_interactive
       description: The target container must have stdin enabled and run a process (e.g. a shell or REPL) that executes attacker input; most containers do not.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: medium
   mitigation: Restrict pods/attach like pods/exec; avoid stdin/tty in production containers.
   references:
     - https://kubernetes.io/docs/reference/kubectl/generated/kubectl_attach/
-  notes: Pod spec stdin is collected in the snapshot only if the collector keeps container fields; otherwise this stays conditional.
+  notes: The pod inventory includes container stdin and status. A Running pod with a running stdin-enabled container is required; whether the process accepts commands remains conditional.
 
 - id: k8s-workloads-pods-ephemeralcontainers
   provider: k8s
@@ -253,14 +254,14 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
-      k8s_sa_used_by_running_pod: true
+      k8s_pod_access_path: ephemeral_container
     scope: same_namespace
     aggregate_as: "ServiceAccounts of running pods in {target.namespace}"
   conditions:
     - id: admission_restricts_ephemeral
       description: Admission policies covering ephemeral containers may reject them; PSA also evaluates ephemeral containers.
   blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Grant pods/ephemeralcontainers only to debugging break-glass roles.
   references:
@@ -292,7 +293,7 @@
     - id: new_pod_creation_occurs
       description: Only pods created or updated after registration are mutated; namespaces with no pod churn are reached only after a restart or rollout.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict writes to mutatingwebhookconfigurations to cluster administrators and alert on new or changed webhook registrations.
   references:
@@ -314,11 +315,12 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "*"
+      k8s_mutating_admission_policy_served: true
     scope: cluster
     aggregate_as: "ServiceAccounts of namespaces with new pod creations in {cluster}"
   conditions:
     - id: mutating_admission_policy_served
-      description: The MutatingAdmissionPolicy API must be enabled/served on the cluster version.
+      description: Both MutatingAdmissionPolicy resources must be advertised by the API server; the collector verifies this from API discovery.
     - id: new_pod_creation_occurs
       description: Only pods created after the change are mutated.
   blockers: []

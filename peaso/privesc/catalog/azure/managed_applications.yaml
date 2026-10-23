@@ -16,11 +16,11 @@
   requires:
     all_of:
       - action: Microsoft.Solutions/applications/listTokens/action
-        scope: "{target.host_resource}"
+        scope: '*'
   target:
     kind: azure_managed_identity
     selector:
-      attached_to_service: Microsoft.Solutions/applications
+      azure_managedapp_listtokens_path: true
     scope: inherited_scope
     aggregate_as: "Managed identities of managed application {target.host_resource}"
   conditions: []

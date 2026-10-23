@@ -17,35 +17,15 @@
   requires:
     all_of: []
     any_of:
-      - # edit an existing runbook draft, publish and start it
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/publish/action
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/jobs/write
-          scope: "{target.host_resource}"
-      - # create a new runbook, upload content, publish and start it
-        - action: Microsoft.Automation/automationAccounts/runbooks/write
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/publish/action
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/jobs/write
-          scope: "{target.host_resource}"
-      - # edit the draft and run it as a test job without publishing
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{target.host_resource}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/testJob/write
-          scope: "{target.host_resource}"
+      - - action: Microsoft.Automation/automationAccounts/runbooks/write
+          scope: "*"
+      - - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
+          scope: "*"
   target:
     kind: azure_managed_identity
     selector:
       attached_to_service: Microsoft.Automation/automationAccounts
+      azure_automation_runbook_identity_path: true
     scope: inherited_scope
     aggregate_as: "Managed identities of Automation account {target.host_resource}"
   conditions: []
@@ -57,7 +37,7 @@
   references:
     - https://learn.microsoft.com/en-us/azure/automation/automation-role-based-access-control
     - https://learn.microsoft.com/en-us/azure/automation/enable-managed-identity-for-automation
-  notes: Reaches only identities attached to the Automation account whose runbook/job permissions the source holds. Output-read permissions are only needed to read results and are not required for the gain. Credential and encrypted-variable assets are modelled separately (azure-automation-runbook-credential-assets); Hybrid Worker VM identities separately (azure-automation-runbook-hybrid-worker).
+  notes: The selector joins a complete create-and-run or exact existing-runbook publish/job or test-job route on the same inventoried Automation account carrying the identity. Grants limited to a named runbook are supported. Output-read permissions are only needed to read results and are not required for the gain. Credential and encrypted-variable assets are modelled separately (azure-automation-runbook-credential-assets); Hybrid Worker VM identities separately (azure-automation-runbook-hybrid-worker).
 
 - id: azure-automation-runbook-hybrid-worker
   provider: azure
@@ -69,28 +49,10 @@
   requires:
     all_of: []
     any_of:
-      - - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/publish/action
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/jobs/write
-          scope: "{pivot}"
       - - action: Microsoft.Automation/automationAccounts/runbooks/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/publish/action
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/jobs/write
-          scope: "{pivot}"
+          scope: "*"
       - - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/testJob/write
-          scope: "{pivot}"
+          scope: "*"
   pivot_resource_type: Microsoft.Automation/automationAccounts
   target:
     kind: azure_managed_identity
@@ -98,19 +60,19 @@
       attached_to_service:
         - Microsoft.Compute/virtualMachines
         - Microsoft.HybridCompute/machines
-      azure_host_linked_to_pivot: automation_hybrid_worker
+      azure_automation_hybrid_worker_path: true
     scope: any
     aggregate_as: "Managed identities of Hybrid Worker VMs / Arc machines of Automation account {pivot}"
   conditions:
-    - id: worker_is_azure_vm
-      description: Only Hybrid Workers that are Azure VMs / Arc machines with managed identities expose cloud identities; on-prem workers yield OS context only.
+    - id: worker_selection_and_identity_use
+      description: A job must execute on the linked VM within its Hybrid Worker group, and code must use an identity available on that host.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict runbook authoring on accounts with Hybrid Worker groups and do not attach privileged managed identities to worker VMs.
   references:
     - https://learn.microsoft.com/en-us/azure/automation/automation-hrw-run-runbooks
-  notes: Jobs also run as SYSTEM/root on the worker. Arc-enabled server workers expose the Arc machine identity (worker vmResourceId is the Microsoft.HybridCompute/machines id), hence both host types in attached_to_service.
+  notes: The selector requires a complete runbook authoring and execution path on the exact Automation account with the linked worker. Worker-group scheduling and identity use remain conditional. Jobs run as SYSTEM or nxautomation on the worker. Arc-enabled server workers can expose the Arc machine identity when the Automation account has no managed identity.
 
 - id: azure-automation-assign-user-assigned-identity
   provider: azure
@@ -125,35 +87,12 @@
         scope: "{target.id}"
       - action: Microsoft.Automation/automationAccounts/write
         scope: "{pivot}"
-    any_of:
-      - - action: Microsoft.Automation/automationAccounts/runbooks/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/publish/action
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/jobs/write
-          scope: "{pivot}"
-      - - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/publish/action
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/jobs/write
-          scope: "{pivot}"
-      - - action: Microsoft.Automation/automationAccounts/runbooks/draft/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/content/write
-          scope: "{pivot}"
-        - action: Microsoft.Automation/automationAccounts/runbooks/draft/testJob/write
-          scope: "{pivot}"
   pivot_resource_type: Microsoft.Automation/automationAccounts
   target:
     kind: azure_managed_identity
     selector:
       managed_identity_type: user_assigned
-      azure_identity_assignable_in_scope: true
+      azure_automation_assignable_uami: true
     scope: inherited_scope
     aggregate_as: "User-assigned identities assignable in {scope}"
   conditions: []
@@ -164,24 +103,22 @@
   mitigation: Restrict Microsoft.ManagedIdentity/userAssignedIdentities/assign/action (Managed Identity Operator, Contributor, Owner) to deployment principals and scope it to individual identities.
   references:
     - https://learn.microsoft.com/en-us/azure/automation/add-user-assigned-identity
-  notes: Microsoft.Automation/automationAccounts/write over a resource group also allows creating a new account there (pivot may be newly created).
+  notes: The selector joins exact UAMI assignment, Automation account write, and a complete create-runbook or existing-runbook execution route on the same account. A new account is conditional and requires an inventoried resource group. Missing account or runbook inventory stays unresolved.
 
 - id: azure-automation-job-output-credential
   provider: azure
   service: automation
-  title: Read tokens and credentials from prior Automation job output
+  title: Read a service principal credential from Automation job output
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-automation-accounts-privesc.md#harvest-secrets-from-prior-job-output-and-streams
   source_revision: 658a097d5c
-  summary: Read a verified usable credential from historical Automation job output and gain its Entra service principal permissions.
+  summary: Read a verified usable service principal client secret from historical Automation job output and gain that principal's permissions.
   requires:
-    all_of:
-    - action: Microsoft.Automation/automationAccounts/jobs/read
-      scope: '{pivot}'
+    all_of: []
     any_of:
     - - action: Microsoft.Automation/automationAccounts/jobs/output/read
-        scope: '{pivot}'
+        scope: '*'
     - - action: Microsoft.Automation/automationAccounts/jobs/streams/read
-        scope: '{pivot}'
+        scope: '*'
   pivot_resource_type: Microsoft.Automation/automationAccounts
   target:
     kind: azure_service_principal
@@ -198,7 +135,7 @@
   mitigation: Remove reusable Entra credentials from the content and restrict the listed read permission.
   references:
   - https://learn.microsoft.com/en-us/azure/automation/manage-runbooks
-  notes: Only an exact, usable credential mapped to a named Entra service principal by reviewed azure_privesc_challenge_evidence creates a path; missing or incomplete review creates no path.
+  notes: A known job name can be read with output/read or streams/read without jobs/read. Reviewed evidence must identify the exact job, returned content, and usable service-principal client secret; the selector checks the read action on that job. A short-lived audience-bound access token is not treated as full principal control. Missing or incomplete review creates no path.
 - id: azure-automation-runbook-source-credential
   provider: azure
   service: automation
@@ -209,7 +146,7 @@
   requires:
     all_of:
     - action: Microsoft.Automation/automationAccounts/runbooks/content/read
-      scope: '{pivot}'
+      scope: '*'
   pivot_resource_type: Microsoft.Automation/automationAccounts
   target:
     kind: azure_service_principal
@@ -226,4 +163,4 @@
   mitigation: Remove reusable Entra credentials from the content and restrict the listed read permission.
   references:
   - https://learn.microsoft.com/en-us/azure/automation/manage-runbooks
-  notes: Only an exact, usable credential mapped to a named Entra service principal by reviewed azure_privesc_challenge_evidence creates a path; missing or incomplete review creates no path.
+  notes: Reviewed azure_privesc_challenge_evidence must identify the exact published runbook, returned source, and usable credential mapped to a named Entra service principal. The selector checks content/read on that runbook, including a grant limited to the named runbook. Missing or incomplete review creates no path.

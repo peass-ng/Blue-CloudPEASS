@@ -23,7 +23,7 @@
     aggregate_as: Exact AVS vCenter CloudAdmin reached with reviewed credential
   conditions:
     - id: exact_vcenter_login_and_permission
-      description: Unique complete reviewed evidence must bind the returned vCenter username and current password to this private cloud, successful authentication, prior source denial, and a newly allowed named vCenter action.
+      description: Unique complete reviewed evidence must bind the returned vcenterUsername and vcenterPassword to this private cloud, successful authentication, prior source denial, and a newly allowed named vCenter action within the CloudAdmin role.
   blockers:
     - azure_deny_assignment
   confidence: conditional
@@ -31,7 +31,7 @@
   mitigation: Restrict listAdminCredentials/action and rotate exposed CloudAdmin credentials.
   references:
     - https://learn.microsoft.com/en-us/azure/azure-vmware/concepts-identity
-  notes: The azure_external_principal_evidence record must name the exact vCenter subject and resource; a private-cloud resource proxy or plaintext password alone cannot create an edge.
+  notes: The azure_external_principal_evidence record must bind the returned vCenter username, password response, exact vCenter service, and a newly authorized vCenter privilege or UI action. A private-cloud resource proxy or plaintext password alone cannot create an edge.
 
 - id: azure-avs-list-nsxt-admin-external-principal
   provider: azure
@@ -54,7 +54,7 @@
     aggregate_as: Exact AVS NSX-T admin reached with reviewed credential
   conditions:
     - id: exact_nsxt_login_and_permission
-      description: Unique complete reviewed evidence must bind the returned NSX-T username and current password to this private cloud, successful authentication, prior source denial, and a newly allowed named NSX-T action.
+      description: Unique complete reviewed evidence must bind the returned nsxtUsername and nsxtPassword to this private cloud, successful authentication, prior source denial, and a newly allowed named NSX action within the Cloud Admin role.
   blockers:
     - azure_deny_assignment
   confidence: conditional
@@ -68,17 +68,13 @@
   provider: azure
   service: avs
   title: Gain a named vCenter identity through a verified AVS Run Command grant
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-vmware-solution-avs-privesc.md#run-command-rce-without-reading-credentials-scriptexecutionswrite
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-vmware-solution-avs-privesc.md#run-command-identity-grants-without-reading-credentials-scriptexecutionswrite
   source_revision: 171e422
   summary: An AVS Run Command cmdlet can grant a named vCenter account new access only when the chosen package and cmdlet succeed and a reviewed login proves the added permission.
   requires:
     all_of:
       - action: Microsoft.AVS/privateClouds/scriptExecutions/write
-        scope: '{target.scope}'
-      - action: Microsoft.AVS/privateClouds/scriptPackages/read
-        scope: '{target.scope}'
-      - action: Microsoft.AVS/privateClouds/scriptPackages/scriptCmdlets/read
-        scope: '{target.scope}'
+        scope: '*'
   target:
     kind: azure_external_principal
     selector:
@@ -89,7 +85,7 @@
     aggregate_as: Exact vCenter identity granted by verified AVS Run Command
   conditions:
     - id: exact_cmdlet_subject_and_grant
-      description: Unique complete reviewed evidence must bind the installed package and executed cmdlet, exact new vCenter subject, successful identity grant, prior denial, and newly allowed named vCenter action.
+      description: Unique complete reviewed evidence must bind the executed identity cmdlet and granted group to a source-controlled member login, prior denial, successful grant, and newly allowed vCenter action.
   blockers:
     - azure_deny_assignment
   confidence: conditional
@@ -97,4 +93,4 @@
   mitigation: Restrict AVS script execution and audit vCenter SSO identity sources and administrators.
   references:
     - https://learn.microsoft.com/en-us/azure/azure-vmware/using-azure-vmware-solution-run-command
-  notes: Only a reviewed identity_grant artifact with successful subsequent authentication can create this edge; arbitrary Run Command execution remains an effect, not a principal path.
+  notes: Package and cmdlet read permissions aid discovery but are not needed when the cmdlet ID is already known. The selector checks write permission on the exact script execution, including a grant limited to that child resource. Only a reviewed identity_grant artifact naming the execution, granted group, source-controlled member login, and successful subsequent authorization creates an edge.

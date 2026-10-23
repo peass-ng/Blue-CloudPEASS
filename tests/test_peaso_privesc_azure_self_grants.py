@@ -22,15 +22,21 @@ CASES = (
 
 def _case(technique, action, permission, data_action):
     entry = next(e for e in load_catalog()["entries"] if e["id"] == technique)
-    resource = f"{RG}/providers/Microsoft.Storage/storageAccounts/a/fileServices/default/shares/s"
     if technique.startswith("azure-purview"):
-        resource = f"{RG}/providers/Microsoft.Purview/accounts/a/policyElements/p"
+        action_resource = f"{RG}/providers/Microsoft.Purview/accounts/a"
+        resource = f"{RG}/providers/Microsoft.Sql/servers/sql/databases/finance"
+    elif technique == "azure-storage-adls-acl-self-grant":
+        resource = f"{RG}/providers/Microsoft.Storage/storageAccounts/a/blobServices/default/containers/c/blobs/report"
+        action_resource = resource
+    else:
+        action_resource = f"{RG}/providers/Microsoft.Storage/storageAccounts/a/fileServices/default/fileShares/s"
+        resource = f"{action_resource}/files/report"
     fact = {
         "TechniqueId": technique, "SourceId": "u-alice", "TargetKind": "azure_verified_authority",
-        "TargetId": resource, "TargetScope": resource, "Status": "verified",
+        "TargetId": resource, "TargetScope": action_resource, "Status": "verified",
         "VerifiedPreconditions": True, "EvidenceRef": "reviewed-policy-or-acl-change-1",
         "EffectType": "self_permission_grant", "GrantedPrincipalId": "u-alice",
-        "GrantedResourceId": resource, "ActionResourceId": resource,
+        "GrantedResourceId": resource, "ActionResourceId": action_resource,
         "SourceAction": action, "GrantedPermission": permission,
         "PriorAccessDenied": True, "GrantApplied": True, "PostGrantAccessVerified": True,
         "PriorAccessEvidenceRef": "prior-denial-1", "MutationEvidenceRef": "policy-or-acl-change-1",
@@ -38,12 +44,18 @@ def _case(technique, action, permission, data_action):
     }
     if technique == "azure-purview-policy-self-grant":
         fact.update(PolicyAuthorVerified=True, DataPolicyEnforcementVerified=True,
-                    PolicyPublishedVerified=True)
+                    PolicyPublishedVerified=True, PolicyTargetsGrantedResourceVerified=True,
+                    PolicyAuthorEvidenceRef="purview-author-1", PolicyElementId="policy-element-1",
+                    PolicyTargetEvidenceRef="finance-sql-target-1")
+    elif technique == "azure-storage-adls-acl-self-grant":
+        fact.update(HierarchicalNamespaceVerified=True, StorageAccountEvidenceRef="hns-account-1")
+    else:
+        fact.update(TargetPathKind="file")
     roles = {ROLE_ID: ([], [action]) if data_action else ([action], [])}
     # A resource-scoped role assignment permits this mutation without making the
     # source an administrator of its subscription before the self-grant.
-    snap = az(assignments=[("u-alice", "User", resource, ROLE_ID)], roles=roles,
-              extra=[("azure_privesc_challenge_evidence", resource, [fact])])
+    snap = az(assignments=[("u-alice", "User", action_resource, ROLE_ID)], roles=roles,
+              extra=[("azure_privesc_challenge_evidence", action_resource, [fact])])
     return entry, snap, fact
 
 
@@ -59,7 +71,7 @@ def test_exact_self_grant_requires_effective_new_permission(technique, action, p
                          ("PostGrantAccessVerified", False), ("GrantedPermission", "unrelated"),
                          ("ActionResourceId", f"{RG}/providers/Microsoft.Storage/storageAccounts/other")]
     if technique == "azure-purview-policy-self-grant":
-        invalid.append(("PolicyPublishedVerified", False))
+        invalid.extend((("PolicyPublishedVerified", False), ("PolicyAuthorVerified", False)))
     for field, value in invalid:
         bad = copy.deepcopy(snap)
         next(c for c in bad["collections"] if c["type"] == "azure_privesc_challenge_evidence")["items"][0][field] = value
@@ -68,8 +80,12 @@ def test_exact_self_grant_requires_effective_new_permission(technique, action, p
     no_action = copy.deepcopy(snap)
     next(c for c in no_action["collections"] if c["type"] == "role_definition")["items"][0]["properties"]["permissions"] = [
         {"actions": ["Microsoft.Resources/deployments/read"], "dataActions": []}]
-    assert not any(conf in ("conditional", "derived") for conf in
-                   reached(privesc.analyze(no_action, entries=[entry]), "u-alice", technique).values())
+    no_action_targets = reached(privesc.analyze(no_action, entries=[entry]), "u-alice", technique)
+    if technique == "azure-purview-policy-self-grant":
+        # The reviewed Purview Policy Author fact supplies this data-plane capability.
+        assert set(no_action_targets.values()) == {"conditional"}
+    else:
+        assert not any(conf in ("conditional", "derived") for conf in no_action_targets.values())
 
 
 def test_generic_review_flag_cannot_create_self_grant():

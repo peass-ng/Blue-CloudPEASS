@@ -1,0 +1,186 @@
+{
+  "azure_aks_cluster_aks_cluster_rbac_enabled_db12524": {
+    "FAIL": "A\\ Linux\\ container\\ declares\\ UID\\ zero\\ or\\ has\\ no\\ declared\\ user\\ ID\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ Linux\\ Pod;\\ effective\\ container\\ UID\\ declarations\\ were\\ not\\ retained\\."
+  },
+  "azure_api_management_10_3_1_3_8a50dc0": {
+    "FAIL": "A\\ REST\\ API\\ lacks\\ a\\ qualifying\\ tracing\\ diagnostic\\ or\\ usable\\ logger\\ route\\.",
+    "PASS": "No\\ assessed\\ REST\\ API\\ lacks\\ a\\ usable\\ tracing\\ diagnostic\\ declaration\\."
+  },
+  "azure_api_management_3_5_1_1_345bdac": {
+    "FAIL": "A\\ required\\ APIM\\ operation\\ lacks\\ effective\\ caching\\ or\\ uses\\ an\\ unapproved\\ or\\ unencrypted\\ cache\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ effective\\ path;\\ individual\\ cache\\ and\\ encryption\\ bindings\\ were\\ not\\ retained\\."
+  },
+  "azure_api_management_app_http_logs_enabled_21c108d": {
+    "FAIL": "An\\ assessed\\ effective\\ APIM\\ API\\ or\\ operation\\ path\\ lacks\\ the\\ required\\ usable\\ diagnostic\\ logger\\ or\\ logging\\ configuration\\.",
+    "PASS": "The\\ assessed\\ required\\ effective\\ APIM\\ API\\ and\\ operation\\ paths\\ have\\ their\\ usable\\ diagnostic\\ logger\\ and\\ required\\ logging\\ configuration\\."
+  },
+  "azure_api_management_app_http_logs_enabled_9b3b56e": {
+    "FAIL": "An\\ assessed\\ effective\\ APIM\\ API\\ or\\ operation\\ path\\ lacks\\ the\\ required\\ usable\\ diagnostic\\ logger\\ or\\ logging\\ configuration\\.",
+    "PASS": "The\\ assessed\\ required\\ effective\\ APIM\\ API\\ and\\ operation\\ paths\\ have\\ their\\ usable\\ diagnostic\\ logger\\ and\\ required\\ logging\\ configuration\\."
+  },
+  "azure_api_management_app_http_logs_enabled_9ef06db": {
+    "FAIL": "An\\ assessed\\ effective\\ APIM\\ API\\ or\\ operation\\ path\\ lacks\\ the\\ required\\ usable\\ diagnostic\\ logger\\ or\\ logging\\ configuration\\.",
+    "PASS": "The\\ assessed\\ required\\ effective\\ APIM\\ API\\ and\\ operation\\ paths\\ have\\ their\\ usable\\ diagnostic\\ logger\\ and\\ required\\ logging\\ configuration\\."
+  },
+  "azure_api_management_appinsights_ensure_is_configured_42aac6a": {
+    "FAIL": "1\\ online\\ APIs\\ lack\\ the\\ required\\ declared\\ Application\\ Insights\\ tracing\\ path\\.",
+    "PASS": "0\\ online\\ APIs\\ lack\\ the\\ required\\ declared\\ Application\\ Insights\\ tracing\\ path\\."
+  },
+  "azure_app_service_app_function_latest_runtime_version_f50215a": {
+    "FAIL": "A\\ recorded\\ Function\\ App\\ runtime,\\ scale,\\ or\\ memory\\ setting\\ differs\\ from\\ the\\ approved\\ value\\.",
+    "PASS": "The\\ assessed\\ Function\\ App\\ runtime,\\ scale,\\ and\\ memory\\ settings\\ match\\ the\\ approved\\ values\\."
+  },
+  "azure_application_gateway_1_2_5_8_33a9d21": {
+    "FAIL": "An\\ assessed\\ HTTPS\\ listener\\ uses\\ a\\ weaker\\ or\\ noncustom\\ TLS\\ policy\\ than\\ this\\ profile\\ permits\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ HTTPS\\ listener;\\ individual\\ TLS\\ policy\\ values\\ were\\ not\\ retained\\."
+  },
+  "azure_application_gateway_app_client_certificates_on_fcca0b8": {
+    "FAIL": "An\\ assessed\\ HTTPS\\ listener\\ lacks\\ its\\ required\\ Key\\ Vault\\-backed\\ server\\ certificate\\ binding\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ listener;\\ individual\\ Key\\ Vault\\ certificate\\ bindings\\ were\\ not\\ retained\\."
+  },
+  "azure_cosmos_account_10_2_1_1_13_5c115b0": {
+    "FAIL": "An\\ applicable\\ MongoDB\\ service\\ lacks\\ a\\ qualifying\\ request\\-log\\ export\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ Cosmos\\ DB\\ account;\\ audit\\-export\\ settings\\ were\\ not\\ retained\\."
+  },
+  "azure_cosmos_account_10_2_1_1_23_e04a63d": {
+    "FAIL": "A\\ required\\ log\\ category\\ or\\ approved\\ export\\ destination\\ is\\ missing\\ from\\ the\\ complete\\ inventory\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ Cosmos\\ DB\\ account;\\ log\\-export\\ settings\\ were\\ not\\ retained\\."
+  },
+  "azure_devops_project_1_2_8_6_fb0e5a8": {
+    "FAIL": "A\\ repository\\ URL\\ contains\\ disallowed\\ embedded\\ user\\ information\\ or\\ credentials\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ Azure\\ DevOps\\ project;\\ repository\\ clone\\-URL\\ user\\ information\\ was\\ not\\ retained\\."
+  },
+  "azure_devops_project_6_5_5_2_2908a87": {
+    "FAIL": "An\\ assessed\\ later\\ pipeline\\ stage\\ has\\ more\\ deployment\\ jobs\\ than\\ the\\ configured\\ custom\\ limit\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ project;\\ individual\\ stage\\ job\\ counts\\ were\\ not\\ retained\\."
+  },
+  "azure_diagnostic_setting_11_5_2_3_7959930": {
+    "FAIL": "A\\ required\\ metric\\ alert\\ is\\ absent,\\ disabled,\\ or\\ differs\\ from\\ its\\ approved\\ configuration\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ expected\\ alert\\ setting;\\ individual\\ metric\\ alert\\ configurations\\ were\\ not\\ retained\\."
+  },
+  "azure_directory_user_sqlserver_azuread_administrator_enabled_1a9c5cf": {
+    "FAIL": "An\\ applicable\\ database\\ server\\ disables\\ required\\ Entra\\ authentication\\ or\\ has\\ no\\ Entra\\ administrator\\.",
+    "PASS": "The\\ assessed\\ applicable\\ database\\ servers\\ have\\ required\\ Entra\\ authentication\\ and\\ administrator\\ declarations\\."
+  },
+  "azure_firewall_policy_6_4_1_7_a7975fc": {
+    "FAIL": "The\\ WAF\\ is\\ disabled\\ or\\ an\\ assessed\\ required\\ managed\\ rule\\ group\\ has\\ no\\ enabled\\ effective\\ rule\\.",
+    "PASS": "The\\ assessed\\ required\\ managed\\ WAF\\ rule\\ groups\\ have\\ enabled\\ effective\\ rules\\ under\\ an\\ enabled\\ policy\\."
+  },
+  "azure_firewall_policy_sqlserver_unrestricted_inbound_access_c12f86d": {
+    "FAIL": "A\\ database\\ firewall\\ rule\\ admits\\ the\\ full\\ IPv4\\ range\\ or\\ a\\ disallowed\\ Azure\\-service\\ exception\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ SQL\\ firewall\\ policy;\\ deciding\\ rule\\ settings\\ were\\ not\\ retained\\."
+  },
+  "azure_application_gateway_11_5_1_1_1_f56bdc2": {
+    "PASS": "The\\ assessed\\ public\\ resources\\ declare\\ their\\ applicable\\ DDoS\\ and\\ WAF\\ protection\\.",
+    "FAIL": "Some\\ public\\ resources\\ lack\\ the\\ required\\ declared\\ DDoS\\ or\\ WAF\\ protection\\."
+  },
+  "azure_application_gateway_app_ensure_http_is_redirected_to_https_1099ad7": {
+    "FAIL": "1\\ assessed\\ HTTP\\ routes\\ do\\ not\\ declare\\ an\\ HTTPS\\ redirect\\.",
+    "PASS": "1\\ assessed\\ HTTP\\ routes\\ declare\\ HTTPS\\ redirects\\."
+  },
+  "azure_application_gateway_app_http_logs_enabled_2de0361": {
+    "PASS": "Application\\ Gateways\\ declare\\ enabled\\ HTTP\\ access\\-log\\ export\\ to\\ inventoried\\ destinations\\.",
+    "FAIL": "Some\\ Application\\ Gateways\\ have\\ no\\ enabled\\ HTTP\\ access\\-log\\ export\\ to\\ an\\ inventoried\\ destination\\."
+  },
+  "azure_directory_user_keyvault_rbac_secret_expiration_set_e2e0e28": {
+    "FAIL": "1\\ active\\ service\\-principal\\ credential\\ is\\ older\\ than\\ 90\\ days\\.",
+    "PASS": "1\\ active\\ service\\-principal\\ credential\\ is\\ within\\ 90\\ days\\ of\\ creation\\."
+  },
+  "azure_firewall_policy_1_2_8_23_59ad733": {
+    "FAIL": "0\\ direct\\ or\\ inherited\\ Firewall\\ Policy\\ groups\\ contain\\ recognized\\ rules\\.",
+    "PASS": "1\\ direct\\ or\\ inherited\\ Firewall\\ Policy\\ groups\\ contain\\ recognized\\ rules\\."
+  },
+  "azure_firewall_policy_1_2_8_24_cc7cb8a": {
+    "FAIL": "1\\ Firewall\\ Policy\\ rule\\-collection\\ groups\\ contain\\ no\\ rules\\.",
+    "PASS": "0\\ Firewall\\ Policy\\ rule\\-collection\\ groups\\ contain\\ no\\ rules\\."
+  },
+  "azure_firewall_policy_1_2_8_42_cacbd9e": {
+    "FAIL": "The\\ WAF\\ policy\\ declares\\ 0\\ custom\\ rules\\ and\\ 0\\ managed\\ rule\\ sets\\.",
+    "PASS": "The\\ WAF\\ policy\\ declares\\ 0\\ custom\\ rules\\ and\\ 1\\ managed\\ rule\\ set\\."
+  },
+  "azure_log_analytics_workspace_10_5_1_4_8c74ccb": {
+    "FAIL": "Workspace\\ default\\ interactive\\ retention\\ is\\ 30\\ days;\\ the\\ threshold\\ is\\ 365\\ days\\.",
+    "PASS": "Workspace\\ default\\ interactive\\ retention\\ is\\ 365\\ days;\\ the\\ threshold\\ is\\ 365\\ days\\."
+  },
+  "azure_pci_1_2_8_39": {
+    "FAIL": "The\\ NSG\\ declares\\ 0\\ subnet\\ or\\ NIC\\ associations\\.",
+    "PASS": "The\\ NSG\\ declares\\ 1\\ subnet\\ or\\ NIC\\ associations\\."
+  },
+  "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5": {
+    "FAIL": "1\\ user\\ databases\\ declare\\ transparent\\ data\\ encryption\\ disabled\\.",
+    "PASS": "1\\ user\\ databases\\ declare\\ transparent\\ data\\ encryption\\ enabled\\."
+  },
+  "azure_ml_workspace_1_2_8_36_33f50db": {
+    "FAIL": "An\\ assessed\\ ML\\ compute\\ instance\\ has\\ no\\ VNet\\ placement\\ or\\ uses\\ a\\ different\\ subnet\\ from\\ policy\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ compute\\ instance;\\ individual\\ approved\\ subnet\\ bindings\\ were\\ not\\ retained\\."
+  },
+  "azure_ml_workspace_1_2_8_37_973721f": {
+    "FAIL": "An\\ assessed\\ ML\\ compute\\ instance\\ enables\\ a\\ public\\ node\\ IP\\ or\\ has\\ prohibited\\ direct\\ Internet\\ egress\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ compute\\ instance;\\ individual\\ public\\-IP\\ and\\ egress\\ settings\\ were\\ not\\ retained\\."
+  },
+  "azure_nsg_world_ingress_approved_ports": {
+    "FAIL": "A\\ world\\-source\\ inbound\\ Allow\\ survives\\ priority\\ evaluation\\ on\\ a\\ TCP\\ or\\ UDP\\ port\\ outside\\ the\\ approved\\ set\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ NSG;\\ individual\\ effective\\ world\\-source\\ rules\\ were\\ not\\ retained\\."
+  },
+  "azure_pci_1_2_8_19": {
+    "FAIL": "A\\ Function\\ App\\ accepts\\ an\\ unapproved\\ public\\ source\\ or\\ lacks\\ required\\ private\\ or\\ restrictive\\ ingress\\ paths\\.",
+    "PASS": "The\\ assessed\\ Function\\ App\\ ingress\\ uses\\ approved\\ private\\ endpoints\\ or\\ effective\\ restrictive\\ access\\ rules\\."
+  },
+  "azure_pci_3_7_4_5": {
+    "FAIL": "A\\ required\\ key\\ lacks\\ an\\ effective\\ Rotate\\ action,\\ approved\\ interval,\\ or\\ required\\ key\\ permissions\\.",
+    "PASS": "Required\\ keys\\ have\\ effective\\ approved\\ rotation\\ and\\ required\\ permissions\\."
+  },
+  "azure_recovery_vault_10_3_3_1_1f42f66": {
+    "FAIL": "An\\ online\\ user\\ database\\ lacks\\ positive\\ short\\-term\\ backup\\ retention\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ online\\ database;\\ point\\-in\\-time\\ backup\\ retention\\ settings\\ were\\ not\\ retained\\."
+  },
+  "azure_recovery_vault_10_3_3_8_26e08d7": {
+    "FAIL": "A\\ SQL\\ backup\\ is\\ disabled,\\ unavailable,\\ too\\ short\\-lived,\\ or\\ outside\\ its\\ required\\ recovery\\-point\\ window\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ resource;\\ individual\\ backup\\ and\\ retention\\ values\\ were\\ not\\ retained\\."
+  },
+  "azure_search_service_10_6_3_27_ba08488": {
+    "FAIL": "An\\ index\\ or\\ query\\ authorization\\ path\\ violates\\ its\\ required\\ index\\ or\\ document\\ access\\ boundary\\.",
+    "PASS": "Assessed\\ index\\ and\\ query\\ paths\\ enforce\\ the\\ required\\ data\\ boundaries\\ without\\ bypasses\\."
+  },
+  "azure_security_pricing_compute_vm_security_configuration_vulnerabilities_remediated_64c8b1c": {
+    "FAIL": "A\\ current\\ required\\ vulnerability\\ or\\ security\\-baseline\\ assessment\\ reports\\ Unhealthy\\.",
+    "PASS": "The\\ assessed\\ current\\ required\\ vulnerability\\ or\\ baseline\\ assessments\\ report\\ Healthy\\."
+  },
+  "azure_sql_database_sqlserver_auditing_enabled_77d6841": {
+    "FAIL": "A\\ required\\ log\\ category\\ or\\ approved\\ export\\ destination\\ is\\ missing\\ from\\ the\\ complete\\ inventory\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ SQL\\ database;\\ log\\-export\\ settings\\ were\\ not\\ retained\\."
+  },
+  "azure_storage_account_defender_ensure_defender_for_keyvault_is_on_2cabbc3": {
+    "FAIL": "A\\ Blob\\ or\\ mandatory\\ write\\ scope\\ uses\\ platform\\-managed\\ encryption\\.",
+    "PASS": "No\\ assessed\\ blob\\ container\\ was\\ measured\\ using\\ platform\\-managed\\ encryption\\."
+  },
+  "azure_storage_account_monitor_alert_create_update_sqlserver_fr_7a7ddfa": {
+    "FAIL": "A\\ required\\ metric\\ alert\\ is\\ absent,\\ disabled,\\ or\\ differs\\ from\\ its\\ approved\\ configuration\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ required\\ metric;\\ individual\\ metric\\ alert\\ configurations\\ were\\ not\\ retained\\."
+  },
+  "azure_storage_account_sqlserver_auditing_enabled_e4e4b28": {
+    "FAIL": "A\\ Synapse\\ SQL\\ pool\\ disables\\ auditing\\ or\\ uses\\ a\\ different\\ storage\\ destination\\ from\\ policy\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ SQL\\ pool;\\ individual\\ audit\\ destinations\\ were\\ not\\ retained\\."
+  },
+  "azure_synapse_workspace_10_2_1_1_28_47f4840": {
+    "FAIL": "Required\\ Synapse\\ encryption\\ or\\ SQL\\-pool\\ auditing\\ is\\ disabled\\ or\\ uses\\ a\\ different\\ key\\ or\\ destination\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ SQL\\ pool;\\ individual\\ encryption\\ and\\ audit\\ bindings\\ were\\ not\\ retained\\."
+  },
+  "azure_vm_1_2_8_10_1bd35d0": {
+    "FAIL": "The\\ current\\ DSC\\ guest\\ report\\ identifies\\ an\\ unmet\\ requirement\\ or\\ confirms\\ that\\ no\\ configuration\\ is\\ assigned\\.",
+    "PASS": "The\\ current\\ DSC\\ guest\\ report\\ confirms\\ that\\ the\\ required\\ configuration\\ is\\ assigned\\ and\\ its\\ requirements\\ are\\ satisfied\\."
+  },
+  "azure_vm_1_4_5_1_d40be43": {
+    "FAIL": "A\\ VM\\ interface\\ or\\ scale\\-set\\ template\\ declares\\ public\\-IP\\ configuration\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ VM;\\ network\\-interface\\ public\\-IP\\ references\\ were\\ not\\ retained\\."
+  },
+  "azure_vm_8_2_1_1_712e1ad": {
+    "FAIL": "The\\ Linux\\ VM\\ launch\\ settings\\ declare\\ 1\\ bootstrap\\ SSH\\ key\\.",
+    "PASS": "The\\ VM\\ declares\\ no\\ bootstrap\\ SSH\\ public\\ keys;\\ guest\\ runtime\\ authentication\\ was\\ not\\ measured\\."
+  },
+  "azure_vm_vm_ensure_using_managed_disks_11f205b": {
+    "FAIL": "A\\ required\\ managed\\ disk\\ has\\ a\\ mismatched\\ owner,\\ attachment,\\ identity,\\ or\\ delete\\ option\\.",
+    "PASS": "The\\ check\\ assessed\\ 1\\ disk\\ mapping;\\ individual\\ attachment\\ and\\ delete\\-option\\ values\\ were\\ not\\ retained\\."
+  }
+}

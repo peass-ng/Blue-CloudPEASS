@@ -18,8 +18,6 @@
         resource: "*"
       - action: workstations.workstations.create
         resource: "*"
-      - action: workstations.workstations.start
-        resource: "*"
       - action: iam.serviceAccounts.actAs
         resource: "{target.email}"
   target:
@@ -27,11 +25,12 @@
     selector:
       gcp_actas_granted_on_target: true
       gcp_sa_in_scope_of_permission: true
+      gcp_workstations_create_config_path: true
     scope: same_project
     aggregate_as: "Service accounts usable as Cloud Workstations SA in {project}"
   conditions:
     - id: session_access
-      description: Reaching the workstation needs workstations.workstations.use (not in roles/workstations.admin; self-grantable with workstations.setIamPolicy), unless the custom image or startup script runs code without a session.
+      description: The creator receives roles/workstations.user on a new workstation; a custom image or startup script can also run code without a session.
     - id: cluster
       description: A workstation cluster must exist or be creatable (workstations.workstationClusters.create).
     - id: access_scopes
@@ -39,7 +38,7 @@
   blockers:
     - gcp_deny_policy
     - vpc_sc_perimeter
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Grant actAs only on dedicated workstation SAs; restrict workstations.workstationConfigs.create/update (roles/workstations.admin, roles/workstations.editor, roles/editor).
   references:
@@ -87,21 +86,22 @@
     any_of:
     - - action: workstations.workstations.use
         resource: '{target.host_resource}'
-      - action: workstations.workstations.start
-        resource: '{target.host_resource}'
     - - action: workstations.workstations.setIamPolicy
         resource: '{target.host_resource}'
     - - action: workstations.workstationConfigs.setIamPolicy
-        resource: '{target.host_resource}'
+        resource: '{target.workstation_config}'
   target:
     kind: gcp_service_account
     selector:
       attached_to_service: workstations_workstation
+      gcp_workstations_use_existing_path: true
     scope: same_project
     aggregate_as: SAs of Cloud Workstations the source can connect to
   conditions:
   - id: scoped_config_actas
     description: If the config sets service-account scopes, users also need actAs on the SA at launch/use time.
+  - id: stopped_workstation
+    description: A stopped workstation also needs workstations.workstations.start; an already running one needs only use.
   - id: other_user_session
     description: Using another developer's workstation also exposes that user's session data; IAM on workstations is granted per workstation or config.
   blockers:
@@ -125,11 +125,12 @@
     kind: gcp_service_account
     selector:
       attached_to_service: workstations_config
+      gcp_workstations_create_from_config_path: true
     scope: same_project
     aggregate_as: SAs pinned in Cloud Workstations configs the source can launch from
   conditions:
   - id: session_access
-    description: Running and reaching the new workstation needs workstations.workstations.start and workstations.workstations.use on it (roles/workstations.workstationCreator / roles/workstations.user); roles/workstations.workstationLimitExemptedCreator alone has no start/use.
+    description: The creator receives roles/workstations.user on the new workstation and can start and use it; roles/workstations.workstationLimitExemptedCreator alone has no create grant.
   - id: scoped_config_actas
     description: If the config sets service-account scopes, users also need actAs on the SA at launch/use time.
   - id: access_scopes

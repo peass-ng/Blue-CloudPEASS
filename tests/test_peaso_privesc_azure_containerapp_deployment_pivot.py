@@ -22,6 +22,7 @@ def _case():
         "TargetId": IDENTITY, "TargetScope": APP, "Status": "verified",
         "VerifiedPreconditions": True, "EvidenceRef": "deployment-review-1",
         "EffectType": "source_control_deployment_identity", "ActionResourceId": APP,
+        "SourceControlResourceId": f"{APP}/sourcecontrols/github",
         "SourceAction": ACTION, "ManagedIdentityPrincipalId": IDENTITY,
         "ActionAuthorizedVerified": True, "SourceBindingChanged": True,
         "AttackerControlledSourceVerified": True, "BuildSucceeded": True,
@@ -34,9 +35,13 @@ def _case():
     }
     app = {"id": APP, "type": "Microsoft.App/containerApps", "name": "payments",
            "identity": {"type": "SystemAssigned", "principalId": IDENTITY}}
+    runtime = {**app, "properties": {"provisioningState": "Succeeded", "runningStatus": "Running"},
+               "revisions": [{"id": f"{APP}/revisions/payments--revision-7",
+                              "properties": {"active": True, "runningState": "Running", "replicas": 1}}]}
     snap = az(assignments=[("u-alice", "User", APP, ROLE_ID)],
               roles={ROLE_ID: ([ACTION], [])}, graph=[app],
-              extra=[("azure_privesc_challenge_evidence", APP, [fact])])
+              extra=[("azure_privesc_challenge_evidence", APP, [fact]),
+                     ("container_app_runtime", RG.split('/resourceGroups/')[0], [runtime])])
     return entry, snap
 
 
@@ -46,8 +51,7 @@ def test_containerapp_source_control_requires_exact_completed_deployment():
         IDENTITY: "conditional"}
 
     for field, value in (
-        ("BuildSucceeded", False), ("ManagedIdentityTokenObtained", False),
-        ("PriorIdentityAccessDenied", False), ("TokenEvidenceRef", ""),
+        ("BuildSucceeded", False), ("SourceControlResourceId", f"{APP}/sourcecontrols/other/extra"),
         ("ManagedIdentityPrincipalId", "another-mi"),
         ("ActionResourceId", f"{RG}/providers/Microsoft.App/containerApps/other"),
     ):

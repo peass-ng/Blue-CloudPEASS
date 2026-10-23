@@ -118,6 +118,10 @@ HELD_ELSEWHERE = {
 
 MERGED = {row: (natives, "Pinned query " + query + " is identical to the one behind " + twin + ", already ported natively.")
           for row, (natives, query, twin) in AUTO.items()}
+MERGED[C + "elasticache_cluster_no_public_subnet"] = (
+    ["aws.c2b.elasticache.cluster_public_subnet_prowler"],
+    "The reviewed Steampipe NAT-route false positive is corrected to require an internet-gateway default route; the surviving Prowler predicate applies that same public-subnet criterion.",
+)
 MANUAL = {}
 REJECTED = {
     C + "foundational_security_opensearch_5": {"classification": "invalid_predicate",

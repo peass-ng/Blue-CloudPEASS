@@ -70,7 +70,7 @@ def catalog(target):
 
 
 def upstream(book):
-    return book / 'src/privilege-escalation-paths'
+    return book / 'src/privilege-escalation-paths-cspm-reviewed'
 
 
 def snapshot(root):
@@ -349,9 +349,10 @@ def test_fetch_with_privesc_sparse_checks_out_catalog_and_pages(tmp_path, monkey
                 (checkout / 'src/permission-categorizations' / f'{provider}.yaml').write_text(provider)
     monkeypatch.setattr(fetcher, '_git', git)
     monkeypatch.setattr(fetcher.time, 'sleep', Mock())
-    fetcher.fetch(tmp_path / 'optional', with_privesc=True)  # privesc dir optional until it lands upstream
+    fetcher.fetch(tmp_path / 'optional', with_privesc=True)
     sparse = [c for c in calls if 'sparse-checkout' in c][0]
-    assert sparse[-3:] == ['src/permission-categorizations', 'src/privilege-escalation-paths', 'src/pentesting-cloud']
+    assert sparse[-3:] == ['src/permission-categorizations',
+                           'src/privilege-escalation-paths-cspm-reviewed', 'src/pentesting-cloud']
     calls.clear()
     with pytest.raises(RuntimeError, match='five attempts'):
         fetcher.fetch(tmp_path / 'required', require_privesc=True)
@@ -401,9 +402,11 @@ def test_sync_workflow_syncs_both_catalogs_and_commits_only_on_change():
     steps = [s for job in workflow['jobs'].values() for s in job['steps']]
     text = '\n'.join(s.get('run', '') for s in steps)
     for needed in ('scripts/sync_hacktricks_privesc.py', 'scripts/fetch_hacktricks_permissions.py --destination',
-                   '--with-privesc', 'tests/test_privesc_sync.py', '--check', 'risk_rules/hacktricks-privesc-source.json',
+                   '--with-privesc', '--require-privesc', '--revision-file', 'tests/test_privesc_sync.py', '--check',
+                   'risk_rules/hacktricks-privesc-source.json',
                    'peaso/privesc/catalog', 'scripts/sync_hacktricks_permissions.py'):
         assert needed in text, needed
+    assert '--allow-missing-upstream' not in text
     for job in workflow['jobs'].values():
         commit = [s['run'] for s in job['steps'] if 'git commit' in s.get('run', '')]
         assert all('git diff --cached --quiet' in run for run in commit)
