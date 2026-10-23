@@ -1884,7 +1884,12 @@ class AwsModel(Model):
             # EKS has no resource-based policies: a principal manages only the clusters of its own account.
             cache = self.__dict__.setdefault("_cluster_scopes", {})
             if source.scope not in cache:
-                cache[source.scope] = {arn for arn, info in self.eks.items() if info["account"] == source.scope}
+                scopes = {arn for arn, info in self.eks.items() if info["account"] == source.scope}
+                # A denied regional inventory has no cluster ARN to name, but must
+                # still yield an UNKNOWN placeholder for a source in that account.
+                scopes.update(scope for scope in unavailable(self.eks_status)
+                              if scope.split("/")[0] == source.scope)
+                cache[source.scope] = scopes
             return cache[source.scope]
         return None
 
