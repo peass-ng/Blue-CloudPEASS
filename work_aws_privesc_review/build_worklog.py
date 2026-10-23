@@ -58,6 +58,8 @@ def main():
     performance = json.loads(perf_path.read_text()) if perf_path.is_file() else None
     optimized_perf_path = ROOT / "performance-optimization-validation.json"
     optimized_performance = json.loads(optimized_perf_path.read_text()) if optimized_perf_path.is_file() else None
+    repeat_path = ROOT / "performance-memory-repeat-validation.json"
+    memory_repeat = json.loads(repeat_path.read_text()) if repeat_path.is_file() else None
     assert all(result["tests"] > 0 and result["failures"] == result["errors"] == result["skipped"] == 0
                and len(result["tested_revision"]) == len(result["hacktricks_source_revision"]) == 40
                and len(result["junit_sha256"]) == 64 for result in focused_results)
@@ -107,6 +109,14 @@ def main():
          f"{optimized_performance['previous_ten_x_wall_seconds']} seconds. "
          f"{optimized_performance['caveat']}"
          if optimized_performance else "- No post-optimization performance result has been recorded."),
+        (f"- Paired direct 1x memory repeats used the same command at baseline "
+         f"`{memory_repeat['baseline_revision']}` and current `{memory_repeat['current_revision']}`. "
+         f"Baseline RSS values were {', '.join(map(str, memory_repeat['baseline_rss_mib']))} MiB; current values were "
+         f"{', '.join(map(str, memory_repeat['current_rss_mib']))} MiB against a {memory_repeat['rss_limit_mib']} MiB limit. "
+         "Their ranges overlap, so the earlier single 373 MiB baseline result does not establish a "
+         "source-specific memory increase. The memory gate remains failed on measured current runs. "
+         f"{memory_repeat['evidence']}"
+         if memory_repeat else "- Paired 1x memory repeats have not been recorded."),
         f"- ID-specific graph test audit: {case_counts['exact_cases_verified']} have a recorded passing exact case, {case_counts['partial']} have a located but partial case, and {case_counts['no_exact_case']} have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.",
         f"- Among the {len(partial_cases)} partial routes, {sum(bool(row['positive_case']) for row in partial_cases)} name a positive assertion, {sum(bool(row['negative_case']) for row in partial_cases)} name a negative assertion, and {sum(bool(row['unknown_case']) for row in partial_cases)} name an unknown-result assertion. These are located assertions, not recorded passing exact graph cases.",
         f"- Partial routes without a named positive assertion: {', '.join(missing_positive) or 'none'}.",
