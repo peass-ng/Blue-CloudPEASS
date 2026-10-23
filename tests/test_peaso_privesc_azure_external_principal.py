@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 
+import pytest
 import yaml
 
 from peaso import privesc
@@ -190,3 +191,35 @@ def test_named_portal_github_and_mqtt_paths_need_exact_new_authority():
         bad = copy.deepcopy(snap)
         next(c for c in bad["collections"] if c["type"] == "azure_external_principal_evidence")["items"][0]["AfterTargetPermissionAllowed"] = False
         assert paths(technique, bad) == {}, technique
+
+
+@pytest.mark.parametrize("technique,operation", [
+    ("azure-apim-developer-portal-sso-external-principal", "generateSsoUrl"),
+    ("azure-apim-developer-portal-shared-token-external-principal", "token"),
+])
+def test_apim_portal_token_requires_the_named_user_resource(technique, operation):
+    user_resource = f"{RG}/providers/Microsoft.ApiManagement/service/api1/users/bob"
+    portal = "https://api1.portal.example.com/users/bob"
+    permission = ENTRIES[technique]["requires"]["all_of"][0]["action"]
+
+    def targets(action_resource, principal="bob"):
+        record = {**proof(), "TechniqueId": technique, "ActionResource": action_resource,
+                  "AccessPermission": permission, "TargetPlane": "apim_developer_portal",
+                  "TargetServiceResource": portal, "TargetPrincipalId": principal,
+                  "ObservedPrincipalId": principal, "AccessArtifactKind": "credential",
+                  "AccessArtifactRef": "reviewed-portal-token-1",
+                  "GainedPermission": "portal:read-subscription",
+                  "PriorTestedPermission": "portal:read-subscription",
+                  "AfterTestedPermission": "portal:read-subscription",
+                  "PriorTestedResource": portal, "AfterTestedResource": portal}
+        snap = az(assignments=[("u-alice", "User", action_resource, ROLE_ID)],
+                  roles={ROLE_ID: ([permission], [])},
+                  extra=[("azure_external_principal_evidence", SUB, [record], "collected")])
+        snap["created_at"] = "2026-10-16T11:05:00Z"
+        return paths(technique, snap)
+
+    assert len(targets(user_resource)) == 1
+    assert len(targets(f"{user_resource}/{operation}")) == 1
+    assert targets(f"{RG}/providers/Microsoft.Storage/storageAccounts/api1") == {}
+    assert targets(user_resource, principal="other") == {}
+    assert targets(f"{user_resource}/otherAction") == {}
