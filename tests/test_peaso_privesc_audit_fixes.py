@@ -1093,7 +1093,9 @@ def test_aks_kubelet_identity_is_the_node_identity():
     az["metadata"] = {"tenant_id": "t"}
     k = _k8s_nodes(f"azure://{sub}/resourceGroups/mc_rg/providers/Microsoft.Compute/virtualMachineScaleSets/vmss/virtualMachines/0")
     result = real(k, *_NODE_IDS, related_snapshots=[az])
-    assert reached(result, "k8s:c1:node:n1")["cloud:aks_kubelet:client-kubelet"] == "derived"
+    # The AKS identity is linked to this node, but an API view of the node
+    # does not establish control of its host or access to its credential.
+    assert reached(result, "k8s:c1:node:n1")["cloud:aks_kubelet:client-kubelet"] == "conditional"
     assert any(e["source"] == "cloud:aks_kubelet:client-kubelet" and e["target"] == "obj-kubelet" for e in result["graph"]["edges"])
 
 
