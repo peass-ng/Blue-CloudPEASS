@@ -126,6 +126,21 @@ def test_ecr_authorization_token_requires_global_resource_grant():
     assert ROLE not in verdicts or verdicts[ROLE][0] != "conditional"
 
 
+def test_mutable_ecr_autodeploy_exact_graph_positive_blocked_and_unknown():
+    def graph_edges(snapshot):
+        result = privesc.analyze(snapshot, entries=[ECR_ENTRY], include_unknown=True)
+        return [(edge["target"], edge["confidence"])
+                for edge in result["graph"]["edges"]
+                if edge["source"] == USER and ECR_ENTRY["id"] in edge["techniques"]]
+
+    assert graph_edges(_ecr_snapshot()) == [(ROLE, "conditional")]
+    assert graph_edges(_ecr_snapshot(role=OTHER)) == []
+    assert graph_edges(_ecr_snapshot(omit_action="ecr:PutImage")) == []
+    unknown = graph_edges(_ecr_snapshot(mutability="IMMUTABLE_WITH_EXCLUSION"))
+    assert len(unknown) == 1 and unknown[0][0].startswith("unresolved:")
+    assert unknown[0][1] == "unknown"
+
+
 def test_app_runner_projection_keeps_only_image_identity_and_auto_deployment_flag():
     from peaso.collectors.aws_network_catalog import MetadataClient, detail_enricher
 
