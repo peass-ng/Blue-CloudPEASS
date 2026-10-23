@@ -71,7 +71,7 @@ def test_launch_configuration_pagination_strips_user_data(sdk):
 
 def _service(name, public):
     return {"serviceArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/c/{name}", "serviceName": name, "clusterArn": CLUSTER,
-            "taskDefinition": "arn:td", "launchType": "FARGATE", "platformVersion": "1.4.0", "loadBalancers": [], "events": [{"message": "x"}],
+            "taskDefinition": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/t:1", "launchType": "FARGATE", "platformVersion": "1.4.0", "loadBalancers": [], "events": [{"message": "x"}],
             "networkConfiguration": {"awsvpcConfiguration": {"subnets": ["subnet-1"], "assignPublicIp": "ENABLED" if public else "DISABLED"}},
             "taskSets": [{"taskSetArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-set/c/{name}/ts",
                           "networkConfiguration": {"awsvpcConfiguration": {"subnets": ["subnet-1"], "assignPublicIp": "DISABLED"}}}]}
@@ -92,8 +92,15 @@ def test_ecs_services_and_task_sets_share_paginated_batch_reads(sdk):
     assert requests.calls == 5
     assert services.status == "collected" and len(services.items) == 10
     assert "events" not in services.items[0] and "taskSets" not in services.items[0]
-    assert status("aws.c2b.ecs.service_no_public_ip", services.items[0]) == "FAIL"
-    assert status("aws.c2b.ecs.service_no_public_ip", services.items[1]) == "PASS"
+    assert status("aws.c2b.ecs.service_no_public_ip", services.items[0]) == "UNKNOWN"
+    task_definition = services.items[0]["taskDefinition"]
+    index = {"collections": {"ecs_task_definition": [{"scope": SCOPE, "status": "collected"}]},
+             "ecs_task_definition": [{"data": {"taskDefinitionArn": task_definition,
+                 "Definition": {"collection_status": "collected", "taskDefinition": {
+                     "taskDefinitionArn": task_definition, "networkMode": "awsvpc",
+                     "containerDefinitions": [{"name": "app"}]}}}}]}
+    assert status("aws.c2b.ecs.service_no_public_ip", services.items[0], index) == "FAIL"
+    assert status("aws.c2b.ecs.service_no_public_ip", services.items[1], index) == "PASS"
     assert task_sets.status == "collected" and len(task_sets.items) == 10
     assert status("aws.c2b.ecs.task_set_no_public_ip", task_sets.items[0]) == "PASS"
 
