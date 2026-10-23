@@ -512,7 +512,7 @@
     "azure/storage.yaml": "a6eb5c7e667273481efbb0ada8ef8337a74c86af31f42157ee060d46d5a6ec21",
     "azure/synapse.yaml": "70e5f1dcad13b67dbf84cc801a6ffdc072c649af779726f2b186b8e053e0591b",
     "azure/virtual_machines.yaml": "675dbf93d1408b4bcfae6866cc34648fba5a72c463d9f2a146a57d88df7bf66e",
-    "gcp/_excluded.yaml": "93f90547e913535e7be3f38bba71b153e5c5aa47ac2605deae3f05c7af634ef1",
+    "gcp/_excluded.yaml": "5d5ca42d0d0d26f4ebf0144dd2a2fdfe3416d583d3578a024d4502dab2e0896b",
     "gcp/_excluded_main_reconciliation.yaml": "ec6c0fd5fa1b2b510bc87eb4922a5a9fa505082382e2595016a789972acb336a",
     "gcp/_excluded_sweep.yaml": "83cda037d04330b02bde8b4cbbae6284f2f5e3c2ae8f04969f232f44839e3243",
     "gcp/_todo.yaml": "d9855c931037c986d5f3e29e6309a1896394866cd54e0611ecf07f0cb49f9ff9",
@@ -601,9 +601,7 @@
   },
   "effective": {
     "merge_policy": "three-way-canonical-first-v1",
-    "local_ahead_files": [
-      "gcp/_excluded.yaml"
-    ],
+    "local_ahead_files": [],
     "local_deleted_files": []
   },
   "ledger": {
