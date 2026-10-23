@@ -18,4 +18,4 @@ def test_all_active_aws_and_gcp_privilege_paths_have_three_lines():
             assert text is not None, (entry["id"], confidence)
             assert len(text.splitlines()) == 3, (entry["id"], confidence, text)
             assert finding["evidence"]["confidence"] == confidence
-    assert seen == {"aws": 211, "gcp": 223}
+    assert seen == {"aws": 220, "gcp": 223}
