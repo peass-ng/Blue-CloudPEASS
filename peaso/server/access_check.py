@@ -448,8 +448,12 @@ def _azure(auth, scopes, issues, principals):
 
 def _k8s(auth, issues, principals, scopes=()):
     from urllib.parse import quote, urlencode
-    from peaso.collectors.k8s import _new_api
-    api = _new_api(auth)
+    if auth.get('_hosted'):
+        from .k8s_access_transport import HostedAccessApi
+        api = HostedAccessApi(auth)
+    else:
+        from peaso.collectors.k8s import _new_api
+        api = _new_api(auth)
     client = api.api_client
     client.rest_client.pool_manager.allow_self_subject_access_review = True
     def request(path, method="GET", body=None):

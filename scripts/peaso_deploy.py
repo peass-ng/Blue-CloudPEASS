@@ -53,6 +53,8 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_peaso_k8s_access_transport.py',
+    'tests/test_k8s_image_source_association_current_20261023.py',
     'docs/gcp-iam-pagination-source-review-20261023.json',
     'scripts/benchmark_engine_finding_materialization.py',
     'scripts/benchmark_engine_sw46_joins.py',
@@ -2362,7 +2364,8 @@ def package_api():
          "--no-compile", "--platform", "manylinux2014_x86_64", "--implementation", "cp",
          "--python-version", "3.12", "--abi", "cp312", "--only-binary=:all:",
          "fastapi>=0.115", "uvicorn>=0.30", "cryptography>=43", "PyYAML>=6",
-         "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3==1.43.38", "requests>=2", "tzdata>=2024.1"])
+         "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3==1.43.38", "requests>=2", "tzdata>=2024.1",
+         "google-auth==2.62.0", "azure-identity==1.26.0"])
     # Reject installer-created links before copying any source into its tree.
     omitted = omit_empty_api_installation_markers(target)
     if omitted:
