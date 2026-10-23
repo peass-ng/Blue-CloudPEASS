@@ -49,6 +49,25 @@ def test_existing_role_update_rejects_wrong_service_state_and_permission():
     assert _edges(_snapshot(permission=False)) == {}
 
 
+def test_existing_role_update_exact_graph_positive_blocked_and_unknown():
+    def graph_edges(snapshot):
+        result = privesc.analyze(snapshot, entries=[ENTRY], include_unknown=True)
+        return [(edge["target"], edge["confidence"])
+                for edge in result["graph"]["edges"]
+                if edge["source"] == USER and ENTRY["id"] in edge["techniques"]]
+
+    assert graph_edges(_snapshot()) == [(ROLE, "conditional")]
+    assert graph_edges(_snapshot(role=OTHER)) == [(OTHER, "conditional")]
+    assert graph_edges(_snapshot(permission=False)) == []
+    assert graph_edges(_snapshot(status="DELETED")) == []
+    missing_service = _snapshot()
+    missing_service["collections"] = [row for row in missing_service["collections"]
+                                      if row["type"] != "app_runner_service"]
+    unknown = graph_edges(missing_service)
+    assert len(unknown) == 1 and unknown[0][0].startswith("unresolved:")
+    assert unknown[0][1] == "unknown"
+
+
 def test_app_runner_projection_keeps_role_and_source_type_without_variables():
     from peaso.collectors.aws_network_catalog import detail_enricher
 
