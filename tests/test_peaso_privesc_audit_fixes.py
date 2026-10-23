@@ -520,20 +520,22 @@ def _gcp_conditional(expression, title="c"):
 
 
 @pytest.mark.parametrize("expression,resource,expected", [
-    ('resource.name.endsWith("a@p0.iam.gserviceaccount.com")', _SA.format("a"), True),
+    ('resource.name.endsWith("a@p0.iam.gserviceaccount.com")', _SA.format("a"), False),
     ('resource.name.endsWith("a@p0.iam.gserviceaccount.com")', _SA.format("b"), False),
-    ('resource.name == "projects/p0"', "projects/p0", True),
+    ('resource.name == "projects/p0"', "projects/p0", False),
     ('resource.name == "projects/100"', "projects/p0", False),         # the model passes the number as an alias
     ('resource.name.startsWith("projects/p9/")', _SA.format("a"), False),
-    ('resource.type == "iam.googleapis.com/ServiceAccount"', _SA.format("a"), True),
+    ('resource.type == "iam.googleapis.com/ServiceAccount"', _SA.format("a"), False),
     ('resource.type != "iam.googleapis.com/ServiceAccount"', _SA.format("a"), False),
-    ('resource.service == "iam.googleapis.com"', _SA.format("a"), True),
-    ('resource.type == "storage.googleapis.com/Bucket" || resource.service == "iam.googleapis.com"', _SA.format("a"), True),
+    ('resource.service == "iam.googleapis.com"', _SA.format("a"), False),
+    ('resource.type == "storage.googleapis.com/Bucket" || resource.service == "iam.googleapis.com"', _SA.format("a"), False),
+    ('resource.type == "storage.googleapis.com/Bucket"', "projects/_/buckets/b", True),
+    ('resource.service == "storage.googleapis.com"', "projects/_/buckets/b", True),
     ('request.time < timestamp("2001-01-01T00:00:00Z")', _SA.format("a"), False),
     ('request.time < timestamp("2999-01-01T00:00:00Z")', _SA.format("a"), True),
     ('resource.matchTag("123/env", "prod")', _SA.format("a"), None),
     ('request.time.getHours("UTC") > 8', _SA.format("a"), None),
-    ('resource.name.startsWith("projects/p0/serviceAccounts/a")', _SA.format("a"), None),  # projects/- alias disagrees
+    ('resource.name.startsWith("projects/p0/serviceAccounts/a")', _SA.format("a"), False),
     ('resource.name.startsWith("x") &&', _SA.format("a"), None),       # unsupported syntax
     ('!(resource.type == "iam.googleapis.com/ServiceAccount") || resource.matchTag("k", "v")', "projects/p0", True),
 ])
@@ -544,14 +546,13 @@ def test_cel_three_valued(expression, resource, expected):
 def test_cel_condition_on_resource_name_restricts_targets():
     result = real(_gcp_conditional('resource.name.endsWith("a@p0.iam.gserviceaccount.com")'), _TOKEN_TID)
     got = reached(result, "user:u@x.com", _TOKEN_TID)
-    # b is excluded under every plausible resource.name form; a matches the email forms but not the
-    # unique-id form, so it stays conditional (never derived on an ambiguous name).
-    assert got == {"serviceAccount:a@p0.iam.gserviceaccount.com": "conditional"}
+    # IAM Conditions do not expose resource.name for service accounts, even when the
+    # policy lookup has their resource path. Neither target can satisfy this condition.
+    assert got == {}
 
 
 def test_cel_decided_true_condition_is_derived():
-    result = real(_gcp_conditional('resource.type == "iam.googleapis.com/ServiceAccount" && '
-                                   'resource.service == "iam.googleapis.com"'), _TOKEN_TID)
+    result = real(_gcp_conditional('request.time < timestamp("2999-01-01T00:00:00Z")'), _TOKEN_TID)
     got = reached(result, "user:u@x.com", _TOKEN_TID)
     assert got == {f"serviceAccount:{n}@p0.iam.gserviceaccount.com": "derived" for n in "ab"}
 
