@@ -84,7 +84,7 @@ def test_http_uses_only_metadata_then_claimed_child_verifies_contents(tmp_path):
 
     preflight = HeadOnly()
     assert recoverable_sources(terminal, store, preflight, metadata_only=True) == "collector"
-    assert len(preflight.references) == 3
+    assert len(preflight.references) == 2
     store.resume_job(tenant, job["id"], store.connector(tenant, connector["id"]), now + 6)
     claimed = store.job(tenant, job["id"])
     entries = store.checkpoint_collections(tenant, job["id"])
@@ -167,3 +167,25 @@ def test_partial_resume_rejects_wrong_provenance(tmp_path, changed):
     with pytest.raises(StoreError) as exc:
         recoverable_sources(candidate, store, artifacts)
     assert exc.value.status == 409
+
+
+def test_http_preflight_cost_does_not_grow_with_batch_count(tmp_path):
+    store, artifacts, tenant, job, _, _ = prepared(tmp_path)
+    row = store.job(tenant, job["id"])
+    entry = store.checkpoint_collections(tenant, job["id"])[0]
+    entries = [dict(entry, sequence=n, scope=str(n)) for n in range(1, 167)]
+    row["checkpoint_sequence"] = 166
+    class ManyBatches:
+        def checkpoint_collections(self, owner, ident):
+            assert (owner, ident) == (tenant, job["id"])
+            return entries
+    class Metadata:
+        def __init__(self): self.heads = []
+        def size(self, owner, reference):
+            self.heads.append(reference)
+            return artifacts.size(owner, reference)
+        def get(self, *_): raise AssertionError("No HTTP body reads")
+    metadata = Metadata()
+    assert recoverable_sources(row, ManyBatches(), metadata, metadata_only=True) == "collector"
+    assert len(metadata.heads) == 2
+    assert set(metadata.heads) == {row["partial_snapshot"], row["partial_report"]}

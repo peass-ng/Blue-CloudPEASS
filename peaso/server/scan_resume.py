@@ -6,7 +6,7 @@ import re
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
 from peaso.storage.sqlite import StoreError, TERMINAL
-from peaso.storage.artifacts import job_prefix
+from peaso.storage.artifacts import check_reference, job_prefix
 
 
 _SECRET_FIELDS = {
@@ -120,11 +120,15 @@ def recoverable_sources(row, store, artifacts, *, metadata_only=False):
         # The HTTP route checks durable row metadata and object existence,
         # while the collector child validates every byte before native work.
         # HEAD/stat reads stay small even for a 150 MB cumulative snapshot.
-        if len(references) > 129:
-            raise StoreError(409, "Saved scan batches exceed interactive resume limit")
         try:
-            with ThreadPoolExecutor(max_workers=min(8, len(references))) as pool:
-                sizes = list(pool.map(lambda ref: artifacts.size(row["tenant"], ref), references))
+            for reference in references:
+                check_reference(row["tenant"], reference)
+            # Check only the cumulative publication here. Batch presence and
+            # complete content are verified in the claimed collector, so API
+            # latency does not grow with the number of acknowledged batches.
+            publication_refs = [row["partial_snapshot"], row["partial_report"]]
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                sizes = list(pool.map(lambda ref: artifacts.size(row["tenant"], ref), publication_refs))
             if any(type(size) is not int or size <= 0 for size in sizes):
                 raise ValueError("Empty saved artifact")
         except Exception:
