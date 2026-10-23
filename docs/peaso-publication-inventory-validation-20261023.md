@@ -28,6 +28,8 @@ All eight complete-bundle hashes per backend match across baseline/optimized tim
 - **11 follow-up inventory/source-gate tests passed**. They check a single publication-owned preparation, complete least-privilege context despite filtered resource downloads, untouched inputs, and fresh native data in a later publication. The nonempty hidden-role projection prevents the filtering assertion from being vacuous.
 - The SDK source closure review changes only `reports.py`; its 30 SDK client sites and service set are unchanged. Standard artifact adapters and custom callers that omit the private prepared-inventory argument retain the previous resource-chunk behavior.
 
+After rebasing onto `77956d65`, preserving concurrent IAM usage collectors and worker finalization, **64 integration cases passed**. A fresh **9-case SDK gate run passed** after clearing stale local bytecode from rapid gate regeneration; the source pin itself matched the manifest. These counts overlap. The only production-runtime difference from that main revision is `reports.py`.
+
 Reproduce with the repository environment:
 
 ```sh
