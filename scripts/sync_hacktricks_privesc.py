@@ -2,7 +2,7 @@
 """Validate and synchronize the HackTricks Cloud privilege-escalation path catalog.
 
 Upstream layout (reviewed CSPM catalog, in HackTricks Cloud):
-    src/privilege-escalation-paths-cspm-reviewed/<provider>/<service>.yaml
+    src/privilege-escalation-paths/<provider>/<service>.yaml
 Local copy (Blue-CloudPEASS):
     peaso/privesc/catalog/<provider>/<service>.yaml
 
@@ -36,7 +36,7 @@ import yaml
 
 PROVIDERS = ('aws', 'gcp', 'azure', 'k8s')
 REPOSITORY = 'HackTricks-wiki/hacktricks-cloud'
-UPSTREAM_PATH = 'src/privilege-escalation-paths-cspm-reviewed'
+UPSTREAM_PATH = 'src/privilege-escalation-paths'
 CATALOG_PATH = Path('peaso/privesc/catalog')
 MANIFEST_PATH = Path('risk_rules/hacktricks-privesc-source.json')
 LEDGER_PATH = Path('risk_rules/reviewed-privesc-ledger.json')

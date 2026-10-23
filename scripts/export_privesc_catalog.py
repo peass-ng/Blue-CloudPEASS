@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Export the Blue-CloudPEASS privesc catalog into the HackTricks Cloud upstream layout.
 
-Writes <book-root>/src/privilege-escalation-paths-cspm-reviewed/:
+Writes <book-root>/src/privilege-escalation-paths/:
     README.md                          (format + contribution guide, generated, deterministic)
     privesc-technique.schema.json      (copied from peaso/privesc/ when it exists)
     <provider>/<service>.yaml          (byte-for-byte copies of peaso/privesc/catalog/<provider>/*.yaml)

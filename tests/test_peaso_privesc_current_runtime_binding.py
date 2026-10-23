@@ -12,6 +12,21 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_reviewed_685_binding_retains_original_source_for_stored_reports():
+    ident = "azure-apim-developer-portal-sso-external-principal"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.REVIEWED_685_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.REVIEWED_685_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["source"].endswith("#microsoftapimanagementserviceusersgeneratessourlaction")
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["source"].endswith("#microsoftapimanagementserviceuserstokenaction")
+    assert len(catalog._verified_reviewed_685_previous()) == 685
+
+
 def test_reviewed_691_binding_retains_retired_techniques_without_reviving_them():
     ident = "gcp-artifactregistry-repositories-update-dependency-confusion"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
