@@ -90,6 +90,9 @@ FOCUSED_HELPER_TESTS = {
 }
 
 ISOLATED_GRAPH_TESTS = {
+    "aws-ec2-passrole-associate-instance-profile": (
+        "tests/test_peaso_privesc_ec2_profile_branches.py"
+    ),
     "aws-emr-getclustersessioncredentials-runtime-role": (
         "tests/test_peaso_privesc_emr_cluster_endpoint_role_effect.py"
     ),
