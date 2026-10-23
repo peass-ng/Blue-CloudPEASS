@@ -42,6 +42,31 @@ def _expired_snapshot(snapshot):
     return False
 
 
+def _resume_prior(checkpoint_session, prior):
+    """Use every restored delta when a cumulative report lags collection."""
+    if prior.get("metadata", {}).get("intentional_partial") is not True:
+        checkpoint_session.restore_final(prior)
+        return prior
+    from peaso.snapshot import make_snapshot
+    metadata = dict(prior.get("metadata") or {})
+    for key in ("intentional_partial", "scope_coverage", "incremental", "sections"):
+        metadata.pop(key, None)
+    rows = list(checkpoint_session.collections.values())
+    if not rows:
+        raise ValueError("No restored checkpoint batches")
+    return make_snapshot(prior["provider"], sorted({row["scope"] for row in rows}),
+                         rows, metadata=metadata)
+
+
+def _partial_reuse_allowed(connector, partial_metadata):
+    if partial_metadata is None:
+        return True
+    if connector["provider"] != "aws":
+        return False
+    plan = (partial_metadata.get("incremental") or {}).get("scope_plan")
+    return plan is None or set(plan) == set(connector.get("scopes") or [])
+
+
 def _verify_aws_credentials(connector):
     """Reject an expired selected session before scheduling native inventory."""
     if (connector.get("provider") != "aws" or
@@ -308,15 +333,21 @@ def _process(role, request, connection):
                     prior = validate(artifacts.get(tenant, request["resume_snapshot_ref"]))
                     if prior["provider"] != connector["provider"]:
                         raise ValueError("Resume snapshot provider mismatch")
-                    checkpoint_session.restore_final(prior)
+                    partial_metadata = prior.get("metadata", {}) if prior.get("metadata", {}).get(
+                        "intentional_partial") is True else None
+                    prior = _resume_prior(checkpoint_session, prior)
                     from peaso.engine import plan_collection
                     from peaso.collectors.resume import partition, scoped_gcp_lookup
                     requirements = plan_collection(request)
-                    lookup = scoped_gcp_lookup(connector, requirements, prior)
-                    if lookup is not None:
-                        connector.setdefault("options", {})["_resume_collection_lookup"] = lookup
-                    else:
-                        remaining, saved_rows = partition(connector, requirements, prior)
+                    # Cumulative checkpoints are evidence, not authority to
+                    # omit dynamically discovered units. Only an explicit AWS
+                    # regional plan matching the frozen target can reuse kinds.
+                    if _partial_reuse_allowed(connector, partial_metadata):
+                        lookup = scoped_gcp_lookup(connector, requirements, prior)
+                        if lookup is not None:
+                            connector.setdefault("options", {})["_resume_collection_lookup"] = lookup
+                        else:
+                            remaining, saved_rows = partition(connector, requirements, prior)
                     if saved_rows:
                         # The original selection is retained in the row and
                         # checkpoint session.  This per-attempt inventory plan
@@ -574,8 +605,11 @@ class Worker:
                 request["checkpoint_refs"] = [row["reference"] for row in sorted(
                     self.store.checkpoint_collections(job["tenant"], job["id"]),
                     key=lambda row: row["sequence"])]
-                if job.get("resume_phase") == "collector" and job.get("snapshot"):
-                    request["resume_snapshot_ref"] = job["snapshot"]
+                if job.get("resume_phase") == "collector":
+                    from peaso.server.scan_resume import collector_source
+                    reference = collector_source(job)
+                    if reference:
+                        request["resume_snapshot_ref"] = reference
             request.update(tenant_id=job["tenant"], scan_id=job["id"], deadline=job["deadline"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
             request["ai_context"] = {"state_dir": str(self.settings.state_dir), "identity_dir": str(self.settings.identity_dir)}
             request["timeline"] = self.store.public_job(job)["timeline"]

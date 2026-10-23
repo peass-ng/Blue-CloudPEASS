@@ -405,9 +405,8 @@ class SQLiteStore:
         events = json.loads(events) if isinstance(events, str) else events
         error, reasons = public_failure(row["error"])
         result = dict(json.loads(row["data"]), id=row["id"], status=row["status"], created_at=utc(row["created"]), deadline_at=utc(row["deadline"]), admitted_at=utc(value["admitted_at"]) if value.get("admitted_at") is not None else None, error=error, error_code=value.get("error_code"), error_stage=value.get("error_stage"), timeline=events, updated_at=events[-1]["at"] if events else utc(row["created"]), input_mode=json.loads(row["connector"])["data"].get("input_mode", "live"), runtime=runtime_estimate(events), result_available=bool(value.get("report") or value.get("partial_report")))
-        result["resumable"] = (row["status"] in {"credentials_expired", "failed", "timed_out", "cancelled"}
-                               and result["input_mode"] == "live"
-                               and bool(value.get("snapshot")))
+        from peaso.server.scan_resume import resume_stage
+        result["resumable"] = bool(resume_stage(value))
         if reasons:
             result["failure_reasons"] = reasons
         if value.get("progress_details"):

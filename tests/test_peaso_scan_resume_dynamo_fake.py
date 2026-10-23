@@ -3,6 +3,7 @@ import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
 from botocore.exceptions import ClientError
 from boto3.dynamodb.types import TypeDeserializer
 
@@ -10,14 +11,19 @@ from peaso.storage.dynamodb import DynamoStore
 from peaso.storage.sqlite import StoreError
 
 
-def test_dynamo_resume_transaction_is_same_row_and_exactly_once():
+@pytest.mark.parametrize("checkpoint_only", [False, True])
+def test_dynamo_resume_transaction_is_same_row_and_exactly_once(checkpoint_only):
     ident = "a" * 32
     connector = {"id": "b" * 32, "tenant": "owner", "rev": 2,
                  "data": json.dumps({"provider": "aws", "scopes": ["123456789012/us-east-1"],
                                      "input_mode": "live"}), "auth": "rotated-sealed-auth"}
     row = {"id": ident, "tenant": "owner", "connector_id": connector["id"],
            "connector": json.dumps({"data": json.loads(connector["data"]), "auth": "prior-sealed-auth"}),
-           "status": "credentials_expired", "snapshot": "saved-snapshot", "checkpoint_sequence": 2,
+           "status": "credentials_expired", "snapshot": None if checkpoint_only else "saved-snapshot",
+           "partial_snapshot": "saved-partial" if checkpoint_only else None,
+           "partial_report": "saved-report" if checkpoint_only else None,
+           "partial_report_sequence": 2 if checkpoint_only else None,
+           "checkpoint_sequence": 2,
            "created": 100.0, "deadline": 200.0, "resume_attempt": 0,
            "history": [{"status": "credentials_expired", "at": "prior"}],
            "data": json.dumps({"checks": ["original"]})}
@@ -61,5 +67,7 @@ def test_dynamo_resume_transaction_is_same_row_and_exactly_once():
     assert 409 in outcomes
     assert row["id"] == ident and row["created"] == 100.0
     assert row["data"] == json.dumps({"checks": ["original"]})
-    assert row["snapshot"] == "saved-snapshot" and row["checkpoint_sequence"] == 2
+    assert row["snapshot"] == (None if checkpoint_only else "saved-snapshot")
+    assert row["partial_snapshot"] == ("saved-partial" if checkpoint_only else None)
+    assert row["checkpoint_sequence"] == 2
     assert row["resume_attempt"] == 1 and row["resume_phase"] == "collector"

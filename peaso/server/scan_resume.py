@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from peaso.storage.sqlite import StoreError, TERMINAL
 from peaso.storage.artifacts import job_prefix
@@ -19,6 +20,18 @@ _SECRET_FIELDS = {
 _RECOVERABLE = {"credentials_expired", "failed", "timed_out", "cancelled"}
 
 
+def collector_source(row):
+    """Prefer a sealed final snapshot; admit a fenced cumulative checkpoint."""
+    if row.get("snapshot"):
+        return row["snapshot"]
+    sequence = row.get("checkpoint_sequence")
+    published = row.get("partial_report_sequence")
+    if (type(sequence) is int and type(published) is int and 0 < published <= sequence
+            and row.get("partial_snapshot") and row.get("partial_report")):
+        return row["partial_snapshot"]
+    return None
+
+
 def resume_stage(row):
     """Return the work that remains, only for an incomplete live terminal row."""
     row = dict(row)
@@ -32,9 +45,7 @@ def resume_stage(row):
         return None
     if (row.get("status") == "credentials_expired" or row.get("error_stage") == "collector"
             or row.get("status") == "cancelled" and row.get("resume_phase") == "collector"):
-        # A checkpoint batch proves its published facts but lacks the complete
-        # native scope/metadata plan needed to skip settled work safely.
-        return "collector" if row.get("snapshot") else None
+        return "collector" if collector_source(row) else None
     if row.get("snapshot"):
         return "analyzer"
     return None
@@ -87,14 +98,18 @@ def recoverable_sources(row, store, artifacts):
         raise StoreError(409, "This scan has no recoverable work")
     prefix = job_prefix(row["tenant"], row["id"])
     provider = json.loads(row["connector"])["data"]["provider"]
+    partial = stage == "collector" and not row.get("snapshot")
     if stage == "analyzer":
         references = [row["snapshot"]]
     else:
         entries = store.checkpoint_collections(row["tenant"], row["id"])
-        references = ([row["snapshot"]] if row.get("snapshot") else []) + [entry["reference"] for entry in entries]
+        references = [collector_source(row)] + [entry["reference"] for entry in entries]
         if not references or any(type(entry.get("sequence")) is not int
                               or not 0 < entry["sequence"] <= row["checkpoint_sequence"]
                               for entry in entries):
+            raise StoreError(409, "Saved scan batches are unavailable")
+        if partial and (not entries or max(entry["sequence"] for entry in entries)
+                        != row["checkpoint_sequence"]):
             raise StoreError(409, "Saved scan batches are unavailable")
     if not references or any(not isinstance(ref, str) or not ref.startswith(prefix)
                              for ref in references):
@@ -104,6 +119,89 @@ def recoverable_sources(row, store, artifacts):
             snapshot = validate(artifacts.get(row["tenant"], reference))
             if snapshot["provider"] != provider or not snapshot["collections"]:
                 raise ValueError("Saved scan provider mismatch")
+        if partial:
+            saved = validate(artifacts.get(row["tenant"], row["partial_snapshot"]))
+            metadata = saved.get("metadata") or {}
+            incremental = metadata.get("incremental") or {}
+            frozen = json.loads(row["connector"])["data"]
+            scopes = frozen.get("scopes")
+            plan = incremental.get("scope_plan")
+            if (metadata.get("intentional_partial") is not True
+                    or incremental.get("phase") != "collecting"
+                    or incremental.get("sequence") != row["partial_report_sequence"]
+                    or incremental.get("completed_collections") != len(saved["collections"])
+                    or not isinstance(scopes, list) or not scopes
+                    or metadata.get("requested_scopes") != scopes):
+                raise ValueError("Saved checkpoint plan mismatch")
+            if provider == "aws":
+                # An explicit regional target is its own complete boundary.
+                # Wildcard discovery needs the native plan persisted after
+                # on_scope_plan; observed rows alone cannot prove absent work.
+                explicit = ("*" not in scopes and all(
+                    isinstance(scope, str) and re.fullmatch(
+                        r"[0-9]{12}/[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+", scope)
+                    for scope in scopes))
+                if plan is None:
+                    globals_allowed = {scope.split("/", 1)[0] + "/global" for scope in scopes}
+                    if not explicit or any(row["scope"] not in scopes and row["scope"] not in globals_allowed
+                                           for row in saved["collections"]):
+                        raise ValueError("Saved checkpoint scope plan unavailable")
+                elif (not isinstance(plan, list) or not plan
+                      or len(set(plan)) != len(plan)
+                      or any(not isinstance(scope, str) or not re.fullmatch(
+                          r"[0-9]{12}/[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+", scope)
+                          for scope in plan)
+                      or (explicit and not set(scopes) <= set(plan))):
+                    raise ValueError("Saved checkpoint scope plan mismatch")
+                else:
+                    globals_allowed = {scope.split("/", 1)[0] + "/global" for scope in plan}
+                    if any(row["scope"] not in plan and row["scope"] not in globals_allowed
+                           for row in saved["collections"]):
+                        raise ValueError("Saved checkpoint scope plan mismatch")
+            report = artifacts.get(row["tenant"], row["partial_report"])
+            publication = (report.get("summary", report).get("publication")
+                           if isinstance(report, dict) else None)
+            if (not isinstance(publication, dict)
+                    or publication.get("state") != "partial"
+                    or publication.get("phase") != "collecting"
+                    or publication.get("sequence") != row["partial_report_sequence"]):
+                raise ValueError("Saved checkpoint publication mismatch")
+            at_publication = {}
+            for entry in entries:
+                batch = validate(artifacts.get(row["tenant"], entry["reference"]))
+                mark = (batch.get("metadata") or {}).get("incremental") or {}
+                if (mark.get("sequence") != entry["sequence"] or mark.get("phase") != "collecting"
+                        or batch.get("metadata", {}).get("requested_scopes") != scopes):
+                    raise ValueError("Saved checkpoint sequence mismatch")
+                batch_plan = mark.get("scope_plan")
+                if provider == "aws" and batch_plan is not None and (
+                        not isinstance(batch_plan, list)
+                        or batch_plan != (plan if plan is not None else scopes)):
+                    raise ValueError("Saved checkpoint scope plan changed")
+                if entry["kind"] == "__checkpoint_batch__":
+                    revisions = mark.get("batch_revisions")
+                    if (entry["scope"] != str(entry["sequence"])
+                            or not isinstance(revisions, list)
+                            or len(revisions) != len(batch["collections"])):
+                        raise ValueError("Saved checkpoint batch mismatch")
+                elif (len(batch["collections"]) != 1
+                      or batch["collections"][0]["type"] != entry["kind"]
+                      or batch["collections"][0]["scope"] != entry["scope"]):
+                    raise ValueError("Saved checkpoint envelope mismatch")
+                else:
+                    revisions = [mark.get("data_revision", entry["sequence"])]
+                for revision, envelope in zip(revisions, batch["collections"]):
+                    if type(revision) is not int or not 0 <= revision <= entry["sequence"]:
+                        raise ValueError("Saved checkpoint revision mismatch")
+                    if entry["sequence"] <= row["partial_report_sequence"]:
+                        key = (envelope["type"], envelope["scope"])
+                        if revision >= at_publication.get(key, (-1, None))[0]:
+                            at_publication[key] = (revision, envelope)
+            expected = {key: envelope for key, (_, envelope) in at_publication.items()}
+            observed = {(envelope["type"], envelope["scope"]): envelope
+                        for envelope in saved["collections"]}
+            if not expected or expected != observed:
+                raise ValueError("Saved cumulative checkpoint mismatch")
     except (KeyError, OSError, TypeError, ValueError):
         raise StoreError(409, "Saved scan results are unavailable") from None
     return stage
