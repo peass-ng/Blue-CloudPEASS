@@ -167,11 +167,15 @@ def plan(case, branch='good'):
         add('https://cloudresourcemanager.googleapis.com/v3/'+scope,row,primary=True)
     elif kind=='function':
         row['name']=FN; policy=row.pop('iamPolicy',{'bindings':[]})
+        add('https://cloudfunctions.googleapis.com/v2/'+P+'/locations',
+            {'locations':[{'name':P+'/locations/us-central1','locationId':'us-central1'}]})
         add('https://cloudfunctions.googleapis.com/v2/'+P+'/locations/-/functions',{'functions':[row]},primary=True)
         add('https://cloudfunctions.googleapis.com/v2/'+FN+':getIamPolicy',policy)
     elif kind=='dataproc_cluster':
         row.update(clusterName='review',projectId='native-one',clusterUuid='11111111-1111-4111-8111-111111111111');row.pop('name')
         add('https://dataproc.googleapis.com/v1/'+P+'/regions/us-central1/clusters',{'clusters':[row]},primary=True)
+        add('https://dataproc.googleapis.com/v1/'+P+'/regions/us-central1/clusters/review:getIamPolicy',
+            {'bindings':[]},method='POST')
     elif kind=='api_key':
         row['name']='projects/123/locations/global/keys/key-1'
         add('https://apikeys.googleapis.com/v2/'+P+'/locations/global/keys',{'keys':[row]},primary=True)
