@@ -15,6 +15,22 @@ from urllib.parse import urlsplit
 from .fargate import MAX_INPUT, MAX_OUTPUT, STAGES
 
 
+def reject_ambient_aws_credentials():
+    """Stop if a deployment starts supplying AWS identity to an AI task."""
+    credential_variables = (
+        'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI',
+        'AWS_CONTAINER_CREDENTIALS_FULL_URI',
+        'AWS_ACCESS_KEY_ID',
+        'AWS_SECRET_ACCESS_KEY',
+        'AWS_SESSION_TOKEN',
+        'AWS_PROFILE',
+        'AWS_WEB_IDENTITY_TOKEN_FILE',
+        'AWS_ROLE_ARN',
+    )
+    if any(os.environ.get(name) for name in credential_variables):
+        raise RuntimeError('ambient_aws_credentials_forbidden')
+
+
 def transfer(method, url, *, body=None, limit=MAX_INPUT):
     """Only presigned S3 HTTPS objects; never ambient cloud credentials."""
     import re
@@ -134,6 +150,7 @@ def main():
     from .providers import ConfigurationError
     os.umask(0o077)
     try:
+        reject_ambient_aws_credentials()
         if sys.argv[1] == 'relay':
             from .model_relay import serve
             url = os.environ.pop('PEASO_AI_BOOTSTRAP_URL')

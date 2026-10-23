@@ -14,6 +14,14 @@ _lock = threading.Lock()
 _entries = None
 
 
+def may_capture_live(connector):
+    """Only hand agents credentials whose source policy permits live access."""
+    if connector.get('provider') == 'aws':
+        return False
+    return not (connector.get('provider') == 'gcp' and
+                connector.get('auth', {}).get('method') == 'platform-service-account')
+
+
 def begin(*, allow_live=True):
     global _entries
     with _lock:
@@ -130,11 +138,13 @@ def scopes_overlap(first, second):
 
 
 def eligible_entries(entries, snapshot):
-    """Old GCP envelopes cannot prove the shared platform identity was withheld.
+    """Keep unscoped AWS sessions and old shared GCP identities out of agents.
 
-    This also removes derived Kubernetes tokens from old GCP scans. A rescan
-    captures customer-owned credentials under the current collector policy.
+    AWS sessions may carry customer write permissions, including in old scans.
+    Old GCP envelopes cannot prove the shared platform identity was withheld;
+    this also removes derived Kubernetes tokens from those scans.
     """
+    entries = [entry for entry in entries if entry.get('provider') != 'aws']
     if snapshot.get('provider') == 'gcp':
         return [entry for entry in entries
                 if entry.get('capture_policy') == 'no_shared_platform_identity_v1']

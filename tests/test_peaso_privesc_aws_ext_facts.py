@@ -250,7 +250,8 @@ def test_sagemaker_space_host_uses_only_its_collected_execution_role():
 # --- application planes / Identity Center -----------------------------------------------------------------
 def test_grafana_workspace_is_a_service_plane_target():
     ws = f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-1"
-    extra = [("grafana_workspace", SCOPE, [{"id": "g-1", "Arn": ws}])]
+    extra = [("grafana_workspace", SCOPE, [{"id": "g-1", "Arn": ws,
+                                             "status": "ACTIVE", "grafanaVersion": "10.4"}])]
     entry = catalog_entry("aws-grafana-createworkspaceapikey-admin")
     result = privesc.analyze(aws_snap([user("alice", allow("grafana:CreateWorkspaceApiKey", ws))], [], extra), entries=[entry])
     assert set(reached(result, ALICE)) == {f"aws_service_plane_admin:grafana:{ws}"}
@@ -486,7 +487,7 @@ def test_flink_create_application_needs_global_resource_grant():
                                    entries=[technique], include_unknown=False), ALICE) == {}
 
 
-def test_spot_fleet_requires_passable_fleet_role_and_service_linked_roles():
+def test_spot_fleet_without_execution_proof_does_not_claim_instance_role():
     technique = catalog_entry("aws-ec2-passrole-requestspotfleet")
     target = role("power", trust_service("ec2.amazonaws.com"), profile=True)
     fleet = role("fleet", trust_service("spotfleet.amazonaws.com"))
@@ -500,17 +501,21 @@ def test_spot_fleet_requires_passable_fleet_role_and_service_linked_roles():
     service_roles = [service_linked("spotfleet.amazonaws.com", "AWSServiceRoleForEC2SpotFleet"),
                      service_linked("spot.amazonaws.com", "AWSServiceRoleForEC2Spot")]
 
-    def route(pass_fleet=True, roles=service_roles, create=False):
+    def route(pass_fleet=True, roles=service_roles, create=False, include_unknown=False):
         passed = [target["Arn"], fleet["Arn"]] if pass_fleet else [target["Arn"]]
         statements = [allow(["ec2:RequestSpotFleet", "ec2:RunInstances"]), allow("iam:PassRole", passed)]
         if create:
             statements.append(allow("iam:CreateServiceLinkedRole"))
-        return privesc.analyze(aws_snap([user("alice", *statements)], [target, fleet, *roles]), entries=[technique])
+        return privesc.analyze(aws_snap([user("alice", *statements)], [target, fleet, *roles]),
+                               entries=[technique], include_unknown=include_unknown)
 
-    assert target["Arn"] in reached(route(), ALICE)
+    assert reached(route(), ALICE) == {}
+    unresolved = route(include_unknown=True)
+    assert any(node["id"].startswith(("unresolved:", "unknown:"))
+               for node in (nodes(unresolved)[edge["target"]] for edge in edges(unresolved, ALICE)))
     assert reached(route(pass_fleet=False), ALICE) == {}
     assert reached(route(roles=[]), ALICE) == {}
-    assert target["Arn"] in reached(route(roles=[], create=True), ALICE)
+    assert reached(route(roles=[], create=True), ALICE) == {}
     wrong_service = user("alice", allow(["ec2:RequestSpotFleet", "ec2:RunInstances"]),
         allow("iam:PassRole", target["Arn"]), {"Effect": "Allow", "Action": "iam:PassRole",
         "Resource": fleet["Arn"], "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}})
@@ -521,7 +526,7 @@ def test_spot_fleet_requires_passable_fleet_role_and_service_linked_roles():
             allow("iam:PassRole", target["Arn"]), {"Effect": "Allow", "Action": "iam:PassRole",
             "Resource": fleet["Arn"], "Condition": {"StringEquals": {"iam:PassedToService": passed_to}}})
         result = privesc.analyze(aws_snap([conditioned], [target, fleet, *service_roles]), entries=[technique])
-        assert target["Arn"] in reached(result, ALICE)
+        assert reached(result, ALICE) == {}
 
 
 def test_identity_center_group_assignments_decide_creategroupmembership():

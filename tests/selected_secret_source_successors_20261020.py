@@ -15,6 +15,14 @@ SUCCESSORS={
  ('peaso/secret_findings.py','7de03e95c2ddf07ecffc4634e9f5a07fe1d8563439dab844651c92bc382c7784'):
  ('docs/check-review/secret-grouping-incomplete-source-successor-20261020.json','5ce78ce7549a6c28e643a11505917140a9a5fb89ac8f1cecc0dc72379e8df49f'),
 }
+PRIVATE_NATIVE_SOURCE = (
+ 'peaso/collectors/aws_lambda_environment_secret_indicators.py',
+ '2fce27977e83ba4f9abc6baa6ac78d4ff5e0e4a2b8b27d52d333a0458e67f289',
+)
+RAWV2_SCANNER_SOURCE = (
+ 'peaso/secret_scanning.py',
+ '72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19',
+)
 
 def _successor(path,expected,root):
     proof_path,proof_sha=SUCCESSORS[(path,expected)]
@@ -36,6 +44,16 @@ def _successor(path,expected,root):
 def assert_source_receipt(path,expected,root=ROOT):
     root=Path(root);path=str(path)
     if hashlib.sha256((root/path).read_bytes()).hexdigest()==expected:return
+    if (path,expected)==PRIVATE_NATIVE_SOURCE:
+        from peaso.private_secret_source_epoch_20261021 import predecessor_bytes
+        before=predecessor_bytes(path,(root/path).read_bytes(),expected,root)
+        assert hashlib.sha256(before).hexdigest()==expected,'Historical native source changed'
+        return
+    if (path,expected)==RAWV2_SCANNER_SOURCE:
+        from peaso.rawv2_private_source_successor_20261021 import source_bytes
+        before=source_bytes(path,(root/path).read_bytes(),expected,root)
+        assert hashlib.sha256(before).hexdigest()==expected,'Historical scanner source changed'
+        return
     assert (path,expected)in SUCCESSORS,'No reviewed source successor: '+path
     _successor(path,expected,root)
 

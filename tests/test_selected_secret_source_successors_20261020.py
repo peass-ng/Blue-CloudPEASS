@@ -2,7 +2,7 @@
 from pathlib import Path
 import shutil
 import pytest
-from tests.selected_secret_source_successors_20261020 import SUCCESSORS,ROOT,assert_source_receipt
+from tests.selected_secret_source_successors_20261020 import SUCCESSORS,PRIVATE_NATIVE_SOURCE,RAWV2_SCANNER_SOURCE,ROOT,assert_source_receipt
 PATH='peaso/secret_findings.py'
 OLD=next(old for path,old in SUCCESSORS if path==PATH)
 
@@ -24,6 +24,39 @@ def test_unreviewed_current_proof_or_predecessor_is_rejected(tmp_path,target):
 def test_another_prior_digest_cannot_be_promoted():
     with pytest.raises(AssertionError,match='No reviewed source successor'):
         assert_source_receipt(PATH,'f'*64)
+
+
+def test_private_native_transition_preserves_exact_lambda_predecessor():
+    path, prior = PRIVATE_NATIVE_SOURCE
+    assert_source_receipt(path, prior)
+
+
+def test_private_native_transition_rejects_changed_source_and_prior(tmp_path):
+    from peaso.private_secret_source_epoch_20261021 import AdmissionError
+    path, prior = PRIVATE_NATIVE_SOURCE
+    dependency = tmp_path / 'peaso/secret_evidence.py'
+    dependency.parent.mkdir(parents=True)
+    shutil.copyfile(ROOT / 'peaso/secret_evidence.py', dependency)
+    target = tmp_path / path
+    target.parent.mkdir(parents=True)
+    shutil.copyfile(ROOT / path, target)
+    target.write_bytes(target.read_bytes() + b'\n# unreviewed native source\n')
+    with pytest.raises(AdmissionError, match='current source mismatch'):
+        assert_source_receipt(path, prior, root=tmp_path)
+    with pytest.raises(AssertionError, match='No reviewed source successor'):
+        assert_source_receipt(path, 'f' * 64)
+
+
+def test_rawv2_scanner_transition_rejects_changed_source_and_prior(tmp_path):
+    path, prior = RAWV2_SCANNER_SOURCE
+    target = tmp_path / path
+    target.parent.mkdir(parents=True)
+    shutil.copyfile(ROOT / path, target)
+    target.write_bytes(target.read_bytes() + b'\n# unreviewed scanner source\n')
+    with pytest.raises(RuntimeError, match='RawV2 scanner source pin changed'):
+        assert_source_receipt(path, prior, root=tmp_path)
+    with pytest.raises(AssertionError, match='No reviewed source successor'):
+        assert_source_receipt(path, 'f' * 64)
 
 @pytest.mark.parametrize('path,prior',sorted(SUCCESSORS))
 def test_every_current_successor_preserves_exact_admitted_predecessor(path,prior):

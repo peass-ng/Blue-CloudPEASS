@@ -15,7 +15,7 @@ SCRIPT = "arn:aws:s3:::glue-scripts/example.py"
 
 
 def _case(*, script=SCRIPT, writer=SCRIPT, reader=SCRIPT, pass_service="glue.amazonaws.com",
-          job_region="us-east-1", inventory="collected"):
+          job_region="us-east-1", inventory="collected", encryption="absent"):
     snapshot = _snapshot(ENTRY)
     user = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0]
     user["UserPolicyList"][0]["PolicyDocument"]["Statement"] = [
@@ -33,6 +33,12 @@ def _case(*, script=SCRIPT, writer=SCRIPT, reader=SCRIPT, pass_service="glue.ama
         "service": "glue", "status": inventory, "error": None,
         "items": [{"Name": "reference", "Command": {"Name": "glueetl",
                    "ScriptLocation": "s3://" + script.split(":::", 1)[1]}}] if inventory == "collected" else []})
+    snapshot["collections"].append({"type": "bucket", "scope": "111111111111/global",
+        "service": "s3", "status": "collected", "error": None,
+        "items": [{"Name": "glue-scripts", "Encryption":
+                   {"collection_status": encryption} if encryption != "kms" else
+                   {"collection_status": "collected", "ServerSideEncryptionConfiguration":
+                    {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms"}}]}}}]})
     return snapshot
 
 
@@ -44,17 +50,22 @@ def test_change_and_execution_bind_to_writable_role_readable_script():
     assert _definite(_case()) == {TARGET: "conditional"}
 
 
+def test_new_job_can_choose_a_different_script_and_kms_needs_more_evidence():
+    alternate = "arn:aws:s3:::glue-scripts/alternate.py"
+    assert _definite(_case(writer=alternate, reader=alternate)) == {TARGET: "conditional"}
+    assert not _definite(_case(writer=alternate, reader=alternate, encryption="kms"))
+
+
 def test_unrelated_script_or_wrong_passrole_does_not_reach_role():
     for kwargs in ({"writer": "arn:aws:s3:::other/example.py"},
                    {"reader": "arn:aws:s3:::other/example.py"},
                    {"pass_service": "lambda.amazonaws.com"},
-                   {"inventory": "empty"},
                    {"inventory": "denied"}):
         assert not _definite(_case(**kwargs)), kwargs
 
 
 def test_unverified_script_stays_unknown():
-    result = privesc.analyze(_case(inventory="empty"), entries=[ENTRY], include_unknown=True)
+    result = privesc.analyze(_case(encryption="kms"), entries=[ENTRY], include_unknown=True)
     members = reached(result, SOURCE, ID)
     assert TARGET not in members
     assert any(member.startswith("unresolved:") and confidence == "unknown"
@@ -81,7 +92,8 @@ def test_catalog_binding_preserves_prior_glue_wording():
     assert previous_status == "exact_previous_current"
     assert current_status == "exact_strict_privesc"
     assert "one recorded S3 script object" not in previous[ID]["notes"]
-    assert "script outside recorded job definitions" in current[ID]["notes"]
+    assert "one concrete S3 script object" in current[ID]["notes"]
+    assert "script may differ from existing job definitions" in current[ID]["notes"]
 
 
 def test_existing_job_update_and_new_scheduled_trigger_also_bind():

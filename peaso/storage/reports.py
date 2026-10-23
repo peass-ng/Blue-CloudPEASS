@@ -4,7 +4,13 @@ from collections import Counter
 from peaso.reports import render_markdown
 
 CHUNK_BYTES = 2 * 1024 * 1024
+_SUMMARY_FIELDS = frozenset({"id", "category", "check_id", "title", "provider", "service", "resource_id",
+    "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation",
+    "automated", "secret_fingerprint", "linked_check_ids", "scanner_status", "ai_review"})
+_SUMMARY_LIMITS = {"title": 400, "resource_id": 1000, "scope": 500, "remediation": 1000,
+    "service": 100, "check_id": 200, "category": 100, "provider": 30}
 
+_SECRET_SUMMARY_FIELDS = _SUMMARY_FIELDS | {"evidence_summary"}
 
 def chunks(items):
     group, size = [], 2
@@ -19,11 +25,6 @@ def chunks(items):
         yield group
 
 
-_SUMMARY_FIELDS = frozenset({"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation", "automated", "secret_fingerprint", "linked_check_ids", "scanner_status", "ai_review"})
-_SECRET_SUMMARY_FIELDS = _SUMMARY_FIELDS | {"evidence_summary"}
-_SUMMARY_MAXIMUM = {"title": 400, "resource_id": 1000, "scope": 500, "remediation": 1000, "service": 100, "check_id": 200, "category": 100, "provider": 30}
-
-
 def finding_summary(finding):
     fields = _SECRET_SUMMARY_FIELDS if finding.get("secret_fingerprint") else _SUMMARY_FIELDS
     value = {k: v for k, v in finding.items() if k in fields}
@@ -32,7 +33,7 @@ def finding_summary(finding):
     truncated = False
     for key, item in value.items():
         if isinstance(item, str):
-            maximum = _SUMMARY_MAXIMUM.get(key, 2000)
+            maximum = _SUMMARY_LIMITS.get(key, 2000)
             if len(item) > maximum:
                 value[key] = item[:maximum] + " [Full value available in finding detail]"
                 truncated = True
