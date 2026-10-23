@@ -81,8 +81,13 @@ MI_TARGET = {"kind": "azure_managed_identity", "scope": "any"}
 
 # --------------------------------------------------------- principal-specific fact requirements (regression)
 def test_graph_app_permission_requirement_reaches_and_is_not_shared_between_equal_principals():
-    graph_items = [{"id": "x", "principalId": "sp-a", "appRoleValue": "User.ReadWrite.All"}]
+    graph_items = [{"id": "x", "principalId": "sp-a", "appRoleValue": "User.ReadWrite.All",
+                    "appRoleEnabled": True, "resourceId": "graph-sp"}]
     snap = az(sps=("sp-a", "sp-b"), users=("u-v",), extra=[("directory_app_role_assignment", T, graph_items)])
+    for collection in snap["collections"]:
+        if collection["type"] == "directory_service_principal":
+            collection["items"].append({"id": "graph-sp", "appId": "00000003-0000-0000-c000-000000000000",
+                                        "servicePrincipalType": "Application"})
     e = entry("azure-t-graph", "azure", {"all_of": [{"graph_app_permission": "User.ReadWrite.All"}]},
               {"kind": "azure_user", "selector": {"any_principal_in_scope": True}, "scope": "tenant"})
     result = run(snap, e)
@@ -292,6 +297,10 @@ def test_pim_group_eligibility_selector():
              {"id": "e2", "principalId": "u-alice", "groupId": "g-own", "accessId": "owner", "status": "Revoked"}]
     snap = az(groups=[("g-priv", "priv"), ("g-own", "own"), ("g-x", "x")], members={},
               extra=[("directory_group_eligibility_schedule", T, sched)])
+    for collection in snap["collections"]:
+        if collection["type"] == "directory_group":
+            for group in collection["items"]:
+                group.update({"groupTypes": [], "mailEnabled": False, "onPremisesSyncEnabled": False})
     e = entry("azure-t-pimg", "azure", {}, {"kind": "entra_group", "selector": {"entra_pim_group_eligible_for_source": True},
                                             "scope": "tenant"}, source_kind="azure_user")
     assert members(run(snap, e), "u-alice") == {"g-priv": "conditional"}

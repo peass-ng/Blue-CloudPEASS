@@ -1064,7 +1064,7 @@ These rows cover headings added or retained as inbound pointers by the current H
 | `kubernetes-security/kubernetes-post-exploitation/attacking-kubernetes-from-inside-a-pod.md#podsportforward-network-access` | pods/portforward network access | - | excluded | excluded: "pods/portforward"; network access to a Pod listener. |
 | `kubernetes-security/kubernetes-enumeration/rbac-objects.md#diagnostic-non-resource-urls` | Diagnostic non-resource URLs | - | excluded | excluded: "/debug/* and /metrics non-resource URLs"; diagnostic read only. |
 
-## Current CSPM catalog reconciliation (HackTricks Cloud `89b86ec2c8e39b14601a867b698a31b31be2a231`)
+## Current CSPM catalog reconciliation (HackTricks Cloud `4393380a88845b42bd208d3adbb6d61ad89f02fb`)
 
 The heading sweep above records its historical source revision. The rows below record changes to the current automatic catalog. RETIRED entries remain documented in the source and exclusion catalog; they do not run as automatic checks.
 
