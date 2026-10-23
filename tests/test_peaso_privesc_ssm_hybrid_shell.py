@@ -65,8 +65,12 @@ def test_start_session_requires_default_shell_and_future_data_channel():
                    {"channel": f"arn:aws:ssm:{REGION}:{ACCOUNT}:session/old-session"},
                    {"document": f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/AWS-StartPortForwardingSession"},
                    {"node": NODE + "-other"}):
-        assert _verdict(_model(session=True, **change), session=True) != (
+        negative = _model(session=True, **change)
+        assert _verdict(negative, session=True) != (
             "conditional", "ssm_hybrid_online_node_role_and_shell_bound"), change
+        assert not [edge for edge in Evaluator(negative, [ENTRIES["aws-ssm-startsession-hybrid-role"]],
+                                               include_unknown=False).run()
+                    if edge.source.id == ALICE and TARGET in edge.targets], change
 
 
 def test_other_role_platform_node_or_denied_inventory_cannot_bind():
@@ -74,8 +78,12 @@ def test_other_role_platform_node_or_denied_inventory_cannot_bind():
                    {"ping": "ConnectionLost"}, {"status": "access_denied"},
                    {"node": NODE + "-other"},
                    {"document": f"arn:aws:ssm:{REGION}::document/AWS-RunPowerShellScript"}):
-        assert _verdict(_model(**change)) != (
+        negative = _model(**change)
+        assert _verdict(negative) != (
             "conditional", "ssm_hybrid_online_node_role_and_shell_bound"), change
+        assert not [edge for edge in Evaluator(negative, [ENTRIES["aws-ssm-sendcommand-hybrid-role"]],
+                                               include_unknown=False).run()
+                    if edge.source.id == ALICE and TARGET in edge.targets], change
 
 
 def test_catalog_bindings_preserve_previous_meanings():
