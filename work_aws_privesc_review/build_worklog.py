@@ -54,6 +54,8 @@ def main():
     suite_result = ROOT / "final-suite-result.json"
     suite = json.loads(suite_result.read_text()) if suite_result.is_file() else None
     focused_results = json.loads((ROOT / "focused-validation.json").read_text())
+    perf_path = ROOT / "performance-validation.json"
+    performance = json.loads(perf_path.read_text()) if perf_path.is_file() else None
     assert all(result["tests"] > 0 and result["failures"] == result["errors"] == result["skipped"] == 0
                and len(result["tested_revision"]) == len(result["hacktricks_source_revision"]) == 40
                and len(result["junit_sha256"]) == 64 for result in focused_results)
@@ -78,6 +80,18 @@ def main():
             f"with HackTricks Cloud `{result['hacktricks_source_revision']}` "
             f"(JUnit SHA-256 `{result['junit_sha256']}`)" for result in focused_results)
         + ". These runs cover only their named test selections, not the full suite.",
+        (f"- Separate performance gate at CSPM `{performance['tested_revision']}` with HackTricks Cloud "
+         f"`{performance['hacktricks_source_revision']}`: {performance['passed']} passed, "
+         f"{performance['failures']} failed, {performance['errors']} errors, and {performance['skipped']} "
+         f"expected skip (JUnit SHA-256 `{performance['junit_sha256']}`). The 1x run used "
+         f"{performance['one_x_rss_mib']} MiB and a repeat used {performance['one_x_repeat_rss_mib']} MiB, "
+         f"above the {performance['one_x_rss_limit_mib']} MiB limit; a pre-PR baseline at "
+         f"`{performance['baseline_revision']}` used {performance['baseline_one_x_rss_mib']} MiB with the same "
+         f"{performance['compared_registered_checks']} checks and {performance['compared_findings']} findings. "
+         f"The AWS 10x test took {performance['aws_privesc_ten_x_wall_seconds']} seconds against a "
+         f"{performance['aws_privesc_ten_x_wall_limit_seconds']}-second limit. "
+         f"{performance['aws_privesc_ten_x_caveat']}"
+         if performance else "- A separate performance gate result has not been recorded."),
         f"- ID-specific graph test audit: {case_counts['exact_cases_verified']} have a recorded passing exact case, {case_counts['partial']} have a located but partial case, and {case_counts['no_exact_case']} have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.",
         f"- Among the {len(partial_cases)} partial routes, {sum(bool(row['positive_case']) for row in partial_cases)} name a positive assertion, {sum(bool(row['negative_case']) for row in partial_cases)} name a negative assertion, and {sum(bool(row['unknown_case']) for row in partial_cases)} name an unknown-result assertion. These are located assertions, not recorded passing exact graph cases.",
         f"- Partial routes without a named positive assertion: {', '.join(missing_positive) or 'none'}.",
