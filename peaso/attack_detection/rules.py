@@ -278,6 +278,7 @@ from .aws_grafana_credentials_b427 import normalize as normalize_aws_grafana_cre
 from .aws_grafana_workspace_role_b427 import normalize as normalize_aws_grafana_workspace_role_b427
 from .aws_grafana_saml_admin_b427 import normalize as normalize_aws_grafana_saml_admin_b427
 from .aws_neptune_graph_data_b428 import normalize as normalize_aws_neptune_graph_data_b428
+from .aws_healthlake_fhir_b429 import normalize as normalize_aws_healthlake_fhir_b429
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -331,8 +332,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "a34facf293f50bd1ed3884d0e13c82aa9f0b756d"
-DEFAULT_RULE_PACK_SHA256 = "4093b4a78cdc3f44b2042e66e33c79d9c1f085b44b55f63f21d54cbc8b4fd13f"
+DEFAULT_RULE_REF = "5956da287831934c3a1e044d394471cecc77b92a"
+DEFAULT_RULE_PACK_SHA256 = "832b5ad130262ab8576e3abc4678a4050311aa283d55bb427e81c662d996ac48"
 
 
 @dataclass(frozen=True)
@@ -718,6 +719,7 @@ def detect_aws_events(
         grafana_workspace_role_b427 = normalize_aws_grafana_workspace_role_b427(record)
         grafana_saml_admin_b427 = normalize_aws_grafana_saml_admin_b427(record)
         neptune_graph_data_b428 = normalize_aws_neptune_graph_data_b428(record)
+        healthlake_fhir_b429 = normalize_aws_healthlake_fhir_b429(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -987,6 +989,7 @@ def detect_aws_events(
                 + ([grafana_workspace_role_b427] if grafana_workspace_role_b427 is not None else [])
                 + ([grafana_saml_admin_b427] if grafana_saml_admin_b427 is not None else [])
                 + ([neptune_graph_data_b428] if neptune_graph_data_b428 is not None else [])
+                + ([healthlake_fhir_b429] if healthlake_fhir_b429 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
