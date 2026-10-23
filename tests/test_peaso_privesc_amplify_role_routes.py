@@ -127,5 +127,4 @@ def test_customer_setup_grants_amplify_branch_inventory():
               if "amplify:ListBranches" in (
                   statement["Action"] if isinstance(statement["Action"], list)
                   else [statement["Action"]])]
-    assert len(grants) == 1
-    assert grants[0].startswith("CspmConfigurationReadOnly")
+    assert grants == ["CspmConfigurationReadOnly1"]
