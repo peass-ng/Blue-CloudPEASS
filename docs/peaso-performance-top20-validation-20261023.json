@@ -112,6 +112,304 @@
         },
         "response_sha256": "9a1407943a90dd69c1a050756de560cca08c42b60c805dff08eaeca5c264a7b1"
       }
+    },
+    "rejected_service_projection_native": {
+      "native_ids": true,
+      "rows": 30000,
+      "cloud_calls": 0,
+      "exact_http_parity": true,
+      "measurements": [
+        {
+          "route": "findings",
+          "params": {
+            "aggregation": "check",
+            "limit": 50
+          },
+          "response_sha256": "f1545ece952d3127577649cf7507c12f046175703fd30585f3a677a399fd6bc0",
+          "baseline": {
+            "cpu_seconds": 0.16750399999999988,
+            "wall_seconds": 0.16828110441565514,
+            "peak_allocated_bytes": 10841536,
+            "cpu_samples": [
+              0.17021699999999984,
+              0.16857299999999986,
+              0.1664349999999999,
+              0.16407300000000014,
+              0.17292799999999975,
+              0.16612500000000008
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.16863550000000005,
+            "wall_seconds": 0.1708933119662106,
+            "peak_allocated_bytes": 10841555,
+            "cpu_samples": [
+              0.17443999999999993,
+              0.17119299999999993,
+              0.1657350000000002,
+              0.16266199999999964,
+              0.17476599999999998,
+              0.16607800000000017
+            ]
+          }
+        },
+        {
+          "route": "summary",
+          "params": {
+            "aggregation": "check"
+          },
+          "response_sha256": "b00567b7ff219b2151f8ce06735adf94c9bf9067f39bd24d2b41062bfb7e06d5",
+          "baseline": {
+            "cpu_seconds": 0.16165949999999984,
+            "wall_seconds": 0.16269447887316346,
+            "peak_allocated_bytes": 10850701,
+            "cpu_samples": [
+              0.15870300000000004,
+              0.17814499999999978,
+              0.16096799999999956,
+              0.16235100000000013,
+              0.167948,
+              0.15786299999999898
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.15769399999999933,
+            "wall_seconds": 0.1582732922397554,
+            "peak_allocated_bytes": 10850461,
+            "cpu_samples": [
+              0.1571549999999995,
+              0.1774230000000001,
+              0.1567639999999999,
+              0.15588900000000017,
+              0.15989700000000084,
+              0.15823299999999918
+            ]
+          }
+        },
+        {
+          "route": "findings",
+          "params": {
+            "aggregation": "check",
+            "status": "FAIL",
+            "sort_by": "title",
+            "sort_order": "desc",
+            "offset": 4,
+            "limit": 20
+          },
+          "response_sha256": "25b3c28266c3b9f0cf338e8a749466876a0d5d6eb4690dcd8e162352708f2eaa",
+          "baseline": {
+            "cpu_seconds": 0.09429850000000073,
+            "wall_seconds": 0.0948637081310153,
+            "peak_allocated_bytes": 3880001,
+            "cpu_samples": [
+              0.09314200000000028,
+              0.09452000000000105,
+              0.094754,
+              0.09407700000000041,
+              0.09281599999999912,
+              0.09490199999999938
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.09318399999999993,
+            "wall_seconds": 0.09349950030446053,
+            "peak_allocated_bytes": 3880134,
+            "cpu_samples": [
+              0.09294400000000103,
+              0.09333900000000028,
+              0.09302899999999958,
+              0.0948550000000008,
+              0.09655099999999983,
+              0.09265700000000088
+            ]
+          }
+        },
+        {
+          "route": "findings",
+          "params": {
+            "aggregation": "none",
+            "sort_by": "severity",
+            "offset": 100,
+            "limit": 50
+          },
+          "response_sha256": "91f007897695a190dc0b42e7c3c2716a52d823e9f99c183e9dcbafce7b82de4d",
+          "baseline": {
+            "cpu_seconds": 0.12336900000000028,
+            "wall_seconds": 0.12453400017693639,
+            "peak_allocated_bytes": 8524896,
+            "cpu_samples": [
+              0.12199800000000138,
+              0.126849,
+              0.12327499999999958,
+              0.12978000000000023,
+              0.12346300000000099,
+              0.11855800000000016
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.12283950000000043,
+            "wall_seconds": 0.12410056311637163,
+            "peak_allocated_bytes": 8532880,
+            "cpu_samples": [
+              0.12027499999999947,
+              0.12888300000000008,
+              0.12356000000000122,
+              0.12170399999999937,
+              0.12211899999999964,
+              0.12387200000000043
+            ]
+          }
+        }
+      ]
+    },
+    "rejected_service_projection_legacy": {
+      "native_ids": false,
+      "rows": 30000,
+      "cloud_calls": 0,
+      "exact_http_parity": true,
+      "measurements": [
+        {
+          "route": "findings",
+          "params": {
+            "aggregation": "check",
+            "limit": 50
+          },
+          "response_sha256": "4f686bfc10e70ea28e2f4ddef08435507af481f8c5d7f028d8ff7319a8f7f010",
+          "baseline": {
+            "cpu_seconds": 0.15231299999999992,
+            "wall_seconds": 0.15318725048564374,
+            "peak_allocated_bytes": 10840953,
+            "cpu_samples": [
+              0.15157299999999996,
+              0.14933299999999994,
+              0.1898629999999999,
+              0.1612309999999999,
+              0.15305299999999988,
+              0.1506839999999996
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.15740549999999998,
+            "wall_seconds": 0.1586001254618168,
+            "peak_allocated_bytes": 10841192,
+            "cpu_samples": [
+              0.15288400000000002,
+              0.1554279999999999,
+              0.18625500000000006,
+              0.16290200000000032,
+              0.15517700000000012,
+              0.15938300000000005
+            ]
+          }
+        },
+        {
+          "route": "summary",
+          "params": {
+            "aggregation": "check"
+          },
+          "response_sha256": "211d6c108564e96990998ba1fe0d6a1c0cfa617b64ae79472ad279dda71a6ae4",
+          "baseline": {
+            "cpu_seconds": 0.14226350000000032,
+            "wall_seconds": 0.14301327103748918,
+            "peak_allocated_bytes": 10850437,
+            "cpu_samples": [
+              0.14348500000000008,
+              0.14104200000000056,
+              0.1407039999999995,
+              0.14447399999999977,
+              0.1407569999999998,
+              0.15066999999999986
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.14680849999999923,
+            "wall_seconds": 0.14746281248517334,
+            "peak_allocated_bytes": 10850118,
+            "cpu_samples": [
+              0.14743700000000004,
+              0.14692499999999953,
+              0.15039200000000008,
+              0.14534499999999984,
+              0.1448229999999997,
+              0.14669199999999893
+            ]
+          }
+        },
+        {
+          "route": "findings",
+          "params": {
+            "aggregation": "check",
+            "status": "FAIL",
+            "sort_by": "title",
+            "sort_order": "desc",
+            "offset": 4,
+            "limit": 20
+          },
+          "response_sha256": "712c006bb623d8971328831440faf05774e739a32fc0c1faab3648398bbd6af9",
+          "baseline": {
+            "cpu_seconds": 0.08851600000000115,
+            "wall_seconds": 0.089359812438488,
+            "peak_allocated_bytes": 3879438,
+            "cpu_samples": [
+              0.08778400000000097,
+              0.09431000000000012,
+              0.08759799999999984,
+              0.09309800000000124,
+              0.08924800000000133,
+              0.08487899999999904
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.09544899999999945,
+            "wall_seconds": 0.09630322945304215,
+            "peak_allocated_bytes": 3879639,
+            "cpu_samples": [
+              0.09873900000000013,
+              0.10372599999999998,
+              0.09210600000000113,
+              0.10084999999999944,
+              0.09215899999999877,
+              0.08861500000000078
+            ]
+          }
+        },
+        {
+          "route": "findings",
+          "params": {
+            "aggregation": "none",
+            "sort_by": "severity",
+            "offset": 100,
+            "limit": 50
+          },
+          "response_sha256": "d006c68ae7203194b1d5954116449a19f7f47d077a02b23d7467b41bc66e7dc5",
+          "baseline": {
+            "cpu_seconds": 0.11146000000000011,
+            "wall_seconds": 0.1118307497818023,
+            "peak_allocated_bytes": 8524312,
+            "cpu_samples": [
+              0.11153899999999872,
+              0.11131499999999939,
+              0.1113810000000015,
+              0.11007999999999996,
+              0.11185500000000026,
+              0.11161200000000093
+            ]
+          },
+          "candidate": {
+            "cpu_seconds": 0.12225800000000042,
+            "wall_seconds": 0.12252533319406211,
+            "peak_allocated_bytes": 8524976,
+            "cpu_samples": [
+              0.12261600000000072,
+              0.12341000000000157,
+              0.12275600000000075,
+              0.12129900000000049,
+              0.12135600000000046,
+              0.12190000000000012
+            ]
+          }
+        }
+      ]
     }
   },
   "points": [
@@ -238,7 +536,7 @@
       "rank": 18,
       "title": "Extend evaluation-local metadata preparation to other finding emitters",
       "status": "rejected_extension",
-      "decision": "Evaluation-local engine finding factory already integrated. Removing a redundant API metadata copy produced -0.72% to+2.68% CPU changes and under0.05% allocation change across full30k-row HTTP requests; restored predecessor code.",
+      "decision": "Evaluation-local engine finding factory already integrated. Removing a redundant API metadata copy produced -0.72% to+2.68% CPU changes and under0.05% allocation change across full30k-row HTTP requests; restored predecessor code. A later selection-local service-label cache was also rejected after actual-predecessor ABBA: native CPU change -0.68% to+2.45%; legacy/analysis requests3.19\u20139.69%slower. No cache/decorator retained.",
       "code": "peaso/engine.py:912; peaso/analysis/common.py:118"
     },
     {
@@ -266,5 +564,9 @@
     "final_source_and_page_cases": "37passed after final source-closure refresh.",
     "large_graph_ordering_cases": "25passed including heap selection, deep offsets, confidence, aggregates, cycles and input immutability.",
     "broader_worker_and_graph": "Earlier broader batch:88passed,6existing diagnostics fixture failures. Reproduced same credential-preflight failure against immutable predecessor19cb2da9. Corrected synthetic denial fixture to mock preflight (separate preflight tests remain enabled). Final worker diagnostics, preflight, controls and graph paging:56passed. Source closure and final page/control cases:37passed. Earlier full privesc/API integration cases passed in the88-case subset."
+  },
+  "additional_diagnostics": {
+    "cold_native_profile": "Fresh canonical native import4179checks passed. cProfile:110934272calls;61.908seconds profiler time; private owner465selfchecks26.888cumulative seconds; compile18.533internal seconds. These include profiler overhead and are not unprofiled CPU improvements. No native proof change made.",
+    "service_projection_quality": "28cases passed;2additional static regeneration checks failed (service-constant SDK/model mismatch and gzip header difference). Candidate was rejected on performance and restored; no generated catalog/static reader was changed."
   }
 }
