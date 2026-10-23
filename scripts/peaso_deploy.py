@@ -1831,6 +1831,8 @@ aws_s3_bucket.ai_transport aws_s3_bucket_public_access_block.ai_transport
 aws_s3_bucket_server_side_encryption_configuration.ai_transport aws_s3_bucket_lifecycle_configuration.ai_transport
 aws_s3_bucket_policy.ai_transport aws_ecs_task_definition.ai aws_iam_role_policy.ai_dispatch
 aws_subnet.ai aws_route_table_association.ai aws_security_group.ai aws_network_acl.ai
+aws_ecs_cluster.ai aws_cloudwatch_log_group.ai_tasks
+aws_iam_role.ai_execution aws_iam_role_policy.ai_execution
 """.split())
 
 # Keep dependency bytecode out of this cross-platform package. The API retains

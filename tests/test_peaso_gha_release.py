@@ -50,6 +50,23 @@ def test_review_accepts_only_dedicated_runtime_updates():
     assert len(summary["changes"]) == 4
 
 
+def test_review_accepts_dedicated_role_free_ai_runtime_resources():
+    candidate = plan()
+    dedicated = {'aws_ecs_cluster.ai', 'aws_cloudwatch_log_group.ai_tasks',
+                 'aws_iam_role.ai_execution', 'aws_iam_role_policy.ai_execution'}
+    candidate['resource_changes'] += [
+        {'mode': 'managed', 'address': address, 'change': {'actions': ['create']}}
+        for address in sorted(dedicated)
+    ]
+    summary = release.review_plan(candidate, {'source_version': VERSION})
+    assert dedicated <= {row['address'] for row in summary['changes']}
+    candidate['resource_changes'].append({
+        'mode': 'managed', 'address': 'aws_iam_role.other_execution',
+        'change': {'actions': ['create']}})
+    with pytest.raises(ValueError, match='Unowned Terraform change'):
+        release.review_plan(candidate, {'source_version': VERSION})
+
+
 @pytest.mark.parametrize("address,actions", [
     ("aws_lambda_function.wiki_backend", ["update"]),
     ("aws_lambda_function.api", ["delete"]),
