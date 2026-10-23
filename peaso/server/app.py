@@ -981,7 +981,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             raise HTTPException(422, "Resume takes an empty JSON object")
         from .scan_resume import compatible_connector, recoverable_sources
         row = store.job(user.tenant_id, ident)
-        recoverable_sources(row, store, artifacts)
+        recoverable_sources(row, store, artifacts, metadata_only=True)
         latest = store.connector(user.tenant_id, row["connector_id"])
         compatible_connector(row, latest, cipher)
         current = cipher.decrypt(latest["auth"])

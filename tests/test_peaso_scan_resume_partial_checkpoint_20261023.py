@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from peaso.server.scan_resume import recoverable_sources, resume_stage
+from peaso.server.scan_resume import recoverable_sources, resume_stage, validate_resume_proof
 from peaso.snapshot import make_snapshot
 from peaso.storage.artifacts import FileArtifacts, job_prefix
 from peaso.storage.sqlite import SQLiteStore, StoreError
@@ -65,6 +65,48 @@ def test_partial_resume_validates_and_keeps_exact_scan(tmp_path):
     assert resumed["partial_snapshot"] == prior["partial_snapshot"]
     assert resumed["checkpoint_sequence"] == 1
     assert store.checkpoint_collections(tenant, job["id"])[0]["reference"]
+
+
+def test_http_uses_only_metadata_then_claimed_child_verifies_contents(tmp_path):
+    store, artifacts, tenant, job, connector, now = prepared(tmp_path)
+    terminal = store.job(tenant, job["id"])
+
+    class HeadOnly:
+        def __init__(self):
+            self.references = []
+
+        def size(self, owner, reference):
+            self.references.append((owner, reference))
+            return artifacts.size(owner, reference)
+
+        def get(self, *_):
+            raise AssertionError("HTTP preflight must not download a snapshot")
+
+    preflight = HeadOnly()
+    assert recoverable_sources(terminal, store, preflight, metadata_only=True) == "collector"
+    assert len(preflight.references) == 3
+    store.resume_job(tenant, job["id"], store.connector(tenant, connector["id"]), now + 6)
+    claimed = store.job(tenant, job["id"])
+    entries = store.checkpoint_collections(tenant, job["id"])
+    proof = {"row": {key: claimed.get(key) for key in (
+        "tenant", "id", "connector", "resume_phase", "snapshot", "partial_snapshot",
+        "partial_report", "partial_report_sequence", "checkpoint_sequence")},
+        "entries": entries}
+    target = {"provider": "aws", "scopes": SCOPES}
+    assert validate_resume_proof(proof, artifacts, tenant, job["id"], target,
+                                 [entry["reference"] for entry in entries]) is None
+    with pytest.raises(ValueError):
+        validate_resume_proof(proof, artifacts, tenant, job["id"],
+                              {"provider": "aws", "scopes": [SCOPE]},
+                              [entry["reference"] for entry in entries])
+    # The HTTP preflight can pass before a saved object becomes corrupt; the
+    # child must still stop before collecting from it.
+    batch_path = artifacts.root / entries[0]["reference"]
+    body = batch_path.read_text().replace('"status":"empty"', '"status":"denied"', 1)
+    batch_path.write_text(body)
+    with pytest.raises(StoreError):
+        validate_resume_proof(proof, artifacts, tenant, job["id"], target,
+                              [entry["reference"] for entry in entries])
 
 
 def test_later_batch_takes_precedence_over_lagging_partial_report(tmp_path):

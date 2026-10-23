@@ -256,6 +256,11 @@ def _process(role, request, connection):
         from peaso.storage.report_reuse import ReusableReportArtifacts
         publication_artifacts = ReusableReportArtifacts(artifacts, tenant, ident)
         if role == "collector":
+            proof = request.pop("resume_proof", None)
+            if proof is not None:
+                from peaso.server.scan_resume import validate_resume_proof
+                validate_resume_proof(proof, artifacts, tenant, ident,
+                                      request["connector"], request.get("checkpoint_refs", []))
             _verify_aws_credentials(request.get("connector", {}))
             from peaso.engine import collect_snapshot
             from peaso.snapshot import seal
@@ -608,14 +613,23 @@ class Worker:
                            "stage_results": self.store.stage_results(job["tenant"], job["id"])}
             request["checkpoint_sequence"] = int(job.get("checkpoint_sequence") or 0)
             if self.role == "collector":
-                request["checkpoint_refs"] = [row["reference"] for row in sorted(
-                    self.store.checkpoint_collections(job["tenant"], job["id"]),
-                    key=lambda row: row["sequence"])]
+                checkpoint_rows = sorted(self.store.checkpoint_collections(job["tenant"], job["id"]),
+                                         key=lambda row: row["sequence"])
+                request["checkpoint_refs"] = [row["reference"] for row in checkpoint_rows]
                 if job.get("resume_phase") == "collector":
                     from peaso.server.scan_resume import collector_source
                     reference = collector_source(job)
                     if reference:
                         request["resume_snapshot_ref"] = reference
+                        if not job.get("snapshot"):
+                            # The original terminal row's immutable refs and
+                            # sequence are fenced by the new claim; the child
+                            # performs the expensive content proof before SDKs.
+                            proof_keys = ("tenant", "id", "connector", "resume_phase",
+                                          "snapshot", "partial_snapshot", "partial_report",
+                                          "partial_report_sequence", "checkpoint_sequence")
+                            request["resume_proof"] = {"row": {key: job.get(key) for key in proof_keys},
+                                                       "entries": checkpoint_rows}
             request.update(tenant_id=job["tenant"], scan_id=job["id"], deadline=job["deadline"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
             request["ai_context"] = {"state_dir": str(self.settings.state_dir), "identity_dir": str(self.settings.identity_dir)}
             request["timeline"] = self.store.public_job(job)["timeline"]

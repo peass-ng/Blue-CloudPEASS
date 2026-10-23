@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
 from peaso.storage.sqlite import StoreError, TERMINAL
 from peaso.storage.artifacts import job_prefix
@@ -90,7 +91,7 @@ def compatible_connector(row, latest, cipher):
     return {"data": current, "auth": latest["auth"]}
 
 
-def recoverable_sources(row, store, artifacts):
+def recoverable_sources(row, store, artifacts, *, metadata_only=False):
     """Prove saved objects belong to this scan before resetting its queue state."""
     from peaso.snapshot import digest, validate
     stage = resume_stage(row)
@@ -103,7 +104,8 @@ def recoverable_sources(row, store, artifacts):
         references = [row["snapshot"]]
     else:
         entries = store.checkpoint_collections(row["tenant"], row["id"])
-        references = [collector_source(row)] + [entry["reference"] for entry in entries]
+        references = [collector_source(row)] + ([row["partial_report"]] if partial else []) + [
+            entry["reference"] for entry in entries]
         if not references or any(type(entry.get("sequence")) is not int
                               or not 0 < entry["sequence"] <= row["checkpoint_sequence"]
                               for entry in entries):
@@ -114,6 +116,20 @@ def recoverable_sources(row, store, artifacts):
     if not references or any(not isinstance(ref, str) or not ref.startswith(prefix)
                              for ref in references):
         raise StoreError(409, "Saved scan results are unavailable")
+    if partial and metadata_only:
+        # The HTTP route checks durable row metadata and object existence,
+        # while the collector child validates every byte before native work.
+        # HEAD/stat reads stay small even for a 150 MB cumulative snapshot.
+        if len(references) > 129:
+            raise StoreError(409, "Saved scan batches exceed interactive resume limit")
+        try:
+            with ThreadPoolExecutor(max_workers=min(8, len(references))) as pool:
+                sizes = list(pool.map(lambda ref: artifacts.size(row["tenant"], ref), references))
+            if any(type(size) is not int or size <= 0 for size in sizes):
+                raise ValueError("Empty saved artifact")
+        except Exception:
+            raise StoreError(409, "Saved scan results are unavailable") from None
+        return stage
     try:
         if not partial:
             for reference in dict.fromkeys(references):
@@ -169,9 +185,13 @@ def recoverable_sources(row, store, artifacts):
                     or publication.get("phase") != "collecting"
                     or publication.get("sequence") != row["partial_report_sequence"]):
                 raise ValueError("Saved checkpoint publication mismatch")
+            observed = {(envelope["type"], envelope["scope"]): digest(envelope)
+                        for envelope in saved["collections"]}
+            # A cumulative AWS checkpoint can exceed 150 MB. Release it before
+            # downloading bounded batches, and retain only envelope digests.
+            del saved
             at_publication = {}
-            for entry in entries:
-                batch = validate(artifacts.get(row["tenant"], entry["reference"]))
+            def check_batch(entry, batch):
                 if batch["provider"] != provider or not batch["collections"]:
                     raise ValueError("Saved batch provider mismatch")
                 mark = (batch.get("metadata") or {}).get("incremental") or {}
@@ -200,13 +220,58 @@ def recoverable_sources(row, store, artifacts):
                         raise ValueError("Saved checkpoint revision mismatch")
                     if entry["sequence"] <= row["partial_report_sequence"]:
                         key = (envelope["type"], envelope["scope"])
-                        if revision >= at_publication.get(key, (-1, None))[0]:
-                            at_publication[key] = (revision, digest(envelope))
+                        value = digest(envelope)
+                        previous = at_publication.get(key, (-1, None))
+                        if revision == previous[0] and value != previous[1]:
+                            raise ValueError("Conflicting checkpoint revision")
+                        if revision > previous[0]:
+                            at_publication[key] = (revision, value)
+            # S3 round trips dominate hosted validation. At most four batch
+            # bodies are in flight so large native envelopes stay memory bound.
+            with ThreadPoolExecutor(max_workers=min(4, len(entries))) as pool:
+                source = iter(entries)
+                pending = {}
+                for _ in range(min(4, len(entries))):
+                    entry = next(source)
+                    pending[pool.submit(artifacts.get, row["tenant"], entry["reference"])] = entry
+                while pending:
+                    done, _ = wait(pending, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        entry = pending.pop(future)
+                        check_batch(entry, validate(future.result()))
+                        following = next(source, None)
+                        if following is not None:
+                            pending[pool.submit(artifacts.get, row["tenant"], following["reference"])] = following
             expected = {key: value for key, (_, value) in at_publication.items()}
-            observed = {(envelope["type"], envelope["scope"]): digest(envelope)
-                        for envelope in saved["collections"]}
             if not expected or expected != observed:
                 raise ValueError("Saved cumulative checkpoint mismatch")
     except (KeyError, OSError, TypeError, ValueError):
         raise StoreError(409, "Saved scan results are unavailable") from None
     return stage
+
+
+def validate_resume_proof(proof, artifacts, tenant, ident, connector, checkpoint_refs):
+    """Verify a CAS-claimed collector's immutable checkpoint before any read."""
+    if not isinstance(proof, dict) or not isinstance(proof.get("row"), dict):
+        raise ValueError("Resume proof is unavailable")
+    row, entries = proof["row"], proof.get("entries")
+    if (row.get("tenant") != tenant or row.get("id") != ident
+            or row.get("resume_phase") != "collector" or row.get("snapshot")
+            or not isinstance(entries, list)
+            or [entry.get("reference") for entry in entries] != checkpoint_refs):
+        raise ValueError("Resume proof does not match the claimed scan")
+    data = json.loads(row["connector"])["data"]
+    if (data.get("provider") != connector.get("provider")
+            or data.get("scopes") != connector.get("scopes")):
+        raise ValueError("Resume proof target changed")
+
+    class SavedRows:
+        @staticmethod
+        def checkpoint_collections(expected_tenant, expected_id):
+            if expected_tenant != tenant or expected_id != ident:
+                raise ValueError("Resume proof owner changed")
+            return entries
+
+    terminal = dict(row, status="failed", error_stage="collector")
+    if recoverable_sources(terminal, SavedRows(), artifacts) != "collector":
+        raise ValueError("Resume proof is incomplete")
