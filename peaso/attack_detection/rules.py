@@ -280,6 +280,11 @@ from .aws_grafana_saml_admin_b427 import normalize as normalize_aws_grafana_saml
 from .aws_neptune_graph_data_b428 import normalize as normalize_aws_neptune_graph_data_b428
 from .aws_healthlake_fhir_b429 import normalize as normalize_aws_healthlake_fhir_b429
 from .aws_healthlake_erase_b430 import normalize as normalize_aws_healthlake_erase_b430
+from .aws_healthlake_datastore_delete_b431 import normalize as normalize_aws_healthlake_datastore_delete_b431
+from .aws_healthlake_bulk_patch_b431 import normalize as normalize_aws_healthlake_bulk_patch_b431
+from .aws_healthlake_purge_b431 import normalize as normalize_aws_healthlake_purge_b431
+from .aws_healthlake_bulk_delete_b431 import normalize as normalize_aws_healthlake_bulk_delete_b431
+from .aws_healthlake_conditional_delete_b431 import normalize as normalize_aws_healthlake_conditional_delete_b431
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -333,8 +338,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "e2942f4e3ab04ef382e8e1e5af8beaf4c634491a"
-DEFAULT_RULE_PACK_SHA256 = "4875d8a854430afa4ae3038ec74bb8e57c2db42a9d79ec9e32d529404291e4c8"
+DEFAULT_RULE_REF = "01e96c864e36b8b269cc11d22aac6004bd18c823"
+DEFAULT_RULE_PACK_SHA256 = "6fa38abc1c8817a97f586a7e752bee674e21c37e66f95c982933ca6a75f3df87"
 
 
 @dataclass(frozen=True)
@@ -722,6 +727,11 @@ def detect_aws_events(
         neptune_graph_data_b428 = normalize_aws_neptune_graph_data_b428(record)
         healthlake_fhir_b429 = normalize_aws_healthlake_fhir_b429(record)
         healthlake_erase_b430 = normalize_aws_healthlake_erase_b430(record)
+        healthlake_datastore_delete_b431 = normalize_aws_healthlake_datastore_delete_b431(record)
+        healthlake_bulk_patch_b431 = normalize_aws_healthlake_bulk_patch_b431(record)
+        healthlake_purge_b431 = normalize_aws_healthlake_purge_b431(record)
+        healthlake_bulk_delete_b431 = normalize_aws_healthlake_bulk_delete_b431(record)
+        healthlake_conditional_delete_b431 = normalize_aws_healthlake_conditional_delete_b431(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -993,6 +1003,11 @@ def detect_aws_events(
                 + ([neptune_graph_data_b428] if neptune_graph_data_b428 is not None else [])
                 + ([healthlake_fhir_b429] if healthlake_fhir_b429 is not None else [])
                 + ([healthlake_erase_b430] if healthlake_erase_b430 is not None else [])
+                + ([healthlake_datastore_delete_b431] if healthlake_datastore_delete_b431 is not None else [])
+                + ([healthlake_bulk_patch_b431] if healthlake_bulk_patch_b431 is not None else [])
+                + ([healthlake_purge_b431] if healthlake_purge_b431 is not None else [])
+                + ([healthlake_bulk_delete_b431] if healthlake_bulk_delete_b431 is not None else [])
+                + ([healthlake_conditional_delete_b431] if healthlake_conditional_delete_b431 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
