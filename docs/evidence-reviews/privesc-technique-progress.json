@@ -7,7 +7,7 @@
     "pending": 0
   },
   "by_provider": {
-    "azure": 161,
+    "azure": 162,
     "gcp": 223,
     "k8s": 80
   },
@@ -8408,10 +8408,10 @@
     }
   ],
   "publication": {
-    "status": "pending_all_techniques",
+    "status": "submitted_for_review",
     "source_of_truth": "HackTricks Cloud src/privilege-escalation-paths",
-    "remaining": "After every GCP, Azure, and Kubernetes technique is reviewed, export and validate the complete catalog in HackTricks Cloud, push the reviewed changes, then synchronize the CSPM from that published revision and verify the runtime binding.",
-    "current_runtime": "CSPM currently loads bundled peaso/privesc/catalog YAML. The local HackTricks Cloud checkout has src/privilege-escalation-paths, but reviewed changes are not yet pushed; final catalog publication and CSPM sync remain pending."
+    "remaining": "HackTricks Cloud PR #495 remains open as a draft for review; no GCP, Azure, or Kubernetes technique review remains.",
+    "current_runtime": "CSPM main bundles the reviewed catalog synchronized from HackTricks Cloud commit 863f3ad53c745ff349950c79cffb8c0e3ac0e96b, recorded in risk_rules/hacktricks-privesc-source.json."
   },
   "retired_techniques": [
     {
