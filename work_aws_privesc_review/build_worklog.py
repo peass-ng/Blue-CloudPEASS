@@ -53,6 +53,10 @@ def main():
     missing_negative = [row["id"] for row in partial_cases if not row["negative_case"]]
     suite_result = ROOT / "final-suite-result.json"
     suite = json.loads(suite_result.read_text()) if suite_result.is_file() else None
+    focused_results = json.loads((ROOT / "focused-validation.json").read_text())
+    assert all(result["tests"] > 0 and result["failures"] == result["errors"] == result["skipped"] == 0
+               and len(result["tested_revision"]) == len(result["hacktricks_source_revision"]) == 40
+               and len(result["junit_sha256"]) == 64 for result in focused_results)
     lines = [
         "# AWS privilege escalation: complete work register", "",
         "This is the single status file for the AWS privilege escalation work. Regenerate it after changing any underlying TSV with `python3 work_aws_privesc_review/build_verification_status.py` followed by `python3 work_aws_privesc_review/build_worklog.py`. A catalog review is not end-to-end validation.", "",
@@ -61,6 +65,19 @@ def main():
         (f"- Final pytest run used CSPM commit `{suite['tested_revision']}` and HackTricks Cloud revision "
          f"`{suite['hacktricks_source_revision']}`. Its result applies to those exact revisions; later changes need their own validation."
          if suite else "- Final pytest run remains pending; no complete 19-shard result is recorded."),
+        (f"- The full run's JUnit suite attributes recorded {suite['tests']} tests: {suite['failures']} failures, "
+         f"{suite['errors']} errors, and {suite['skipped']} skips. The XML contains {suite['testcase_elements']} "
+         f"testcase elements, of which {suite['testcases_with_error']} carry an error; suite counters include "
+         "pytest reporting beyond emitted testcase nodes. "
+         f"{len(suite['skip_allowlist_exceptions'])} skips were outside the skip allowlist "
+         "(four Linux tmpfs cases on macOS, one explicit SQLite transition case, and one unavailable local Trivy cache); "
+         "their exact test names and reasons are in `final-suite-result.json`."
+         if suite else "- Full-suite test, failure, error, and skip counts remain pending."),
+        "- Separate focused runs at later exact revisions: " + "; ".join(
+            f"{result['scope']} passed {result['tests']}/{result['tests']} on CSPM `{result['tested_revision']}` "
+            f"with HackTricks Cloud `{result['hacktricks_source_revision']}` "
+            f"(JUnit SHA-256 `{result['junit_sha256']}`)" for result in focused_results)
+        + ". These runs cover only their named test selections, not the full suite.",
         f"- ID-specific graph test audit: {case_counts['exact_cases_verified']} have a recorded passing exact case, {case_counts['partial']} have a located but partial case, and {case_counts['no_exact_case']} have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.",
         f"- Among the {len(partial_cases)} partial routes, {sum(bool(row['positive_case']) for row in partial_cases)} name a positive assertion, {sum(bool(row['negative_case']) for row in partial_cases)} name a negative assertion, and {sum(bool(row['unknown_case']) for row in partial_cases)} name an unknown-result assertion. These are located assertions, not recorded passing exact graph cases.",
         f"- Partial routes without a named positive assertion: {', '.join(missing_positive) or 'none'}.",
@@ -69,7 +86,8 @@ def main():
         f"- Retired cohort: {retired_counts['candidate']} candidates unresolved, {retired_counts['excluded_verified']} exclusions verified, {retired_counts['implemented']} restored or implemented.",
         f"- Additional routes: {additional_counts['candidate']} candidates unresolved, {additional_counts['excluded_verified']} exclusions verified, {additional_counts['implemented']} implemented.",
         f"- HackTricks pages: {page_counts['reviewed']} reviewed, {page_counts['triaged']} still need sign-off.",
-        f"- Source and data presentation pins: {len(drift)} files differ from the pinned source hashes; the frozen 12,145-witness parity module passed after the AWS source update.",
+        (f"- Source and data presentation pins: {len(drift)} files differ from the pinned source hashes; resolve the listed drift before claiming current presentation parity."
+         if drift else "- Source and data presentation pins: 0 files differ from the pinned source hashes in the current source manifest."),
         "- Release validation uses exact current and historical catalog bindings, source synchronization checks, focused route tests, and all 19 ordinary pytest shards. The shard results are recorded per technique above when complete.",
         "", "## Active techniques: work completed and exact remaining action", "",
     ]
