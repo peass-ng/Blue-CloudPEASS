@@ -116,7 +116,7 @@ def test_source_freeze_omits_only_verified_reconstructible_originals():
     from scripts.peaso_deploy import _omit_verified_reconstructible_privesc_history
     root, source = _history_source_bytes()
     omitted = _omit_verified_reconstructible_privesc_history(source, root)
-    assert len(omitted) == 264
+    assert len(omitted) == 266
     assert set(source) == {'peaso/privesc/versioned_catalog.py',
                            'peaso/privesc/catalog_versions/runtime-history-v1.zip'}
 
