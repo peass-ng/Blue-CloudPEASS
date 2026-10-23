@@ -28,7 +28,7 @@ def test_every_packed_tar_block_and_manifest_matches_pinned_original():
         refs = archive.read('references.bin')
         manifests = archive.read('manifests.bin')
     assert index['schema'] == 'privesc-exact-history-v1'
-    assert len(index['versions']) == len(declarations()) == 132
+    assert len(index['versions']) == len(declarations()) == 133
     assert len(blocks) == 512 * len(index['block_sha256'])
     assert all(_sha(blocks[n*512:(n+1)*512]) == digest
                for n, digest in enumerate(index['block_sha256']))
