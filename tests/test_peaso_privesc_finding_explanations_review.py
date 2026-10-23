@@ -59,10 +59,10 @@ def test_browser_line_measurement_fixture_matches_current_projectors():
 
 def test_every_catalog_technique_and_generated_admin_check_has_review_ledger():
     ledger=json.loads((ROOT/'docs/evidence-reviews/privesc.json').read_text())
-    assert len(ENTRIES)==676
+    assert len(ENTRIES)==685
     assert set(REVIEWED)=={e['id'] for e in ENTRIES}
     assert set(ledger['checks'])==set(REVIEWED)|{'admin-equivalent'}
-    assert ledger['by_provider']=={'aws':211,'gcp':223,'azure':162,'k8s':80}
+    assert ledger['by_provider']=={'aws':220,'gcp':223,'azure':162,'k8s':80}
     for entry in ENTRIES:
         row=ledger['checks'][entry['id']]
         assert row['conditions_retained']==[c['id'] for c in entry.get('conditions',[])]

@@ -3381,5 +3381,68 @@
     "purpose": "A shell session on an online hybrid node may reach its recorded IAM role.",
     "label": "Open a shell on an online SSM hybrid node",
     "review_status": "source_reviewed"
+  },
+  "aws-ecs-eventbridge-scheduled-task-role": {
+    "purpose": "The principal has recorded rights to pass this task role and schedule a new ECS task through EventBridge.",
+    "impact": "That role could provide access to data or services used by people.",
+    "label": "Schedule a controlled ECS task under its task role",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-flink-updateapplication-inline-code-existing-role": {
+    "purpose": "The running Flink application has a service role and accepts an inline code update from the principal.",
+    "impact": "That role could change data or services used by people.",
+    "label": "Replace running Flink application code under its execution role",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-grafana-existing-admin-serviceaccount-token": {
+    "purpose": "An enabled Grafana ADMIN service account is recorded in the workspace, and the principal may mint its token.",
+    "impact": "That access could change dashboards or data sources the team relies on.",
+    "label": "Mint a token for an existing Grafana ADMIN service account",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-iam-createrole-satisfy-cross-account-trust": {
+    "purpose": "The other account\u2019s recorded trust accepts a role ARN that the source may create.",
+    "impact": "That role could provide access to resources and data in the trusting account.",
+    "label": "Create a role accepted by a cross-account trust",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-iam-putrolepermissionsboundary-assumable-admin": {
+    "purpose": "An assumable role has an administrator policy limited by a boundary the source can change.",
+    "impact": "Those permissions could affect resources and data across the account.",
+    "label": "Widen the boundary of a role the source can assume",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-iam-putrolepermissionsboundary-self-admin": {
+    "purpose": "The source role has an administrator policy limited by a permissions boundary it can change.",
+    "impact": "Those permissions could affect resources and data across the account.",
+    "label": "Widen the source role's permissions boundary",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-iam-putuserpermissionsboundary-self-admin": {
+    "purpose": "The source IAM user has an administrator policy limited by a permissions boundary it can change.",
+    "impact": "Those permissions could affect resources and data across the account.",
+    "label": "Widen the source user's permissions boundary",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-sagemaker-attach-studio-lifecycle-config-shared-space": {
+    "purpose": "An existing shared Studio space has an execution role, and the principal may attach startup code.",
+    "impact": "That role could change data or services used by people.",
+    "label": "Attach controlled startup code to an existing shared Studio space",
+    "review_status": "source_reviewed",
+    "resource_first": true
+  },
+  "aws-synthetics-startcanarydryrun-replacement-code": {
+    "purpose": "An existing canary has an execution role, and the principal may supply replacement dry-run code.",
+    "impact": "That role could change data or services used by people.",
+    "label": "Run replacement canary code under its existing execution role",
+    "review_status": "source_reviewed",
+    "resource_first": true
   }
 }

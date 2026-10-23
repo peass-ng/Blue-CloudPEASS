@@ -2869,7 +2869,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#periodic-ecs-task-through-eventbridge",
       "source_revision": "b587e6bd26",
       "reviewed_contract_sha256": "f4fe35eb4a848a0285413c928939930e7775eebf2f710951a87acb932a29ff9f",
-      "purpose": "The source can register a task definition with controlled code and use a scheduled EventBridge rule to start it under a stronger task role.",
+      "purpose": "The principal has recorded rights to pass this task role and schedule a new ECS task through EventBridge.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
@@ -2893,7 +2893,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "That role could provide access to data or services used by people."
     },
     "aws-ecs-executecommand": {
       "provider": "aws",
@@ -3644,7 +3645,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md#updateapplication--code-control--application-execution-role",
       "source_revision": "171e422299",
       "reviewed_contract_sha256": "e6c0766d2741b3246a8c56d5a4ec583e4362e26c5677d0dbb8ff85ffdbd88317",
-      "purpose": "The source can submit an inline ZIP update to a running streaming application, which restarts with code using its recorded service role.",
+      "purpose": "The running Flink application has a service role and accepts an inline code update from the principal.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
@@ -3668,7 +3669,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "That role could change data or services used by people."
     },
     "aws-gamelift-getcomputeaccess-shared-fleet-role": {
       "provider": "aws",
@@ -4104,7 +4106,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md#createworkspaceserviceaccounttoken--existing-or-attacker-created-service-account",
       "source_revision": "171e422299",
       "reviewed_contract_sha256": "5046e83ac0107cc2a8a0bef1e2bbda85b8404969d53eee4fc7f417669b3893e8",
-      "purpose": "The source can obtain Grafana ADMIN API access by minting a token for an enabled ADMIN service account already present in one workspace.",
+      "purpose": "An enabled Grafana ADMIN service account is recorded in the workspace, and the principal may mint its token.",
       "target_kind": "aws_service_plane_admin",
       "requirement_contract": {
         "all_of": [
@@ -4126,7 +4128,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "That access could change dashboards or data sources the team relies on."
     },
     "aws-grafana-serviceaccounttoken-admin": {
       "provider": "aws",
@@ -4511,7 +4514,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#path-name-and-arn-conditions",
       "source_revision": "b587e6bd26",
       "reviewed_contract_sha256": "af0b69588a8faff1d480c0296e6c9b137a299f7e7eb83f219f0af486bed0d892",
-      "purpose": "The source can create and assume a role whose ARN matches another account's role trust, then grant the new role permission to assume that target.",
+      "purpose": "The other account’s recorded trust accepts a role ARN that the source may create.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": []
@@ -4528,7 +4531,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "That role could provide access to resources and data in the trusting account."
     },
     "aws-iam-createsamlprovider-orphaned-trust": {
       "provider": "aws",
@@ -4837,7 +4841,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputrolepermissionsboundary",
       "source_revision": "6fb9ac51fd",
       "reviewed_contract_sha256": "1a715e9d233a72d44d8b6a1e1f34a444b73c27ad17db54a8b0367b584458f617",
-      "purpose": "An existing assumable role has an administrator identity policy limited by its current boundary, and the source can remove or widen that boundary before assuming it.",
+      "purpose": "An assumable role has an administrator policy limited by a boundary the source can change.",
       "target_kind": "aws_account_admin",
       "requirement_contract": {
         "any_of": [
@@ -4865,7 +4869,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "Those permissions could affect resources and data across the account."
     },
     "aws-iam-putrolepermissionsboundary-self-admin": {
       "provider": "aws",
@@ -4874,7 +4879,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputrolepermissionsboundary",
       "source_revision": "171e422299",
       "reviewed_contract_sha256": "fb31a7dab960f2a4eb26d9cc3055f49d14127af45f28661864db951de018ecff",
-      "purpose": "The source role already has an administrator identity policy limited by its current boundary and can remove or widen that boundary.",
+      "purpose": "The source role has an administrator policy limited by a permissions boundary it can change.",
       "target_kind": "aws_account_admin",
       "requirement_contract": {
         "any_of": [
@@ -4904,7 +4909,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "Those permissions could affect resources and data across the account."
     },
     "aws-iam-putrolepolicy-self": {
       "provider": "aws",
@@ -4941,7 +4947,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputuserpermissionsboundary",
       "source_revision": "171e422299",
       "reviewed_contract_sha256": "ae8f66b6dc2748e3c9bf9186bf27cddaea22a29157c3d93a13d123701ad8f69e",
-      "purpose": "The source IAM user already has an administrator identity policy limited by its current boundary and can remove that boundary or replace it with AdministratorAccess.",
+      "purpose": "The source IAM user has an administrator policy limited by a permissions boundary it can change.",
       "target_kind": "aws_account_admin",
       "requirement_contract": {
         "any_of": [
@@ -4971,7 +4977,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "Those permissions could affect resources and data across the account."
     },
     "aws-iam-putuserpolicy-self": {
       "provider": "aws",
@@ -6526,7 +6533,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sagemaker-privesc/README.md#set-lifecycle-configuration-on-sagemaker-studio",
       "source_revision": "b587e6bd26",
       "reviewed_contract_sha256": "e5f8d2fd2f23d0f3f898a9164a5bc6992090916486e287f247d0c76495fc3959",
-      "purpose": "The source can attach a new lifecycle configuration to a shared space and start a matching app using its recorded execution role.",
+      "purpose": "An existing shared Studio space has an execution role, and the principal may attach startup code.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": []
@@ -6542,7 +6549,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "That role could change data or services used by people."
     },
     "aws-sagemaker-attach-studio-lifecycle-config-user-profile": {
       "provider": "aws",
@@ -7816,7 +7824,7 @@
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md#dry-run-replacement-code--passrole",
       "source_revision": "171e422299",
       "reviewed_contract_sha256": "2cb15330d6269a399bc45945eb25930cfb6e0b21030fbdfad01f49e652f98abf",
-      "purpose": "The source can supply inline code for an existing canary's dry run, which executes using that canary's recorded role.",
+      "purpose": "An existing canary has an execution role, and the principal may supply replacement dry-run code.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
@@ -7840,7 +7848,8 @@
         "MANUAL": "conditional modeled path",
         "UNKNOWN": "missing facts or unresolved targets"
       },
-      "review_status": "source_reviewed"
+      "review_status": "source_reviewed",
+      "impact": "That role could change data or services used by people."
     },
     "aws-workspaces-instances-passrole-createworkspaceinstance": {
       "provider": "aws",
@@ -8443,7 +8452,7 @@
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
       "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceusersgeneratessourlaction",
-      "source_revision": "5b8ad44118",
+      "source_revision": "db5b136660",
       "reviewed_contract_sha256": "4dafc321cbd6202fb16c44cb214e95cb8555ceffc469f8bb0565b9249066e8cc",
       "purpose": "A usable portal SSO link may grant new actions as the exact portal user.",
       "target_kind": "azure_external_principal",
@@ -13528,9 +13537,9 @@
       "provider": "gcp",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/gcp/workspace.yaml",
-      "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersretrievecredentials",
-      "source_revision": "5b8ad44118",
-      "reviewed_contract_sha256": "927d56fb491cdc6b585bb13a73ea6f7faaa3cf03fbaf04ec2fad27d0d52541a9",
+      "source": "src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersretrievecredentials",
+      "source_revision": "47bb6e8f32",
+      "reviewed_contract_sha256": "d89be0f9b9b30066657ce59f6f4aedf0e0640b58891bbf7d3d8392f00ebf905b",
       "purpose": "Exact active Google OAuth authorization may expose its already granted API scopes to a principal able to retrieve credentials on its provider.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
@@ -13558,9 +13567,9 @@
       "provider": "gcp",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/gcp/workspace.yaml",
-      "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersupdate-token-endpoint-interception",
-      "source_revision": "5b8ad44118",
-      "reviewed_contract_sha256": "23944373de8634c0d4a81bdef470d117f7c67063aeebab54f7174dbaeda3ddd3",
+      "source": "src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#agentidentityauthprovidersupdate-token-endpoint-interception",
+      "source_revision": "47bb6e8f32",
+      "reviewed_contract_sha256": "9124ab0261854ab64d97e2063cdb4c8241b7aee617defd0a8ab5cd3ea62748d0",
       "purpose": "Provider update rights could redirect a later token refresh for an exact active Google OAuth authorization.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
