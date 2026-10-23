@@ -100,7 +100,9 @@ test('Least Privilege sorts criticality and presents permissions, usage and entr
   await expect(table.getByText('Operators → Identity policy', {exact: true})).toBeVisible();
   await expect(table.locator('.least-usage.stale')).toContainText('120 days ago');
   await expect(table.locator('.least-usage.recent')).toContainText('1 day ago');
-  await expect(table.locator('.least-usage.recent')).toContainText('Service activity · action usage unknown');
+  await expect(table.locator('.least-usage.recent')).toContainText('Principal service attempt');
+  await expect(table.locator('.least-usage.recent')).not.toContainText('Action last seen');
+  await expect(table.locator('.least-usage.stale')).toContainText('Action last seen');
   await expect(table.locator('.least-usage.unknown')).toHaveText('Usage not available');
   for (const text of ['arn:aws:iam::999999999999:root', 'Public API', 'tcp/443']) await expect(dialog.getByText(text, {exact: true})).toBeVisible();
   await expect(dialog.getByText(/sha256:/)).toHaveCount(0);
