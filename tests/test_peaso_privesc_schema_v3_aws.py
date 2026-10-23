@@ -19,11 +19,19 @@ def test_untyped_challenge_paths_are_archived_not_active():
         if entry["provider"] != "aws" or entry["target"]["kind"] != "aws_verified_authority":
             continue
         selector = entry["target"]["selector"]
-        assert entry["target"]["outcome"] == "permission_grant"
-        reviewed = ("aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
-                    "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
-                    "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant")
-        assert sum(bool(selector.get(key)) for key in reviewed) == 1
+        if entry["id"] == "aws-deadline-passrole-fleet-createworker":
+            assert entry["target"]["outcome"] == "bounded_authority"
+            assert selector == {"aws_challenge_fact": entry["id"]}
+        else:
+            assert entry["target"]["outcome"] == "permission_grant"
+            assert "aws_challenge_fact" not in selector
+            reviewed = ("aws_dynamodb_policy_self_grant", "aws_s3_policy_self_grant",
+                        "aws_s3_access_grants_self_grant", "aws_scheduler_iam_self_grant",
+                        "aws_scheduler_iam_self_grant_update", "aws_secretsmanager_policy_self_grant",
+                        "aws_efs_policy_self_grant", "aws_cases_tag_self_grant",
+                        "aws_sitewise_portal_self_grant", "aws_sns_policy_self_grant",
+                        "aws_sqs_policy_self_grant")
+            assert sum(bool(selector.get(key)) for key in reviewed) == 1, entry["id"]
 
 
 def test_remaining_aws_credential_reads_use_exact_user_evidence():
