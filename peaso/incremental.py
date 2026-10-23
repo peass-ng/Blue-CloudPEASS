@@ -96,6 +96,8 @@ class CheckpointSession:
         # already exceeds collection_stride. New sections bypass this delay.
         self.min_report_interval = (self.interval if min_report_interval is None
                                     else max(0.0, float(min_report_interval)))
+        self.adaptive_report_cadence = min_report_interval is None
+        self.last_report_cpu = 0.0
         self.collection_stride = max(1, int(collection_stride))
         self.clock = clock
         self.collections = {}
@@ -436,9 +438,14 @@ class CheckpointSession:
                 if "privesc" in ready_ids:
                     categories.add("privesc")
                 now = self.clock()
+                quiet = self.min_report_interval
+                # Leave CPU for collection between costly cumulative rebuilds.
+                # New sections/categories and explicit flushes bypass this gate.
+                if self.adaptive_report_cadence:
+                    quiet = max(quiet, min(60.0, 2.0 * self.last_report_cpu))
                 if (not force and categories <= self.published_categories
                         and completed_sections <= self.published_sections
-                        and (now - self.last_time < self.min_report_interval
+                        and (now - self.last_time < quiet
                              or (sequence - self.last_published < self.collection_stride
                                  and now - self.last_time < self.interval))):
                     return None
@@ -446,6 +453,7 @@ class CheckpointSession:
                 # Capture their mapping atomically, then copy/seal without
                 # blocking provider settlement behind the growing inventory.
                 collections = dict(self.collections)
+            cpu_started = time.thread_time()
             collections = copy.deepcopy(collections)
             raw = self._snapshot(list(collections.values()), sequence=sequence)
             raw['metadata']['sections'] = sections
@@ -465,6 +473,7 @@ class CheckpointSession:
                 # Give collection a full interval after a slow publication;
                 # its evaluation time must not consume the next quiet period.
                 self.last_published, self.last_time = sequence, self.clock()
+                self.last_report_cpu = max(0.0, time.thread_time() - cpu_started)
             return report
 
     def sections(self):

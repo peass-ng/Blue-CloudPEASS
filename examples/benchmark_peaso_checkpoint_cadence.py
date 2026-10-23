@@ -43,7 +43,7 @@ class TimedLock:
         self.lock.release()
 
 
-def replay(module_path, snapshot, batches, categories):
+def replay(module_path, snapshot, batches, categories, *, arrival_gap=None):
     spec = importlib.util.spec_from_file_location('peaso._checkpoint_benchmark', module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -53,22 +53,13 @@ def replay(module_path, snapshot, batches, categories):
     class ManualSession(module.CheckpointSession):
         def _background(self): pass
     metrics = {'raw_batches': 0, 'reports': 0, 'artifact_bytes': 0,
-               'artifact_writes': 0, 'redaction_calls': 0, 'evaluation_wall': 0.0,
-               'evaluation_cpu': 0.0, 'publication_wall': 0.0}
+               'artifact_writes': 0, 'redaction_calls': 0, 'publication_wall': 0.0}
     final = None
     class Artifacts(FileArtifacts):
         def _write(self, tenant, ident, kind, value, **kwargs):
             metrics['artifact_bytes'] += len(value.encode())
             metrics['artifact_writes'] += 1
             return super()._write(tenant, ident, kind, value, **kwargs)
-    original_evaluate = engine.evaluate_snapshot
-    def evaluate(*args, **kwargs):
-        wall, cpu = time.perf_counter(), time.process_time()
-        try:
-            return original_evaluate(*args, **kwargs)
-        finally:
-            metrics['evaluation_wall'] += time.perf_counter() - wall
-            metrics['evaluation_cpu'] += time.process_time() - cpu
     def public(raw):
         metrics['redaction_calls'] += 1
         return module.seal(redact(raw))
@@ -96,10 +87,17 @@ def replay(module_path, snapshot, batches, categories):
                 'batch_revisions': list(range(1, len(rows)+1))}})
         session.restore([restored], len(rows))
         session.lock = TimedLock()
-        engine.evaluate_snapshot = evaluate
+        arrival_offset = [0.0]
+        if arrival_gap is not None:
+            # Advance logical arrivals without sleeping. Processing still uses
+            # real CPU; no native evaluator or source guard is replaced.
+            origin = time.process_time()
+            session.clock = lambda: arrival_offset[0] + time.process_time() - origin
         began, cpu = time.perf_counter(), time.process_time()
         try:
             for batch in range(batches):
+                if arrival_gap is not None:
+                    arrival_offset[0] += arrival_gap
                 for offset in range(64):
                     row = copy.deepcopy(rows[(batch*64+offset) % len(rows)])
                     row['benchmark_revision'] = batch*64+offset+1
@@ -108,7 +106,6 @@ def replay(module_path, snapshot, batches, categories):
             session.flush()
         finally:
             session.close()
-            engine.evaluate_snapshot = original_evaluate
         metrics.update(wall_seconds=time.perf_counter()-began, cpu_seconds=time.process_time()-cpu,
             collector_lock_total_seconds=session.lock.total,
             collector_lock_max_seconds=session.lock.maximum, final_report_sha256=final,
@@ -123,12 +120,22 @@ if __name__ == '__main__':
     parser.add_argument('--baseline', type=Path, required=True)
     parser.add_argument('--candidate', type=Path, required=True)
     parser.add_argument('--batches', type=int, default=4)
+    parser.add_argument('--arrival-gap', type=float, help='Logical inter-batch gap added to the real process CPU clock; no wall-clock sleep')
+    parser.add_argument('--candidate-first', action='store_true')
     parser.add_argument('--categories', nargs='+', default=['hardening'])
     args = parser.parse_args()
+    if args.arrival_gap is not None and args.arrival_gap < 0:
+        parser.error('arrival gap must be nonnegative')
     snapshot = json.loads(args.snapshot.read_text())
-    before = replay(args.baseline, snapshot, args.batches, args.categories)
-    after = replay(args.candidate, snapshot, args.batches, args.categories)
+    results = {}
+    variants = [('before', args.baseline), ('after', args.candidate)]
+    for name, path in (reversed(variants) if args.candidate_first else variants):
+        results[name] = replay(path, snapshot, args.batches, args.categories, arrival_gap=args.arrival_gap)
+    before, after = results['before'], results['after']
     assert before['final_report_sha256'] == after['final_report_sha256']
     assert before['raw_batches'] == after['raw_batches'] == args.batches
     print(json.dumps({'before': before, 'after': after, 'final_report_equal': True,
-                      'cloud_requests': 0, 'categories': args.categories}, indent=2))
+                      'cloud_requests': 0, 'categories': args.categories,
+                      'arrival_gap': args.arrival_gap, 'candidate_first': args.candidate_first,
+                      'clock': 'process CPU plus controlled arrival gaps' if args.arrival_gap is not None else 'real monotonic',
+                      'native_evaluator_replaced': False}, indent=2))

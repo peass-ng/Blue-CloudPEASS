@@ -159,3 +159,81 @@ def test_cumulative_copy_does_not_hold_collector_lock(monkeypatch, tmp_path):
     finally:
         release.set()
         session.close()
+
+
+def test_expensive_publication_coalesces_reports_but_keeps_every_raw_batch(monkeypatch, tmp_path):
+    from peaso import incremental
+    session, artifacts, refs, now = manual_session(monkeypatch, tmp_path)
+    cpu = [100.0]
+    monkeypatch.setattr(incremental.time, 'thread_time', lambda: cpu[0])
+    checkpoint = session.on_checkpoint
+    def expensive(snapshot, report, sequence):
+        checkpoint(snapshot, report, sequence)
+        if report:
+            cpu[0] += 12.0
+    session.on_checkpoint = expensive
+    try:
+        commit(session, 0)
+        assert session._maybe_publish() is not None
+        assert session.last_report_cpu == 12.0
+        for start, moment in ((64, 8.0), (128, 23.99)):
+            now[0] = moment
+            commit(session, start)
+            assert session._maybe_publish() is None
+        assert [seq for seq, _, report in refs if report is None] == [64, 128, 192]
+        now[0] = 24.0
+        assert session._maybe_publish() is not None
+        assert [seq for seq, _, report in refs if report] == [64, 192]
+        session.on_collection({'type': 'other', 'scope': 'final', 'status': 'empty', 'items': []})
+        session.flush()
+        assert refs[-1][0] == 193 and refs[-1][2]
+        assert len(artifacts.get(TENANT, refs[-1][1])['collections']) == 193
+    finally:
+        session.close()
+
+
+def test_new_section_bypasses_cpu_quiet_period(monkeypatch, tmp_path):
+    session, _, refs, now = manual_session(monkeypatch, tmp_path)
+    session.section_dependencies['leaks'] = {'secret'}
+    try:
+        commit(session, 0)
+        session._maybe_publish()
+        session.last_report_cpu = 1000.0
+        now[0] = 0.01
+        session.on_collection({'type': 'secret', 'scope': SCOPE, 'status': 'empty', 'items': []})
+        with session.lock:
+            session._flush_pending()
+        assert session._maybe_publish() is not None
+        assert 'leaks' in session.published_sections
+        assert len([ref for ref in refs if ref[2]]) == 2
+    finally:
+        session.close()
+
+
+def test_cpu_quiet_period_is_capped_at_sixty_seconds(monkeypatch, tmp_path):
+    session, _, _, now = manual_session(monkeypatch, tmp_path)
+    try:
+        commit(session, 0)
+        session._maybe_publish()
+        session.last_report_cpu = 1000.0
+        commit(session, 64)
+        now[0] = 59.99
+        assert session._maybe_publish() is None
+        now[0] = 60.0
+        assert session._maybe_publish() is not None
+    finally:
+        session.close()
+
+
+def test_explicit_minimum_opts_out_of_adaptive_quiet_period(monkeypatch, tmp_path):
+    session, _, _, now = manual_session(monkeypatch, tmp_path, min_report_interval=0.5)
+    session.min_report_interval = 0.5
+    try:
+        commit(session, 0)
+        session._maybe_publish()
+        session.last_report_cpu = 1000.0
+        commit(session, 64)
+        now[0] = 0.5
+        assert session._maybe_publish() is not None
+    finally:
+        session.close()
