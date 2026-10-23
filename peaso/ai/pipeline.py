@@ -188,18 +188,19 @@ def referenced_strings(value):
             yield from referenced_strings(item)
 
 
-def review_context(report, inventory_by_id, findings):
-    references = set(referenced_strings(findings))
+def review_context(report, inventory_by_id, findings, *, _references=None):
+    references = set(referenced_strings(findings)) if _references is None else _references
     return {'scan': {key: report[key] for key in ('provider', 'snapshot_id', 'created_at') if key in report},
             'resources': [inventory_by_id[ident] for ident in sorted(references & inventory_by_id.keys())]}
 
 
-def findings_document(scan, findings, resources=()):
+def findings_document(scan, findings, resources=(), *, _references=None):
     """Keep each finding's evidence and exact native references in one record."""
     inventory_by_id = {row['id']: row for row in resources}
     items = []
-    for finding in findings:
-        references = set(referenced_strings(finding)) & inventory_by_id.keys()
+    for position, finding in enumerate(findings):
+        references = (set(referenced_strings(finding)) if _references is None
+                      else _references[position]) & inventory_by_id.keys()
         from peaso.finding_observation import evidence_summary
         observation = evidence_summary(finding)
         item = dict(finding, supporting_resources=[inventory_by_id[ident] for ident in sorted(references)])
@@ -218,8 +219,12 @@ def review_fingerprints(report, inventory_by_id, findings, *, identity, entries)
     """
     fingerprints = {}
     for row in findings:
-        context = review_context(report, inventory_by_id, [row])
-        document = findings_document(context['scan'], [row], context['resources'])
+        # Reuse only this row's fresh references, then release them before
+        # credential preparation and serialization. Nothing is cached across calls.
+        references = set(referenced_strings(row))
+        context = review_context(report, inventory_by_id, [row], _references=references)
+        document = findings_document(context['scan'], [row], context['resources'], _references=(references,))
+        del references
         # Checkpoint/final snapshot IDs and created_at values name separately
         # serialized views. The caller's complete-section data revision fence
         # supplies their provenance; finding evidence, referenced resources,
@@ -249,6 +254,10 @@ def review_credentials(entries, provider, findings, context):
     from .access import scopes_overlap
     selected = [entry for entry in entries if entry.get('provider') == provider]
     requested_scopes = {row.get('scope') for row in findings + context.get('resources', []) if isinstance(row.get('scope'), str)}
+    if not selected:
+        # An absent provider access context cannot become selectable by
+        # traversing native evidence; keep all supplied-context checks below.
+        return []
     accounts = set()
     if provider == 'aws':
         account_reference = re.compile(r'^(?:arn:[^:]+:[^:]*:[^:]*:)?([0-9]{12})(?:/|:|$)')

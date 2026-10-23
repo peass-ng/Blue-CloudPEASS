@@ -25,7 +25,7 @@
     "peaso/ai/model_relay.py": "38b983c2a628e0b8d67aff0c58cdc3dabf5569262386c3124edfbd26b760cb6a",
     "peaso/ai/network.py": "f8da3a90c6fbc0e2c2bb8fa40f2007bf45abdfa149b37c92d8b7b693f5ebd6fd",
     "peaso/ai/output_validation.py": "3c8261fb777cb325377db682368358c27e038064a78576d01c4e0a105904e06e",
-    "peaso/ai/pipeline.py": "3c9fd8de3a55d4e306640ccf5a0ac572cafc574c57ddaf76991434003afa9036",
+    "peaso/ai/pipeline.py": "32a3f50ed88ba6c52883d883a9e2bd0e115125f04b7b0c744f8974295372a285",
     "peaso/ai/prompting.py": "4e6c4f13dce2947dc23f037c5a95ebbf0d4efc6ba9a5ed97182a73ac3a2f2914",
     "peaso/ai/providers.py": "a33915979e16954365cd49a894dccba49a765ef1de060db5c15292a846e3f068",
     "peaso/ai/reconcile.py": "4770e78fe777d4cea46d0e9bc8f388e79b0b3cdc1f40a7d49eb638aae11081d4",
@@ -1665,9 +1665,10 @@
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1663,
-  "python_source_sha256": "e845d63312e893280c628ce2a5c9d5275426fbc3bd365b7096a8b342d0b6fcca",
+  "python_source_sha256": "f75973aaf688f311b5e95f755decb1afc797e395c3b0e13f721656e3a56c2c9d",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
+    "ai_reference_preparation_qualification": "Only pipeline.py changes: reuse fresh per-finding references between context/document preparation; discard before hashing and credential selection. Empty provider credential selection returns no access after existing scope-row validation. Supplied-context narrowing, boundary metadata, expiry/capture fields, fingerprint bytes, model inputs and batching retain existing behavior. No retained evidence cache. Existing 30 SDK client sites and service set unchanged; no native admission receipt changes.",
     "alternative_workflow_qualification": "Reviewed strong DynamoDB base hydration and FIFO authority; provider-only AI input preparation; capture-scoped ciphertext index adapter; live-digest historical receipts; per-source GCP HTTP pool; large owned legacy download. Exactly 30 literal SDK client sites retain existing services; no new credential factories. Preserve main 6d8a1f23 artifact batching and closure review.",
     "api_client_sites": 30,
     "api_services_unchanged": true,
@@ -1736,5 +1737,5 @@
     "source_review": "Qualified factory/SW46/source-proof locality and network joins; current main offline event normalizers and historical ECS lineage; bounded S3 uploads retain tenant checks, encryption and manifest-last semantics. Added modules have no SDK calls. Exact API client closure unchanged.",
     "top20_performance_review": "Five runtime files reviewed: fresh tenant-bound status/TTL reads use existing DynamoDB GetItem; privilege query generators retain original traversal and ordering, bounded heap selection changes response paging only.30 client construction sites, credential factories and API service roster unchanged. Native admission sources unchanged."
   },
-  "source_commit": "d6bb3dfbe29944817a2edae3b6b78cff8ac47b80"
+  "source_commit": "5af7c2104f71c9be663534ffb88baf928d3cc51e"
 }
