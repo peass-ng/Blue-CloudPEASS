@@ -3,9 +3,11 @@
 Proposal only: the installed predicate has no ConfigMap receipt vocabulary yet.
 """
 import base64
+from contextvars import ContextVar
 import hashlib
 import json
 import re
+import time
 from types import FunctionType
 from urllib.parse import urlsplit
 
@@ -352,6 +354,22 @@ def _extract(document, target):
 
 
 _GLOBALS = {**previous._GLOBALS, '__name__': __name__, '_extract': _extract, '_read': _read}
+_SCAN_DEADLINE = ContextVar('k8s_selected_literal_scan_deadline', default=None)
+_SOURCE_SCAN_CONTENT = _GLOBALS['scan_content']
+
+
+def _scan_selected_content(payload, path, *, timeout, **kwargs):
+    """Give the two pinned detectors CPU time inside the existing collection deadline."""
+    deadline = _SCAN_DEADLINE.get()
+    if deadline is not None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('selected literal collection deadline')
+        timeout = min(15, remaining / 2)
+    return _SOURCE_SCAN_CONTENT(payload, path, timeout=timeout, **kwargs)
+
+
+_GLOBALS['scan_content'] = _scan_selected_content
 _source_collect = previous._GLOBALS['collect']
 _GLOBALS['collect'] = FunctionType(_source_collect.__code__, _GLOBALS, 'collect',
     _source_collect.__defaults__, _source_collect.__closure__)
@@ -361,6 +379,7 @@ enabled, selected_targets, identity, _path = (previous.enabled, previous.selecte
 
 def collect(reader, api, options, scopes, cluster):
     reader._configmap_association_phases = {}
+    deadline_token = _SCAN_DEADLINE.set(time.monotonic() + base.MAX_SECONDS)
     try:
         if enabled(options):
             with private_native_logs():
@@ -431,6 +450,7 @@ def collect(reader, api, options, scopes, cluster):
         metadata[KIND + '_configmap_receipts'] = receipts
         return metadata, matches
     finally:
+        _SCAN_DEADLINE.reset(deadline_token)
         reader._configmap_association_phases = {}
 
 
