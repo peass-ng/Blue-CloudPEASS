@@ -221,8 +221,10 @@ def test_elasticbeanstalk_role_execution_binding_preserves_previous_catalog():
     assert status == "exact_strict_privesc"
     entry = current[ident]
     assert "elasticbeanstalk_environment_role_effect_reviewed" in entry["preconditions"]
-    assert entry["requires"]["all_of"] == [
-        {"action": "elasticbeanstalk:CreateEnvironment"}]
+    assert entry["requires"]["any_of"] == [
+        [{"action": "elasticbeanstalk:CreateEnvironment"}],
+        [{"action": "elasticbeanstalk:UpdateEnvironment"}],
+    ]
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_TREE,
