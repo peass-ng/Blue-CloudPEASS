@@ -2300,6 +2300,10 @@ def collect(connector, requirements=None, *, transport=None):
         parents |= azure_network_catalog.required_parents(wanted)
         if "diagnostic_setting" in wanted:
             parents |= set(ENDPOINTS) - {"resource_group"}
+        # These requested inventories already have an authoritative LIST+GET
+        # producer above. Keep generic discovery only when they are implicit
+        # parents of another requested inventory (for example diagnostics).
+        parents -= wanted.intersection(azure_containerapp_jobs.NATIVE_TYPES)
         # Broad collection: one authoritative ARM list of every tracked resource
         # per subscription proves which provider lists are empty, so ~70 list
         # reads per subscription shrink to the types actually present. A failed

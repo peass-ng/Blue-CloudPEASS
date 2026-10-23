@@ -45,6 +45,44 @@ def collect(kinds, api, **options):
 def envelope(snapshot, kind):
     return next(c for c in snapshot['collections'] if c['type'] == kind and c['scope'] == SCOPE)
 
+
+@pytest.mark.parametrize('present', [False, True])
+@pytest.mark.parametrize('diagnostics', [False, True])
+def test_container_app_job_and_environment_have_one_native_owner_per_scope(present, diagnostics):
+    job = BASE + 'Microsoft.App/jobs/job'
+    environment = BASE + 'Microsoft.App/managedEnvironments/environment'
+    native = {
+        SCOPE + '/providers/Microsoft.App/jobs': {'value': [parent(job, 'Microsoft.App/jobs', {})] if present else []},
+        SCOPE + '/providers/Microsoft.App/managedEnvironments': {'value': [parent(environment, 'Microsoft.App/managedEnvironments', {})] if present else []},
+        job: parent(job, 'Microsoft.App/jobs', {'provisioningState': 'Succeeded', 'environmentId': environment}),
+        environment: parent(environment, 'Microsoft.App/managedEnvironments', {'provisioningState': 'Succeeded'}),
+    }
+    api = Transport(native)
+    kinds = ['container_app_job', 'container_app_environment']
+    result = collect(kinds + (['diagnostic_setting'] if diagnostics else []), api)
+    for kind, resource_id in (('container_app_job', job), ('container_app_environment', environment)):
+        rows = [row for row in result['collections'] if row['type'] == kind and row['scope'] == SCOPE]
+        assert len(rows) == 1
+        assert rows[0]['status'] == ('collected' if present else 'empty')
+        if present:
+            assert rows[0]['items'][0]['id'] == resource_id
+            assert rows[0]['items'][0]['_provenance']['method'] == 'LIST+GET'
+        assert sum(urlsplit(url).path == resource_id for url in api.calls) == int(present)
+        assert sum(urlsplit(url).path == SCOPE + '/providers/' + azure.ENDPOINTS[kind][0]
+                   for url in api.calls) == 1
+
+
+def test_diagnostics_keep_implicit_container_app_parent_discovery():
+    api = Transport({SCOPE + '/resources': {'value': [
+        parent(BASE + 'Microsoft.App/jobs/job', 'Microsoft.App/jobs', {}),
+        parent(BASE + 'Microsoft.App/managedEnvironments/environment', 'Microsoft.App/managedEnvironments', {}),
+    ]}})
+    result = collect(['diagnostic_setting'], api)
+    for kind in ('container_app_job', 'container_app_environment'):
+        assert any(row['type'] == kind and row['scope'] == SCOPE for row in result['collections'])
+        assert any(urlsplit(url).path == SCOPE + '/providers/' + azure.ENDPOINTS[kind][0]
+                   for url in api.calls)
+
 def verdict(snapshot, check):
     return evaluate_snapshot(snapshot, checks=[check], include_not_applicable=True)['findings'][0]['status']
 
