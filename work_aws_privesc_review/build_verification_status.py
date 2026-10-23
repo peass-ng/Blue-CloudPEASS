@@ -90,6 +90,15 @@ FOCUSED_HELPER_TESTS = {
 }
 
 ISOLATED_GRAPH_TESTS = {
+    "aws-amplifybackend-createtoken-studio-admin": "tests/test_peaso_privesc_facts_followups.py",
+    "aws-appstream-createappblockbuilderstreamingurl": "tests/test_peaso_privesc_appstream_existing_builders.py",
+    "aws-appstream-createimagebuilderstreamingurl": "tests/test_peaso_privesc_appstream_existing_builders.py",
+    "aws-appstream-createstreamingurl-existing-fleet": "tests/test_peaso_privesc_appstream_existing_fleet.py",
+    "aws-appstream-passrole-createappblockbuilder": "tests/test_peaso_privesc_aws_followups.py",
+    "aws-appstream-passrole-createimagebuilder": "tests/test_peaso_privesc_aws_followups.py",
+    "aws-appstream-passrole-createimagebuilder-createfleet": "tests/test_peaso_privesc_aws_followups.py",
+    "aws-appstream-passrole-updateappblockbuilder": "tests/test_peaso_privesc_aws_followups.py",
+    "aws-appstream-passrole-updatefleet": "tests/test_peaso_privesc_aws_followups.py",
     "aws-amplify-updateapp-passrole": "tests/test_peaso_privesc_amplify_role_routes.py",
     "aws-amplify-updateapp-passrole-ssr": "tests/test_peaso_privesc_amplify_role_routes.py",
     "aws-apprunner-mutable-ecr-autodeploy": (
