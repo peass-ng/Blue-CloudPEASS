@@ -902,7 +902,7 @@ views that reference protected source tables has its own source-table permission
 | `#gcp---generic-permission-privilege-escalation` | # GCP - Generic Permission Privilege Escalation | - | STRUCTURAL | page title / intro / references |
 | `#iam-principals--org-policies` | ## IAM, Principals & Org Policies | - | EXCLUDED | X: Page intro |
 | `#generic-permission-patterns` | ## Generic permission patterns | - | EXCLUDED | X: Generic permission patterns |
-| `#serviceresourcesetiampolicy--self-grant-on-the-governed-resource` | ### `<service>.<resource>.setIamPolicy` — self-grant on the governed resource | - | EXCLUDED | X: Generic <service>.<resource>.setIamPolicy |
+| `#serviceresourcesetiampolicy--self-grant-on-the-governed-resource` | ### `<service>.<resource>.setIamPolicy` — self-grant on the governed resource | - | STRUCTURAL | Generic permission pattern; concrete self-grants are mapped under their service entries. |
 | `#iamserviceaccountsactas--a-code-executing-resource-write--run-as-an-attached-identity` | ### `iam.serviceAccounts.actAs` + a code-executing resource write — run as an attached identity | iam.serviceAccounts.actAs | EXCLUDED | X: Generic actAs + code-executing resource write |
 | `#references` | ## References | - | EXCLUDED | X: References section |
 
@@ -4329,7 +4329,7 @@ Seven unambiguous terminal techniques were moved from privilege-escalation secti
 |---|---|---|---|---|
 | `#authorized-view-iam-self-grant-authorizedviewssetiampolicy` | ## Authorized-view IAM self-grant (`authorizedViews.setIamPolicy`) | contactcenterinsights.authorizedViews.setIamPolicy | COVERED | `gcp-contactcenterinsights-authorizedviews-setiampolicy-self-grant` |
 
-## Current CSPM catalog reconciliation (HackTricks Cloud `89b86ec2c8e39b14601a867b698a31b31be2a231`)
+## Current CSPM catalog reconciliation (HackTricks Cloud `4393380a88845b42bd208d3adbb6d61ad89f02fb`)
 
 The heading sweep above records its historical source revision. The rows below record changes to the current automatic catalog. RETIRED entries remain documented in the source and exclusion catalog; they do not run as automatic checks.
 

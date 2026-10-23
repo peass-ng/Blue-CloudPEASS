@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 env:
   # HackTricks Cloud revision the privesc catalog, ledgers and check page links are verified against.
-  HACKTRICKS_REVISION: e7a926f26506cfa9e5bb1016ff4dc9dc5c69a02c
+  HACKTRICKS_REVISION: 4393380a88845b42bd208d3adbb6d61ad89f02fb
   TERRAFORM_VERSION: 1.14.3
 jobs:
   python_shards:

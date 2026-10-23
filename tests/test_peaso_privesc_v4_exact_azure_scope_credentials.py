@@ -35,11 +35,25 @@ def _resource(rtype, name="one"):
 
 
 def _fact(tid, resource, action):
-    return {"TechniqueId": tid, "SourceId": SOURCE, "TargetKind": "azure_service_principal",
+    fact = {"TechniqueId": tid, "SourceId": SOURCE, "TargetKind": "azure_service_principal",
             "TargetId": TARGET, "TargetScope": T, "CredentialSubjectId": TARGET,
             "CredentialKind": "entra_service_principal_client_secret", "CredentialUsable": True,
             "CredentialScope": resource, "AccessAction": action,
             "EvidenceRef": "reviewed-content-object-1", "Status": "verified", "VerifiedPreconditions": True}
+    exact_content = {
+        "azure-apim-gateway-config-credential": ("GatewayResourceId", "/gateways/gateway1", "GatewayConfiguration", "GatewayConfiguration"),
+        "azure-appconfig-snapshot-credential": ("SnapshotName", "snapshot1", "SnapshotContent", "Snapshot"),
+        "azure-automation-job-output-credential": ("JobResourceId", "/jobs/job1", "JobContent", "JobContent"),
+        "azure-automation-runbook-source-credential": ("RunbookResourceId", "/runbooks/runbook1", "RunbookContent", "RunbookContent"),
+        "azure-storage-blob-content-credential": ("BlobResourceId", "/blobServices/default/containers/container1/blobs/blob1", "BlobContent", "BlobContent"),
+    }
+    if tid in exact_content:
+        field, value, prefix, subject = exact_content[tid]
+        fact[field] = value if field == "SnapshotName" else resource + value
+        fact[prefix + "ReadVerified"] = True
+        fact["CredentialIn" + subject + "Verified"] = True
+        fact[prefix + "EvidenceRef"] = "reviewed-content-object-1"
+    return fact
 
 
 def _run(tid, rtype, action, data_action, facts, *, assignment_scope=SUB,

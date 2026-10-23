@@ -140,6 +140,12 @@ def test_accepts_provider_and_aws_service_directories(monkeypatch):
     assert fetch(expected) == {name: TEXT}
 
 
+def test_accepts_bounded_action_review_report_without_changing_rule_digest(monkeypatch):
+    mock_network(monkeypatch, pack((f"{ROOT}/AWS_ACTION_REVIEW_ALL.md",
+                                    b"Public source review\n", tarfile.REGTYPE)))
+    assert fetch(digest()) == {"sample.yml": TEXT}
+
+
 def test_rejects_oversized_or_linked_agent_instructions(monkeypatch):
     for content, kind in ((b"x" * (source.MAX_MEMBER_BYTES + 1), tarfile.REGTYPE),
                           (b"", tarfile.SYMTYPE)):

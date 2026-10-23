@@ -5037,7 +5037,7 @@ The following rows map active techniques to their current HackTricks privilege-e
 | `az-post-exploitation/az-notification-hubs-post-exploitation.md#notification-hubs` | Notification Hubs |  | STRUCTURAL | section introduction |
 | `az-post-exploitation/az-notification-hubs-post-exploitation.md#key-less-push-with-notificationhubsdebugsendaction` | Key-less push with `NotificationHubs/debugSend/action` |  | EXCLUDED | Sends push notifications to devices; no identity gain. |
 
-## Current CSPM catalog reconciliation (HackTricks Cloud `89b86ec2c8e39b14601a867b698a31b31be2a231`)
+## Current CSPM catalog reconciliation (HackTricks Cloud `4393380a88845b42bd208d3adbb6d61ad89f02fb`)
 
 The heading sweep above records its historical source revision. The rows below record every current Azure automatic technique and the main-only paths retired from automatic evaluation. RETIRED entries remain documented in the source and exclusion catalog; they do not run as automatic checks.
 

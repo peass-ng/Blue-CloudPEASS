@@ -59,10 +59,10 @@ def test_browser_line_measurement_fixture_matches_current_projectors():
 
 def test_every_catalog_technique_and_generated_admin_check_has_review_ledger():
     ledger=json.loads((ROOT/'docs/evidence-reviews/privesc.json').read_text())
-    assert len(ENTRIES)==676
+    assert len(ENTRIES)==685
     assert set(REVIEWED)=={e['id'] for e in ENTRIES}
     assert set(ledger['checks'])==set(REVIEWED)|{'admin-equivalent'}
-    assert ledger['by_provider']=={'aws':211,'gcp':223,'azure':162,'k8s':80}
+    assert ledger['by_provider']=={'aws':220,'gcp':223,'azure':162,'k8s':80}
     for entry in ENTRIES:
         row=ledger['checks'][entry['id']]
         assert row['conditions_retained']==[c['id'] for c in entry.get('conditions',[])]
@@ -121,8 +121,18 @@ def test_real_native_snapshot_paths_preserve_conditions_and_source_identity(prov
     assert result['findings'],provider
     for finding in result['findings']:
         original=deepcopy(finding);text=displayed_summary(finding)
+        if evidence_summary(finding) is None:
+            # A conditional path with no recorded granting statement cannot
+            # support a source-to-target claim in observed evidence.
+            assert text is None
+            assert finding==original
+            continue
         assert text,(provider,finding)
-        assert finding['evidence']['source']['label'] in text
+        label=finding['evidence']['source']['label']
+        if label=='2 principals':
+            assert 'source identity' in text
+        else:
+            assert label in text
         assert finding==original
 
 

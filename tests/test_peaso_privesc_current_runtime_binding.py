@@ -60,7 +60,7 @@ def test_reviewed_685_binding_retains_original_source_for_stored_reports():
     assert previous[ident]["source"].endswith("#microsoftapimanagementserviceusersgeneratessourlaction")
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
     assert status == "exact_strict_privesc"
-    assert current[ident]["source"].endswith("#microsoftapimanagementserviceusersgeneratessourlaction")
+    assert current[ident]["source"].endswith("#microsoftapimanagementserviceuserstokenaction")
     assert len(catalog._verified_reviewed_685_previous()) == 685
 
 
@@ -223,7 +223,8 @@ def test_elasticbeanstalk_role_execution_binding_preserves_previous_catalog():
     assert "elasticbeanstalk_environment_role_effect_reviewed" in entry["preconditions"]
     assert entry["requires"]["any_of"] == [
         [{"action": "elasticbeanstalk:CreateEnvironment"}],
-        [{"action": "elasticbeanstalk:UpdateEnvironment"}]]
+        [{"action": "elasticbeanstalk:UpdateEnvironment"}],
+    ]
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_TREE,

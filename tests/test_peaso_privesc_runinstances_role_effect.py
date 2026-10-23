@@ -92,7 +92,7 @@ def test_runinstances_rejects_disjoint_permissions_and_bad_or_stale_proof():
 def test_runinstances_without_witness_keeps_plausible_path_unknown():
     snap = _snapshot()
     snap["collections"] = [c for c in snap["collections"] if c["type"] != "aws_privesc_challenge_evidence"]
-    result = real(snap, TID)
-    assert edges(result, ALICE) == []
+    result = real(snap, TID, include_unknown=True)
+    assert role_arn("worker") not in reached(result, ALICE)
     assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
                for row in result["coverage"])

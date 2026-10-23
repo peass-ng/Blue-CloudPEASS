@@ -101,9 +101,12 @@ def test_exact_fleet_grant_and_shared_credentials_reach_role():
 
 
 def test_other_fleet_default_provider_or_inactive_compute_do_not_reach_role():
+    entry = next(x for x in schema.load_catalog(schema.CATALOG_DIR)["entries"] if x["id"] == TECHNIQUE)
     for model in (_model(grant=IAM_FLEET_ARN + "-other"), _model(provider=None),
                   _model(compute_status="IMPAIRED"), _model(fleet_status="TERMINATING")):
         assert _verdict(model) is None
+        assert not [edge for edge in Evaluator(model, [entry], include_unknown=False).run()
+                    if edge.source.id == ALICE and TARGET in edge.targets]
 
 
 def test_incomplete_compute_read_stays_unresolved():

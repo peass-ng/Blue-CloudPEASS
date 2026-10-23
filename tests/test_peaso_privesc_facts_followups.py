@@ -47,12 +47,14 @@ def unresolved_only(result, source):
 
 
 # --- 1) EKS access entries -> k8s_nodes_mapped_to_cloud_identity / eks_access_entry_type ----------------------
-def _eks_aws(entries=None):
+def _eks_aws(entries=None, auth_mode=None):
     inst = {"InstanceId": "i-1", "AccountId": ACCOUNT, "Region": REGION, "State": {"Name": "running"},
             "IamInstanceProfile": {"Arn": f"arn:aws:iam::{ACCOUNT}:instance-profile/ec2-role"}, "MetadataOptions": {}}
     extra = [("instance", SCOPE, [inst], "collected")]
     if entries is not None:
         extra.append(("eks_access_entry", SCOPE, entries, "collected" if entries else "empty"))
+    if auth_mode:
+        extra.append(("eks_cluster", SCOPE, [{"name": "c1", "accessConfig": {"authenticationMode": auth_mode}}], "collected"))
     return k8s_aws([], [k8s_role("ec2-role")], extra)
 
 
@@ -62,8 +64,8 @@ def _node_entry(kind="EC2_LINUX", principal=NODE_ROLE):
 
 def test_eks_node_access_entry_maps_node_role_to_its_node():
     result = analyze(_k8s_nodes("aws:///us-east-1a/i-1"), NODE_ID, related_snapshots=[_eks_aws(_node_entry())])
-    assert reached(result, f"cloud:eks_node:{NODE_ROLE}").get("k8s:c1:node:n1") == "derived"
-    assert statuses(result, NODE_ID) == ["FAIL"]
+    assert reached(result, f"cloud:eks_node:{NODE_ROLE}").get("k8s:c1:node:n1") == "conditional"
+    assert statuses(result, NODE_ID) == ["MANUAL"]
 
 
 def test_eks_access_entries_missing_report_needed_facts():
@@ -77,7 +79,10 @@ def test_eks_access_entries_missing_report_needed_facts():
 
 def test_eks_access_entry_of_another_type_or_absent():
     standard = analyze(_k8s_nodes("aws:///us-east-1a/i-1"), NODE_ID, related_snapshots=[_eks_aws(_node_entry("STANDARD"))])
-    assert "k8s:c1:node:n1" not in reached(standard, f"cloud:eks_node:{NODE_ROLE}")
+    assert reached(standard, f"cloud:eks_node:{NODE_ROLE}").get("k8s:c1:node:n1") == "conditional"
+    api_only = analyze(_k8s_nodes("aws:///us-east-1a/i-1"), NODE_ID,
+                       related_snapshots=[_eks_aws(_node_entry("STANDARD"), auth_mode="API")])
+    assert "k8s:c1:node:n1" not in reached(api_only, f"cloud:eks_node:{NODE_ROLE}")
     # Entries collected but none for the node role: mapping via aws-auth (contents not collected) -> conditional.
     other = analyze(_k8s_nodes("aws:///us-east-1a/i-1"), NODE_ID,
                     related_snapshots=[_eks_aws(_node_entry(principal=arn("other")))])
@@ -88,13 +93,17 @@ def test_eks_pod_identity_association_binds_service_account():
     pi_role = arn("pi-role")
     assoc = [{"clusterName": "c1", "namespace": "a", "serviceAccount": "builder", "roleArn": pi_role, "associationId": "x"}]
 
-    def run(trust, associations):
+    def run(trust, associations, *, tag_session=True):
         extra = [] if associations is None else [("eks_pod_identity_association", SCOPE, associations, "collected")]
+        role = k8s_role("pi-role", trust)
+        if tag_session:
+            role["AssumeRolePolicyDocument"]["Statement"][0]["Action"] = ["sts:AssumeRole", "sts:TagSession"]
         return analyze(_k8s_nodes("aws:///us-east-1a/i-1"), "k8s-cloud-eks-pod-identity",
-                       related_snapshots=[k8s_aws([], [k8s_role("pi-role", trust)], extra)])
+                       related_snapshots=[k8s_aws([], [role], extra)])
     ident = f"cloud:eks_pod_identity:{pi_role}"
-    assert reached(run("pods.eks.amazonaws.com", assoc), "k8s:c1:sa:a:builder") == {ident: "derived"}
-    assert reached(run("ec2.amazonaws.com", assoc), "k8s:c1:sa:a:builder") == {ident: "conditional"}
+    assert reached(run("pods.eks.amazonaws.com", assoc), "k8s:c1:sa:a:builder") == {ident: "conditional"}
+    assert reached(run("ec2.amazonaws.com", assoc), "k8s:c1:sa:a:builder") == {}
+    assert reached(run("pods.eks.amazonaws.com", assoc, tag_session=False), "k8s:c1:sa:a:builder") == {}
     assert reached(run("pods.eks.amazonaws.com", None), "k8s:c1:sa:a:builder") == {}
 
 
@@ -120,10 +129,9 @@ def test_amplifybackend_createtoken_on_token_resource():
     # CreateToken/GetToken need both the backend (/backend/<AppId>/*) and the token resource (Service Authorization Reference).
     exact = user("alice", allow("amplify:GetApp", APP), allow("amplifybackend:CreateToken", [TOKEN, BACKEND]))
     assert set(reached(analyze(aws_snap([exact], [], _amplify()), eid), ALICE)) == {f"aws_service_plane_admin:amplifybackend:{APP}"}
-    # A token-only grant overlaps the backend pattern (/backend/d1/challenge/* is inside /backend/d1/*), so the evaluator's
-    # wildcard-overlap rule keeps it; a backend grant of another app does not.
+    # A token-only grant does not cover the backend environment used to mint the Studio login.
     token_only = user("alice", allow("amplify:GetApp", APP), allow("amplifybackend:CreateToken", TOKEN))
-    assert set(reached(analyze(aws_snap([token_only], [], _amplify()), eid), ALICE)) == {f"aws_service_plane_admin:amplifybackend:{APP}"}
+    assert reached(analyze(aws_snap([token_only], [], _amplify()), eid), ALICE) == {}
     other_app = user("alice", allow("amplify:GetApp", APP), allow("amplifybackend:CreateToken", BACKEND.replace("/d1/", "/d2/")))
     assert reached(analyze(aws_snap([other_app], [], _amplify()), eid), ALICE) == {}
 

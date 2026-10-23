@@ -65,6 +65,18 @@ def test_wrong_role_grants_direct_role_principal_or_taken_name_do_not_bind():
     assert not _edges(_case(existing=True))
 
 
+def test_same_role_name_in_target_account_does_not_block_source_account_creation():
+    snap = _case()
+    target_roles = next(row for row in snap["collections"] if row["type"] == "iam_role"
+                        and row["scope"] == f"{OTHER}/global")
+    target_roles["items"].append({
+        "Arn": f"arn:aws:iam::{OTHER}:role/OpsRoles/PeasoCrossAccount0",
+        "RoleName": "PeasoCrossAccount0", "Path": "/OpsRoles/",
+        "AssumeRolePolicyDocument": {"Statement": []}, "RolePolicyList": [],
+        "AttachedManagedPolicies": [], "InstanceProfileList": []})
+    assert _edges(snap) == {TARGET: "conditional"}
+
+
 def test_missing_account_inventory_or_scp_is_unresolved():
     assert not _edges(_case(target_status="denied"))
     assert not _edges(_case(source_scp="denied"))

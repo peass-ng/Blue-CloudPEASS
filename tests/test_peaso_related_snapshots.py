@@ -22,11 +22,16 @@ def gke_pair():
     for col in gcp["collections"]:
         if col["type"] == "iam_policy":
             col["items"][0]["bindings"].append({"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]})
+        if col["type"] == "gke_cluster":
+            col["items"][0].update({"status": "RUNNING", "endpoint": "203.0.113.10"})
     gcp["collections"].append({"type": "iam_role", "scope": "projects/p1", "service": "iam_role", "status": "collected",
-                               "items": [{"name": "projects/p1/roles/secrets", "includedPermissions": ["container.secrets.get", "container.secrets.list"]}]})
+                               "items": [{"name": "projects/p1/roles/secrets", "includedPermissions": ["container.clusters.get", "container.secrets.get", "container.secrets.list"]}]})
+    gcp["collections"].append({"type": "iam_deny_policy", "scope": "projects/p1", "service": "iam", "status": "empty", "items": []})
     secret = kobj("Secret", "tok", "a", type="kubernetes.io/service-account-token",
-                  meta={"annotations": {"kubernetes.io/service-account.name": "builder"}})
-    return _wrap(gcp), _wrap(k8s(secrets=[secret]), {"context": "gke_p1_us-a_c1"})
+                  meta={"annotations": {"kubernetes.io/service-account.name": "builder",
+                                        "kubernetes.io/service-account.uid": "builder-uid"}})
+    account = kobj("ServiceAccount", "builder", "a", meta={"uid": "builder-uid"})
+    return _wrap(gcp), _wrap(k8s(secrets=[secret], sas=[account]), {"cluster_id": "c1"})
 
 
 def _cross_edges(report):

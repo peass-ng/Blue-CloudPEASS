@@ -167,6 +167,16 @@ def test_aws_aggregation_of_many_targets():
     assert len(reached(result, src, "aws-iam-createaccesskey-other-user")) >= 30
 
 
+def test_aws_createaccesskey_other_user_requires_permission_on_that_user():
+    actor = aws_user("actor", {"Effect": "Allow", "Action": "iam:CreateAccessKey",
+                               "Resource": f"arn:aws:iam::{ACCOUNT}:user/actor"})
+    other = aws_user("other")
+    entry = next(row for row in privesc.catalog()["entries"]
+                 if row["id"] == "aws-iam-createaccesskey-other-user")
+    result = privesc.analyze(aws_snapshot([actor, other], scp_status="empty"), entries=[entry])
+    assert reached(result, f"arn:aws:iam::{ACCOUNT}:user/actor", entry["id"]) == {}
+
+
 def test_aws_admin_is_reported_and_queryable():
     admin = aws_user("root-like", {"Effect": "Allow", "Action": "*", "Resource": "*"})
     alice = aws_user("alice", *PASS_RUN)

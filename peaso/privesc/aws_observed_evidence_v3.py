@@ -68,6 +68,10 @@ def evidence_summary(finding):
     impact = REVIEWED[cid].get('impact', _FALLBACK_IMPACT)
     if not isinstance(impact, str) or not impact.endswith('.') or '\n' in impact:
         return None
+    if REVIEWED[cid].get('resource_first'):
+        return '\n'.join((purpose,
+                          f'This may give {source} access to {target}.',
+                          impact))
     first = (f'The saved grants show a path from {source} to {target}.' if confidence == 'derived' else
              f'The saved grants show a possible path from {source} to {target}.')
     return '\n'.join((first, purpose, impact))

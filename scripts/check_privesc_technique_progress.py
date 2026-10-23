@@ -6,6 +6,7 @@ from collections import Counter
 import hashlib
 import json
 from pathlib import Path
+import re
 
 from peaso import privesc
 
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TRACKER = ROOT / "docs/evidence-reviews/privesc-technique-progress.json"
 SOURCE_REVIEWS = ROOT / "docs/evidence-reviews/privesc.json"
 PROVIDERS = {"gcp", "azure", "k8s"}
+TEST_REFERENCE = re.compile(r"tests/[A-Za-z0-9_./-]+\.py")
 
 
 def main() -> int:
@@ -63,6 +65,14 @@ def main() -> int:
             errors.append(f"invalid status: {ident}")
         if tracked["status"] == "completed" and not tracked.get("completion_evidence"):
             errors.append(f"completed without evidence: {ident}")
+        if tracked["status"] == "completed":
+            evidence = json.dumps({
+                "focused_runtime_test": tracked.get("focused_runtime_test"),
+                "completion_evidence": tracked.get("completion_evidence"),
+            })
+            for reference in set(TEST_REFERENCE.findall(evidence)):
+                if not (ROOT / reference).is_file():
+                    errors.append(f"missing focused test {reference}: {ident}")
     counts = Counter(entry["status"] for entry in recorded)
     if {status: counts[status] for status in ("completed", "in_progress", "pending")} != report["counts"]:
         errors.append("summary counts do not match technique rows")

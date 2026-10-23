@@ -2,13 +2,16 @@
 consumers (ledger NS-1..NS-3)."""
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
+import yaml
+
 from peaso import privesc
 from tests.test_peaso_privesc_schema_ext import entry, errors_of, reached, snapshot
 
 ALICE = "user:alice@corp.com"
 OUTSIDER = "user:eve@evil.com"
-SA1 = "sa1@p1.iam.gserviceaccount.com"
-SA2 = "sa2@p1.iam.gserviceaccount.com"
 ROLE = {"name": "projects/p1/roles/imager", "includedPermissions": ["compute.images.create", "domains.registrations.configuredns"]}
 
 
@@ -66,36 +69,56 @@ DOMAINS_ENTRY = entry("gcp-t-domains", "gcp",
 def test_domains_registration_reaches_super_admin_of_that_domain():
     assert errors_of(DOMAINS_ENTRY) == []
     reg = "projects/p1/locations/global/registrations/corp.com"
-    extra = [("domains_registration", "projects/p1", [{"name": reg, "domainName": "corp.com"}]),
-             ("workspace_user", "customers/C1", [{"primaryEmail": "boss@corp.com", "id": "1", "isAdmin": True},
-                                                 {"primaryEmail": "boss@other.com", "id": "2", "isAdmin": True},
-                                                 {"primaryEmail": "intern@corp.com", "id": "3", "isAdmin": False}])]
+    extra = [("domains_registration", "projects/p1", [{"name": reg, "domainName": "corp.com", "state": "ACTIVE"}]),
+             ("workspace_customer", "customers/C1", [{"id": "C1", "customerDomain": "corp.com"},
+                                                     {"id": "C2", "customerDomain": "other.com"}]),
+             ("workspace_user", "customers/C1", [{"primaryEmail": "boss@corp.com", "id": "1", "customerId": "C1", "isAdmin": True},
+                                                 {"primaryEmail": "boss@other.com", "id": "2", "customerId": "C2", "isAdmin": True},
+                                                 {"primaryEmail": "intern@corp.com", "id": "3", "customerId": "C1", "isAdmin": False}])]
     bindings = [{"role": "projects/p1/roles/imager", "members": [ALICE]}]
     got = reached(privesc.analyze(gsnap(bindings, extra), entries=[DOMAINS_ENTRY]), ALICE, "gcp-t-domains")
     assert set(k for k in got if not k.startswith("unresolved:")) == {"user:boss@corp.com"}
     # Not collected: no members, only unresolved placeholders.
     got = reached(privesc.analyze(gsnap(bindings, extra[1:]), entries=[DOMAINS_ENTRY]), ALICE, "gcp-t-domains")
     assert "user:boss@corp.com" not in got
+    inactive = [("domains_registration", "projects/p1", [{"name": reg, "domainName": "corp.com", "state": "SUSPENDED"}]), *extra[1:]]
+    got = reached(privesc.analyze(gsnap(bindings, inactive), entries=[DOMAINS_ENTRY]), ALICE, "gcp-t-domains")
+    assert "user:boss@corp.com" not in got
 
 
-IMAGE_ENTRY = entry("gcp-t-image", "gcp",
-                    {"all_of": [{"action": "compute.images.create", "resource": "{target.image_family_project}"}]},
-                    {"kind": "gcp_service_account", "selector": {"gcp_image_family_consumer": True}, "scope": "any"})
+@pytest.mark.parametrize("technique,action", [
+    ("gcp-domains-configuredns-workspace-admin-recovery", "domains.registrations.configureDns"),
+    ("gcp-domains-configuremanagement-transfer-workspace-admin-recovery", "domains.registrations.configureManagement"),
+])
+def test_catalog_domain_recovery_requires_exact_active_registration_and_admin(technique, action):
+    catalog_entry = next(item for item in privesc.catalog()["entries"] if item["id"] == technique)
+
+    def targets(*, permission=None, state="ACTIVE", domain="corp.com", admin=True, project="p1"):
+        registration = f"projects/{project}/locations/global/registrations/corp.com"
+        extra = [
+            ("domains_registration", f"projects/{project}",
+             [{"name": registration, "domainName": "corp.com", "state": state}]),
+            ("workspace_customer", "customers/C1", [{"id": "C1", "customerDomain": domain}]),
+            ("workspace_user", "customers/C1", [{"primaryEmail": "boss@corp.com", "id": "1",
+                                                   "customerId": "C1", "isAdmin": admin}]),
+        ]
+        snap = gsnap([{"role": "projects/p1/roles/imager", "members": [ALICE]}], extra)
+        role = next(c for c in snap["collections"] if c["type"] == "iam_role")["items"][0]
+        role["includedPermissions"] = [permission or action]
+        return reached(privesc.analyze(snap, entries=[catalog_entry]), ALICE, technique)
+
+    assert targets() == {"user:boss@corp.com": "conditional"}
+    assert "user:boss@corp.com" not in targets(permission="domains.registrations.get")
+    assert "user:boss@corp.com" not in targets(state="SUSPENDED")
+    assert "user:boss@corp.com" not in targets(domain="other.com")
+    assert "user:boss@corp.com" not in targets(admin=False)
+    assert "user:boss@corp.com" not in targets(project="p2")
 
 
-def test_image_family_consumer_targets_template_sas_only():
-    assert errors_of(IMAGE_ENTRY) == []
-    template = {"name": "t1", "properties": {
-        "disks": [{"boot": True, "initializeParams": {"sourceImage": "projects/p1/global/images/family/golden"}}],
-        "serviceAccounts": [{"email": SA1}]}}
-    pinned = {"name": "t2", "properties": {
-        "disks": [{"initializeParams": {"sourceImage": "https://www.googleapis.com/compute/v1/projects/p1/global/images/img-1"}}],
-        "serviceAccounts": [{"email": SA2}]}}
-    extra = [("instance_template", "projects/p1", [template, pinned])]
-    bindings = [{"role": "projects/p1/roles/imager", "members": [ALICE]}]
-    got = reached(privesc.analyze(gsnap(bindings, extra, sas=(SA1, SA2)), entries=[IMAGE_ENTRY]), ALICE, "gcp-t-image")
-    assert got == {f"serviceAccount:{SA1}": "derived"}
-    # The family lives in another project the source cannot write: no edge.
-    template["properties"]["disks"][0]["initializeParams"]["sourceImage"] = "projects/debian-cloud/global/images/family/debian-12"
-    got = reached(privesc.analyze(gsnap(bindings, extra, sas=(SA1, SA2)), entries=[IMAGE_ENTRY]), ALICE, "gcp-t-image")
-    assert f"serviceAccount:{SA1}" not in got
+def test_image_family_poison_is_manual_only():
+    technique = "gcp-compute-images-create-family-poison"
+    assert technique not in {item["id"] for item in privesc.catalog()["entries"]}
+    excluded_path = Path(__file__).parents[1] / "peaso/privesc/catalog/gcp/_excluded.yaml"
+    excluded = yaml.safe_load(excluded_path.read_text())
+    record = next(item for item in excluded if item.get("id") == technique)
+    assert record["reason"].startswith("Manual-only:")

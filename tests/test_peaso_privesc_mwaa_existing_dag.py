@@ -51,8 +51,11 @@ def test_other_object_role_or_unavailable_environment_does_not_prove_route():
                    {"list_bucket": "arn:aws:s3:::other-bucket"},
                    {"execution_role": f"arn:aws:iam::{ACCOUNT}:role/other"},
                    {"status": "DELETING"}):
-        assert _verdict(_model(**change)) != (
+        model = _model(**change)
+        assert _verdict(model) != (
             "conditional", "mwaa_existing_dag_object_and_execution_role"), change
+        assert not [edge for edge in Evaluator(model, [ENTRY], include_unknown=False).run()
+                    if edge.source.id == ALICE and TARGET in edge.targets], change
 
 
 def test_incomplete_inventory_and_invalid_dag_path_remain_unproved():

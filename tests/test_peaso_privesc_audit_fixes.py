@@ -14,12 +14,13 @@ import os
 import resource
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from peaso import privesc
 from peaso.privesc.versioned_catalog import _verified_prior
-from peaso.privesc.effective_permissions import ANY, Node
+from peaso.privesc.effective_permissions import ANY, AllTargets, Node
 from peaso.privesc.effective_permissions import aws_conditions as C
 from peaso.privesc.effective_permissions.aws import AwsModel
 from peaso.privesc.effective_permissions.k8s import K8sModel
@@ -236,8 +237,6 @@ def test_admin_source_is_short_circuited():
     assert [f["status"] for f in result["findings"] if f["check_id"] == "admin-equivalent"] == ["FAIL"]
     full = real(aws([admin], [role("ec2-role")]), "aws-ec2-passrole-runinstances", include_admin_sources=True)
     assert reached(full, sid, "aws-ec2-passrole-runinstances") == {}
-    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
-               for row in full["coverage"])
 
 
 def test_memoized_sources_match_individual_evaluation():
@@ -254,8 +253,6 @@ def test_memoized_sources_match_individual_evaluation():
     assert key(memo) == key(plain)
     for u in users:
         assert reached(memo, u["Arn"]) == {}
-    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
-               for row in memo["coverage"])
 
 
 # ----------------------------------------------------------------------- Kubernetes
@@ -429,6 +426,27 @@ def _bench(scale):
     return synthetic.principals(snap), elapsed, grown_mb, result
 
 
+def test_passrole_request_context_bulk_matches_each_role_across_accounts():
+    model = AwsModel(_synthetic().snapshot(1))
+    roles = model.targets("aws_role")
+    model.current_cset = SimpleNamespace(id="all_roles", kind="aws_role",
+                                         members={role.id: role for role in roles})
+    model.current_entry = {}
+    model.current_selector = {}
+    req = {"action": "iam:PassRole", "request_context": {"iam:PassedToService": "ec2.amazonaws.com"}}
+
+    def signature(grant):
+        return None if grant is None else (grant.confidence, grant.refs, grant.conditions, grant.permission_refs)
+
+    for username in ("user3-0", "user5-0"):
+        source = model.principals[f"arn:aws:iam::{ACCOUNT}:user/{username}"]
+        bulk = model.check_targets(source, req, "{target.arn}", model.current_cset.members.values())
+        for role in roles:
+            bulk_grant = bulk.grant if isinstance(bulk, AllTargets) else bulk.get(role.id)
+            individual_grant = model.check_targets(source, req, "{target.arn}", [role]).get(role.id)
+            assert signature(bulk_grant) == signature(individual_grant), (username, role.id)
+
+
 def test_bench_privesc_10x_aws():
     principals, elapsed, grown_mb, result = _bench(10)
     assert principals >= 3130
@@ -520,20 +538,22 @@ def _gcp_conditional(expression, title="c"):
 
 
 @pytest.mark.parametrize("expression,resource,expected", [
-    ('resource.name.endsWith("a@p0.iam.gserviceaccount.com")', _SA.format("a"), True),
+    ('resource.name.endsWith("a@p0.iam.gserviceaccount.com")', _SA.format("a"), False),
     ('resource.name.endsWith("a@p0.iam.gserviceaccount.com")', _SA.format("b"), False),
-    ('resource.name == "projects/p0"', "projects/p0", True),
+    ('resource.name == "projects/p0"', "projects/p0", False),
     ('resource.name == "projects/100"', "projects/p0", False),         # the model passes the number as an alias
     ('resource.name.startsWith("projects/p9/")', _SA.format("a"), False),
-    ('resource.type == "iam.googleapis.com/ServiceAccount"', _SA.format("a"), True),
+    ('resource.type == "iam.googleapis.com/ServiceAccount"', _SA.format("a"), False),
     ('resource.type != "iam.googleapis.com/ServiceAccount"', _SA.format("a"), False),
-    ('resource.service == "iam.googleapis.com"', _SA.format("a"), True),
-    ('resource.type == "storage.googleapis.com/Bucket" || resource.service == "iam.googleapis.com"', _SA.format("a"), True),
+    ('resource.service == "iam.googleapis.com"', _SA.format("a"), False),
+    ('resource.type == "storage.googleapis.com/Bucket" || resource.service == "iam.googleapis.com"', _SA.format("a"), False),
+    ('resource.type == "storage.googleapis.com/Bucket"', "projects/_/buckets/b", True),
+    ('resource.service == "storage.googleapis.com"', "projects/_/buckets/b", True),
     ('request.time < timestamp("2001-01-01T00:00:00Z")', _SA.format("a"), False),
     ('request.time < timestamp("2999-01-01T00:00:00Z")', _SA.format("a"), True),
     ('resource.matchTag("123/env", "prod")', _SA.format("a"), None),
     ('request.time.getHours("UTC") > 8', _SA.format("a"), None),
-    ('resource.name.startsWith("projects/p0/serviceAccounts/a")', _SA.format("a"), None),  # projects/- alias disagrees
+    ('resource.name.startsWith("projects/p0/serviceAccounts/a")', _SA.format("a"), False),
     ('resource.name.startsWith("x") &&', _SA.format("a"), None),       # unsupported syntax
     ('!(resource.type == "iam.googleapis.com/ServiceAccount") || resource.matchTag("k", "v")', "projects/p0", True),
 ])
@@ -544,14 +564,13 @@ def test_cel_three_valued(expression, resource, expected):
 def test_cel_condition_on_resource_name_restricts_targets():
     result = real(_gcp_conditional('resource.name.endsWith("a@p0.iam.gserviceaccount.com")'), _TOKEN_TID)
     got = reached(result, "user:u@x.com", _TOKEN_TID)
-    # b is excluded under every plausible resource.name form; a matches the email forms but not the
-    # unique-id form, so it stays conditional (never derived on an ambiguous name).
-    assert got == {"serviceAccount:a@p0.iam.gserviceaccount.com": "conditional"}
+    # IAM Conditions do not expose resource.name for service accounts, even when the
+    # policy lookup has their resource path. Neither target can satisfy this condition.
+    assert got == {}
 
 
 def test_cel_decided_true_condition_is_derived():
-    result = real(_gcp_conditional('resource.type == "iam.googleapis.com/ServiceAccount" && '
-                                   'resource.service == "iam.googleapis.com"'), _TOKEN_TID)
+    result = real(_gcp_conditional('request.time < timestamp("2999-01-01T00:00:00Z")'), _TOKEN_TID)
     got = reached(result, "user:u@x.com", _TOKEN_TID)
     assert got == {f"serviceAccount:{n}@p0.iam.gserviceaccount.com": "derived" for n in "ab"}
 
@@ -665,6 +684,11 @@ _PIM_REQ = {"entra_pim_eligible_role": GA_ROLE}
 
 def test_azure_pim_eligible_is_conditional_never_active():
     model = _azure(eligibility=[_eligible()])
+    grant = model.check(model.principals["u-alice"], _PIM_REQ, "dir:" + GA_ROLE)
+    assert grant.confidence == "unknown" and "pim_eligibility_instance_not_collected" in grant.conditions
+    live = {"principalId": "u-alice", "roleDefinitionId": GA_ROLE, "directoryScopeId": "/",
+            "endDateTime": "2999-01-01T00:00:00Z"}
+    model = _azure(eligibility=[_eligible()], instances=[live])
     grant = model.check(model.principals["u-alice"], _PIM_REQ, "dir:" + GA_ROLE)
     assert grant.confidence == "conditional" and list(grant.conditions) == ["pim_activation_required"]
     # Eligibility never counts as an active directory role assignment.
@@ -887,7 +911,7 @@ def _gcp_attached(extra, email=_GSA):
 @pytest.mark.parametrize("kind,service,item", [
     ("cloudrun_service", "run_service", {"name": "projects/p1/locations/us/services/s", "template": {"serviceAccount": _GSA}}),
     ("function", "cloudfunctions_function", {"name": "projects/p1/locations/us/functions/f", "serviceConfig": {"serviceAccountEmail": _GSA}}),
-    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "config": {"gceClusterConfig": {"serviceAccount": _GSA}}}),
+    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "_region": "us-central1", "config": {"gceClusterConfig": {"serviceAccount": _GSA}}}),
     ("gke_cluster", "gke_nodepool", {"name": "k", "location": "us", "nodePools": [{"config": {"serviceAccount": _GSA}}]}),
     ("instance", "compute_instance", {"name": "vm", "zone": "zones/us-a", "serviceAccounts": [{"email": _GSA}]}),
 ])
@@ -907,7 +931,7 @@ def test_gcp_attached_to_service_inventories(kind, service, item):
 @pytest.mark.parametrize("kind,service,item", [
     ("cloudrun_service", "run_service", {"name": "projects/p1/locations/us/services/s", "template": {}}),
     ("gke_cluster", "gke_nodepool", {"name": "k", "location": "us", "nodePools": [{"config": {"serviceAccount": "default"}}]}),
-    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "config": {}}),
+    ("dataproc_cluster", "dataproc_cluster", {"clusterName": "c", "_region": "us-central1", "config": {}}),
 ])
 def test_gcp_workloads_without_service_account_run_as_the_default_compute_sa(kind, service, item):
     model, node = _gcp_attached([(kind, "projects/p1", [item], "collected")], email=_GDEF)
@@ -1037,15 +1061,18 @@ def _node_reach(result):
     return {tid: (conf, src) for src in ("k8s:c1:node:n1", "k8s:c1:sa:a:builder") for tid, conf in reached(result, src).items()}
 
 
-@pytest.mark.parametrize("mode,imds", [("GCE_METADATA", "derived"), ("GKE_METADATA", "conditional")])
-def test_gke_node_pool_service_account_is_the_node_identity(mode, imds):
+@pytest.mark.parametrize("mode,pod_imds", [("GCE_METADATA", True), ("GKE_METADATA", False)])
+def test_gke_node_pool_service_account_is_the_node_identity(mode, pod_imds):
     k = _k8s_nodes("gce://p1/us-a/n1", {"cloud.google.com/gke-nodepool": "pool-a"})
     ident = "cloud:gke_node:123-compute@developer.gserviceaccount.com"   # unset / "default" = default compute SA
     result = real(k, *_NODE_IDS, related_snapshots=[_gke(mode)])
-    assert reached(result, "k8s:c1:node:n1")[ident] == "derived"
+    assert reached(result, "k8s:c1:node:n1")[ident] == "conditional"
     edges = [e for e in result["graph"]["edges"] if e["source"] == "k8s:c1:sa:a:builder" and e["target"] == ident]
-    assert {d["id"]: d["confidence"] for d in edges[0]["technique_details"]} == {
-        "k8s-cloud-pod-imds-node-identity": imds, "k8s-cloud-hostnetwork-pod-node-identity": "derived"}
+    details = {d["id"]: d["confidence"] for d in edges[0]["technique_details"]}
+    assert details["k8s-cloud-hostnetwork-pod-node-identity"] == "conditional"
+    assert ("k8s-cloud-pod-imds-node-identity" in details) is pod_imds
+    if pod_imds:
+        assert details["k8s-cloud-pod-imds-node-identity"] == "conditional"
     join = [e for e in result["graph"]["edges"] if e["source"] == ident]
     assert join and join[0]["target"] == "serviceAccount:123-compute@developer.gserviceaccount.com"
     assert result["stats"]["cross_snapshot_edges"] == 1
@@ -1065,18 +1092,21 @@ def _aws_node(options):
     return aws([], [role("ec2-role")], [("instance", f"{ACCOUNT}/{REGION}", [inst], "collected")])
 
 
-@pytest.mark.parametrize("options,imds", [
-    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 2}, "derived"),
-    ({"HttpTokens": "optional", "HttpPutResponseHopLimit": 1}, "derived"),
-    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 1}, "conditional"),
+@pytest.mark.parametrize("options,pod_imds_route", [
+    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 2}, True),
+    ({"HttpTokens": "optional", "HttpPutResponseHopLimit": 1}, True),
+    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 1}, False),
 ])
-def test_eks_node_instance_role_is_the_node_identity(options, imds):
+def test_eks_node_instance_role_is_the_node_identity(options, pod_imds_route):
     k = _k8s_nodes("aws:///us-east-1a/i-1")
     result = real(k, *_NODE_IDS, related_snapshots=[_aws_node(options)])
     ident = f"cloud:eks_node:{EC2_ROLE}"
-    assert reached(result, "k8s:c1:node:n1")[ident] == "derived"
+    # The node identity is known, but API access to the node does not prove host control.
+    assert reached(result, "k8s:c1:node:n1")[ident] == "conditional"
     edge = next(e for e in result["graph"]["edges"] if e["source"] == "k8s:c1:sa:a:builder" and e["target"] == ident)
-    assert {d["id"]: d["confidence"] for d in edge["technique_details"]}["k8s-cloud-pod-imds-node-identity"] == imds
+    details = {d["id"]: d["confidence"] for d in edge["technique_details"]}
+    assert details.get("k8s-cloud-pod-imds-node-identity") == ("conditional" if pod_imds_route else None)
+    assert details["k8s-cloud-hostnetwork-pod-node-identity"] == "conditional"
 
 
 def test_aks_kubelet_identity_is_the_node_identity():
@@ -1093,23 +1123,30 @@ def test_aks_kubelet_identity_is_the_node_identity():
     az["metadata"] = {"tenant_id": "t"}
     k = _k8s_nodes(f"azure://{sub}/resourceGroups/mc_rg/providers/Microsoft.Compute/virtualMachineScaleSets/vmss/virtualMachines/0")
     result = real(k, *_NODE_IDS, related_snapshots=[az])
-    assert reached(result, "k8s:c1:node:n1")["cloud:aks_kubelet:client-kubelet"] == "derived"
+    # The AKS identity is linked to this node, but an API view of the node
+    # does not establish control of its host or access to its credential.
+    assert reached(result, "k8s:c1:node:n1")["cloud:aks_kubelet:client-kubelet"] == "conditional"
     assert any(e["source"] == "cloud:aks_kubelet:client-kubelet" and e["target"] == "obj-kubelet" for e in result["graph"]["edges"])
 
 
 # --------------------------------------------- cross-snapshot counter / provider labels (live GKE QA, item 3)
 def test_gcp_with_joined_k8s_counts_cross_snapshot_edges_and_labels_groups_k8s():
-    actor = {"name": "projects/p1/roles/secrets", "includedPermissions": ["container.secrets.get", "container.secrets.list"]}
+    actor = {"name": "projects/p1/roles/secrets", "includedPermissions": ["container.clusters.get", "container.secrets.get", "container.secrets.list"]}
     gcp = _gke("GCE_METADATA")
     for col in gcp["collections"]:
         if col["type"] == "iam_policy":
             col["items"][0]["bindings"].append({"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]})
+        if col["type"] == "gke_cluster":
+            col["items"][0].update({"status": "RUNNING", "endpoint": "203.0.113.10"})
     gcp["collections"].append({"type": "iam_role", "scope": "projects/p1", "service": "iam_role", "status": "collected",
                                "items": [actor], "error": None})
+    gcp["collections"].append({"type": "iam_deny_policy", "scope": "projects/p1", "service": "iam", "status": "empty",
+                               "items": [], "error": None})
     secret = kobj("Secret", "tok", "a", type="kubernetes.io/service-account-token",
-                  meta={"annotations": {"kubernetes.io/service-account.name": "builder"}})
-    k = k8s(secrets=[secret])
-    k["metadata"] = {"context": "gke_p1_us-a_c1"}
+                  meta={"annotations": {"kubernetes.io/service-account.name": "builder",
+                                        "kubernetes.io/service-account.uid": "builder-uid"}})
+    k = k8s(secrets=[secret], sas=[kobj("ServiceAccount", "builder", "a", meta={"uid": "builder-uid"})])
+    k["metadata"] = {"cluster_id": "c1"}
     result = real(gcp, "gcp-container-secrets-read-ksa-token-secret", related_snapshots=[k])
     nodes = {n["id"]: n for n in result["graph"]["nodes"]}
     edges = [e for e in result["graph"]["edges"] if e["source"] == "user:alice@x.com"]

@@ -49,6 +49,25 @@ def test_existing_role_update_rejects_wrong_service_state_and_permission():
     assert _edges(_snapshot(permission=False)) == {}
 
 
+def test_existing_role_update_exact_graph_positive_blocked_and_unknown():
+    def graph_edges(snapshot):
+        result = privesc.analyze(snapshot, entries=[ENTRY], include_unknown=True)
+        return [(edge["target"], edge["confidence"])
+                for edge in result["graph"]["edges"]
+                if edge["source"] == USER and ENTRY["id"] in edge["techniques"]]
+
+    assert graph_edges(_snapshot()) == [(ROLE, "conditional")]
+    assert graph_edges(_snapshot(role=OTHER)) == [(OTHER, "conditional")]
+    assert graph_edges(_snapshot(permission=False)) == []
+    assert graph_edges(_snapshot(status="DELETED")) == []
+    missing_service = _snapshot()
+    missing_service["collections"] = [row for row in missing_service["collections"]
+                                      if row["type"] != "app_runner_service"]
+    unknown = graph_edges(missing_service)
+    assert len(unknown) == 1 and unknown[0][0].startswith("unresolved:")
+    assert unknown[0][1] == "unknown"
+
+
 def test_app_runner_projection_keeps_role_and_source_type_without_variables():
     from peaso.collectors.aws_network_catalog import detail_enricher
 
@@ -124,6 +143,21 @@ def test_ecr_authorization_token_requires_global_resource_grant():
     verdicts = model.precondition("apprunner_mutable_ecr_autodeploy_instance_role",
                                   {ROLE: model.principals[ROLE]}, model.principals[USER])
     assert ROLE not in verdicts or verdicts[ROLE][0] != "conditional"
+
+
+def test_mutable_ecr_autodeploy_exact_graph_positive_blocked_and_unknown():
+    def graph_edges(snapshot):
+        result = privesc.analyze(snapshot, entries=[ECR_ENTRY], include_unknown=True)
+        return [(edge["target"], edge["confidence"])
+                for edge in result["graph"]["edges"]
+                if edge["source"] == USER and ECR_ENTRY["id"] in edge["techniques"]]
+
+    assert graph_edges(_ecr_snapshot()) == [(ROLE, "conditional")]
+    assert graph_edges(_ecr_snapshot(role=OTHER)) == []
+    assert graph_edges(_ecr_snapshot(omit_action="ecr:PutImage")) == []
+    unknown = graph_edges(_ecr_snapshot(mutability="IMMUTABLE_WITH_EXCLUSION"))
+    assert len(unknown) == 1 and unknown[0][0].startswith("unresolved:")
+    assert unknown[0][1] == "unknown"
 
 
 def test_app_runner_projection_keeps_only_image_identity_and_auto_deployment_flag():

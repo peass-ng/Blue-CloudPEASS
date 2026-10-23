@@ -320,8 +320,19 @@ class AwsModel(Model):
         self.resource_policies = {}  # resource arn -> (account, [Statement], kind)
         self.ecr = {}              # account -> [(repository arn, imageTagMutability)]
         self.ecr_status = {}
+        self._cross_account_role_names = {}  # account -> names in this immutable snapshot
         self._stmt_cache, self._possible_cache = {}, {}
         self._load()
+        self._cross_account_new_role_trust_targets = {
+            role_id for role_id, statements in self.trust.items()
+            if any(statement.action_matches("sts:AssumeRole") and
+                   (statement.effect == "deny" and statement.ref.get("not_principal") or
+                    statement.effect == "allow" and isinstance(statement.condition, dict))
+                   for statement in statements)
+        }
+        role_status = inventory_status(self.snapshot, "iam_role")
+        self._complete_role_accounts = {account for account in self.accounts
+                                        if self._collected(role_status, account)}
         from .aws_s3_self_grant import load as load_s3_self_grant
         self.s3_self_grant_targets, self.s3_self_grant_records = load_s3_self_grant(self)
         from .aws_s3_access_grants import load as load_s3_access_grants
@@ -1884,11 +1895,40 @@ class AwsModel(Model):
             # EKS has no resource-based policies: a principal manages only the clusters of its own account.
             cache = self.__dict__.setdefault("_cluster_scopes", {})
             if source.scope not in cache:
-                cache[source.scope] = {arn for arn, info in self.eks.items() if info["account"] == source.scope}
+                scopes = {arn for arn, info in self.eks.items() if info["account"] == source.scope}
+                # A denied regional inventory has no cluster ARN to name, but must
+                # still yield an UNKNOWN placeholder for a source in that account.
+                scopes.update(scope for scope in unavailable(self.eks_status)
+                              if scope.split("/")[0] == source.scope)
+                cache[source.scope] = scopes
             return cache[source.scope]
         return None
 
     def check_targets(self, principal, req, template, candidates, localized=False):
+        if template == "arn:{source.partition}:iam::{target.account}:mfa/*":
+            # This virtual-device ARN depends on the target account, not on the
+            # individual IAM user. Resolve and check it once per account.
+            grouped = {}
+            for target in candidates:
+                grouped.setdefault(target.scope, []).append(target)
+            if grouped:
+                first = next(iter(grouped.values()))[0]
+                sample_refs, sample_floor = self.resolve(template, principal, first,
+                                                          selector=self.current_selector)
+                if sample_floor is None and len(sample_refs) == 1:
+                    result = {}
+                    for targets in grouped.values():
+                        representative = targets[0]
+                        refs, floor = self.resolve(template, principal, representative,
+                                                   selector=self.current_selector)
+                        if floor is not None or len(refs) != 1:
+                            break
+                        found = self.check_targets(principal, req, refs[0], [representative], localized)
+                        grant = found.get(representative.id)
+                        if grant is not None:
+                            result.update({target.id: grant for target in targets})
+                    else:
+                        return result
         if ((self.current_entry or {}).get("id") == "aws-ec2-launchtemplate-version-asg" and
                 self.requirement_key(req) == "ec2:createlaunchtemplateversion" and
                 template == "{target.consumer_input_arn}"):
@@ -1992,8 +2032,64 @@ class AwsModel(Model):
                     result[target.id] = winner
             return result
         if isinstance(req, dict) and req.get("request_context"):
-            # No fast paths: every candidate is checked with the requirement's request context (cached_check).
+            # Check each plausible candidate with the requirement's request context.
             result = {}
+            if (self.requirement_key(req) == "iam:passrole" and template == "{target.arn}"
+                    and self.current_cset is not None and self.current_cset.kind == "aws_role"
+                    and not principal.incomplete):
+                # PassRole has no resource-policy grant. A complete identity with no
+                # matching Allow cannot gain it from request-context conditions.
+                cset = self.current_cset
+                if (type(candidates) is _DICT_VALUES and len(candidates) == len(cset.members)):
+                    narrow = self._uniform_outside(principal, "iam:passrole")
+                    if narrow is not None and not self._arn_index(cset)[2]:
+                        listed = list(candidates)
+                        named = self._named_by(narrow, listed, candidates)
+                        rest = [target for target in listed if target.id not in named]
+                        # Keep account-specific guardrails separate even when IAM
+                        # statement patterns are otherwise uniform.
+                        shared_by_scope = {}
+                        for target in rest:
+                            if target.scope not in shared_by_scope:
+                                shared_by_scope[target.scope] = self.cached_check(principal, req, target.id)
+                        if not named:
+                            grants = list(shared_by_scope.values())
+                            first = grants[0] if grants else None
+                            if all((grant is None and first is None or
+                                    grant is not None and first is not None and
+                                    (grant.confidence, grant.refs, grant.conditions, grant.permission_refs) ==
+                                    (first.confidence, first.refs, first.conditions, first.permission_refs))
+                                   for grant in grants):
+                                return AllTargets(first) if first is not None else {}
+                        out = {target.id: shared_by_scope[target.scope] for target in rest
+                               if shared_by_scope[target.scope] is not None}
+                        for target in listed:
+                            if target.id in named:
+                                grant = self.cached_check(principal, req, target.id)
+                                if grant is not None:
+                                    out[target.id] = grant
+                        return out
+                allows, _ = self._statements(principal, "iam:passrole")
+                if not any(statement.variables for statement in allows):
+                    if (cset is not None and type(candidates) is _DICT_VALUES
+                            and len(candidates) == len(cset.members) and len(candidates) > 64
+                            and not any(statement.notresource for statement in allows)):
+                        ids, pos, _ = self._arn_index(cset)
+                        picked = set()
+                        for statement in allows:
+                            for pattern in statement.resources:
+                                prefix = _GLOB_START.split(pattern, maxsplit=1)[0]
+                                if not prefix:
+                                    picked = None
+                                    break
+                                picked.update(ids[bisect.bisect_left(ids, prefix):
+                                                  bisect.bisect_left(ids, prefix + "\U0010ffff")])
+                            if picked is None:
+                                break
+                        if picked is not None:
+                            candidates = [cset.members[tid] for tid in sorted(picked, key=pos.__getitem__)]
+                    candidates = (target for target in candidates if any(
+                        statement.resource_matches(target.id) for statement in allows))
             for target in candidates:
                 refs, floor = self.resolve(template, principal, target, selector=self.current_selector)
                 grant = None
@@ -10911,8 +11007,12 @@ class AwsModel(Model):
         used, quota = summary.get("Roles"), summary.get("RolesQuota")
         if isinstance(used, int) and isinstance(quota, int) and quota > 0 and used >= quota:
             return ("unknown", "new_role_quota_exhausted")
-        existing_names = {node.id.rsplit("/", 1)[-1].casefold() for node in self.principals.values()
-                          if node.kind == "aws_role" and node.scope == source.scope}
+        existing_names = self._cross_account_role_names.get(source.scope)
+        if existing_names is None:
+            existing_names = frozenset(node.id.rsplit("/", 1)[-1].casefold()
+                                       for node in self.principals.values()
+                                       if node.kind == "aws_role" and node.scope == source.scope)
+            self._cross_account_role_names[source.scope] = existing_names
         prefix = f"arn:{partition}:iam::{source.scope}:role/"
         unresolved = False
         if any(statement.effect == "deny" and statement.ref.get("not_principal")
@@ -11018,7 +11118,18 @@ class AwsModel(Model):
         if pid == "iam_new_role_cross_account_trust":
             if source is None:
                 return None
+            # A complete trust document without an allow conditioned on PrincipalArn
+            # (or a NotPrincipal deny that needs review) cannot match a new role.
+            # Keep incomplete inventories and principals on the usual unknown path.
+            summary = self.iam_account_quotas.get(source.scope, {})
+            used, quota = summary.get("Roles"), summary.get("RolesQuota")
+            source_complete = (not source.incomplete and source.scope in self._complete_role_accounts
+                               and not (isinstance(used, int) and isinstance(quota, int)
+                                        and quota > 0 and used >= quota))
             return {tid: verdict for tid, target in candidates.items()
+                    if (not source_complete or target.incomplete
+                        or target.scope not in self._complete_role_accounts
+                        or target.id in self._cross_account_new_role_trust_targets)
                     if (verdict := self._iam_new_role_cross_account_trust(source, target)) is not None}
         if pid == "glue_new_public_dev_endpoint_role":
             if source is None:

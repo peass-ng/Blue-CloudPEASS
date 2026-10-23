@@ -55,10 +55,24 @@ def binding_cases():
                                {'manifest_sha256', 'source_revision'}):
             raise ValueError(f'unrecognized binding branch: {version}')
         cases.append((version, status, values))
-    if len(cases) < 100 or len({(x['manifest_sha256'], x.get('effective_tree_sha256'),
-                                   x['source_revision']) for _, _, x in cases}) != len(cases):
+    # A source repin can make a historical branch identical to current again.
+    # lookup_entries chooses the first branch, so keep the same reachable binding.
+    seen = set()
+    reachable = []
+    for version, status, values in cases:
+        identity = (values['manifest_sha256'], values.get('effective_tree_sha256'),
+                    values['source_revision'])
+        if identity in seen:
+            if (version, status) != ('cloud_source_685_previous', 'exact_previous_current') or identity != (
+                catalog.CURRENT_MANIFEST, catalog.CURRENT_TREE, catalog.V4_REVISION
+            ):
+                raise ValueError(f'duplicate versioned binding: {version}')
+            continue
+        seen.add(identity)
+        reachable.append((version, status, values))
+    if len(reachable) < 100:
         raise ValueError('versioned binding branches changed')
-    return cases
+    return reachable
 
 
 def archived_loaders():
@@ -242,6 +256,10 @@ def render_documents():
         return _incremental_current_documents(main_manifest, current, cases,
                                               catalog.CLOUD_SOURCE_685_PREVIOUS_MANIFEST,
                                               catalog.CLOUD_SOURCE_685_PREVIOUS_TREE)
+    if sys.argv[1:] == ['--incremental-ecs-register-685']:
+        return _incremental_current_documents(main_manifest, current, cases,
+                                              catalog.ECS_REGISTER_685_PREVIOUS_MANIFEST,
+                                              catalog.ECS_REGISTER_685_PREVIOUS_TREE)
     if sys.argv[1:]:
         raise ValueError('unsupported privilege display build mode')
     loaders = archived_loaders()

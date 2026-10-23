@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 import re
 import uuid
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from typing import Protocol
 
 
@@ -141,8 +142,18 @@ class S3Artifacts:
         return self._put(tenant, job_id, 'secret-evidence', body, 'application/json',
                          reference=private_reference(tenant, job_id))
 
+    def _put_json_bytes(self, tenant, job_id, kind, body):
+        """Internal report serializer seam; retain the ordinary upload policy."""
+        if type(body) is not bytes:
+            raise TypeError("encoded artifact must be immutable bytes")
+        return self._put(tenant, job_id, kind, body, "application/json")
+
     def _put(self, tenant, job_id, kind, body, content_type, *, reference=None):
         reference = reference or reference_for(tenant, job_id, kind)
+        self._put_reserved(tenant, reference, body, content_type)
+        return reference
+
+    def _put_reserved(self, tenant, reference, body, content_type):
         check_reference(tenant, reference)
         encryption = {"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": self.kms_key} if self.kms_key else {"ServerSideEncryption": "AES256"}
         encoding = {}
@@ -152,7 +163,10 @@ class S3Artifacts:
                 encoding = {"ContentEncoding": "gzip", "Metadata": {"peaso-uncompressed-bytes": str(len(body))}}
                 body = compressed
         self.client.put_object(Bucket=self.bucket, Key="artifacts/" + reference, Body=body, ContentType=content_type, **encoding, **encryption)
-        return reference
+
+    def batch(self, *, workers=4, max_pending_bytes=16 * 1024 * 1024):
+        """Bounded uploads; a manifest is written only after all prior writes succeed."""
+        return _S3WriteBatch(self, workers, max_pending_bytes)
 
     def _get_bytes(self, tenant, reference):
         check_reference(tenant, reference)
@@ -190,3 +204,99 @@ class S3Artifacts:
                 raise ValueError("Invalid download filename")
             arguments["ResponseContentDisposition"] = f'attachment; filename="{filename}"'
         return self.client.generate_presigned_url("get_object", Params=arguments, ExpiresIn=300)
+
+
+class _S3WriteBatch:
+    """Reserve ordinary references in producer order, then overlap independent I/O.
+
+    Serialize on the caller so later mutations cannot change queued artifacts.
+    Only encoded bytes enter the bounded queue. Upload workers never wait on
+    other workers: referenced artifacts are committed before the manifest.
+    """
+    def __init__(self, artifacts, workers, max_pending_bytes):
+        if type(workers) is not int or not 1 <= workers <= 16:
+            raise ValueError("artifact workers must be an integer between 1 and 16")
+        if type(max_pending_bytes) is not int or max_pending_bytes < 1:
+            raise ValueError("artifact pending bytes must be a positive integer")
+        self.artifacts = artifacts
+        self.max_pending = workers * 2
+        self.max_pending_bytes = max_pending_bytes
+        self.pending, self.pending_bytes = {}, 0
+        self.error = None
+        self.closed = False
+        self.pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="peaso-artifact")
+
+    def __enter__(self):
+        self._check_open()
+        return self
+
+    def _check_open(self):
+        if self.closed:
+            raise RuntimeError("artifact batch is closed")
+        if self.error is not None:
+            raise self.error
+
+    def _drain(self):
+        completed, _ = wait(self.pending, return_when=FIRST_COMPLETED)
+        for future in completed:
+            self.pending_bytes -= self.pending.pop(future)
+            try:
+                future.result()
+            except BaseException as exc:
+                self.error = exc
+                raise
+
+    def flush(self):
+        self._check_open()
+        while self.pending:
+            self._drain()
+
+    def _submit(self, tenant, job_id, kind, body, content_type):
+        self._check_open()
+        reference = reference_for(tenant, job_id, kind)
+        if kind == "manifest" or len(body) > self.max_pending_bytes:
+            self.flush()
+            try:
+                self.artifacts._put_reserved(tenant, reference, body, content_type)
+            except BaseException as exc:
+                self.error = exc
+                raise
+            return reference
+        # Oversized artifacts were committed synchronously above, so queued
+        # immutable bodies remain within the pending-byte budget.
+        while self.pending and (len(self.pending) >= self.max_pending or
+                               self.pending_bytes + len(body) > self.max_pending_bytes):
+            self._drain()
+        try:
+            future = self.pool.submit(self.artifacts._put_reserved, tenant, reference, body, content_type)
+        except BaseException as exc:
+            self.error = exc
+            raise
+        self.pending[future] = len(body)
+        self.pending_bytes += len(body)
+        return reference
+
+    def put(self, tenant, job_id, kind, value):
+        body = json.dumps(value, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
+        return self._submit(tenant, job_id, kind, body, "application/json")
+
+    def _put_json_bytes(self, tenant, job_id, kind, body):
+        if type(body) is not bytes:
+            raise TypeError("encoded artifact must be immutable bytes")
+        return self._submit(tenant, job_id, kind, body, "application/json")
+
+    def put_text(self, tenant, job_id, kind, value):
+        return self._submit(tenant, job_id, kind, value.encode(), "text/markdown")
+
+    def __exit__(self, exc_type, exc, traceback):
+        try:
+            if exc_type is None:
+                self.flush()
+        finally:
+            self.closed = True
+            try:
+                self.pool.shutdown(wait=True, cancel_futures=True)
+            finally:
+                self.pending.clear()
+                self.pending_bytes = 0
+                self.error = None

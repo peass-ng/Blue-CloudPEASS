@@ -234,6 +234,11 @@ from .aws_emr_security_read import correlate_aws_emr_security_reads
 from .aws_aoss_broad_grant import normalize_aws_aoss_broad_grant
 from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
 from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
+from .aws_datasync_s3_b436 import normalize_aws_datasync_s3_b436, correlate_aws_datasync_new_role_task_b436
+from .aws_route53_zone_b437 import normalize_aws_route53_zone_b437
+from .aws_location_key_b438 import normalize_aws_location_key_b438
+from .aws_dlm_ssm_hook_b439 import normalize_aws_dlm_ssm_hook_b439, correlate_aws_dlm_new_ssm_hook_enabled_b439
+from .aws_pipes_role_b440 import normalize_aws_pipes_role_b440, correlate_aws_pipes_template_read_b440
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
@@ -274,6 +279,20 @@ from .aws_healthomics_runs_b421 import normalize as normalize_aws_healthomics_ru
 from .aws_healthomics_bulk_reads_b423 import correlate as correlate_aws_healthomics_bulk_reads_b423
 from .aws_healthomics_log_reads_b422 import normalize as normalize_aws_healthomics_log_reads_b422
 from .aws_healthomics_s3_policy_b425 import normalize as normalize_aws_healthomics_s3_policy_b425
+from .aws_grafana_credentials_b427 import normalize as normalize_aws_grafana_credentials_b427
+from .aws_grafana_workspace_role_b427 import normalize as normalize_aws_grafana_workspace_role_b427
+from .aws_grafana_saml_admin_b427 import normalize as normalize_aws_grafana_saml_admin_b427
+from .aws_neptune_graph_data_b428 import normalize as normalize_aws_neptune_graph_data_b428
+from .aws_healthlake_fhir_b429 import normalize as normalize_aws_healthlake_fhir_b429
+from .aws_healthlake_erase_b430 import normalize as normalize_aws_healthlake_erase_b430
+from .aws_healthlake_datastore_delete_b431 import normalize as normalize_aws_healthlake_datastore_delete_b431
+from .aws_healthlake_bulk_patch_b431 import normalize as normalize_aws_healthlake_bulk_patch_b431
+from .aws_healthlake_purge_b431 import normalize as normalize_aws_healthlake_purge_b431
+from .aws_healthlake_bulk_delete_b431 import normalize as normalize_aws_healthlake_bulk_delete_b431
+from .aws_healthlake_conditional_delete_b431 import normalize as normalize_aws_healthlake_conditional_delete_b431
+from .aws_healthlake_jobs_b432 import normalize as normalize_aws_healthlake_jobs_b432
+from .aws_healthlake_export_rest_b432 import normalize as normalize_aws_healthlake_export_rest_b432
+from .aws_ec2_role_launch_b433 import normalize as normalize_aws_ec2_role_launch_b433
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -327,8 +346,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "0bb99da81cd64e846ee6c0c35898bb5ea6152b87"
-DEFAULT_RULE_PACK_SHA256 = "2e951ba02df87643905881a775a5adefe1381fc725255ec42d0799b3ba2e0cc7"
+DEFAULT_RULE_REF = "b2b0ffa7910b3e09e81547e9f6e1dc7b41275af1"
+DEFAULT_RULE_PACK_SHA256 = "f1f1c9bb1cea753a9fe6ec3532f5a389fb94a492eaa958986df3138c7cfb29b5"
 
 
 @dataclass(frozen=True)
@@ -624,6 +643,11 @@ def detect_aws_events(
         emr_lifecycle = normalize_aws_emr_lifecycle(record)
         aoss_broad_grant = normalize_aws_aoss_broad_grant(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
+        datasync_s3_b436 = normalize_aws_datasync_s3_b436(record)
+        route53_zone_b437 = normalize_aws_route53_zone_b437(record)
+        location_key_b438 = normalize_aws_location_key_b438(record)
+        dlm_ssm_hook_b439 = normalize_aws_dlm_ssm_hook_b439(record)
+        pipes_role_b440 = normalize_aws_pipes_role_b440(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
@@ -710,6 +734,20 @@ def detect_aws_events(
         healthomics_runs_b421 = normalize_aws_healthomics_runs_b421(record)
         healthomics_log_reads_b422 = normalize_aws_healthomics_log_reads_b422(record)
         healthomics_s3_policy_b425 = normalize_aws_healthomics_s3_policy_b425(record)
+        grafana_credentials_b427 = normalize_aws_grafana_credentials_b427(record)
+        grafana_workspace_role_b427 = normalize_aws_grafana_workspace_role_b427(record)
+        grafana_saml_admin_b427 = normalize_aws_grafana_saml_admin_b427(record)
+        neptune_graph_data_b428 = normalize_aws_neptune_graph_data_b428(record)
+        healthlake_fhir_b429 = normalize_aws_healthlake_fhir_b429(record)
+        healthlake_erase_b430 = normalize_aws_healthlake_erase_b430(record)
+        healthlake_datastore_delete_b431 = normalize_aws_healthlake_datastore_delete_b431(record)
+        healthlake_bulk_patch_b431 = normalize_aws_healthlake_bulk_patch_b431(record)
+        healthlake_purge_b431 = normalize_aws_healthlake_purge_b431(record)
+        healthlake_bulk_delete_b431 = normalize_aws_healthlake_bulk_delete_b431(record)
+        healthlake_conditional_delete_b431 = normalize_aws_healthlake_conditional_delete_b431(record)
+        healthlake_jobs_b432 = normalize_aws_healthlake_jobs_b432(record)
+        healthlake_export_rest_b432 = normalize_aws_healthlake_export_rest_b432(record)
+        ec2_role_launch_b433 = normalize_aws_ec2_role_launch_b433(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -891,6 +929,11 @@ def detect_aws_events(
                 + ([emr_lifecycle] if emr_lifecycle is not None else [])
                 + ([aoss_broad_grant] if aoss_broad_grant is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
+                + ([datasync_s3_b436] if datasync_s3_b436 is not None else [])
+                + ([route53_zone_b437] if route53_zone_b437 is not None else [])
+                + ([location_key_b438] if location_key_b438 is not None else [])
+                + ([dlm_ssm_hook_b439] if dlm_ssm_hook_b439 is not None else [])
+                + ([pipes_role_b440] if pipes_role_b440 is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
@@ -975,6 +1018,20 @@ def detect_aws_events(
                 + ([healthomics_runs_b421] if healthomics_runs_b421 is not None else [])
                 + ([healthomics_log_reads_b422] if healthomics_log_reads_b422 is not None else [])
                 + ([healthomics_s3_policy_b425] if healthomics_s3_policy_b425 is not None else [])
+                + ([grafana_credentials_b427] if grafana_credentials_b427 is not None else [])
+                + ([grafana_workspace_role_b427] if grafana_workspace_role_b427 is not None else [])
+                + ([grafana_saml_admin_b427] if grafana_saml_admin_b427 is not None else [])
+                + ([neptune_graph_data_b428] if neptune_graph_data_b428 is not None else [])
+                + ([healthlake_fhir_b429] if healthlake_fhir_b429 is not None else [])
+                + ([healthlake_erase_b430] if healthlake_erase_b430 is not None else [])
+                + ([healthlake_datastore_delete_b431] if healthlake_datastore_delete_b431 is not None else [])
+                + ([healthlake_bulk_patch_b431] if healthlake_bulk_patch_b431 is not None else [])
+                + ([healthlake_purge_b431] if healthlake_purge_b431 is not None else [])
+                + ([healthlake_bulk_delete_b431] if healthlake_bulk_delete_b431 is not None else [])
+                + ([healthlake_conditional_delete_b431] if healthlake_conditional_delete_b431 is not None else [])
+                + ([healthlake_jobs_b432] if healthlake_jobs_b432 is not None else [])
+                + ([healthlake_export_rest_b432] if healthlake_export_rest_b432 is not None else [])
+                + ([ec2_role_launch_b433] if ec2_role_launch_b433 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
@@ -1078,6 +1135,9 @@ def detect_aws_events(
     migration_strategy_inventory_records: list[Mapping[str, Any]] = []
     emr_inventory_records: list[Mapping[str, Any]] = []
     healthomics_read_set_records: list[Mapping[str, Any]] = []
+    datasync_s3_b436_records: list[Mapping[str, Any]] = []
+    dlm_ssm_hook_b439_records: list[Mapping[str, Any]] = []
+    pipes_role_b440_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -1179,6 +1239,12 @@ def detect_aws_events(
                 cognito_group_records.append(record)
             if record.get("eventSource") == "sts.amazonaws.com" and record.get("eventName") == "AssumeRole":
                 sts_records.append(record)
+            if record.get("eventSource") == "datasync.amazonaws.com" and record.get("eventName") in {"CreateLocationS3", "CreateTask", "StartTaskExecution"}:
+                datasync_s3_b436_records.append(record)
+            if record.get("eventSource") == "dlm.amazonaws.com" and record.get("eventName") in {"CreateLifecyclePolicy", "UpdateLifecyclePolicy"}:
+                dlm_ssm_hook_b439_records.append(record)
+            if record.get("eventSource") == "pipes.amazonaws.com" and record.get("eventName") in {"CreatePipe", "UpdatePipe", "DescribePipe"}:
+                pipes_role_b440_records.append(record)
             if record.get("eventSource") == "ecs.amazonaws.com" and record.get("eventName") in {"RegisterTaskDefinition", "CreateService", "UpdateService"}:
                 ecs_records.append(record)
             if record.get("eventSource") == "emr-serverless.amazonaws.com" and record.get("eventName") in {"StartSession", "GetSessionEndpoint"}:
@@ -1351,6 +1417,9 @@ def detect_aws_events(
     correlated += correlate_aws_kms_grant_decrypt_batch200(kms_grant_decrypt_batch200_records)
     correlated += correlate_aws_emr_inventory(emr_inventory_records)
     correlated += correlate_aws_emr_security_reads(emr_inventory_records)
+    correlated += correlate_aws_datasync_new_role_task_b436(datasync_s3_b436_records)
+    correlated += correlate_aws_dlm_new_ssm_hook_enabled_b439(dlm_ssm_hook_b439_records)
+    correlated += correlate_aws_pipes_template_read_b440(pipes_role_b440_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
