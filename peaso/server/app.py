@@ -1129,8 +1129,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return card
 
         selected_rows = []
-        status_group_keys = {} if status_count_aggregation is not None else None
-        all_status_keys = set() if status_group_keys is not None else None
+        from peaso.finding_status_counts import FindingStatusCounts
+        status_counts = FindingStatusCounts() if status_count_aggregation is not None else None
         facets = {"services": set(), "statuses": set(), "frameworks": set()}
         facet_checks = set()
         groups = [finding_index(tenant, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))] if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
@@ -1147,7 +1147,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                         facets["frameworks"].update(value.get("frameworks", []))
                     else:
                         facet_checks.add(value["check_id"])
-                if status_group_keys is not None:
+                if status_counts is not None:
                     if not selected(value, ignore_status=True):
                         continue
                     status_value = field(value, "status")
@@ -1156,8 +1156,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                         key = (value.get("provider") or summary.get("provider", ""), value.get("check_id", ""), value.get("secret_fingerprint", ""))
                     else:
                         key = value.get("id")
-                    status_group_keys.setdefault(status_name, set()).add(key)
-                    all_status_keys.add(key)
+                    status_counts.add(status_name, key)
                     if filters["status"] is not None and status_name.lower() not in filters["status"]:
                         continue
                 elif not selected(value):
@@ -1166,10 +1165,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         for check in facet_checks:
             facets["frameworks"].update(labels.get(check, []))
         status_filter_counts = None
-        if status_group_keys is not None:
-            status_filter_counts = {selection: len(set().union(*(status_group_keys.get(name, set()) for name in selection.split(","))))
-                                    for selection in ("FAIL", "PASS", "UNKNOWN,MANUAL", "DENIED", "NOT_APPLICABLE,EMPTY")}
-        return row, bundle, selected_rows, facets, account_label, labels, meta, field, status_filter_counts, len(all_status_keys) if all_status_keys is not None else None
+        if status_counts is not None:
+            status_filter_counts = status_counts.result()
+        return row, bundle, selected_rows, facets, account_label, labels, meta, field, status_filter_counts, status_counts.total if status_counts is not None else None
 
     @app.get("/api/scans/{ident}/findings")
     def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, finding_type: str | None = None, group_by: Literal["service", "check_id", "resource_id", "finding_type"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
@@ -1214,24 +1212,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                     status_name = str(item.get("status") or "UNKNOWN")
                     entry["status_counts"][status_name] = entry["status_counts"].get(status_name, 0) + 1
                 type_groups = sorted(by_type.values(), key=lambda entry: entry["label"].casefold())
-        if sort_by is None:
-            selected_rows.sort(key=lambda pair: (str(pair[1].get(group_by, "")), pair[1]["id"]))
-        else:
-            severity_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4, "informational": 4}
-            def sort_value(item):
-                if sort_by == "severity":
-                    value = str(item.get("severity") or "").casefold()
-                    return (severity_rank.get(value, 5), value)
-                if sort_by == "resource_id":
-                    value = item.get("resource_name") or item.get("native_resource_id") or item.get("resource_id") or ""
-                else:
-                    value = item.get(sort_by) or ""
-                return str(value).casefold()
-            selected_rows.sort(key=lambda pair: pair[1]["id"])
-            selected_rows.sort(key=lambda pair: sort_value(pair[1]), reverse=sort_order == "desc")
         count = len(selected_rows)
+        from peaso.finding_page_order import finding_page
+        page_rows = finding_page(selected_rows, group_by=group_by, sort_by=sort_by, sort_order=sort_order,
+            offset=offset, limit=limit)
         output = []
-        for value, _ in selected_rows[offset:offset + limit]:
+        for value, _ in page_rows:
             # Preserve the legacy list shape, including archived metadata added
             # after the bounded summary, while hydrating only the selected page.
             if value.get("grouped"):
