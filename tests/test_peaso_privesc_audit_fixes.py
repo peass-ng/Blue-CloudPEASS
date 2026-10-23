@@ -663,6 +663,11 @@ _PIM_REQ = {"entra_pim_eligible_role": GA_ROLE}
 def test_azure_pim_eligible_is_conditional_never_active():
     model = _azure(eligibility=[_eligible()])
     grant = model.check(model.principals["u-alice"], _PIM_REQ, "dir:" + GA_ROLE)
+    assert grant.confidence == "unknown" and "pim_eligibility_instance_not_collected" in grant.conditions
+    live = {"principalId": "u-alice", "roleDefinitionId": GA_ROLE, "directoryScopeId": "/",
+            "endDateTime": "2999-01-01T00:00:00Z"}
+    model = _azure(eligibility=[_eligible()], instances=[live])
+    grant = model.check(model.principals["u-alice"], _PIM_REQ, "dir:" + GA_ROLE)
     assert grant.confidence == "conditional" and list(grant.conditions) == ["pim_activation_required"]
     # Eligibility never counts as an active directory role assignment.
     assert model.check(model.principals["u-alice"], {"entra_role": GA_ROLE}, ANY) is None
@@ -1034,15 +1039,18 @@ def _node_reach(result):
     return {tid: (conf, src) for src in ("k8s:c1:node:n1", "k8s:c1:sa:a:builder") for tid, conf in reached(result, src).items()}
 
 
-@pytest.mark.parametrize("mode,imds", [("GCE_METADATA", "derived"), ("GKE_METADATA", "conditional")])
-def test_gke_node_pool_service_account_is_the_node_identity(mode, imds):
+@pytest.mark.parametrize("mode,pod_imds", [("GCE_METADATA", True), ("GKE_METADATA", False)])
+def test_gke_node_pool_service_account_is_the_node_identity(mode, pod_imds):
     k = _k8s_nodes("gce://p1/us-a/n1", {"cloud.google.com/gke-nodepool": "pool-a"})
     ident = "cloud:gke_node:123-compute@developer.gserviceaccount.com"   # unset / "default" = default compute SA
     result = real(k, *_NODE_IDS, related_snapshots=[_gke(mode)])
-    assert reached(result, "k8s:c1:node:n1")[ident] == "derived"
+    assert reached(result, "k8s:c1:node:n1")[ident] == "conditional"
     edges = [e for e in result["graph"]["edges"] if e["source"] == "k8s:c1:sa:a:builder" and e["target"] == ident]
-    assert {d["id"]: d["confidence"] for d in edges[0]["technique_details"]} == {
-        "k8s-cloud-pod-imds-node-identity": imds, "k8s-cloud-hostnetwork-pod-node-identity": "derived"}
+    details = {d["id"]: d["confidence"] for d in edges[0]["technique_details"]}
+    assert details["k8s-cloud-hostnetwork-pod-node-identity"] == "conditional"
+    assert ("k8s-cloud-pod-imds-node-identity" in details) is pod_imds
+    if pod_imds:
+        assert details["k8s-cloud-pod-imds-node-identity"] == "conditional"
     join = [e for e in result["graph"]["edges"] if e["source"] == ident]
     assert join and join[0]["target"] == "serviceAccount:123-compute@developer.gserviceaccount.com"
     assert result["stats"]["cross_snapshot_edges"] == 1
