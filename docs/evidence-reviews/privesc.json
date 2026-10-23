@@ -8439,9 +8439,9 @@
       "provider": "azure",
       "disposition": "rewritten",
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
-      "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceuserstokenaction",
+      "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceusersgeneratessourlaction",
       "source_revision": "db5b136660",
-      "reviewed_contract_sha256": "26baedefce5091a3c2c4243d58059f8d0e68fec461676a4b42cef2cdcf6fdeea",
+      "reviewed_contract_sha256": "4dafc321cbd6202fb16c44cb214e95cb8555ceffc469f8bb0565b9249066e8cc",
       "purpose": "A usable portal SSO link may grant new actions as the exact portal user.",
       "target_kind": "azure_external_principal",
       "requirement_contract": {

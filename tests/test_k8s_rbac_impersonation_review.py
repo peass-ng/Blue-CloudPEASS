@@ -15,11 +15,15 @@ def test_serviceaccount_impersonation_uses_exact_name_and_namespace():
     technique = "k8s-rbac-impersonate-serviceaccounts"
     role = crole("imp", [{"apiGroups": [""], "resources": ["serviceaccounts"],
                           "resourceNames": ["worker"], "verbs": ["impersonate"]}])
-    bindings = [crb("imp-bind", "imp", user("dev"))]
-    result = run(technique, [role], bindings, sas=[sa("worker", "a"), sa("other", "a")])
+    target = crole("target", [{"apiGroups": [""], "resources": ["secrets"], "verbs": ["get"]}])
+    bindings = [crb("imp-bind", "imp", user("dev")),
+                crb("target-bind", "target", {"kind": "ServiceAccount", "name": "worker", "namespace": "a"})]
+    assert reached(run(technique, [role], bindings[:1], sas=[sa("worker", "a")]),
+                   f"k8s:{C}:user:dev", technique) == {}
+    result = run(technique, [role, target], bindings, sas=[sa("worker", "a"), sa("other", "a")])
     assert set(reached(result, f"k8s:{C}:user:dev", technique)) == {f"k8s:{C}:sa:a:worker"}
     role["rules"][0]["resourceNames"] = ["other"]
-    result = run(technique, [role], bindings, sas=[sa("worker", "a")])
+    result = run(technique, [role, target], bindings, sas=[sa("worker", "a")])
     assert reached(result, f"k8s:{C}:user:dev", technique) == {}
 
 
@@ -36,6 +40,24 @@ def test_group_impersonation_requires_user_header_permission():
     bindings.append(crb("u-bind", "users", user("dev")))
     assert set(reached(run(technique, [groups, users, target], bindings),
                        f"k8s:{C}:user:dev", technique)) == {f"k8s:{C}:group:operators"}
+    target["rules"] = []
+    assert reached(run(technique, [groups, users, target], bindings),
+                   f"k8s:{C}:user:dev", technique) == {}
+
+
+def test_serviceaccount_group_right_requires_group_impersonation():
+    technique = "k8s-rbac-impersonate-serviceaccounts"
+    impersonate = crole("imp", [{"apiGroups": [""], "resources": ["serviceaccounts"],
+                                 "resourceNames": ["worker"], "verbs": ["impersonate"]}])
+    target = crole("target", [{"apiGroups": [""], "resources": ["secrets"], "verbs": ["get"]}])
+    bindings = [crb("imp-bind", "imp", user("dev")),
+                crb("target-bind", "target", {"kind": "Group", "name": "system:serviceaccounts:a"})]
+    assert reached(run(technique, [impersonate, target], bindings, sas=[sa("worker", "a")]),
+                   f"k8s:{C}:user:dev", technique) == {}
+    impersonate["rules"].append({"apiGroups": [""], "resources": ["groups"],
+                                  "resourceNames": ["system:serviceaccounts:a"], "verbs": ["impersonate"]})
+    assert set(reached(run(technique, [impersonate, target], bindings, sas=[sa("worker", "a")]),
+                       f"k8s:{C}:user:dev", technique)) == {f"k8s:{C}:sa:a:worker"}
 
 
 def test_node_impersonation_requires_system_nodes_group_and_exact_user():

@@ -100,7 +100,7 @@
   "peaso/privesc/effective_permissions/gcp_conditions.py": "920f1e011141a7908b3629625532a098066ee5c059f6572062a57d97f9239008",
   "peaso/privesc/effective_permissions/gcp_external_principal.py": "58dcbb686952e19a10fea9fe0603b59d2dc16d540894d71a7ccd7b8ce891262a",
   "peaso/privesc/effective_permissions/gcp_resource_self_grant.py": "e67f4508d9f726c564aa13c00b969478350e30b22ff94f8281a947a6d60de4c0",
-  "peaso/privesc/effective_permissions/k8s.py": "e17b03d4026e22408883e076477cf812936ef89e308fc7439af22e3a428ed9a5",
+  "peaso/privesc/effective_permissions/k8s.py": "197bd8a8dd3dd7c7b54a71d112ec0052df488f689ee34381f5b00272263f5961",
   "peaso/privesc/effective_permissions/k8s_helm_values_rbac.py": "419c5f845f33d4ec9729893f4fba319cc67b25ddc0714ee90165f9aca2d404d8",
   "peaso/privesc/effective_permissions/k8s_verified_pivots.py": "8cd11c1d1461d3d08bec8675419ab6ab0896f149fb141f77bb54f17aea5334a0",
   "peaso/privesc/effective_permissions/principal_evidence.py": "b75890a975715d4912b5ee39fbde72cd606a5e2aac02726298f8f93c17e2f6d8",
@@ -109,7 +109,7 @@
   "peaso/privesc/gcp_observed_impact.py": "7bb592248badd27f5c07b7ca7ed206f4a7547b1b5ab2b30d2b9c50b00d8094e7",
   "peaso/privesc/k8s_observed_impact.py": "703dfb2a9d72963283c696dbf6abd13c0182f9dd7d89f06060ce77bb7ff1da2d",
   "peaso/privesc/schema.py": "e0c936be6e05470d310f3309240e0c56fa9b2ad59a5f077b8a25697f039c28cb",
-  "peaso/privesc/versioned_catalog.py": "7934638bda57a985079f313455129ddabc45e2c9dc06567d857e880667a806b2",
+  "peaso/privesc/versioned_catalog.py": "ea9a9c8a276082ae3b1bf1ce57f8c22c1ff8e782e24a5825a28f0eb437cd9df1",
   "peaso/provider_followup_observations_20261021.py": "84d18fb252d53059c2ea486e98e8b3301e79bc1f9bdee24a4d063570c109c313",
-  "risk_rules/hacktricks-privesc-source.json": "e7ca75dc3b85d5048b145e51921b58edf60079deb3a908a9b218595aac3c3e63"
+  "risk_rules/hacktricks-privesc-source.json": "23b34efd8f37d530b7be22bb5b48f86b145a16c3cc068db3b42d15cd7d93ed81"
 }

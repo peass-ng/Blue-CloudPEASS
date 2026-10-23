@@ -46,7 +46,17 @@ CLOUD_SOURCE_685_PREVIOUS_TREE = 'edb0d25e9e4c812549fd13dca1ccc0567087c6922cd21f
 CLOUD_SOURCE_685_PREVIOUS_ARCHIVE_SHA256 = '025882d07a8da5c3911c35ae77a5db58c807f758028d3ff768bd92c5678b42fb'
 CLOUD_SOURCE_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-cloud-source-source-manifest.json'
 CLOUD_SOURCE_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-cloud-source-catalog.tar.gz'
-CURRENT_MANIFEST = 'e7ca75dc3b85d5048b145e51921b58edf60079deb3a908a9b218595aac3c3e63'
+LINEAGE_685_PREVIOUS_MANIFEST = 'e7ca75dc3b85d5048b145e51921b58edf60079deb3a908a9b218595aac3c3e63'
+LINEAGE_685_PREVIOUS_TREE = '1000c7cbea096c46e7d25992fb6c504fa0cddf92d462249c5a84c51d547bcee4'
+LINEAGE_685_PREVIOUS_ARCHIVE_SHA256 = '2adbea7b6bf681d68e4d3251dd1e21bd09384339206dfdf7955fd6725f4c0b5b'
+LINEAGE_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-lineage-resolution-source-manifest.json'
+LINEAGE_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-lineage-resolution-catalog.tar.gz'
+APIM_ANCHOR_685_PREVIOUS_MANIFEST = 'a51552d630e44fc5daafae3cbe3e70b3bacc5c81864b1c57885db1f877fd8382'
+APIM_ANCHOR_685_PREVIOUS_TREE = 'b5b50df92c4dc30ee8cfc212e6a08fc1f15e4d55a31d92a0879851d61cbdfcc8'
+APIM_ANCHOR_685_PREVIOUS_ARCHIVE_SHA256 = '471a7864be4b6dbdfb430e917ec9c1320433b36fa7552cf1ecd1b2574b3eaa79'
+APIM_ANCHOR_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-apim-anchor-source-manifest.json'
+APIM_ANCHOR_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-reviewed-685-before-apim-anchor-catalog.tar.gz'
+CURRENT_MANIFEST = '23b34efd8f37d530b7be22bb5b48f86b145a16c3cc068db3b42d15cd7d93ed81'
 MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST = '8fb197160ed8f236c554cbb1630256fba47963e0755654fb4f6f017df06d1bc5'
 MWAA_TOKEN_REASON_685_PREVIOUS_TREE = '21b9159c4f9de06ef56637214c241da7ef1285e4a72491b1fda6a5a2b094b632'
 MWAA_TOKEN_REASON_685_PREVIOUS_ARCHIVE_SHA256 = 'cac08e430052f9b1dda76b9fdc94277ceff6851ca5fc9bd4903145e23707d752'
@@ -743,7 +753,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '1000c7cbea096c46e7d25992fb6c504fa0cddf92d462249c5a84c51d547bcee4'
+CURRENT_TREE = '87c43b11c55acf05c43a15b66f4d66b247eee71f13d469f24dd5939db91d027d'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 685
 CURRENT_EXCLUDED_COUNT = 3777
@@ -751,7 +761,7 @@ CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-princ
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_CATALOG_ARCHIVE_SHA256 = "498459a1979833e9e1a09b64bbeb859beb004980ad7baa81818621e5c810c030"
 RUNTIME_HISTORY_PACK = Path(__file__).resolve().parent / "catalog_versions/runtime-history-v1.zip"
-RUNTIME_HISTORY_SHA256 = "d8a0e55c45789a5e5779e67f8a0457caee810e62e9b90131720d34ee78c14e5f"
+RUNTIME_HISTORY_SHA256 = "7a922b6538ae372df99776b81b3932e375cabff9d54fd0e83b9727adcf02c4e2"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
 PRIOR_BOUNDED_MANIFEST = "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
 PRIOR_BOUNDED_TREE = "695e38b0bc93df9ba031828ffefbabe8e10b60741580554a5f36b8f37aa05414"
@@ -787,6 +797,15 @@ def _verified_current(catalog_dir, manifest_path):
     if len(loaded["entries"]) != CURRENT_ENTRY_COUNT or loaded["excluded"] != CURRENT_EXCLUDED_COUNT:
         raise ValueError("v4_catalog_counts_mismatch")
     return {entry["id"]: entry for entry in loaded["entries"]}
+
+
+@lru_cache(maxsize=1)
+def _verified_lineage_685_previous():
+    """Keep the exact reviewed catalog before exclusion source lineage resolution."""
+    return _verified_archived_current(
+        LINEAGE_685_PREVIOUS_MANIFEST_PATH, LINEAGE_685_PREVIOUS_ARCHIVE,
+        LINEAGE_685_PREVIOUS_MANIFEST, LINEAGE_685_PREVIOUS_ARCHIVE_SHA256,
+        LINEAGE_685_PREVIOUS_TREE, 685, 3777)
 
 
 @lru_cache(maxsize=1)
@@ -2125,7 +2144,7 @@ def _history_original_pair(manifest_path, archive_path, manifest_digest, archive
             if (type(index) is not dict or set(index) != {'schema', 'block_sha256', 'versions'}
                     or index['schema'] != 'privesc-exact-history-v1'
                     or type(index['block_sha256']) is not list
-                    or type(index['versions']) is not dict or len(index['versions']) != 135):
+                    or type(index['versions']) is not dict or len(index['versions']) != 137):
                 raise ValueError("archived_history_pack_index_mismatch")
             for archive_name, version in index['versions'].items():
                 if (type(archive_name) is not str or '/' in archive_name or '\\' in archive_name
@@ -2269,6 +2288,15 @@ def _verified_history(history_path):
     return history
 
 
+@lru_cache(maxsize=1)
+def _verified_apim_anchor_685_previous():
+    """Keep the exact catalog before the APIM SSO source anchor correction."""
+    return _verified_archived_current(
+        APIM_ANCHOR_685_PREVIOUS_MANIFEST_PATH, APIM_ANCHOR_685_PREVIOUS_ARCHIVE,
+        APIM_ANCHOR_685_PREVIOUS_MANIFEST, APIM_ANCHOR_685_PREVIOUS_ARCHIVE_SHA256,
+        APIM_ANCHOR_685_PREVIOUS_TREE, 685, 3777)
+
+
 def current_binding(*, catalog_dir=None, manifest_path=None):
     catalog_dir, manifest_path, _ = _paths(catalog_dir, manifest_path)
     _verified_current(str(catalog_dir), str(manifest_path))
@@ -2295,6 +2323,14 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == APIM_ANCHOR_685_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == APIM_ANCHOR_685_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "apim_anchor_685_previous", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == LINEAGE_685_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == LINEAGE_685_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "lineage_685_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == MWAA_TOKEN_REASON_685_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == MWAA_TOKEN_REASON_685_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2862,6 +2898,12 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "apim_anchor_685_previous":
+            previous = _verified_apim_anchor_685_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "lineage_685_previous":
+            previous = _verified_lineage_685_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "mwaa_token_reason_685_previous":
             previous = _verified_mwaa_token_reason_685_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

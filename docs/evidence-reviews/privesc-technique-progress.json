@@ -339,7 +339,7 @@
       "id": "azure-apim-developer-portal-sso-external-principal",
       "provider": "azure",
       "catalog_file": "peaso/privesc/catalog/azure/adjacent_principals.yaml",
-      "current_contract_sha256": "26baedefce5091a3c2c4243d58059f8d0e68fec461676a4b42cef2cdcf6fdeea",
+      "current_contract_sha256": "4dafc321cbd6202fb16c44cb214e95cb8555ceffc469f8bb0565b9249066e8cc",
       "source_contract_review": "record_matches_current_yaml",
       "focused_runtime_test": "tests/test_peaso_privesc_azure_external_principal.py::test_apim_portal_token_requires_the_named_user_resource (user-resource and action URI, wrong resource, wrong user, and wrong operation cases)",
       "checked": true,
@@ -8021,15 +8021,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "38225ed4d8683671a47bdc114f5c6a7666e3ef0f1440a3ea902b53a11dbbf673",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused impersonation cases",
+      "focused_runtime_test": "tests/test_k8s_rbac_impersonation_review.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match.",
+      "work_evidence": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match. The impersonated identity must add a concrete RBAC permission the source lacks; empty or already-held rights do not form an escalation.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/",
-        "collector_and_evaluator": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match.",
-        "positive_and_negative_test": "6 focused impersonation cases"
+        "collector_and_evaluator": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match. The impersonated identity must add a concrete RBAC permission the source lacks; empty or already-held rights do not form an escalation.",
+        "positive_and_negative_test": "tests/test_k8s_rbac_impersonation_review.py covers gained and absent permissions, exact impersonation authority, and missing RBAC evidence."
       }
     },
     {
@@ -8055,15 +8055,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "1b215b2c5c37d6e79d8b5277fc23816c8900e1167582ea52b2051cb582dc28ef",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused impersonation cases",
+      "focused_runtime_test": "tests/test_k8s_rbac_impersonation_review.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match.",
+      "work_evidence": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match. The impersonated identity must add a concrete RBAC permission the source lacks; empty or already-held rights do not form an escalation.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/",
-        "collector_and_evaluator": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match.",
-        "positive_and_negative_test": "6 focused impersonation cases"
+        "collector_and_evaluator": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match. The impersonated identity must add a concrete RBAC permission the source lacks; empty or already-held rights do not form an escalation.",
+        "positive_and_negative_test": "tests/test_k8s_rbac_impersonation_review.py covers gained and absent permissions, exact impersonation authority, and missing RBAC evidence."
       }
     },
     {
@@ -8089,15 +8089,15 @@
       "catalog_file": "peaso/privesc/catalog/k8s/rbac.yaml",
       "current_contract_sha256": "3cc4d7e9a3a0a3ec2485839a8a6c4a73cd57c2d08fdeff7e74ad993a042e9528",
       "source_contract_review": "record_matches_current_yaml",
-      "focused_runtime_test": "6 focused impersonation cases",
+      "focused_runtime_test": "tests/test_peaso_privesc_k8s_impersonated_user_gain.py",
       "checked": true,
       "status": "completed",
       "remaining": null,
-      "work_evidence": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match.",
+      "work_evidence": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match. Direct user impersonation now requires a concrete RBAC action that the target can perform and the source cannot; empty or already-held rights do not form an escalation. The impersonated identity must add a concrete RBAC permission the source lacks; empty or already-held rights do not form an escalation.",
       "completion_evidence": {
         "source_and_contract": "https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/",
-        "collector_and_evaluator": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match.",
-        "positive_and_negative_test": "6 focused impersonation cases"
+        "collector_and_evaluator": "Exact SA, user, group, or node impersonation grant and target identity are joined; node paths require the system:nodes group and target access. Wrong names or missing grants do not match. Direct user impersonation now requires a concrete RBAC action that the target can perform and the source cannot; empty or already-held rights do not form an escalation. The impersonated identity must add a concrete RBAC permission the source lacks; empty or already-held rights do not form an escalation.",
+        "positive_and_negative_test": "tests/test_peaso_privesc_k8s_impersonated_user_gain.py covers gained and absent permissions, exact impersonation authority, and missing RBAC evidence."
       }
     },
     {
