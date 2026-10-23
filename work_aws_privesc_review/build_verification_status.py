@@ -90,6 +90,8 @@ FOCUSED_HELPER_TESTS = {
 }
 
 ISOLATED_GRAPH_TESTS = {
+    "aws-amplify-updateapp-passrole": "tests/test_peaso_privesc_amplify_role_routes.py",
+    "aws-amplify-updateapp-passrole-ssr": "tests/test_peaso_privesc_amplify_role_routes.py",
     "aws-apprunner-mutable-ecr-autodeploy": (
         "tests/test_peaso_privesc_apprunner_existing_role.py"
     ),
