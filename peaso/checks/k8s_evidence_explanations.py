@@ -15,6 +15,18 @@ def review_rows():
     return json.loads(Path(__file__).with_suffix('.json').read_text())
 
 
+@lru_cache(maxsize=1)
+def current_review_rows():
+    rows = json.loads(Path(__file__).with_name('k8s_evidence_explanations_current_20261023.json').read_text())
+    if set(rows) & set(review_rows()):
+        raise ValueError('Kubernetes current explanation duplicates a historical review')
+    return rows
+
+
+def all_review_rows():
+    return {**review_rows(), **current_review_rows()}
+
+
 def _text(value, maximum=200):
     return value if isinstance(value, str) and 0 < len(value) <= maximum and all(ord(c) >= 32 for c in value) else None
 
@@ -23,7 +35,7 @@ def reviewed_explanation(check_id, observation, status=None):
     """Also used by clients formatting older reports without server summaries."""
     if not isinstance(check_id, str):
         return None
-    row = review_rows().get(check_id)
+    row = review_rows().get(check_id) or current_review_rows().get(check_id)
     if row is None or not _text(observation, 2000):
         return None
     if check_id == 'k8s.review.selected_metadata.secret_indicators' and any(
@@ -402,6 +414,155 @@ def _external_observation(finding, row):
     return None
 
 
+def _current_text(value):
+    return isinstance(value, str) and bool(value) and len(value) <= 300 and all(ord(ch) >= 32 for ch in value)
+
+
+def _current_list(value):
+    return isinstance(value, list) and len(value) <= 1000 and all(isinstance(row, dict) for row in value)
+
+
+def _current_native_observation(check_id, status, evidence):
+    """Interpret only typed fields and fixed phrases emitted by the 15 reviewed predicates."""
+    row = current_review_rows()[check_id]
+    kind = row['kind']
+    if kind == 'consumers':
+        consumers = evidence.get('consumers')
+        account = 'serviceaccount_' in check_id
+        expected = (('recorded identity consumer exists', 'no recorded workload, RBAC, token or cloud-identity consumer')
+                    if account else ('recorded RBAC consumer exists', 'no recorded binding or aggregation consumes this role'))
+        if (not _current_text(evidence.get('resource_name')) or not _current_list(consumers)
+                or any(not _current_text(consumer.get('kind')) or not (
+                    _current_text(consumer.get('name')) or
+                    consumer.get('kind') == 'workload_identity_association' and _current_text(consumer.get('annotation')))
+                    for consumer in consumers)
+                or evidence.get('reason') != expected[0 if status == 'PASS' else 1]
+                or (status == 'PASS') != bool(consumers)):
+            return None
+        subject = ('ServiceAccount' if 'serviceaccount_' in check_id else
+                   'ClusterRole' if 'clusterrole_' in check_id else 'Role')
+        return (f'The captured {subject} has {len(consumers)} declared consumer ' + ('reference.' if len(consumers) == 1 else 'references.')
+                if consumers else f'The captured {subject} has no declared consumer in the complete native inventory.')
+    if kind == 'subjects':
+        count = evidence.get('subject_count')
+        missing, external = evidence.get('missing_service_accounts'), evidence.get('external_subjects')
+        if (type(count) is not int or count < 0 or count > 1000
+                or not isinstance(missing, list) or not isinstance(external, list)
+                or any(not _current_text(value) for value in missing + external)
+                or len(missing) + len(external) > count):
+            return None
+        if status == 'FAIL' and (count == 0 or missing) and evidence.get('reason') in (
+                'binding has no subjects', 'binding names a missing ServiceAccount'):
+            return ('The captured binding names no subjects.' if count == 0 else
+                    f'The captured binding names {len(missing)} ServiceAccount ' + ('subject' if len(missing) == 1 else 'subjects') + ' missing from complete native inventory.')
+        if status == 'PASS' and count > 0 and not missing and not external and evidence.get('reason') == 'all ServiceAccount subjects exist in the captured scope':
+            return f'All {count} captured ServiceAccount subjects resolve in the native inventory.'
+        return None
+    if kind == 'token':
+        if (evidence.get('threshold_days') != 90 or evidence.get('timestamp_precision') != 'UTC calendar day'
+                or not _current_text(evidence.get('resource_name'))
+                or not _current_text(evidence.get('last_used_date'))
+                or not _current_text(evidence.get('service_account'))):
+            return None
+        days = evidence.get('days_since_last_successful_use')
+        if type(days) is not int or days < 0:
+            return None
+        if status == 'PASS' and days <= 90 and evidence.get('reason') == 'successful use is within the inactivity threshold':
+            return f'The tracked legacy token has a recorded last-use day within {days} days of observation.'
+        if status == 'FAIL' and days > 90 and evidence.get('reason') == 'no successful use within a complete inactivity observation interval':
+            return f'The tracked legacy token’s last recorded use was {days} days before observation.'
+        return None
+    summary = evidence.get('summary')
+    if kind in ('reference', 'ingress', 'policy', 'service'):
+        if (not isinstance(summary, str) or len(summary) > 700
+                or '\nThis is a current API declaration, not observed traffic.\n' not in summary):
+            return None
+        fact = summary.split('\n', 1)[0]
+        if kind == 'reference':
+            if not _current_text(evidence.get('service_name')):
+                return None
+            if status == 'PASS' and ('owner matches the current same-namespace Service UID.' in fact
+                    or 'names current same-namespace Service ' in fact):
+                return 'The captured endpoint reference resolves to a current same-namespace Service.'
+            if status == 'FAIL' and ('owner names an absent same-namespace Service.' in fact
+                    or 'names absent same-namespace Service ' in fact):
+                return 'The captured endpoint reference names a Service absent from the complete same-namespace inventory.'
+        if kind == 'ingress':
+            key = 'service_backends' if status == 'PASS' else 'missing_services'
+            names = evidence.get(key)
+            if (isinstance(names, list) and names and all(_current_text(name) for name in names)
+                    and ((status == 'PASS' and 'every native Service backend resolves in this namespace.' in fact)
+                         or (status == 'FAIL' and 'Ingress references missing same-namespace Service(s): ' in fact))):
+                return (f'All {len(names)} declared Ingress Service backends resolve in the current namespace.' if status == 'PASS' else
+                        f'{len(names)} declared Ingress Service ' + ('backend is' if len(names) == 1 else 'backends are') + ' absent from the complete same-namespace inventory.')
+        if kind == 'policy':
+            pods = evidence.get('selected_pods')
+            if status == 'PASS' and isinstance(pods, list) and pods and all(_current_text(name) for name in pods) and 'NetworkPolicy selects ' in fact:
+                return f'The NetworkPolicy selector matches at least {len(pods)} captured ' + ('Pod' if len(pods) == 1 else 'Pods') + ' in its namespace.'
+            if status == 'FAIL' and 'NetworkPolicy selects no current Pods in its namespace.' in fact:
+                return 'The NetworkPolicy selector matches no Pod in the complete current inventory.'
+        if kind == 'service':
+            pods, slices = evidence.get('selected_pods'), evidence.get('endpoint_slices')
+            if status == 'PASS' and isinstance(pods, list) and pods and all(_current_text(name) for name in pods) and 'Service selector matches ' in fact:
+                return f'The Service selector matches at least {len(pods)} captured ' + ('Pod.' if len(pods) == 1 else 'Pods.')
+            if status == 'PASS' and isinstance(slices, list) and slices and all(_current_text(name) for name in slices) and 'EndpointSlice(s) declare backend addresses' in fact:
+                return f'At least {len(slices)} captured ' + ('EndpointSlice declares' if len(slices) == 1 else 'EndpointSlices declare') + ' backend addresses for the Service.'
+            if status == 'FAIL' and 'selector matches no current Pods and no EndpointSlice declares backend addresses.' in fact:
+                return 'The complete inventory shows neither selected Pods nor declared EndpointSlice addresses for this Service.'
+        return None
+    observed = evidence.get('observed')
+    if not isinstance(observed, str) or len(observed) > 700:
+        return None
+    if kind == 'selected_vulnerability':
+        findings = evidence.get('vulnerabilities')
+        if (status == 'FAIL' and _current_list(findings) and findings and all(
+                finding.get('severity') in ('HIGH', 'CRITICAL') and
+                isinstance(finding.get('image_digest'), str) and
+                finding['image_digest'].startswith('sha256:') for finding in findings)
+                and observed == 'Trivy found HIGH or CRITICAL package vulnerabilities in the selected Pod image.'):
+            return f'The selected Pod image scan recorded {len(findings)} HIGH or CRITICAL package ' + ('vulnerability.' if len(findings) == 1 else 'vulnerabilities.')
+        if status == 'PASS' and evidence.get('complete') is True and observed == 'Trivy found no HIGH or CRITICAL package vulnerabilities in the selected Pod image using a fresh database.':
+            return 'A complete selected Pod image scan with a fresh database found no HIGH or CRITICAL package vulnerabilities.'
+        return None
+    if kind == 'selected_secret':
+        leaks = evidence.get('secret_leaks')
+        if (status == 'FAIL' and _current_list(leaks) and leaks and all(
+                isinstance(leak.get('fingerprint'), str) and len(leak['fingerprint']) == 64
+                and all(ch in '0123456789abcdef' for ch in leak['fingerprint'])
+                and isinstance(leak.get('locations'), list) and leak['locations']
+                and isinstance(leak.get('detectors'), list) and leak['detectors'] for leak in leaks)
+                and 'likely secret' in observed.lower()):
+            return 'Offline detectors found a likely secret in the selected ' + (
+                'Flux artifact.' if 'flux_artifact' in check_id else
+                'Pod image.' if 'registry_image' in check_id else 'Kubernetes text fields.')
+        if status == 'PASS' and evidence.get('complete') is True and observed.startswith((
+                'The selected Flux source reported this verified artifact digest.\nBoth offline detectors inspected',
+                'Both detectors found no supported secret in the selected Pod image.',
+                'The selected Kubernetes text fields held no secret recognized by either offline detector.')):
+            return 'Both offline detectors found no supported secret in the selected ' + (
+                'Flux artifact bytes.' if 'flux_artifact' in check_id else
+                'Pod image bytes.' if 'registry_image' in check_id else 'Kubernetes text fields.')
+    return None
+
+
+def _current_summary(finding):
+    check_id, status, evidence = finding['check_id'], finding.get('status'), finding.get('evidence')
+    if not isinstance(evidence, dict) or not evidence or status not in ('PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'NOT_APPLICABLE'):
+        return None
+    if status in ('UNKNOWN', 'DENIED'):
+        if (_current_text(evidence.get('reason')) or _current_text(evidence.get('observed'))):
+            return reviewed_explanation(check_id, 'The native evidence is incomplete or unavailable, so this result remains uncertain.', status)
+        return None
+    if status == 'NOT_APPLICABLE':
+        if evidence.get('reason') == 'Secret is not a legacy ServiceAccount token':
+            return reviewed_explanation(check_id, 'The captured Secret is not a tracked legacy ServiceAccount token.', status)
+        if evidence.get('summary') and isinstance(evidence['summary'], str) and '\nThis is a current API declaration, not observed traffic.\n' in evidence['summary']:
+            return reviewed_explanation(check_id, 'This object has no applicable native reference for this control.', status)
+        return None
+    observed = _current_native_observation(check_id, status, evidence)
+    return reviewed_explanation(check_id, observed, status) if observed else None
+
+
 def evidence_summary(finding):
     if not isinstance(finding, dict) or finding.get('provider') != 'k8s':
         return None
@@ -412,6 +573,8 @@ def evidence_summary(finding):
     declaration = declaration_observation(finding)
     if declaration:
         return declaration
+    if check_id in current_review_rows():
+        return _current_summary(finding)
     row = review_rows().get(check_id)
     e = finding.get('evidence')
     status = finding.get('status')

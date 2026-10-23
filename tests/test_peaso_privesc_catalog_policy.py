@@ -25,6 +25,22 @@ INTRINSIC_FOOTHOLDS = {
     "k8s-nodes-control-plane-node",
 }
 
+PERMISSION_CHECKED_SELECTORS = {
+    'gcp_cloudfunctions_source_deploy_build_path',
+    'gcp_composer_pypi_update_path',
+    'gcp_composer_dag_upload_path',
+    'gcp_run_job_policy_override_path',
+    'gcp_run_job_override_path',
+    'gcp_workbench_existing_takeover_path',
+}
+
+BOUNDED_GCP_AUTHORITY_SELECTORS = {
+    'gcp_bounded_access_gain', 'gcp_agentregistry_skill_evidence',
+    'gcp_bounded_service_execution', 'gcp_privatecatalog_dm_iam_path',
+    'gcp_hmac_storage_identity', 'gcp_agentidentity_retrieve_path',
+    'gcp_agentidentity_update_path',
+}
+
 
 def test_active_catalog_has_only_sourced_principal_or_permission_paths():
     policy = yaml.safe_load(POLICY.read_text())
@@ -47,19 +63,30 @@ def test_active_catalog_has_only_sourced_principal_or_permission_paths():
             selector = target.get("selector") or {}
             assert kind != "k8s_admission_control", entry["id"]
             if kind == "aws_verified_authority":
-                assert target.get("outcome") == "permission_grant", entry["id"]
-                reviewed = ("aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
-                            "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
-                            "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant")
-                assert sum(bool(selector.get(key)) for key in reviewed) == 1, entry["id"]
+                if entry["id"] == "aws-deadline-passrole-fleet-createworker":
+                    assert target.get("outcome") == "bounded_authority", entry["id"]
+                    assert selector == {"aws_challenge_fact": entry["id"]}, entry["id"]
+                else:
+                    assert target.get("outcome") == "permission_grant", entry["id"]
+                    reviewed = ("aws_dynamodb_policy_self_grant", "aws_s3_policy_self_grant",
+                                "aws_s3_access_grants_self_grant", "aws_scheduler_iam_self_grant",
+                                "aws_scheduler_iam_self_grant_update", "aws_secretsmanager_policy_self_grant",
+                                "aws_efs_policy_self_grant", "aws_cases_tag_self_grant",
+                                "aws_sitewise_portal_self_grant", "aws_sns_policy_self_grant",
+                                "aws_sqs_policy_self_grant")
+                    assert sum(bool(selector.get(key)) for key in reviewed) == 1, entry["id"]
             elif kind == "azure_verified_authority":
-                assert entry["id"] in {
-                    "azure-purview-policy-self-grant",
-                    "azure-storage-adls-acl-self-grant",
-                    "azure-storage-files-acl-self-grant",
-                }, entry["id"]
-                assert target.get("outcome") == "permission_grant", entry["id"]
-                assert selector.get("azure_challenge_fact") == entry["id"], entry["id"]
+                if entry["id"] == "azure-audit-microsoftwebstaticsiteslistsecretsaction":
+                    assert target.get("outcome") == "bounded_authority", entry["id"]
+                    assert selector == {"azure_static_site_deployment_token": True}, entry["id"]
+                else:
+                    assert entry["id"] in {
+                        "azure-purview-policy-self-grant",
+                        "azure-storage-adls-acl-self-grant",
+                        "azure-storage-files-acl-self-grant",
+                    }, entry["id"]
+                    assert target.get("outcome") == "permission_grant", entry["id"]
+                    assert selector.get("azure_challenge_fact") == entry["id"], entry["id"]
             elif kind == "azure_external_principal":
                 from peaso.privesc.effective_permissions.azure_external_principal import CONTRACT
                 assert entry["id"] in CONTRACT, entry["id"]
@@ -67,25 +94,21 @@ def test_active_catalog_has_only_sourced_principal_or_permission_paths():
                                     "azure_external_plane": CONTRACT[entry["id"]][1]}, entry["id"]
                 assert target.get("outcome") == (
                     "credentials" if CONTRACT[entry["id"]][2] == "credential" else "identity"), entry["id"]
-            if entry["id"] == "azure-datafactory-dataplane-access-token":
-                assert kind == "azure_managed_identity", entry["id"]
-                assert selector == {"azure_challenge_fact": entry["id"]}, entry["id"]
-                assert target.get("outcome") == "credentials", entry["id"]
-            elif kind == "gcp_verified_authority":
-                if selector.get("gcp_bounded_access_gain") is True:
+            if kind == "gcp_verified_authority":
+                if target.get("outcome") == "bounded_authority":
                     assert target.get("outcome") == "bounded_authority", entry["id"]
-                    assert selector.get("gcp_bounded_mechanism") in {
-                        "biglake_connection_table", "bigquery_remote_function",
-                        "bigquery_authorized_routine", "bigquery_authorized_view",
-                        "bigquery_authorized_dataset",
-                    }, entry["id"]
+                    assert any(selector.get(key) for key in BOUNDED_GCP_AUTHORITY_SELECTORS), entry["id"]
                 else:
                     assert target.get("outcome") == "permission_grant", entry["id"]
-                    assert selector.get("gcp_resource_self_grant") is True, entry["id"]
-                assert target.get("grants"), entry["id"]
+                    assert (selector.get("gcp_resource_self_grant") is True or
+                            selector.get("gcp_kcc_project_policy_grant") is True or
+                            selector.get("k8s_kcc_project_policy_grant") is True), entry["id"]
+                    assert target.get("grants"), entry["id"]
             requires = entry.get("requires") or {}
             if not (requires.get("all_of") or requires.get("any_of")):
-                assert entry["id"] in INTRINSIC_FOOTHOLDS, entry["id"]
+                assert (entry["id"] in INTRINSIC_FOOTHOLDS or
+                        (entry["provider"] == "aws" and entry.get("preconditions")) or
+                        any(selector.get(key) is True for key in PERMISSION_CHECKED_SELECTORS)), entry["id"]
 
 
 def test_intrinsic_foothold_exceptions_are_still_active():

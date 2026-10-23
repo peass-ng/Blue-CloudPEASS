@@ -7,8 +7,8 @@
   provider: azure
   service: storage
   title: Read Entra credentials embedded in blobs
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsblobservicescontainersblobsread
-  source_revision: 658a097d5c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#read-a-verified-credential-from-a-blob
+  source_revision: 2cd8240244
   summary: Read a verified usable credential from a readable blob and gain its Entra service principal permissions.
   requires:
     all_of:
@@ -24,11 +24,11 @@
     aggregate_as: Verified credential holders in {pivot}
   conditions:
   - id: verified_credential
-    description: Only a collected, mapped, still-valid service-principal credential in the readable content creates this edge; uncollected, partial, or unverified content creates no path.
+    description: Only a verified usable service-principal credential in the exact blob content creates this edge; the source must have effective read access to that blob.
   blockers: []
   confidence: conditional
   severity: high
   mitigation: Remove reusable Entra credentials from the content and restrict the listed read permission.
   references:
   - https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob
-  notes: Only an exact, usable credential mapped to a named Entra service principal by reviewed azure_privesc_challenge_evidence creates a path; missing or incomplete review creates no path.
+  notes: Reviewed azure_privesc_challenge_evidence must identify the exact BlobResourceId, verified returned content, a usable credential, and its named Entra service principal. Missing or incomplete review creates no path.

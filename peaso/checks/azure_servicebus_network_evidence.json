@@ -1,0 +1,53 @@
+[
+  {
+    "status": "PASS",
+    "required": {
+      "public_network_access": "Enabled",
+      "default_action": "Deny",
+      "ip_rule_count": 0,
+      "virtual_network_rule_count": 0
+    },
+    "lines": [
+      "Public access is enabled with Default Deny and no allow rules.",
+      "No public IP or subnet is allowed by these rules.",
+      "Message users may need another path to connect."
+    ]
+  },
+  {
+    "status": "FAIL",
+    "required": {
+      "public_network_access": "Enabled",
+      "default_action": "Allow"
+    },
+    "lines": [
+      "Public access is enabled with Default Allow for this Service Bus namespace.",
+      "More network sources may try to connect to the message service.",
+      "That could increase unwanted attempts to send or read messages."
+    ]
+  },
+  {
+    "status": "PASS",
+    "required": {
+      "public_network_access": "Enabled",
+      "default_action": "Deny",
+      "ip_rule_count": 1,
+      "virtual_network_rule_count": 0
+    },
+    "lines": [
+      "Public access is enabled with Default Deny and one IP allow rule.",
+      "That declaration narrows public traffic to a listed source range.",
+      "That may reduce unwanted attempts to send or read messages."
+    ]
+  },
+  {
+    "status": "PASS",
+    "required": {
+      "public_network_access": "Disabled"
+    },
+    "lines": [
+      "Public network access is disabled for this Service Bus namespace.",
+      "Clients need another network path to use the message service.",
+      "That may reduce unwanted attempts through a public network path."
+    ]
+  }
+]

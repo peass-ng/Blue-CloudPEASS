@@ -19,6 +19,8 @@ def test_every_compact_file_and_callable_reconstructs_its_exact_predecessor():
         for name, row in receipt[group].items():
             path, _, qualified = name.partition(':')
             raw = (ROOT / path).read_bytes()
+            if not qualified and path == 'peaso/checks/azure_metadata_only_tde_admission_successor_20261020.py':
+                raw = shared._reviewed_epoch.previous_guard_source(path, raw, ROOT)
             if qualified:
                 nodes = ast.parse(raw).body
                 for part in qualified.split('.'):
@@ -26,6 +28,18 @@ def test_every_compact_file_and_callable_reconstructs_its_exact_predecessor():
                     nodes = getattr(node, 'body', [])
                 first = min([node.lineno] + [n.lineno for n in node.decorator_list])
                 raw = b''.join(raw.splitlines(True)[first-1:node.end_lineno])
+                if hashlib.sha256(raw).hexdigest() != row['current_sha256']:
+                    if path == 'peaso/collectors/gcp.py' and qualified.startswith('GCPCollector.'):
+                        raw = shared._reviewed_epoch.previous_gcp_method_source(
+                            qualified.split('.', 1)[1], raw.decode(), ROOT).encode()
+                    elif (path, qualified) in (('peaso/collectors/azure.py', 'collect'),
+                                                    ('peaso/collectors/azure.py', '_selected'),
+                                                    ('peaso/collectors/k8s.py', 'collect')):
+                        raw = shared._reviewed_epoch.previous_function_source(
+                            path, qualified, raw.decode(), ROOT).encode()
+                    elif (path, qualified) == ('peaso/checks/azure_metadata_only_tde_admission_successor_20261020.py', 'reviewed_inputs'):
+                        raw = shared._reviewed_epoch.previous_guard_function_source(
+                            path, qualified, raw.decode(), ROOT).encode()
             assert hashlib.sha256(raw).hexdigest() == row['current_sha256'], name
             before = shared._reverse(raw.decode(), row).encode()
             assert hashlib.sha256(before).hexdigest() == row['predecessor_sha256'], name

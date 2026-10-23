@@ -118,7 +118,7 @@ class ExactEvidenceMixin:
             if self.provider == "azure":
                 from .azure_self_grants import CONTRACT as self_grant_contract, valid as self_grant_valid
                 if technique in self_grant_contract and (len(records) != 1 or not self_grant_valid(
-                        technique, records[0], source.id, node.attrs.get("resource"), scope)):
+                        technique, records[0], source.id, node.attrs.get("resource"), scope, self.snapshot)):
                     if any(r.get("Status") != "disproven" for r in records):
                         out[ident] = ("unknown", "self_permission_grant_evidence_incomplete")
                     continue
@@ -127,12 +127,6 @@ class ExactEvidenceMixin:
                         self, technique, records[0], source.id, node.id, scope)):
                     if any(r.get("Status") != "disproven" for r in records):
                         out[ident] = ("unknown", "deployment_identity_evidence_incomplete")
-                    continue
-                from .azure_datafactory_identity import CONTRACT as datafactory_contract, valid as datafactory_valid
-                if technique in datafactory_contract and (len(records) != 1 or not datafactory_valid(
-                        self, technique, records[0], source.id, node.id, scope)):
-                    # An incomplete token or pipeline review cannot name an
-                    # identity path, even as an unknown target edge.
                     continue
             from .bounded_evidence import CONTRACT as bounded_contract, valid as bounded_valid
             if technique in bounded_contract and (len(records) != 1 or not bounded_valid(technique, records[0], source.id, node.attrs.get("resource"), scope)):

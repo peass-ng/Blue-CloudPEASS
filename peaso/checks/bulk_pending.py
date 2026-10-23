@@ -86,3 +86,5 @@ def install():
     if set(captured)!=expected:raise RuntimeError('bulk definitions missing: '+', '.join(sorted(expected-set(captured))))
     CHECKS.extend(captured[i]for i in MANIFEST['checks'])
     if tuple(CHECKS[:len(baseline)])!=baseline or CHECK_ALIASES!=aliases:raise RuntimeError('published registry changed during bulk admission')
+    from . import azure_gateway_cidr_evidence_successor_20261021 as gateway_cidr_evidence
+    gateway_cidr_evidence.install()

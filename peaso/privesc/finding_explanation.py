@@ -32,7 +32,10 @@ def evidence_summary(finding):
     if not isinstance(targets,list) or not targets or any(not isinstance(t,dict) or not _text(t.get('id')) for t in targets):return None
     count=e.get('target_count');confidence=e.get('confidence');status=finding.get('status')
     if type(count)is not int or count<0 or not isinstance(confidence,str):return None
-    if count<len(targets) and not (confidence=='unknown' and count==0 and all(t.get('underlying_count')==0 for t in targets)):return None
+    if count<len(targets) and not (confidence=='unknown' and count==0 and all(
+            t.get('underlying_count')==0 or (
+                t.get('underlying_count') is None and t.get('kind')=='aggregate'
+                and str(t.get('id','')).startswith('unknown:')) for t in targets)):return None
     if {'derived':'FAIL','conditional':'MANUAL','unknown':'UNKNOWN'}.get(confidence)!=status:return None
     conditions=e.get('conditions',[]);blockers=e.get('blockers_not_evaluated',[])
     if not isinstance(conditions,list) or any(not _text(c) for c in conditions):return None
@@ -98,6 +101,11 @@ def _bounded_text(name,target,count,targets,meaning,limit,*,unknown=False,admini
     target='unresolved targets' if count==0 else f'{count} recorded '+(noun if count==1 else 'targets')
     text=render(name,target)
     if len(text)<=240:return text
+    if unknown and len(name)<=80:
+        specific=(f'The recorded path from {name} to {target} lacks needed facts.\n'
+                  'The grant or target details are incomplete.\n'
+                  'The possible access to resources and data is unclear.')
+        if len(specific)<=240:return specific
     text=render('source identity',target)
     if len(text)<=240:return text
     prefix='The source path lacks required facts. ' if unknown else 'The source has a modeled privilege path. '

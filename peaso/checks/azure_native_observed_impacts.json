@@ -1,0 +1,1328 @@
+{
+  "azure_aks_cluster_10_2_1_1_17_885658f": {
+    "FAIL": [
+      "The missing export may leave AKS activity out of the log store.",
+      "The team could have less detail when investigating a cluster problem."
+    ],
+    "PASS": [
+      "The configured exports may keep AKS activity in the log store.",
+      "The team could use those records to investigate a cluster problem."
+    ]
+  },
+  "azure_aks_cluster_1_4_5_2_3ac7b3c": {
+    "FAIL": [
+      "That container may see process IDs from its host.",
+      "A person with control of it could learn more about other running work."
+    ],
+    "PASS": [
+      "Those containers may have separate process views.",
+      "That could reduce what one container can learn about other running work."
+    ]
+  },
+  "azure_aks_cluster_3_5_1_14_247ebcd": {
+    "FAIL": [
+      "The value may be readable inside that workload.",
+      "A person with access to it could find a secret stored in the value."
+    ],
+    "PASS": [
+      "Those values may be kept out of readable workload settings.",
+      "That could reduce accidental exposure of a stored secret."
+    ]
+  },
+  "azure_aks_cluster_6_3_3_4_98a0b2c": {
+    "FAIL": [
+      "This version may lack fixes available in newer supported releases.",
+      "The cluster could remain exposed to a known software flaw."
+    ],
+    "PASS": [
+      "This version may include fixes beyond the oldest supported release.",
+      "That could reduce the cluster’s exposure to known software flaws."
+    ]
+  },
+  "azure_aks_cluster_7_2_1_6_93c4fab": {
+    "FAIL": [
+      "Those containers may gain broad host capabilities.",
+      "Someone who controls one could affect more of the node."
+    ],
+    "PASS": [
+      "The containers may have fewer host capabilities.",
+      "Someone who controls one could have less reach on the node."
+    ]
+  },
+  "azure_aks_cluster_aks_cluster_rbac_enabled_c41a0cb": {
+    "FAIL": [
+      "Those containers may change files in their own root filesystem.",
+      "An intruder could leave changes that affect later app work."
+    ],
+    "PASS": [
+      "Those containers may be unable to change their root filesystem.",
+      "That could make unwanted app file changes harder."
+    ]
+  },
+  "azure_aks_cluster_aks_cluster_rbac_enabled_fc209e3": {
+    "FAIL": [
+      "The required customer key may be unavailable for cluster data.",
+      "Stored cluster data could lose the intended extra key protection."
+    ],
+    "PASS": [
+      "The required customer key may protect cluster data at rest.",
+      "That could give stored data an extra layer of protection."
+    ]
+  },
+  "azure_api_management_1_2_8_1_ba319cf": {
+    "FAIL": [
+      "Those APIs may accept a protocol outside the approved set.",
+      "Client traffic could use a path the team did not intend to allow."
+    ],
+    "PASS": [
+      "Those APIs may use only the approved protocol paths.",
+      "Client traffic could stay within the team’s chosen transport settings."
+    ]
+  },
+  "azure_api_management_1_2_8_3_e8fe737": {
+    "FAIL": [
+      "Requests on that path may reach the API without the required WAF rules.",
+      "Abusive traffic could have fewer barriers before reaching app data."
+    ],
+    "PASS": [
+      "Requests on those paths may pass through the required WAF rules.",
+      "Abusive traffic could have more barriers before reaching app data."
+    ]
+  },
+  "azure_application_gateway_app_ensure_http_is_redirected_to_https_debad63": {
+    "FAIL": [
+      "Users may reach that hostname without a trusted HTTPS connection.",
+      "Their traffic or sign-in details could be less protected in transit."
+    ],
+    "PASS": [
+      "Users may connect to those hostnames through trusted HTTPS.",
+      "Their traffic and sign-in details could be better protected in transit."
+    ]
+  },
+  "azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17": {
+    "FAIL": [
+      "Those listeners may use a TLS policy outside the required set.",
+      "User traffic could get weaker transport protection than intended."
+    ],
+    "PASS": [
+      "Those listeners may use the required TLS policy.",
+      "User traffic could get the intended transport protection."
+    ]
+  },
+  "azure_application_gateway_app_http_logs_enabled_2de0361": {
+    "FAIL": [
+      "Requests through that gateway or load balancer may leave fewer access records.",
+      "The team could have less detail when reviewing a traffic problem."
+    ],
+    "PASS": [
+      "Requests through those services may be recorded at the chosen destination.",
+      "The team could have more detail when reviewing a traffic problem."
+    ]
+  },
+  "azure_azure_resource_1_3_1_46_b70e2c8": {
+    "FAIL": [
+      "Traffic may lack one of the expected VPN paths.",
+      "People who rely on that site connection could lose access to shared services."
+    ],
+    "PASS": [
+      "Traffic may use both expected VPN paths.",
+      "People who rely on that site connection could have a backup path."
+    ]
+  },
+  "azure_disk_10_3_3_12_174f526": {
+    "FAIL": [
+      "That disk may have no current backup copy.",
+      "Its data could be harder to restore after loss or damage."
+    ],
+    "PASS": [
+      "Those disks may have backup copies available.",
+      "Their data could be easier to restore after loss or damage."
+    ]
+  },
+  "azure_frontdoor_app_ensure_http_is_redirected_to_https_517a3c9": {
+    "FAIL": [
+      "A user may send traffic over plain HTTP on that route.",
+      "Their request data could be easier to read in transit."
+    ],
+    "PASS": [
+      "Users may be sent to HTTPS on those routes.",
+      "Their request data could be better protected in transit."
+    ]
+  },
+  "azure_frontdoor_app_minimum_tls_version_12_0512053": {
+    "FAIL": [
+      "Clients may connect with TLS older than 1.2.",
+      "Their traffic could have weaker protection in transit."
+    ],
+    "PASS": [
+      "Clients may need TLS 1.2 or newer for those domains.",
+      "Their traffic could have stronger protection in transit."
+    ]
+  },
+  "azure_frontdoor_network_http_internet_access_restricted_7004685": {
+    "FAIL": [
+      "Front Door may send requests to the origin over plain HTTP.",
+      "Data between the edge and origin could be easier to read in transit."
+    ],
+    "PASS": [
+      "Front Door may avoid plain HTTP on those origin paths.",
+      "Data between the edge and origin could have stronger transport protection."
+    ]
+  },
+  "azure_pci_1_3_1_33": {
+    "FAIL": [
+      "SQL clients may lack the required private endpoint path.",
+      "Database traffic could need another network route."
+    ],
+    "PASS": [
+      "SQL clients may use that approved private endpoint path.",
+      "Database traffic could stay on the intended network route."
+    ]
+  },
+  "azure_sql_database_sqlserver_azuread_administrator_enabled_4a039a9": {
+    "FAIL": [
+      "That database parent may lack an Entra administrator for identity-based access.",
+      "The team could have fewer ways to manage database access with Entra accounts."
+    ],
+    "PASS": [
+      "Those database parents may support an Entra administrator for identity-based access.",
+      "The team could manage database access through approved Entra accounts."
+    ]
+  },
+  "azure_sql_server_sqlserver_unrestricted_inbound_access_9b32c6a": {
+    "FAIL": [
+      "That public client may send requests to the database endpoint.",
+      "The server could receive unwanted access attempts from outside networks."
+    ],
+    "PASS": [
+      "The matched public clients may be unable to use those firewall paths.",
+      "The server could receive fewer unwanted attempts through them."
+    ]
+  },
+  "azure_storage_account_10_3_3_24_61d5e36": {
+    "FAIL": [
+      "That container may lack a current backup path.",
+      "Its files could be harder to restore after loss or damage."
+    ],
+    "PASS": [
+      "Those containers may have backup copies available.",
+      "Their files could be easier to restore after loss or damage."
+    ]
+  },
+  "azure_storage_file_share_10_3_3_15_f2d7075": {
+    "FAIL": [
+      "That file share may lack a current backup copy.",
+      "Its files could be harder to restore after loss or damage."
+    ],
+    "PASS": [
+      "Those file shares may have backup copies available.",
+      "Their files could be easier to restore after loss or damage."
+    ]
+  },
+  "azure_storage_file_share_10_3_3_18_d67ab34": {
+    "FAIL": [
+      "That file share or volume may lack a current backup copy.",
+      "Its files could be harder to restore after loss or damage."
+    ],
+    "PASS": [
+      "Those shares and volumes may have backup copies available.",
+      "Their files could be easier to restore after loss or damage."
+    ]
+  },
+  "azure_synapse_workspace_1_2_8_29_fcdc827": {
+    "FAIL": [
+      "Clients may send requests through the public Synapse endpoint.",
+      "The workspace could receive unwanted attempts from outside networks."
+    ],
+    "PASS": [
+      "Clients may need another path to reach the Synapse workspace.",
+      "The public endpoint could receive fewer unwanted requests."
+    ]
+  },
+  "azure_vm_app_function_identity_is_configured_bdb10d4": {
+    "FAIL": [
+      "That resource may need another way to identify itself to Azure services.",
+      "Access to app data could be harder for the team to manage."
+    ],
+    "PASS": [
+      "That resource may use its managed identity to access Azure services.",
+      "The team could manage its app access without a separate shared password."
+    ]
+  },
+  "azure_vm_monitor_diagnostic_setting_with_appropriate_categories_4e20679": {
+    "FAIL": [
+      "VM platform metrics may be missing from the chosen destination.",
+      "The team could have less detail when investigating a VM problem."
+    ],
+    "PASS": [
+      "VM platform metrics may reach the chosen destination.",
+      "The team could have more detail when investigating a VM problem."
+    ]
+  },
+  "azure_vnet_gateway_10_2_1_1_14_4189d89": {
+    "FAIL": [
+      "Client connections may lack a required log record.",
+      "The team could have less detail when investigating VPN access."
+    ],
+    "PASS": [
+      "Client connections may be recorded at the chosen destination.",
+      "The team could have more detail when investigating VPN access."
+    ]
+  },
+  "azure_cdn_profile_10_3_4_1_4e40487": {
+    "FAIL": [
+      "The origin may need another identity or transport path for Blob data.",
+      "Content delivery could be less reliable or less protected than intended."
+    ],
+    "PASS": [
+      "The origin may use its managed identity over HTTPS for Blob data.",
+      "Content delivery could use the intended identity and transport path."
+    ]
+  },
+  "azure_cdn_profile_1_2_8_5_ed953a0": {
+    "FAIL": [
+      "Visitors may not get the approved certificate on that domain.",
+      "They could have less confidence in the site connection."
+    ],
+    "PASS": [
+      "Visitors may get the approved certificate on those domains.",
+      "They could have more confidence in the site connection."
+    ]
+  },
+  "azure_frontdoor_1_2_5_4_ccc7b8f": {
+    "FAIL": [
+      "Visitors may not get the required Key Vault backed certificate.",
+      "Their connection could fail trust checks or use another certificate."
+    ],
+    "PASS": [
+      "Visitors may get the required Key Vault backed certificate.",
+      "Their connection could meet the intended trust settings."
+    ]
+  },
+  "azure_frontdoor_1_2_8_4_90159db": {
+    "FAIL": [
+      "Requests on that path may avoid the intended WAF rules.",
+      "Abusive traffic could have fewer barriers before reaching the app."
+    ],
+    "PASS": [
+      "Requests on those paths may pass through the intended WAF rules.",
+      "Abusive traffic could have more barriers before reaching the app."
+    ]
+  },
+  "azure_frontdoor_monitor_storage_account_with_activity_logs_is_private_d42518a": {
+    "FAIL": [
+      "Front Door requests may leave fewer access records.",
+      "The team could have less detail when investigating a traffic problem."
+    ],
+    "PASS": [
+      "Front Door requests may have access records at the chosen destination.",
+      "The team could have more detail when investigating a traffic problem."
+    ]
+  },
+  "azure_diagnostic_setting_app_http_logs_enabled_d32e8e1": {
+    "FAIL": [
+      "App Service Environment events may be missing from the chosen log destination.",
+      "The team could have less detail when investigating an app problem."
+    ],
+    "PASS": [
+      "App Service Environment events may reach the chosen log destination.",
+      "The team could have more detail when investigating an app problem."
+    ]
+  },
+  "azure_firewall_policy_10_2_1_1_24_0781f5f": {
+    "FAIL": [
+      "Some firewall activity may be missing from the chosen log destination.",
+      "The team could have less detail when investigating network traffic."
+    ],
+    "PASS": [
+      "Firewall activity may reach the chosen log destinations.",
+      "The team could have more detail when investigating network traffic."
+    ]
+  },
+  "azure_log_analytics_workspace_monitor_diagnostic_setting_with_appropriate_categories_48f6b2b": {
+    "FAIL": [
+      "That resource may leave activity out of the Log Analytics workspace.",
+      "The team could have less detail when investigating its behavior."
+    ],
+    "PASS": [
+      "Those resources may send activity to the Log Analytics workspace.",
+      "The team could have more detail when investigating their behavior."
+    ]
+  },
+  "azure_storage_account_10_2_1_1_20_5914d2c": {
+    "FAIL": [
+      "Some storage activity may be missing from the chosen log destination.",
+      "The team could have less detail when investigating file access."
+    ],
+    "PASS": [
+      "Storage activity may reach the chosen log destinations.",
+      "The team could have more detail when investigating file access."
+    ]
+  },
+  "azure_directory_user_7_2_1_19_28e2aa7": {
+    "FAIL": [
+      "That user may have rights beyond ordinary account access.",
+      "A person using the account could affect more resources."
+    ],
+    "PASS": [
+      "Those users may have fewer direct privileged paths.",
+      "A person using one account could affect fewer resources."
+    ]
+  },
+  "azure_directory_user_7_2_4_1_712ef31": {
+    "FAIL": [
+      "That group may have no direct user available for its assigned work.",
+      "People who depend on the group could lose a clear access path."
+    ],
+    "PASS": [
+      "Those groups may have a direct user available for their assigned work.",
+      "People who depend on the group could retain a clear access path."
+    ]
+  },
+  "azure_directory_user_entra_non_privileged_user_has_mfa_b242ca9": {
+    "FAIL": [
+      "A user may sign in to that context without a second factor.",
+      "A stolen password could be enough to reach their data."
+    ],
+    "PASS": [
+      "Users may need a second factor in the recorded required contexts.",
+      "A stolen password alone could have less value."
+    ]
+  },
+  "azure_directory_user_entra_privileged_user_has_mfa_6f6d584": {
+    "FAIL": [
+      "A Global Administrator may sign in to that context without a second factor.",
+      "A stolen password could put broad tenant access at risk."
+    ],
+    "PASS": [
+      "Global Administrators may need a second factor in the recorded contexts.",
+      "A stolen password alone could have less value for tenant access."
+    ]
+  },
+  "azure_role_assignment_iam_user_with_owner_permission_on_subscription_mfa_enabled_8bf88f9": {
+    "FAIL": [
+      "A required user may sign in without a second factor.",
+      "A stolen password could give someone access to subscription resources."
+    ],
+    "PASS": [
+      "The required users may need a second factor for sign-in.",
+      "A stolen password alone could have less value for subscription access."
+    ]
+  },
+  "azure_role_assignment_iam_user_with_write_permission_on_subscription_mfa_enabled_d1806c1": {
+    "FAIL": [
+      "A required user may sign in without a second factor.",
+      "A stolen password could give someone access to subscription resources."
+    ],
+    "PASS": [
+      "The required users may need a second factor for sign-in.",
+      "A stolen password alone could have less value for subscription access."
+    ]
+  },
+  "azure_security_pricing_policy_ensure_asc_enforcement_enabled_70150a3": {
+    "FAIL": [
+      "A required Defender plan may lack its paid protection features.",
+      "The team could have fewer security signals for that service."
+    ],
+    "PASS": [
+      "The required Defender plans may have their paid protection features available.",
+      "The team could get more security signals for those services."
+    ]
+  },
+  "azure_storage_account_10_3_4_7_02943e9": {
+    "FAIL": [
+      "New writes may be changed or removed before the intended retention period.",
+      "Important files could be harder to recover after a mistake or misuse."
+    ],
+    "PASS": [
+      "New writes may remain protected for the intended retention period.",
+      "Important files could be easier to recover after a mistake or misuse."
+    ]
+  },
+  "azure_storage_account_10_5_1_13_2f5d4f6": {
+    "FAIL": [
+      "Older Blob versions may have no planned lifecycle action.",
+      "Stored copies could grow and become harder to manage."
+    ],
+    "PASS": [
+      "Older Blob versions may follow the intended lifecycle actions.",
+      "Stored copies could be easier for the team to manage."
+    ]
+  },
+  "azure_storage_file_share_3_5_1_15_17dc7f4": {
+    "FAIL": [
+      "That Files service may lack the required customer key protection.",
+      "Stored files could miss the intended extra encryption control."
+    ],
+    "PASS": [
+      "Those Files services may use the required customer keys.",
+      "Stored files could have the intended extra encryption control."
+    ]
+  },
+  "azure_synapse_workspace_10_3_3_22_15e4d4e": {
+    "FAIL": [
+      "That SQL pool may lack enough automatic snapshot history.",
+      "Its data could be harder to restore after loss or damage."
+    ],
+    "PASS": [
+      "Those SQL pools may keep the intended automatic snapshot history.",
+      "Their data could be easier to restore after loss or damage."
+    ]
+  },
+  "azure_vault_keyvault_key_expiration_set_in_non_rbac_a7d99d3": {
+    "FAIL": [
+      "That certificate may expire or already be past its safe renewal window.",
+      "A service using it could lose a trusted connection."
+    ],
+    "PASS": [
+      "Those certificates may remain valid beyond the required window.",
+      "Services using them could have more time to renew trusted connections."
+    ]
+  },
+  "azure_vault_keyvault_non_rbac_secret_expiration_set_a4923d7": {
+    "FAIL": [
+      "That secret version may remain in use beyond the planned rotation age.",
+      "A copied secret could have longer to be reused."
+    ],
+    "PASS": [
+      "Those secret versions may stay within the planned rotation age.",
+      "A copied secret could have less time before a planned change."
+    ]
+  },
+  "azure_cosmos_account_10_5_1_5_2029065": {
+    "FAIL": [
+      "Older backup copies may be removed sooner than planned.",
+      "Database data could be harder to restore after a late discovery of loss."
+    ],
+    "PASS": [
+      "Backup copies may remain for the planned period.",
+      "Database data could be easier to restore after a late discovery of loss."
+    ]
+  },
+  "azure_devops_project_3_5_1_7_dc58423": {
+    "FAIL": [
+      "People with access to that variable may read the client secret.",
+      "A usable secret could let them reach another service."
+    ],
+    "PASS": [
+      "People who view the variable may not see its client secret value.",
+      "That could reduce accidental sharing of service access."
+    ]
+  },
+  "azure_directory_user_7_2_4_2_7a90cfb": {
+    "FAIL": [
+      "That enabled account may stay available despite old use.",
+      "Someone with its sign-in details could have more time to reuse it."
+    ],
+    "PASS": [
+      "Those enabled accounts may still belong to active users.",
+      "The team could have fewer stale accounts to manage."
+    ]
+  },
+  "azure_firewall_policy_6_4_1_6_2ad9039": {
+    "FAIL": [
+      "WAF groups may run in an order the team did not approve.",
+      "Traffic could meet a different set of rules than intended."
+    ],
+    "PASS": [
+      "WAF groups may run in the approved order.",
+      "Traffic could meet the intended sequence of rules."
+    ]
+  },
+  "azure_hdinsight_cluster_1_2_5_11_babfa1b": {
+    "FAIL": [
+      "The cluster may lack a required directory identity path.",
+      "The team could have less control over who signs in to its data."
+    ],
+    "PASS": [
+      "The cluster may use the approved directory identity path.",
+      "The team could manage sign-in to its data through that directory."
+    ]
+  },
+  "azure_management_group_7_2_1_12_3f8ec01": {
+    "FAIL": [
+      "The holder of that role may exercise rights barred at that scope.",
+      "They could change protected resources beyond the intended access plan."
+    ],
+    "PASS": [
+      "Those grants may avoid the prohibited roles at protected scopes.",
+      "The team could keep fewer broad access paths to those resources."
+    ]
+  },
+  "azure_management_group_7_2_1_13_50babe4": {
+    "FAIL": [
+      "A needed person may lack the planned role, or another person may hold it.",
+      "That could disrupt work or put protected resources in the wrong hands."
+    ],
+    "PASS": [
+      "The approved principals may hold the planned roles at those scopes.",
+      "The team could keep resource access aligned with its plan."
+    ]
+  },
+  "azure_management_group_7_2_1_1_af95df1": {
+    "FAIL": [
+      "That subscription may sit outside the planned management group path.",
+      "People managing policies there could miss resources in the subscription."
+    ],
+    "PASS": [
+      "That subscription may receive policies from its planned management group path.",
+      "People managing it could apply those rules more consistently."
+    ]
+  },
+  "azure_pci_10_2_1_1_8": {
+    "FAIL": [
+      "The alert may have no route to the intended response group.",
+      "The team could hear about a problem later than needed."
+    ],
+    "PASS": [
+      "The declared alerts may have their intended response routes.",
+      "The team could hear about a problem sooner."
+    ]
+  },
+  "azure_pci_3_5_1_29": {
+    "FAIL": [
+      "Synapse data may lack the required customer key protection.",
+      "The team could have less control over a key used for stored data."
+    ],
+    "PASS": [
+      "Synapse data may use the required customer key protection.",
+      "The team could have more control over a key used for stored data."
+    ]
+  },
+  "azure_purview_account_a3_2_5_1_1_282bac6": {
+    "FAIL": [
+      "Sensitive files may go undiscovered for longer than planned.",
+      "The team could miss data that needs special care."
+    ],
+    "PASS": [
+      "Sensitive files may be found within the planned scan window.",
+      "The team could identify data that needs special care sooner."
+    ]
+  },
+  "azure_purview_account_a3_2_5_1_2_6690c25": {
+    "FAIL": [
+      "That region may lack the planned data discovery service.",
+      "The team could miss sensitive data stored there."
+    ],
+    "PASS": [
+      "Those regions may have the planned data discovery service.",
+      "The team could find sensitive data stored there more easily."
+    ]
+  },
+  "azure_recovery_vault_10_3_3_2_5313a3c": {
+    "FAIL": [
+      "Backups may run too rarely or remain for too little time.",
+      "People could lose more work after a data problem."
+    ],
+    "PASS": [
+      "Backups may run and remain for the planned periods.",
+      "People could recover more recent work after a data problem."
+    ]
+  },
+  "azure_recovery_vault_10_3_3_3_45b190e": {
+    "FAIL": [
+      "That recovery point may disappear before the planned date.",
+      "Older data could be unavailable when people need to restore it."
+    ],
+    "PASS": [
+      "Those recovery points may remain for the planned period.",
+      "Older data could be available when people need to restore it."
+    ]
+  },
+  "azure_redis_cache_10_3_3_17_5912e19": {
+    "FAIL": [
+      "Cache snapshots may be missing or held for too little time.",
+      "People could have fewer ways to recover cache data after loss."
+    ],
+    "PASS": [
+      "Cache snapshots may be available for the planned period.",
+      "People could have more ways to recover cache data after loss."
+    ]
+  },
+  "azure_role_assignment_7_2_1_14_6743a56": {
+    "FAIL": [
+      "That role may allow a holder to act across many Azure resources.",
+      "They could change more resources than the team intended."
+    ],
+    "PASS": [
+      "Those roles may avoid that broad root-scope action grant.",
+      "Their holders could have fewer ways to change unrelated resources."
+    ]
+  },
+  "azure_role_assignment_aks_cluster_rbac_enabled_1c8eacd": {
+    "FAIL": [
+      "The role holder may act across a whole service or resource type.",
+      "They could change more resources than the team intended."
+    ],
+    "PASS": [
+      "Those role grants may avoid service-wide action rights.",
+      "Their holders could have fewer ways to change unrelated resources."
+    ]
+  },
+  "azure_role_assignment_aks_cluster_rbac_enabled_675305a": {
+    "FAIL": [
+      "The intended principal may lack that custom-role access at the chosen scope.",
+      "Work that depends on the role could fail for its owner."
+    ],
+    "PASS": [
+      "The intended principals may hold those custom roles at the chosen scopes.",
+      "Work that depends on the roles could remain available to its owners."
+    ]
+  },
+  "azure_search_service_3_5_1_19_a3c75c0": {
+    "FAIL": [
+      "Stored Search data may lack the required customer key protection.",
+      "The team could have less control over a key used for its data."
+    ],
+    "PASS": [
+      "Stored Search data may use the required customer key protection.",
+      "The team could have more control over a key used for its data."
+    ]
+  },
+  "azure_vault_keyvault_rbac_enabled_0179c48": {
+    "FAIL": [
+      "The role holder may use a Key Vault action the team barred.",
+      "They could affect secrets or keys beyond the intended access plan."
+    ],
+    "PASS": [
+      "Those role holders may lack the barred Key Vault actions.",
+      "They could have fewer ways to affect protected secrets or keys."
+    ]
+  },
+  "azure_application_gateway_11_5_1_1_1_f56bdc2": {
+    "FAIL": [
+      "That public resource may have fewer barriers against abusive traffic.",
+      "People using it could face more disruption from unwanted requests."
+    ],
+    "PASS": [
+      "Those public resources may have the planned traffic defenses.",
+      "People using them could face fewer disruptions from unwanted requests."
+    ]
+  },
+  "azure_application_gateway_app_ensure_http_is_redirected_to_https_1099ad7": {
+    "FAIL": [
+      "A user may continue over plain HTTP on those routes.",
+      "Their request data could be easier to read in transit."
+    ],
+    "PASS": [
+      "Users may be sent to HTTPS on those routes.",
+      "Their request data could be better protected in transit."
+    ]
+  },
+  "azure_azure_resource_keyvault_private_endpoints_c3995a6": {
+    "FAIL": [
+      "Clients may lack the intended private path to that service.",
+      "Their traffic could need another network route."
+    ],
+    "PASS": [
+      "Clients may use the intended private path to those services.",
+      "Their traffic could stay on the chosen network route."
+    ]
+  },
+  "azure_directory_user_10_6_3_21_d013932": {
+    "FAIL": [
+      "That user may lack access granted through a group.",
+      "Work that depends on group membership could fail."
+    ],
+    "PASS": [
+      "Those users may have access granted through their groups.",
+      "Work that depends on group membership could continue."
+    ]
+  },
+  "azure_directory_user_keyvault_rbac_secret_expiration_set_e2e0e28": {
+    "FAIL": [
+      "That credential may remain usable beyond the planned age.",
+      "A copied credential could have more time to be reused."
+    ],
+    "PASS": [
+      "That credential may still be within the planned age.",
+      "A copied credential could have less time before a planned change."
+    ]
+  },
+  "azure_firewall_policy_1_2_8_23_59ad733": {
+    "FAIL": [
+      "The policy may have no recognized rule for traffic decisions.",
+      "Unwanted requests could meet fewer planned barriers."
+    ],
+    "PASS": [
+      "The policy may apply its recognized rules to traffic.",
+      "Unwanted requests could meet the planned barriers."
+    ]
+  },
+  "azure_firewall_policy_1_2_8_24_cc7cb8a": {
+    "FAIL": [
+      "Those empty groups may do nothing when traffic reaches them.",
+      "The team could miss a planned network rule."
+    ],
+    "PASS": [
+      "Those groups may contain rules for traffic decisions.",
+      "The team could apply its planned network rules."
+    ]
+  },
+  "azure_firewall_policy_1_2_8_42_cacbd9e": {
+    "FAIL": [
+      "The WAF may lack rules to filter harmful requests.",
+      "The app could receive more unwanted traffic."
+    ],
+    "PASS": [
+      "The WAF may apply its managed rule set to requests.",
+      "The app could receive fewer unwanted requests."
+    ]
+  },
+  "azure_log_analytics_workspace_10_5_1_4_8c74ccb": {
+    "FAIL": [
+      "Interactive log history may end well before the planned 365 days.",
+      "The team could lack older events during an investigation."
+    ],
+    "PASS": [
+      "Interactive log history may remain for the planned 365 days.",
+      "The team could review older events during an investigation."
+    ]
+  },
+  "azure_pci_10_2_1_1_16": {
+    "FAIL": [
+      "Container activity may not reach the planned log workspace.",
+      "The team could have less detail when investigating an app problem."
+    ],
+    "PASS": [
+      "Container activity may reach the planned log workspace.",
+      "The team could have more detail when investigating an app problem."
+    ]
+  },
+  "azure_pci_10_2_1_1_25": {
+    "FAIL": [
+      "MySQL activity may be missing from the approved audit destination.",
+      "The team could have less detail when investigating database use."
+    ],
+    "PASS": [
+      "MySQL activity may reach the approved audit destination.",
+      "The team could have more detail when investigating database use."
+    ]
+  },
+  "azure_pci_1_2_8_39": {
+    "FAIL": [
+      "The NSG may not apply to any subnet or network interface.",
+      "Its planned traffic rules could leave resources uncovered."
+    ],
+    "PASS": [
+      "The NSG may apply its rules to an attached network path.",
+      "Resources on that path could receive the planned traffic rules."
+    ]
+  },
+  "azure_route_table_network_http_internet_access_restricted_5cd2484": {
+    "FAIL": [
+      "Traffic may follow a route outside the chosen destination list.",
+      "The team could lose control over where that traffic goes."
+    ],
+    "PASS": [
+      "Traffic may avoid the prohibited default route paths.",
+      "The team could keep more traffic on its chosen routes."
+    ]
+  },
+  "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5": {
+    "FAIL": [
+      "That database may write files without transparent data encryption.",
+      "Its stored data could have less protection if storage is exposed."
+    ],
+    "PASS": [
+      "That database may write files with transparent data encryption.",
+      "Its stored data could have more protection if storage is exposed."
+    ]
+  },
+  "azure_storage_account_storage_blob_public_access_level_is_disabled_4211794": {
+    "FAIL": [
+      "Storage requests may follow a path outside the approved access settings.",
+      "Files could have less protection from unwanted access."
+    ],
+    "PASS": [
+      "Storage requests may follow the approved network and Blob access settings.",
+      "Files could have the intended protection from unwanted access."
+    ]
+  },
+  "azure_storage_account_storage_ensure_azure_services_are_trusted_to_access_is_enabled_3f8ed7f": {
+    "FAIL": [
+      "An unwanted public or cross-tenant caller may use that path.",
+      "Private files could be read by more people than intended."
+    ],
+    "PASS": [
+      "Those paths may limit public and cross-tenant Blob access.",
+      "Private files could have fewer unwanted readers."
+    ]
+  },
+  "azure_storage_account_storage_ensure_azure_services_are_trusted_to_access_is_enabled_7677ce9": {
+    "FAIL": [
+      "Storage events may not reach the planned Event Grid destination.",
+      "The team could miss a file change it expected to hear about."
+    ],
+    "PASS": [
+      "Storage events may reach the planned Event Grid destination.",
+      "The team could hear about file changes sooner."
+    ]
+  },
+  "azure_vault_10_3_2_3_922adc4": {
+    "FAIL": [
+      "Workspace data may lack the required customer key path.",
+      "The team could have less control over a key used for stored logs."
+    ],
+    "PASS": [
+      "Workspace data may use the required customer key path.",
+      "The team could have more control over a key used for stored logs."
+    ]
+  },
+  "azure_vault_3_7_1_2_532ecd2": {
+    "FAIL": [
+      "That certificate key may be too short for the planned strength.",
+      "Clients could have less confidence in the service connection."
+    ],
+    "PASS": [
+      "Those certificate keys may meet the planned strength.",
+      "Clients could have more confidence in the service connection."
+    ]
+  },
+  "azure_vault_keyvault_non_rbac_secret_expiration_set_0041351": {
+    "FAIL": [
+      "That enabled secret may no longer be needed for current work.",
+      "It could remain available for unwanted reuse."
+    ],
+    "PASS": [
+      "Those enabled secrets may still support current work.",
+      "The team could keep fewer unused secrets available."
+    ]
+  },
+  "azure_vnet_gateway_network_ssh_internet_access_restricted_e19b1dc": {
+    "FAIL": [
+      "That gateway subnet may follow a network plan the team did not approve.",
+      "VPN traffic could use paths outside the chosen network."
+    ],
+    "PASS": [
+      "Those gateway subnets may follow the approved network plan.",
+      "VPN traffic could stay on the chosen network paths."
+    ]
+  },
+  "azure_aks_cluster_aks_cluster_rbac_enabled_db12524": {
+    "FAIL": [
+      "The container may run with root privileges.",
+      "Someone who controls it could affect more of the node."
+    ],
+    "PASS": {
+      "first": "One Linux Pod is recorded without retained effective container UID values.",
+      "impact": [
+        "Its user privilege level is unclear.",
+        "The team cannot tell whether its containers run as root."
+      ]
+    }
+  },
+  "azure_api_management_10_3_1_3_8a50dc0": {
+    "FAIL": [
+      "API requests may leave fewer trace records.",
+      "The team could have less detail when investigating a request."
+    ],
+    "PASS": [
+      "API requests may have the planned trace path.",
+      "The team could have more detail when investigating a request."
+    ]
+  },
+  "azure_api_management_3_5_1_1_345bdac": {
+    "FAIL": [
+      "That operation may lack the intended cache behavior.",
+      "Users could get slower or less protected responses."
+    ],
+    "PASS": {
+      "first": "One APIM path is recorded without its cache and encryption bindings.",
+      "impact": [
+        "Its effective cache settings are unclear.",
+        "The team cannot tell whether that path uses the intended cache."
+      ]
+    }
+  },
+  "azure_api_management_app_http_logs_enabled_21c108d": {
+    "FAIL": [
+      "Requests on that path may leave fewer useful log records.",
+      "The team could have less detail when investigating API use."
+    ],
+    "PASS": [
+      "Requests on those paths may have useful log records.",
+      "The team could have more detail when investigating API use."
+    ]
+  },
+  "azure_api_management_app_http_logs_enabled_9b3b56e": {
+    "FAIL": [
+      "Requests on that path may leave fewer useful log records.",
+      "The team could have less detail when investigating API use."
+    ],
+    "PASS": [
+      "Requests on those paths may have useful log records.",
+      "The team could have more detail when investigating API use."
+    ]
+  },
+  "azure_api_management_app_http_logs_enabled_9ef06db": {
+    "FAIL": [
+      "Requests on that path may leave fewer useful log records.",
+      "The team could have less detail when investigating API use."
+    ],
+    "PASS": [
+      "Requests on those paths may have useful log records.",
+      "The team could have more detail when investigating API use."
+    ]
+  },
+  "azure_api_management_appinsights_ensure_is_configured_42aac6a": {
+    "FAIL": [
+      "Those APIs may lack the intended tracing records.",
+      "The team could have less detail when investigating an API problem."
+    ],
+    "PASS": [
+      "Those APIs may have the intended tracing path.",
+      "The team could have more detail when investigating an API problem."
+    ]
+  },
+  "azure_app_service_app_function_latest_runtime_version_f50215a": {
+    "FAIL": [
+      "The Function may run outside its approved runtime or resource settings.",
+      "Its users could face an app issue the team did not plan for."
+    ],
+    "PASS": [
+      "The Function may run with the approved runtime and resource settings.",
+      "Its users could have more predictable app behavior."
+    ]
+  },
+  "azure_application_gateway_1_2_5_8_33a9d21": {
+    "FAIL": [
+      "That listener may accept weaker TLS settings than planned.",
+      "User data could have less protection in transit."
+    ],
+    "PASS": {
+      "first": "One HTTPS listener is recorded without its individual TLS policy value.",
+      "impact": [
+        "The listener’s minimum TLS setting is unclear.",
+        "The team cannot tell which transport policy protects its users."
+      ]
+    }
+  },
+  "azure_application_gateway_app_client_certificates_on_fcca0b8": {
+    "FAIL": [
+      "That listener may present a certificate outside the required Key Vault path.",
+      "Users could have less trust in the gateway connection."
+    ],
+    "PASS": {
+      "first": "One gateway listener is recorded without its Key Vault certificate binding.",
+      "impact": [
+        "The listener’s certificate source is unclear.",
+        "The team cannot tell whether users get the intended certificate."
+      ]
+    }
+  },
+  "azure_cosmos_account_10_2_1_1_13_5c115b0": {
+    "FAIL": [
+      "MongoDB requests may be missing from the chosen logs.",
+      "The team could have less detail when investigating database use."
+    ],
+    "PASS": {
+      "first": "One Cosmos DB account is recorded without its audit export settings.",
+      "impact": [
+        "The MongoDB request log path is unclear.",
+        "The team cannot tell whether requests reach the intended log destination."
+      ]
+    }
+  },
+  "azure_cosmos_account_10_2_1_1_23_e04a63d": {
+    "FAIL": [
+      "Some Cosmos DB activity may be missing from the chosen logs.",
+      "The team could have less detail when investigating database use."
+    ],
+    "PASS": {
+      "first": "One Cosmos DB account is recorded without its log export settings.",
+      "impact": [
+        "The activity log path is unclear.",
+        "The team cannot tell whether it reaches the intended destination."
+      ]
+    }
+  },
+  "azure_devops_project_1_2_8_6_fb0e5a8": {
+    "FAIL": [
+      "Someone who reads the URL may copy its embedded user detail.",
+      "A usable credential there could expose repository access."
+    ],
+    "PASS": {
+      "first": "One DevOps project is recorded without its clone URL user information.",
+      "impact": [
+        "The saved URL content is unclear.",
+        "The team cannot tell whether a URL includes a user detail."
+      ]
+    }
+  },
+  "azure_devops_project_6_5_5_2_2908a87": {
+    "FAIL": [
+      "That later stage may carry more deployment work than planned.",
+      "Users could face a crowded or delayed release."
+    ],
+    "PASS": {
+      "first": "One DevOps project is recorded without per-stage deployment job counts.",
+      "impact": [
+        "The stage workload is unclear.",
+        "The team cannot tell whether each stage stays within its chosen limit."
+      ]
+    }
+  },
+  "azure_diagnostic_setting_11_5_2_3_7959930": {
+    "FAIL": [
+      "The intended metric event may not reach its alert route.",
+      "The team could learn about a service problem later."
+    ],
+    "PASS": {
+      "first": "One expected metric alert is recorded without its individual settings.",
+      "impact": [
+        "Its enabled state and destination are unclear.",
+        "The team cannot tell whether the intended event would notify anyone."
+      ]
+    }
+  },
+  "azure_directory_user_sqlserver_azuread_administrator_enabled_1a9c5cf": {
+    "FAIL": [
+      "Users may lack the required Entra sign-in path to that database.",
+      "The team could have fewer ways to manage database access."
+    ],
+    "PASS": [
+      "Users may use the required Entra sign-in path to those databases.",
+      "The team could manage their access through approved identities."
+    ]
+  },
+  "azure_firewall_policy_6_4_1_7_a7975fc": {
+    "FAIL": [
+      "WAF traffic may miss a required managed rule.",
+      "Abusive requests could face fewer barriers before reaching the app."
+    ],
+    "PASS": [
+      "WAF traffic may pass through the required managed rules.",
+      "Abusive requests could face more barriers before reaching the app."
+    ]
+  },
+  "azure_firewall_policy_sqlserver_unrestricted_inbound_access_c12f86d": {
+    "FAIL": [
+      "Public clients may send requests to the database endpoint.",
+      "The server could receive more unwanted access attempts."
+    ],
+    "PASS": {
+      "first": "One SQL firewall policy is recorded without its deciding rule settings.",
+      "impact": [
+        "The allowed client range is unclear.",
+        "The team cannot tell which sources may send database requests."
+      ]
+    }
+  },
+  "azure_ml_workspace_1_2_8_36_33f50db": {
+    "FAIL": [
+      "That compute instance may use a network path outside the approved subnet.",
+      "People using its data could face a path the team did not intend."
+    ],
+    "PASS": {
+      "first": "One ML compute instance is recorded without its approved subnet binding.",
+      "impact": [
+        "Its network placement is unclear.",
+        "The team cannot tell whether it uses the intended subnet."
+      ]
+    }
+  },
+  "azure_ml_workspace_1_2_8_37_973721f": {
+    "FAIL": [
+      "That compute instance may use a public or direct Internet path.",
+      "The team could face more unwanted traffic toward private work."
+    ],
+    "PASS": {
+      "first": "One ML compute instance is recorded without its public IP and egress settings.",
+      "impact": [
+        "Its outward network paths are unclear.",
+        "The team cannot tell whether it follows the intended network plan."
+      ]
+    }
+  },
+  "azure_nsg_world_ingress_approved_ports": {
+    "FAIL": [
+      "Outside hosts may send traffic toward that port.",
+      "The service could face more unwanted connection attempts."
+    ],
+    "PASS": {
+      "first": "One NSG is recorded without its effective world-source rule details.",
+      "impact": [
+        "The allowed inbound ports are unclear.",
+        "The team cannot tell whether any outside source reaches an unapproved port."
+      ]
+    }
+  },
+  "azure_pci_1_2_8_19": {
+    "FAIL": [
+      "A caller may use an ingress path outside the approved set.",
+      "The Function could receive more unwanted requests."
+    ],
+    "PASS": [
+      "Callers may use the approved private or restricted paths.",
+      "The Function could receive fewer unwanted requests."
+    ]
+  },
+  "azure_pci_3_7_4_5": {
+    "FAIL": [
+      "That key may remain unchanged beyond the planned period.",
+      "A copied key could have more time to be reused."
+    ],
+    "PASS": [
+      "Those keys may follow the planned rotation schedule.",
+      "A copied key could have less time before a planned change."
+    ]
+  },
+  "azure_recovery_vault_10_3_3_1_1f42f66": {
+    "FAIL": [
+      "That database may lack a usable recent recovery point.",
+      "People could lose more work after a database failure."
+    ],
+    "PASS": {
+      "first": "One online database is recorded without its backup retention setting.",
+      "impact": [
+        "Its recovery point history is unclear.",
+        "The team cannot tell how far back its data can be restored."
+      ]
+    }
+  },
+  "azure_recovery_vault_10_3_3_8_26e08d7": {
+    "FAIL": [
+      "That SQL backup may not provide the planned recovery window.",
+      "People could lose more work after a database failure."
+    ],
+    "PASS": {
+      "first": "One SQL backup resource is recorded without its backup and retention values.",
+      "impact": [
+        "Its recovery window is unclear.",
+        "The team cannot tell how much data could be restored."
+      ]
+    }
+  },
+  "azure_search_service_10_6_3_27_ba08488": {
+    "FAIL": [
+      "A caller may see an index or document outside the approved boundary.",
+      "Private search data could reach an unwanted user."
+    ],
+    "PASS": [
+      "Callers may stay within the approved index and document boundaries.",
+      "Private search data could have fewer unwanted readers."
+    ]
+  },
+  "azure_security_pricing_compute_vm_security_configuration_vulnerabilities_remediated_64c8b1c": {
+    "FAIL": [
+      "A known configuration or vulnerability finding may remain open.",
+      "People using that VM could face a known weakness."
+    ],
+    "PASS": [
+      "Those assessed findings may no longer need action.",
+      "People using that VM could face less risk from those findings."
+    ]
+  },
+  "azure_sql_database_sqlserver_auditing_enabled_77d6841": {
+    "FAIL": [
+      "Some SQL activity may be missing from the chosen log destination.",
+      "The team could have less detail when investigating database use."
+    ],
+    "PASS": {
+      "first": "One SQL database is recorded without its log export settings.",
+      "impact": [
+        "Its audit path is unclear.",
+        "The team cannot tell whether activity reaches the chosen destination."
+      ]
+    }
+  },
+  "azure_storage_account_defender_ensure_defender_for_keyvault_is_on_2cabbc3": {
+    "FAIL": [
+      "Blob data may lack the planned customer key protection.",
+      "The team could have less control over a key used for stored files."
+    ],
+    "PASS": [
+      "Those Blob paths may use the planned customer key protection.",
+      "The team could have more control over a key used for stored files."
+    ]
+  },
+  "azure_storage_account_monitor_alert_create_update_sqlserver_fr_7a7ddfa": {
+    "FAIL": [
+      "A metric event may not reach its planned alert route.",
+      "The team could learn about a storage problem later."
+    ],
+    "PASS": {
+      "first": "One required storage metric is recorded without its alert settings.",
+      "impact": [
+        "Its enabled state and destination are unclear.",
+        "The team cannot tell whether the event would notify anyone."
+      ]
+    }
+  },
+  "azure_storage_account_sqlserver_auditing_enabled_e4e4b28": {
+    "FAIL": [
+      "SQL pool activity may miss the approved audit destination.",
+      "The team could have less detail when investigating database use."
+    ],
+    "PASS": {
+      "first": "One SQL pool is recorded without its audit destination.",
+      "impact": [
+        "Its activity log path is unclear.",
+        "The team cannot tell where its audit records would go."
+      ]
+    }
+  },
+  "azure_synapse_workspace_10_2_1_1_28_47f4840": {
+    "FAIL": [
+      "SQL pool data or activity may lack the intended protection.",
+      "The team could have less control over stored data or audit records."
+    ],
+    "PASS": {
+      "first": "One Synapse SQL pool is recorded without its encryption and audit bindings.",
+      "impact": [
+        "Its key and log paths are unclear.",
+        "The team cannot tell whether those paths match its plan."
+      ]
+    }
+  },
+  "azure_vm_1_2_8_10_1bd35d0": {
+    "FAIL": [
+      "The VM may run without a required configuration or with an unmet setting.",
+      "People using it could face a problem that setting was meant to prevent."
+    ],
+    "PASS": [
+      "The VM may run with the required DSC settings in place.",
+      "People using it could have the planned host configuration."
+    ]
+  },
+  "azure_vm_1_4_5_1_d40be43": {
+    "FAIL": [
+      "Outside hosts may send traffic toward that public address.",
+      "The VM could face more unwanted connection attempts."
+    ],
+    "PASS": {
+      "first": "One VM is recorded without its network interface public IP references.",
+      "impact": [
+        "Its public address path is unclear.",
+        "The team cannot tell whether outside hosts can address it directly."
+      ]
+    }
+  },
+  "azure_vm_8_2_1_1_712e1ad": {
+    "FAIL": [
+      "A holder of that key may try to sign in to the VM.",
+      "A copied private key could give someone unwanted VM access."
+    ],
+    "PASS": {
+      "first": "This VM declares no bootstrap SSH public keys.",
+      "impact": [
+        "That removes one configured key path to the VM.",
+        "People using it could face fewer attempts through that path."
+      ]
+    }
+  },
+  "azure_vm_vm_ensure_using_managed_disks_11f205b": {
+    "FAIL": [
+      "That disk may attach to or be removed with a different VM than planned.",
+      "People could lose access to stored data after an unexpected disk change."
+    ],
+    "PASS": {
+      "first": "One VM disk mapping is recorded without its attachment and delete settings.",
+      "impact": [
+        "Its disk ownership path is unclear.",
+        "The team cannot tell how that disk follows VM changes."
+      ]
+    }
+  }
+}

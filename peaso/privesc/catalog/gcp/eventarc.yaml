@@ -10,7 +10,7 @@
   title: Create an Eventarc Advanced pipeline that sends a service account's OAuth token to an attacker endpoint
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-eventarc-privesc.md#eventarcpipelinescreate--iamserviceaccountsactas--receive-an-oauth-token-for-a-service-account
   source_revision: 171e422
-  summary: The source can obtain an access token, and so the privileges, of any service account on which it holds iam.serviceAccounts.actAs, by routing bus events through a pipeline whose HTTPS destination it controls.
+  summary: A pipeline that uses a service account's OAuth identity could send its access token to a controlled HTTPS receiver, but only after an enrollment routes a matching bus event through that pipeline and the Eventarc service agent can mint the token.
   requires:
     all_of:
       - action: eventarc.pipelines.create
@@ -21,14 +21,14 @@
     kind: gcp_service_account
     selector:
       gcp_actas_granted_on_target: true
-      gcp_sa_in_scope_of_permission: true
-    scope: same_project
-    aggregate_as: "Service accounts usable as Eventarc pipeline OAuth identity in {project}"
+      gcp_eventarc_oauth_pipeline_path: true
+    scope: any
+    aggregate_as: "Service accounts reachable through Eventarc pipeline OAuth delivery"
   conditions:
     - id: enrollment
-      description: The source must also route bus events into the pipeline, with eventarc.enrollments.create plus eventarc.messageBuses.use on the bus, or eventarc.enrollments.update on an existing enrollment (create/use are not in the permission catalog, so this is kept as a condition).
+      description: The source must route bus events into the pipeline by creating an enrollment on a usable bus, updating an existing enrollment, or creating a bus that it can publish to. The pipeline and enrollment share a project; all three resources share a region, and the bus may belong to another project.
     - id: service_agent_token
-      description: The pipeline project's Eventarc service agent needs iam.serviceAccounts.getAccessToken on the SA (roles/eventarc.serviceAgent supplies it for same-project SAs; cross-project SAs need an explicit grant).
+      description: The pipeline project's Eventarc service agent must hold iam.serviceAccounts.getAccessToken on the selected SA, including an explicit grant when the SA is in another project.
     - id: matching_event
       description: At least one matching event must traverse the enrollment (a legitimate event, or one injected with eventarc.messageBuses.publish); enrollment, pipeline and bus must share a region.
     - id: reachable_receiver

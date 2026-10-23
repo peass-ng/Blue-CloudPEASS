@@ -1020,6 +1020,63 @@
           [
             {
               "type": "str",
+              "value": "configconnector"
+            },
+            {
+              "items": [
+                {
+                  "type": "str",
+                  "value": "/apis/core.cnrm.cloud.google.com/v1beta1/configconnectors"
+                },
+                {
+                  "type": "bool",
+                  "value": false
+                }
+              ],
+              "type": "tuple"
+            }
+          ],
+          [
+            {
+              "type": "str",
+              "value": "configconnectorcontext"
+            },
+            {
+              "items": [
+                {
+                  "type": "str",
+                  "value": "/apis/core.cnrm.cloud.google.com/v1beta1/configconnectorcontexts"
+                },
+                {
+                  "type": "bool",
+                  "value": true
+                }
+              ],
+              "type": "tuple"
+            }
+          ],
+          [
+            {
+              "type": "str",
+              "value": "configsync_rootsync"
+            },
+            {
+              "items": [
+                {
+                  "type": "str",
+                  "value": "/apis/configsync.gke.io/v1beta1/rootsyncs"
+                },
+                {
+                  "type": "bool",
+                  "value": true
+                }
+              ],
+              "type": "tuple"
+            }
+          ],
+          [
+            {
+              "type": "str",
               "value": "contour_http_proxy"
             },
             {
@@ -1559,6 +1616,63 @@
                 {
                   "type": "str",
                   "value": "/apis/batch/v1/jobs"
+                },
+                {
+                  "type": "bool",
+                  "value": true
+                }
+              ],
+              "type": "tuple"
+            }
+          ],
+          [
+            {
+              "type": "str",
+              "value": "kcc_iampartialpolicy"
+            },
+            {
+              "items": [
+                {
+                  "type": "str",
+                  "value": "/apis/iam.cnrm.cloud.google.com/v1beta1/iampartialpolicies"
+                },
+                {
+                  "type": "bool",
+                  "value": true
+                }
+              ],
+              "type": "tuple"
+            }
+          ],
+          [
+            {
+              "type": "str",
+              "value": "kcc_iampolicy"
+            },
+            {
+              "items": [
+                {
+                  "type": "str",
+                  "value": "/apis/iam.cnrm.cloud.google.com/v1beta1/iampolicies"
+                },
+                {
+                  "type": "bool",
+                  "value": true
+                }
+              ],
+              "type": "tuple"
+            }
+          ],
+          [
+            {
+              "type": "str",
+              "value": "kcc_project"
+            },
+            {
+              "items": [
+                {
+                  "type": "str",
+                  "value": "/apis/resourcemanager.cnrm.cloud.google.com/v1beta1/projects"
                 },
                 {
                   "type": "bool",
@@ -2511,6 +2625,30 @@
         "items": [
           {
             "type": "str",
+            "value": "configsync_rootsync"
+          },
+          {
+            "type": "str",
+            "value": "configconnector"
+          },
+          {
+            "type": "str",
+            "value": "configconnectorcontext"
+          },
+          {
+            "type": "str",
+            "value": "kcc_iampolicy"
+          },
+          {
+            "type": "str",
+            "value": "kcc_iampartialpolicy"
+          },
+          {
+            "type": "str",
+            "value": "kcc_project"
+          },
+          {
+            "type": "str",
             "value": "role"
           },
           {
@@ -3197,5 +3335,5 @@
   "source_epoch_archive_sha256": "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0",
   "source_epoch_receipt_sha256": "d542df25acc387f0dc8e2b97dc356fd3409b13b144b72f1260e447a400f42320",
   "source_epoch_sha256": "b697982d0e68aa616c24cd178a42baec45ac7385be2acdb65cb3b29feae5a69e",
-  "successor_source_sha256": "9333e323c8f5467a025f2afc99d4d7d8261d37ff84559c5916e8391a19ff75fd"
+  "successor_source_sha256": "2fffcd1809dfd128820a90e43adedc16a67a0fb941c316fc82f648cca5bc9b68"
 }

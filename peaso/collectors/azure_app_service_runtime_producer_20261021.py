@@ -16,7 +16,7 @@ def _unknown(reason):
 
 
 def collect_selected(reader, request, scopes, collections):
-    if not isinstance(scopes, list) or type(collections) is not list:
+    if not isinstance(scopes, list) or not isinstance(collections, list):
         raise ValueError('native Azure inventory context required')
     selected = {scope.casefold() for scope in scopes if type(scope) is str}
     for envelope in collections:

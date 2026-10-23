@@ -23,6 +23,7 @@ from peaso import gcp_cloudrun_job_image_function_source_successor_20261020 as j
 from peaso import gcp_positive_conservation_source_admission_successor_20261020 as canonical_source
 from peaso import secret_evidence as private_helper
 from peaso import private_secret_source_epoch_20261021 as private_source
+from peaso import private_reviewed_collector_successor_20261022 as reviewed_source
 
 _HISTORICAL_PAGE_REVIEWED_INPUTS = job_predecessor._HISTORICAL_PAGE_REVIEWED_INPUTS
 
@@ -35,7 +36,7 @@ SOURCE_DELTA_SHA256 = '6f803d15053fdccf982ab20883b76a72a821ef98f703192eba25c3a05
 BRIDGE_RECEIPT = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
 BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 PRIVATE_RECEIPT = 'peaso/checks/gcp_private_source_successor_20261021.json'
-PRIVATE_RECEIPT_SHA256 = '1aff0b1c5927b4dfeefdc9658ffd78f1e6725274bf9c6471ce114e6049264270'
+PRIVATE_RECEIPT_SHA256 = '31f20e996901c06e05d01ecf5786c2c65c0b7227ac0b97d3fc1963edd3a976c1'
 
 
 _MODULE_ARTIFACTS = ContextVar('gcp_positive_module_artifacts', default=None)
@@ -241,7 +242,7 @@ def _live_helper(root):
     if not path.is_relative_to(root / 'peaso') or Path(private_helper.__file__).resolve() != path:
         raise RuntimeError('Private helper location changed')
     raw = path.read_bytes()
-    if hashlib.sha256(private_source.predecessor_bytes('peaso/secret_evidence.py', raw,
+    if hashlib.sha256(reviewed_source.predecessor_bytes('peaso/secret_evidence.py', raw,
             private_source._HELPER_SHA256, root)).hexdigest() != private_source._HELPER_SHA256:
         raise RuntimeError('Private helper source changed')
     if sys.modules.get('peaso.secret_evidence') is not private_helper:
@@ -341,10 +342,10 @@ def _source_hash(name, data, expected, rows, root=None):
         return
     private_rows = private_source.source_rows()
     if name in private_rows:
-        before = private_source.predecessor_bytes(name, (root / name).read_bytes(),
+        before = reviewed_source.predecessor_bytes(name, (root / name).read_bytes(),
             private_rows[name]['before_sha256'], root)
         if hashlib.sha256(data).hexdigest() == private_rows[name]['after_sha256']:
-            data = private_source.predecessor_bytes(name, data,
+            data = reviewed_source.predecessor_bytes(name, data,
                 private_rows[name]['before_sha256'], root)
     if name in rows:
         if expected != rows[name]['before_sha256'] or hashlib.sha256(data).hexdigest() != rows[name]['after_sha256']:
@@ -383,7 +384,7 @@ def _live_leaf(root, rows):
                 and isinstance(value.__closure__, tuple) and len(value.__closure__) == 1
                 and value.__closure__[0].cell_contents is vars(module)[parts[0]])
             if qualified in changed:
-                proof = private_source.trusted_definition(value, root)
+                proof = reviewed_source.trusted_definition(value, root)
                 if proof['historical']['file_sha256'] != rows[name]['after_sha256']:
                     raise RuntimeError('GCP positive conservation private leaf predecessor changed: ' + name + ':' + qualified)
                 continue
@@ -407,7 +408,7 @@ def reviewed_inputs(root=None):
         owner = vars(module).get(class_name)
         if not isinstance(owner, type):
             raise RuntimeError('Private transport class missing: ' + module_name)
-        proof = private_source.trusted_definition(vars(owner)['request'], root)
+        proof = reviewed_source.trusted_definition(vars(owner)['request'], root)
         if proof['historical']['path'] != module_name.replace('.', '/') + '.py':
             raise RuntimeError('Private transport source changed: ' + module_name)
     raw = (root / RECEIPT).read_bytes()
@@ -419,7 +420,7 @@ def reviewed_inputs(root=None):
         raise RuntimeError('Functions page predecessor receipt changed')
     receipt = json.loads(page_raw)
     current = (root / 'peaso/collectors/gcp.py').read_bytes()
-    current = private_source.predecessor_bytes('peaso/collectors/gcp.py', current,
+    current = reviewed_source.predecessor_bytes('peaso/collectors/gcp.py', current,
         private_source.source_rows()['peaso/collectors/gcp.py']['before_sha256'], root)
     if hashlib.sha256(current).hexdigest() != delta['collector_after_sha256']:
         raise RuntimeError('Job image collector successor changed')
@@ -467,7 +468,7 @@ def reviewed_inputs(root=None):
                 if source_bytes(name, actual, row['sha256'], root) != data:
                     raise RuntimeError('Functions inherited scanner predecessor changed')
             elif name in private_source.source_rows():
-                before = private_source.predecessor_bytes(name, actual,
+                before = reviewed_source.predecessor_bytes(name, actual,
                     private_source.source_rows()[name]['before_sha256'], root)
                 if before != data:
                     raise RuntimeError('Functions inherited private predecessor changed: ' + name)
@@ -512,7 +513,7 @@ def reviewed_inputs(root=None):
                 from peaso import rawv2_private_source_successor_20261021 as scanner_proof
                 scanner_proof.verify_scanner(root)
             elif row['qualname'] in names or (row['path'] == 'peaso/collectors/gcp.py' and row['qualname'] == 'Transport.request'):
-                current_proof = private_source.trusted_definition(function, root)
+                current_proof = reviewed_source.trusted_definition(function, root)
                 if current_proof['historical']['file_sha256'] != finite['before_sha256']:
                     raise RuntimeError('Functions private callable predecessor changed: ' + qualified)
         if (not isinstance(function, types.FunctionType) or inspect.unwrap(function) is not function

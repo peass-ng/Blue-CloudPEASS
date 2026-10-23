@@ -308,7 +308,9 @@ def test_k8s_namespace_bind_path_requires_exact_cluster_admin_role():
             {"apiGroups": ["rbac.authorization.k8s.io"], "resources": ["rolebindings"],
              "verbs": ["create"]},
         ], {"kind": "ServiceAccount", "name": "default", "namespace": "a"})
-        result = real(k8s([role], [binding]), technique)
+        cluster_admin = kobj("ClusterRole", "cluster-admin", rules=[
+            {"apiGroups": ["*"], "resources": ["*"], "verbs": ["*"]}])
+        result = real(k8s([role, cluster_admin], [binding]), technique)
         assert set(reached(result, source, technique)) == expected
 
 
@@ -327,7 +329,16 @@ def test_k8s_openshift_techniques_need_openshift_api():
     assert [f for f in plain["findings"] if f["check_id"] in OPENSHIFT_IDS] == []
     assert not any("openshift" in str(c.get("reason")) for c in plain["coverage"])
     ocp = real(k8s([r], [b], groups=("apps", "security.openshift.io")), *OPENSHIFT_IDS)
-    assert statuses(ocp, "k8s-openshift-privileged-default-projects") == ["FAIL"]
+    assert statuses(ocp, "k8s-openshift-privileged-default-projects") == ["MANUAL"]
+    collected = k8s([r], [b], groups=("apps", "security.openshift.io"))
+    collected["collections"].extend(snapshot("k8s", [
+        ("admission_policy", "*", [], "empty"),
+        ("admission_configuration", "*", [], "empty"),
+    ])["collections"])
+    next(c for c in collected["collections"] if c["type"] == "node")["items"][0]["status"] = {
+        "conditions": [{"type": "Ready", "status": "True"}]}
+    assert statuses(real(collected, "k8s-openshift-privileged-default-projects"),
+                    "k8s-openshift-privileged-default-projects") == ["FAIL"]
     no_discovery = k8s([r], [b])
     no_discovery["collections"] = [c for c in no_discovery["collections"] if c["type"] != "api_discovery"]
     assert statuses(real(no_discovery, "k8s-openshift-privileged-default-projects", include_unknown=True),
@@ -352,9 +363,11 @@ def test_k8s_phantom_service_account_only_for_dangling_and_impersonation():
     r, b = grant("pods", "a", [{"apiGroups": [""], "resources": ["pods"], "verbs": ["create"]},
                                {"apiGroups": [""], "resources": ["serviceaccounts"], "verbs": ["impersonate", "create"]}],
                  {"kind": "User", "name": "dev"})
-    ghost = kobj("RoleBinding", "ghost-b", "a", roleRef={"kind": "Role", "name": "pods"},
+    secret_reader = kobj("Role", "secret-reader", "a", rules=[
+        {"apiGroups": [""], "resources": ["secrets"], "verbs": ["get"]}])
+    ghost = kobj("RoleBinding", "ghost-b", "a", roleRef={"kind": "Role", "name": "secret-reader"},
                  subjects=[{"kind": "ServiceAccount", "name": "ghost", "namespace": "a"}])
-    result = real(k8s([r], [b, ghost]), "k8s-workloads-pods-create", "k8s-rbac-impersonate-serviceaccounts",
+    result = real(k8s([r, secret_reader], [b, ghost]), "k8s-workloads-pods-create", "k8s-rbac-impersonate-serviceaccounts",
                   "k8s-rbac-dangling-serviceaccount-reference")
     phantom = "k8s:c1:sa:a:ghost"
     assert phantom not in reached(result, "k8s:c1:user:dev", "k8s-workloads-pods-create")
@@ -1105,3 +1118,52 @@ def test_gcp_with_joined_k8s_counts_cross_snapshot_edges_and_labels_groups_k8s()
     assert result["stats"]["cross_snapshot_edges"] == len(cross) >= 1
     alone = real(gcp, "gcp-container-secrets-read-ksa-token-secret")
     assert alone["stats"]["cross_snapshot_edges"] == 0
+
+
+_CROSS_PROJECT_SERVICES = {
+    "run": ("run.services.create",),
+    "run_job": ("run.jobs.create", "run.jobs.run"),
+    "cloudbuild": ("cloudbuild.builds.create",),
+    "workflows": ("workflows.workflows.create", "workflows.executions.create"),
+}
+_CROSS_PROJECT_AGENTS = {
+    "run": "serverless-robot-prod.iam.gserviceaccount.com",
+    "run_job": "serverless-robot-prod.iam.gserviceaccount.com",
+    "cloudbuild": "gcp-sa-cloudbuild.iam.gserviceaccount.com",
+    "workflows": "gcp-sa-workflows.iam.gserviceaccount.com",
+}
+_CROSS_PROJECT_IDS = {
+    "run": "gcp-run-services-create-cross-project-actas",
+    "run_job": "gcp-run-jobs-create-run-cross-project-actas",
+    "cloudbuild": "gcp-cloudbuild-builds-create-cross-project-actas",
+    "workflows": "gcp-workflows-create-cross-project-actas",
+}
+
+
+def _cross_project_run_snapshot(policy=False, agent_grant=True, host_access=True, disabled=False, mechanism="run"):
+    host, target = "projects/host", "projects/target"
+    sa = "a@target.iam.gserviceaccount.com"
+    agent = "service-100@" + _CROSS_PROJECT_AGENTS[mechanism]
+    sa_bindings = [{"role": "roles/iam.serviceAccountUser", "members": ["user:u@x.com"]}]
+    if agent_grant:
+        sa_bindings.append({"role": "roles/iam.serviceAccountTokenCreator", "members": ["serviceAccount:" + agent]})
+    rows = [] if policy is None else [{"constraint": "iam.disableCrossProjectServiceAccountUsage",
+                                      "spec": {"rules": [{"enforce": policy}]}}]
+    return snapshot("gcp", [
+        ("project", host, [{"projectId": "host", "name": "projects/100"}], "collected"),
+        ("project", target, [{"projectId": "target", "name": "projects/200"}], "collected"),
+        ("iam_role", host, [{"name": host + "/roles/creator", "includedPermissions":
+                              list(_CROSS_PROJECT_SERVICES[mechanism]) if host_access else []}], "collected"),
+        ("iam_policy", host, [{"name": host, "bindings": [
+            {"role": host + "/roles/creator", "members": ["user:u@x.com"]}]}], "collected"),
+        ("service_account", target, [{"email": sa, "projectId": "target", "disabled": disabled,
+                                      "iamPolicy": {"bindings": sa_bindings}}], "collected"),
+        ("service_usage", host, ([{"name": host + "/services/cloudbuild.googleapis.com", "state": "ENABLED"}]
+                                 if mechanism == "cloudbuild" else
+                                 [{"name": host + "/services/run.googleapis.com", "state": "ENABLED"}]
+                                 if mechanism in ("run", "run_job") else []), "collected"),
+        ("org_policy_effective", target, rows, "collected"),
+        ("iam_deny_policy", host, [], "empty"),
+        ("iam_deny_policy", target, [], "empty"),
+        ("service_perimeter", host, [], "empty"),
+        ("service_perimeter", target, [], "empty")])

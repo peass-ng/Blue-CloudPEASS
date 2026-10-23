@@ -53,7 +53,7 @@ def combined_predecessor_catalog(value):
     assert hashlib.sha256(prior_raw).hexdigest()==PRIOR_CURRENT_PRIVESC_SUCCESSOR_SHA256
     prior=json.loads(gzip.decompress(prior_raw))
     successor_raw=(Path(__file__).with_name('fixtures')/'current_privesc_catalog_successor_20261022.json.gz').read_bytes()
-    assert hashlib.sha256(successor_raw).hexdigest()=='4e8e649a376c118a0f8e94690abf2bd3eeaed006f94e66409155117e8ae50b83'
+    assert hashlib.sha256(successor_raw).hexdigest()=='83175377a9cb40da8a250eb44833ad17e742631314e9c0a534515ec643e9813b'
     successor=json.loads(gzip.decompress(successor_raw))
     assert set(successor['top_changes'])=={'privesc_catalog','privesc_techniques','inventories','inventory_coverage'}
     assert successor['before_catalog_sha256']==archived['before_catalog_sha256']

@@ -1781,11 +1781,11 @@
   }
  },
  "aws-compliance.control.elasticache_cluster_no_public_subnet": {
-  "disposition": "ported",
+  "disposition": "merged",
   "native_checks": [
-   "aws.c2b.elasticache.cluster_public_subnet"
+   "aws.c2b.elasticache.cluster_public_subnet_prowler"
   ],
-  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "reason": "The reviewed Steampipe NAT-route false positive is corrected to require an internet-gateway default route; the surviving Prowler predicate applies that same public-subnet criterion.",
   "official_docs": [
    "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CacheCluster.html",
    "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CacheSubnetGroup.html"
@@ -7404,16 +7404,16 @@
   }
  },
  "prowler.aws.ecs_service_no_assign_public_ip": {
-  "disposition": "ported",
+  "disposition": "merged",
   "native_checks": [
-   "aws.c2b.ecs.service_no_public_ip"
+   "aws.c2b.ecs.awsvpc_service_no_public_ip"
   ],
-  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "reason": "The surviving native predicate evaluates assignPublicIp only for awsvpc services; other ECS network modes are not applicable to that setting.",
   "official_docs": [
    "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Service.html",
    "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-2"
   ],
-  "review_notes": "Prowler: FAIL only when assignPublicIp is ENABLED; services without an awsvpc network configuration PASS.",
+  "review_notes": "Prowler fails awsvpc services when assignPublicIp is ENABLED; the native predicate treats other network modes as not applicable.",
   "reviewed_source": {
    "repository": "prowler-cloud/prowler",
    "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",

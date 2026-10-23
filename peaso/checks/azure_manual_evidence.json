@@ -1,0 +1,61 @@
+{
+  "azure.claude.servicebus_namespace_private_link": {
+    "required": {
+      "reason": "Provider reports no private endpoint connection information"
+    },
+    "lines": [
+      "No private endpoint connection information is recorded for this Service Bus namespace.",
+      "Its private network path is unclear.",
+      "The team cannot tell how message clients could use that path."
+    ]
+  },
+  "azure.claude.sql_database_va_findings_resolved": {
+    "required": {
+      "reason": "No vulnerability assessment scan records exist for this database"
+    },
+    "lines": [
+      "No vulnerability scan records exist for this SQL database.",
+      "There are no recent scan findings to review.",
+      "The team cannot tell whether known weaknesses remain in its data settings."
+    ]
+  },
+  "azure.claude.sql_server_vulnerability_assessment_enabled": {
+    "required": {
+      "reason": "Classic VA storage is not configured and express configuration was not collected"
+    },
+    "lines": [
+      "Classic vulnerability storage is not set, and express settings are missing.",
+      "The server’s vulnerability scan state is unclear.",
+      "The team cannot tell whether database weaknesses are being found."
+    ]
+  },
+  "azure.iam.no_full_custom_role": {
+    "required": {
+      "wildcard_blocks_with_exclusions": [
+        {
+          "actions": [
+            "*"
+          ],
+          "notActions": [
+            "Microsoft.Compute/*"
+          ]
+        }
+      ]
+    },
+    "lines": [
+      "This custom role allows all actions except Microsoft Compute actions.",
+      "Its remaining grants may still be broad.",
+      "Resource owners could face wider access than intended."
+    ]
+  },
+  "azure.port.keyvault_vault_private_link_used": {
+    "required": {
+      "reason": "Known omitted/null connection metadata maps to pinned INFO; no approved link observed"
+    },
+    "lines": [
+      "This vault has no approved private link recorded, and connection details are missing.",
+      "Its private network path is unclear.",
+      "The team cannot tell how vault clients could use that path."
+    ]
+  }
+}

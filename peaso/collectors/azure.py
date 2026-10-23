@@ -29,6 +29,7 @@ from . import azure_adaptive_network_native
 from . import azure_conditional_access_native
 from . import azure_identity_enforcement_review_20261020
 from . import azure_access_reviews_native
+from . import azure_entitlement_native
 from . import azure_database_native
 from . import azure_vault_key_versions_native
 from . import azure_functions_runtime_native
@@ -56,6 +57,11 @@ from . import azure_ai_services_native
 from . import azure_application_compute_2_native
 from . import azure_acr_public_ip_review_20261020
 from . import azure_automation_aci_metadata_native_20261020
+from . import azure_devtestlab_native
+from . import azure_agent_identity_native
+from . import azure_containerapp_runtime
+from . import azure_containerapp_jobs
+from . import azure_mongo_cluster_metadata
 from . import azure_remaining_services_1_native
 from . import azure_native_contract_closure_20261020
 from peaso.snapshot import make_snapshot
@@ -105,14 +111,16 @@ ENDPOINTS = {
     "cognitive_account": ("Microsoft.CognitiveServices/accounts", "2024-10-01"),
     "app_configuration": ("Microsoft.AppConfiguration/configurationStores", "2024-06-01"),
     "data_factory": ("Microsoft.DataFactory/factories", "2018-06-01"),
+    "devtest_lab": ("Microsoft.DevTestLab/labs", "2018-09-15"),
     "api_management": ("Microsoft.ApiManagement/service", "2024-05-01"),
+    "analysis_server": ("Microsoft.AnalysisServices/servers", "2017-08-01"),
     "search_service": ("Microsoft.Search/searchServices", "2023-11-01"),
     "managed_identity": ("Microsoft.ManagedIdentity/userAssignedIdentities", "2023-01-31"),
     "container_registry": ("Microsoft.ContainerRegistry/registries", "2023-07-01"),
     "cosmos_account": ("Microsoft.DocumentDB/databaseAccounts", "2024-05-15"),
     "purview_account": ("Microsoft.Purview/accounts", "2021-12-01"),
     "databox_job": ("Microsoft.DataBox/jobs", "2025-07-01"),
-    "mongo_cluster": ("Microsoft.DocumentDB/mongoClusters", "2024-05-15"),
+    "mongo_cluster": ("Microsoft.DocumentDB/mongoClusters", "2025-09-01"),
     "databricks_workspace": ("Microsoft.Databricks/workspaces", "2024-05-01"),
     "kusto_cluster": ("Microsoft.Kusto/clusters", "2024-04-13"),
     'vm_scale_set': ('Microsoft.Compute/virtualMachineScaleSets', '2024-07-01'),
@@ -192,6 +200,8 @@ ACTIVITY_SELECT = ("eventTimestamp,submissionTimestamp,operationName,operationId
                    "resourceProviderName,resourceGroupName,eventDataId,category,level,correlationId,subscriptionId,tenantId")
 # Parent embeds are authoritative child GET/list responses, with field coverage.
 EMBEDDED_LISTS = {
+    "batch_account": (("pools", "pools", "2025-06-01"),),
+    "vm_scale_set": (("virtualMachines", "virtualMachines", "2024-07-01"),),
     "app_service": (("slots", "slots", "2023-12-01"), ("vnetConnections", "virtualNetworkConnections", "2023-12-01")),
     # Webhooks: metadata only (the invocation URI is a bearer secret and is never kept).
     "automation_account": (("variables", "variables", "2023-11-01"), ("webhooks", "webhooks", "2015-10-31")),
@@ -208,13 +218,15 @@ EMBEDDED_LISTS = {
     "ml_workspace": (("privateEndpointConnections", "privateEndpointConnections", "2024-04-01"),),
     "recovery_vault": (("backupPolicies", "backupPolicies", "2024-04-01"), ("backupProtectedItems", "backupProtectedItems", "2024-04-01"),
                        ("backupJobs", "backupJobs", "2024-04-01")),
-    "mssql_managed_instance": (("encryptionProtectors", "encryptionProtector", "2023-08-01"), ("vulnerabilityAssessments", "vulnerabilityAssessments", "2023-08-01"),
+    "mssql_managed_instance": (("instanceAdministrators", "administrators", "2023-08-01"),
+                               ("azureADOnlyAuthentications", "azureADOnlyAuthentications", "2023-08-01"),
+                               ("encryptionProtectors", "encryptionProtector", "2023-08-01"), ("vulnerabilityAssessments", "vulnerabilityAssessments", "2023-08-01"),
                                ("databases", "databases", "2021-11-01")),
     "storage_account": (("blobContainers", "blobServices/default/containers", "2023-05-01"), ("encryptionScopes", "encryptionScopes", "2023-05-01"),
                         ("eventSubscriptions", "providers/Microsoft.EventGrid/eventSubscriptions", "2022-06-15"),
                         ("localUsers", "localUsers", "2023-05-01")),
     "arc_kubernetes_cluster": (("extensions", "providers/Microsoft.KubernetesConfiguration/extensions", "2023-05-01"),),
-    "sql_server": (("serverAdministrators", "administrators", "2023-08-01"), ("virtualNetworkRules", "virtualNetworkRules", "2023-08-01"), ("firewallRules", "firewallRules", "2023-08-01"), ("securityAlertPolicies", "securityAlertPolicies", "2023-08-01")),
+    "sql_server": (("serverAdministrators", "administrators", "2023-08-01"), ("azureADOnlyAuthentications", "azureADOnlyAuthentications", "2023-08-01"), ("virtualNetworkRules", "virtualNetworkRules", "2023-08-01"), ("firewallRules", "firewallRules", "2023-08-01"), ("securityAlertPolicies", "securityAlertPolicies", "2023-08-01")),
     "synapse_workspace": (("sqlPools", "sqlPools", "2021-06-01"), ("firewallRules", "firewallRules", "2021-06-01"),
                           ("workspaceVulnerabilityAssessments", "vulnerabilityAssessments", "2021-06-01")),
     "sql_database": (("backupShortTermRetentionPolicies", "backupShortTermRetentionPolicies", "2023-08-01"),
@@ -227,6 +239,7 @@ EMBEDDED_SINGLETONS = {
     "app_service": (("configuration", "config/web", "2023-12-01"), ("authSettingsV2", "config/authsettingsV2", "2025-03-01"), ("logsConfiguration", "config/logs", "2023-12-01"),
                     # Microsoft.Web/sites/basicPublishingCredentialsPolicies/read: only the allow flag is kept.
                     ("scmBasicAuthPolicy", "basicPublishingCredentialsPolicies/scm", "2023-12-01"), ("ftpBasicAuthPolicy", "basicPublishingCredentialsPolicies/ftp", "2023-12-01")),
+    "app_service_slot": (("scmBasicAuthPolicy", "basicPublishingCredentialsPolicies/scm", "2023-12-01"),),
     "eventhub_namespace": (("networkRuleSet", "networkRuleSets/default", "2024-01-01"),),
     "servicebus_namespace": (("networkRuleSet", "networkRuleSets/default", "2022-10-01-preview"),),
     "sql_server": (("vulnerabilityAssessment", "vulnerabilityAssessments/default", "2023-08-01"), ("expressVulnerabilityAssessment", "sqlVulnerabilityAssessments/default", "2023-08-01-preview"), ("encryptionProtector", "encryptionProtector/current", "2023-08-01")),
@@ -304,6 +317,33 @@ def _network_platform_native_identity(row, scope, kind):
 def _child_rows(rows, parent_id, field):
     if any(not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"].lower().startswith(parent_id.lower() + "/") for row in rows):
         raise ValueError("malformed or foreign embedded child identity")
+    if field == "pools":
+        seen, safe = set(), []
+        for row in rows:
+            rid = row["id"]
+            identity = row.get("identity") or {}
+            props = row.get("properties")
+            if (not re.fullmatch(re.escape(parent_id + "/pools/") + r"[^/?#%\\\s]+", rid, re.I)
+                    or str(row.get("type", "")).casefold() != "microsoft.batch/batchaccounts/pools"
+                    or not isinstance(props, dict) or not isinstance(identity, dict)
+                    or rid.casefold() in seen):
+                raise ValueError("duplicate or malformed native Batch pool")
+            seen.add(rid.casefold())
+            assignments = identity.get("userAssignedIdentities") or {}
+            if not isinstance(assignments, dict) or any(
+                    not isinstance(key, str) or not isinstance(detail, dict)
+                    for key, detail in assignments.items()):
+                raise ValueError("malformed Batch pool identities")
+            safe.append({"id": rid, "name": row.get("name"), "type": row["type"],
+                         "identity": {"type": identity.get("type"),
+                                      "userAssignedIdentities": {key: {name: value for name, value in detail.items()
+                                                                       if name in ("principalId", "clientId")}
+                                                                 for key, detail in assignments.items()}},
+                         "properties": {key: value for key, value in props.items()
+                                        if key in ("provisioningState", "allocationState", "currentDedicatedNodes",
+                                                   "currentLowPriorityNodes", "targetDedicatedNodes",
+                                                   "targetLowPriorityNodes", "enableAutoScale")}})
+        return safe
     if field == "flowLogs":
         seen = set()
         for row in rows:
@@ -318,9 +358,9 @@ def _child_rows(rows, parent_id, field):
                or str(row.get("type", "")).casefold() != "microsoft.web/sites/slots"
                or not isinstance(row.get("properties"), dict) for row in rows):
             raise ValueError("foreign or malformed native App Service slot")
-    if field in ("configurations", "firewallRules", "administrators", "diagnosticSettings", "backupPolicies", "serverAdministrators", "virtualNetworkRules", "securityAlertPolicies", "vulnerabilityAssessmentScans", "vulnerabilityAssessments", "encryptionProtectors"):
+    if field in ("configurations", "firewallRules", "administrators", "diagnosticSettings", "backupPolicies", "serverAdministrators", "instanceAdministrators", "azureADOnlyAuthentications", "virtualNetworkRules", "securityAlertPolicies", "vulnerabilityAssessmentScans", "vulnerabilityAssessments", "encryptionProtectors"):
         segment = ("providers/Microsoft.Insights/diagnosticSettings" if field == "diagnosticSettings" else
-                   "administrators" if field == "serverAdministrators" else
+                   "administrators" if field in ("serverAdministrators", "instanceAdministrators") else
                    "encryptionProtector" if field == "encryptionProtectors" else
                    "vulnerabilityAssessments/default/scans" if field == "vulnerabilityAssessmentScans" else field)
         parent_type = re.split(r"/providers/", parent_id, maxsplit=1, flags=re.I)[1].rsplit("/", 1)[0]
@@ -335,6 +375,22 @@ def _child_rows(rows, parent_id, field):
                     or row["name"].casefold() != row["id"].rsplit("/", 1)[-1].casefold()
                     or not isinstance(row.get("properties"), dict)):
                 raise ValueError("foreign or malformed native embedded child")
+    if field == "azureADOnlyAuthentications":
+        if (len(rows) != 1 or rows[0]["name"].casefold() != "default"
+                or type(rows[0]["properties"].get("azureADOnlyAuthentication")) is not bool):
+            raise ValueError("missing or malformed native SQL authentication mode")
+        row = rows[0]
+        return [{"id": row["id"], "name": row["name"], "type": row["type"],
+                 "parent_id": parent_id,
+                 "properties": {"azureADOnlyAuthentication": row["properties"]["azureADOnlyAuthentication"]}}]
+    if field in ("serverAdministrators", "instanceAdministrators"):
+        if len(rows) > 1 or any(row["name"].casefold() != "activedirectory" for row in rows):
+            raise ValueError("malformed native SQL administrator list")
+        return [{"id": row["id"], "name": row["name"], "type": row["type"],
+                 "parent_id": parent_id,
+                 "properties": {key: value for key, value in row["properties"].items()
+                                if key in ("sid", "login", "tenantId", "administratorType")}}
+                for row in rows]
     paths = {"privateEndpointConnections": "privateEndpointConnections", "managedNamespaces": "managedNamespaces",
              "eventHubs": "eventhubs", "authorizationRules": "authorizationRules", "disasterRecoveryConfigs": "disasterRecoveryConfigs",
              "tokens": "tokens", "scopeMaps": "scopeMaps", "cacheRules": "cacheRules",
@@ -388,9 +444,11 @@ def _child_rows(rows, parent_id, field):
                  "properties": {key: data for key, data in row.get("properties", {}).items() if key in ("publisher", "type", "provisioningState", "autoUpgradeMinorVersion")}} for row in rows]
     if field == "configurations":
         # Database configuration endpoints can contain credential-shaped options.
-        allowed = {"audit_log_enabled", "audit_log_events", "tls_version", "require_secure_transport", "log_checkpoints", "connection_throttle.enable", "connection_throttling", "log_retention_days", "logfiles.retention_days", "log_connections", "log_disconnections", "log_duration"}
+        allowed = {"audit_log_enabled", "audit_log_events", "tls_version", "require_secure_transport", "log_checkpoints", "connection_throttle.enable", "connection_throttling", "log_retention_days", "logfiles.retention_days", "log_connections", "log_disconnections", "log_duration", "aad_auth_only"}
         return [{**{key: data for key, data in row.items() if key in ("id", "name", "type")}, "parent_id": parent_id,
-                 "properties": {"value": row.get("properties", {}).get("value")}} for row in rows if row.get("name") in allowed]
+                 "properties": {key: data for key, data in row.get("properties", {}).items()
+                                if key in ("value", "isReadOnly", "isDynamicConfig")}}
+                for row in rows if row.get("name") in allowed]
     if field == "variables":
         # Unencrypted Automation variables return their value; only metadata is kept.
         return [{**{key: data for key, data in row.items() if key in ("id", "name", "type")}, "parent_id": parent_id,
@@ -573,7 +631,7 @@ def _embed(reader, request, parents, diagnostics=None, skip=()):
                                               "properties": {name: data for name, data in row["properties"].items() if name == "recurringScans"}})
                         yield projected
                         continue
-                    if field in ("backupJobs", "backupProtectedItems", "configurations", "firewallRules", "administrators", "diagnosticSettings", "backupPolicies", "slots", "serverAdministrators", "virtualNetworkRules", "securityAlertPolicies", "vulnerabilityAssessmentScans", "vulnerabilityAssessments", "encryptionProtectors"):
+                    if field in ("backupJobs", "backupProtectedItems", "configurations", "firewallRules", "administrators", "diagnosticSettings", "backupPolicies", "slots", "serverAdministrators", "instanceAdministrators", "azureADOnlyAuthentications", "virtualNetworkRules", "securityAlertPolicies", "vulnerabilityAssessmentScans", "vulnerabilityAssessments", "encryptionProtectors"):
                         distinct = []
                         for row in page:
                             identity = row.get("id") if isinstance(row, dict) else None
@@ -650,10 +708,10 @@ DIRECTORY = {
     "user_registration_detail": "reports/authenticationMethods/userRegistrationDetails?$select=id,isMfaCapable,isMfaRegistered,userPrincipalName",
     "directory_role": "directoryRoles?$select=id,displayName,roleTemplateId",
     "directory_setting": "groupSettings",
-    "directory_user": "users?$select=id,displayName,userPrincipalName,accountEnabled,userType,signInActivity",
-    "directory_group": "groups?$select=id,displayName,securityEnabled,groupTypes,isAssignableToRole,membershipRule,membershipRuleProcessingState,visibility",
+    "directory_user": "users?$select=id,displayName,userPrincipalName,accountEnabled,userType,creationType,externalUserState,identities,onPremisesImmutableId,signInActivity",
+    "directory_group": "groups?$select=id,displayName,securityEnabled,mailEnabled,groupTypes,isAssignableToRole,membershipRule,membershipRuleProcessingState,visibility,onPremisesSyncEnabled",
     "directory_service_principal": "servicePrincipals?$select=id,appId,appOwnerOrganizationId,displayName,servicePrincipalType,alternativeNames,accountEnabled,appRoles,passwordCredentials,keyCredentials,preferredSingleSignOnMode,createdDateTime",
-    "directory_application": "applications?$select=id,appId,displayName,requiredResourceAccess,signInAudience,passwordCredentials,keyCredentials",
+    "directory_application": "applications?$select=id,appId,displayName,requiredResourceAccess,signInAudience,passwordCredentials,keyCredentials,servicePrincipalLockConfiguration",
     "directory_role_assignment": "roleManagement/directory/roleAssignments",
     "directory_role_definition": "roleManagement/directory/roleDefinitions",
     "directory_audit": "auditLogs/directoryAudits",
@@ -663,14 +721,20 @@ DIRECTORY = {
     "directory_role_eligibility_instance": "roleManagement/directory/roleEligibilityScheduleInstances?$select=id,principalId,roleDefinitionId,directoryScopeId,startDateTime,endDateTime,memberType",
     "directory_role_assignment_instance": "roleManagement/directory/roleAssignmentScheduleInstances?$select=id,principalId,roleDefinitionId,directoryScopeId,startDateTime,endDateTime,memberType",
     "directory_oauth2_permission_grant": "oauth2PermissionGrants?$select=id,clientId,consentType,principalId,resourceId,scope",
+    azure_entitlement_native.PARENT: "identityGovernance/entitlementManagement/accessPackages?$select=id,catalogId,displayName",
+    azure_entitlement_native.CATALOG: "identityGovernance/entitlementManagement/catalogs?$select=id,displayName",
+    azure_entitlement_native.ROLE_ASSIGNMENT: "roleManagement/entitlementManagement/roleAssignments?$select=id,principalId,roleDefinitionId,appScopeId,directoryScopeId",
 }
+DIRECTORY.update(azure_agent_identity_native.ENDPOINTS)
 DIRECTORY_SINGLETONS = {
     "authentication_methods_policy": "policies/authenticationMethodsPolicy",
+    "temporary_access_pass_policy": "policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass",
     "directory_authorization_policy": "policies/authorizationPolicy",
     "directory_security_defaults": "policies/identitySecurityDefaultsEnforcementPolicy",
     "directory_device_registration_policy": "policies/deviceRegistrationPolicy",
 }
 TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIRECTORY_SINGLETONS) + (
+    azure_entitlement_native.RESOURCE, azure_entitlement_native.CATALOG_RESOURCE,
     *azure_network_catalog.CHILDREN,
     *azure_aks_legacy_projection_review_20261020.NATIVE_TYPES,
     *azure_application_compute_2_native.NATIVE_TYPES,
@@ -683,11 +747,13 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     "subnet", "vnet_peering", "effective_route", "security_admin_rule", "service_tag", "diagnostic_setting", "storage_service", "sql_database",
     "sql_firewall_rule", "sql_audit", "sql_security", "secret_metadata", "dns_record",
     "private_dns_link", "directory_membership", "azure_unused_iam_evidence", "azure_unused_role_evidence", "azure_unused_arm_role_evidence", "azure_unused_iam_user_success_evidence",
+    "directory_group_pim_policy", "directory_group_pim_owner_policy",
+    "directory_group_eligibility_schedule", "directory_group_eligibility_instance", "directory_role_pim_policy",
     "app_service_config", "app_service_identity_detail", "sql_tde",
     "directory_app_role_assignment", "directory_owner", "directory_administrative_unit_member",
     "managed_identity_federated_credential", "key_metadata", "key_rotation_policy", "key_vault_certificate_current",
     'key_vault_key', 'key_vault_certificate', 'key_vault_certificate_policy', 'flow_log', 'virtual_network_gateway', 'subscription_diagnostic_setting', 'subscription_tenant_policy', 'backup_protected_item', 'backup_policy', 'sql_database_ltr_policy', 'sql_vulnerability_assessment', 'sql_encryption_protector', 'storage_container', 'storage_encryption_scope',
-    "app_service_slot", "automation_variable", "apim_native", "apim_api_evidence", "azure_sw24_evidence", "application_scope", "service_principal_scope",
+    "app_service_slot", "automation_variable", "batch_pool", *azure_devtestlab_native.CHILDREN, azure_containerapp_runtime.KIND, *azure_containerapp_jobs.NATIVE_TYPES, "apim_native", "apim_api_evidence", "azure_sw24_evidence", "application_scope", "service_principal_scope",
     "directory_federated_credential", "directory_cba_configuration",
     "ml_compute", "management_group_descendant", "mysql_single_configuration", "bot_cmk_key", "defender_pricing", "diagnostic_category",
     "azure_diagnostic_eligible_resource", "databricks_account_workspace",
@@ -711,7 +777,7 @@ FULL_GET_KINDS = frozenset({"load_balancer", "public_ip", "recovery_vault", "vm"
                             "hdinsight_cluster", "firewall_policy", "log_analytics_cluster",
                             "image_template",
                             "postgresql_single_server", "mysql_single_server", "mariadb_server", "aks_cluster",
-                            "action_group", "bot_service", "databox_job", "purview_account",
+                            "action_group", "bot_service", "databox_job", "purview_account", "mongo_cluster",
                             "integration_service_environment"})
 
 
@@ -1564,9 +1630,11 @@ def _selected(options, requirements):
     if selected.intersection(azure_nsp_query_cmk_runtime_20261020.KINDS):
         selected.add("subscription")
     selected.update(azure_identity_enforcement_review_20261020.required_types(selected))
+    selected.update(azure_entitlement_native.required_types(selected))
     selected.update(azure_application_compute_2_native.required_types(selected))
     selected.update(azure_acr_public_ip_review_20261020.required_types(selected))
     selected.update(azure_automation_aci_metadata_native_20261020.required_types(selected))
+    selected.update(azure_devtestlab_native.required_types(selected))
     if "activity_log_coverage" in selected:
         selected.add("activity_log")
     if azure_subnet_firewall_policy.active(options):
@@ -1614,6 +1682,9 @@ def _selected(options, requirements):
         selected.add("directory_service_principal")
     if "directory_membership" in selected:
         selected.add("directory_group")
+    if selected.intersection(("directory_group_pim_policy", "directory_group_pim_owner_policy",
+                              "directory_group_eligibility_schedule", "directory_group_eligibility_instance")):
+        selected.add("directory_group")
     # This evidence kind is shared with subscription-scoped Guest Configuration.
     # Only the directory-user consumer requests the tenant-scoped MFA producer.
     if "azure_sw18_evidence" in selected and "directory_user" in selected:
@@ -1650,6 +1721,8 @@ def _selected(options, requirements):
         selected.add("app_service")
     if "automation_variable" in selected:
         selected.add("automation_account")
+    if "batch_pool" in selected:
+        selected.add("batch_account")
     if "mysql_single_configuration" in selected:
         selected.add("mysql_single_server")
     if "bot_cmk_key" in selected:
@@ -2116,7 +2189,7 @@ def collect(connector, requirements=None, *, transport=None):
                 jobs.append(("subscription_diagnostic_setting", scope, "Microsoft.Insights", subscription_diagnostics))
         # Query each selected subscription before detail reads. The discovery
         # collection is retained even when only downstream inventories are wanted.
-        need_resources = wanted.intersection(set(ENDPOINTS) | {"diagnostic_setting", "subnet", "vnet_peering", "secret_metadata", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "dns_record", "private_dns_link", "resource_graph", "app_service_config", "app_service_identity_detail", "sql_tde", "managed_identity_federated_credential", "key_metadata", "key_rotation_policy", "key_vault_certificate_policy", "sql_vulnerability_assessment", "sql_encryption_protector", "storage_container", "storage_encryption_scope", "app_service_slot", "automation_variable"})
+        need_resources = wanted.intersection(set(ENDPOINTS) | {"diagnostic_setting", "subnet", "vnet_peering", "secret_metadata", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "dns_record", "private_dns_link", "resource_graph", "app_service_config", "app_service_identity_detail", "sql_tde", "managed_identity_federated_credential", "key_metadata", "key_rotation_policy", "key_vault_certificate_policy", "sql_vulnerability_assessment", "sql_encryption_protector", "storage_container", "storage_encryption_scope", "app_service_slot", "automation_variable", "batch_pool"} | set(azure_devtestlab_native.CHILDREN))
         if need_resources and not functions_native_only:
             # One Resource Graph query covers a batch of subscriptions (ARG
             # throttles per caller at ~15 queries/5 s; per-subscription queries
@@ -2164,6 +2237,8 @@ def collect(connector, requirements=None, *, transport=None):
                         yield page
                 jobs.append((native_kind, scope, "Microsoft.Resources", resource_list))
         reader.run(jobs)
+        azure_containerapp_runtime.collect(reader, request, scopes, wanted)
+        azure_containerapp_jobs.collect(reader, request, scopes, wanted)
         if wanted.intersection(("azure_resource", "resource")) == {"azure_resource", "resource"}:
             reader.collections.extend({**row, "type": "resource"} for row in list(reader.collections)
                                       if row["type"] == "azure_resource")
@@ -2220,7 +2295,7 @@ def collect(connector, requirements=None, *, transport=None):
                                 yield page
                 jobs.append(("virtual_network_gateway", scope, "Microsoft.Network", gateways))
         # Discovery supplies IDs; ARM GET provides authoritative current details.
-        child_dependencies = {"subnet": "vnet", "vnet_peering": "vnet", "storage_service": "storage_account", "sql_database": "sql_server", "sql_firewall_rule": "sql_server", "sql_audit": "sql_server", "sql_security": "sql_server", "secret_metadata": "vault", "dns_record": "dns_zone", "private_dns_link": "private_dns_zone", "app_service_config": "app_service", "app_service_identity_detail": "app_service", "sql_tde": "sql_server", "managed_identity_federated_credential": "managed_identity", "key_metadata": "vault", "key_rotation_policy": "vault", "key_vault_certificate_policy": "vault", "sql_vulnerability_assessment": "sql_server", "sql_encryption_protector": "sql_server", "storage_container": "storage_account", "storage_encryption_scope": "storage_account", "app_service_slot": "app_service", "automation_variable": "automation_account", "apim_native": "api_management"}
+        child_dependencies = {"batch_pool": "batch_account", "subnet": "vnet", "vnet_peering": "vnet", "storage_service": "storage_account", "sql_database": "sql_server", "sql_firewall_rule": "sql_server", "sql_audit": "sql_server", "sql_security": "sql_server", "secret_metadata": "vault", "dns_record": "dns_zone", "private_dns_link": "private_dns_zone", "app_service_config": "app_service", "app_service_identity_detail": "app_service", "sql_tde": "sql_server", "managed_identity_federated_credential": "managed_identity", "key_metadata": "vault", "key_rotation_policy": "vault", "key_vault_certificate_policy": "vault", "sql_vulnerability_assessment": "sql_server", "sql_encryption_protector": "sql_server", "storage_container": "storage_account", "storage_encryption_scope": "storage_account", "app_service_slot": "app_service", "automation_variable": "automation_account", "apim_native": "api_management"}
         parents = wanted.intersection(ENDPOINTS) | {parent for child, parent in child_dependencies.items() if child in wanted}
         parents |= azure_network_catalog.required_parents(wanted)
         if "diagnostic_setting" in wanted:
@@ -2352,6 +2427,8 @@ def collect(connector, requirements=None, *, transport=None):
                                 _remaining_services_private_links(result, kind)
                                 if kind in FULL_GET_KINDS:
                                     result = azure_swc.full_detail(result, kind, version)
+                                if kind == "mongo_cluster":
+                                    result = azure_mongo_cluster_metadata.project(result)
                                 if kind in ("frontdoor", "cdn_profile"):
                                     result = azure_frontdoor_native.metadata_projection(result)
                                 result = azure_swc.list_detail(result, kind)
@@ -2630,11 +2707,13 @@ def collect(connector, requirements=None, *, transport=None):
             reader.collections.extend(collect_apim(reader, request, reader.collections))
         # Basic-auth policies are only read when sites themselves were requested,
         # not when app_service is merely the parent of app_service_config.
-        skipped_embeds = set() if "app_service" in wanted else {"scmBasicAuthPolicy", "ftpBasicAuthPolicy"}
+        skipped_embeds = set() if "app_service" in wanted or "app_service_slot" in wanted else {"scmBasicAuthPolicy", "ftpBasicAuthPolicy"}
         # LTR copies may span many pages. Only their declared consumer needs
         # that inventory; short-term backup checks must not enumerate it.
         if "sql_ltr_backup" not in wanted:
             skipped_embeds.add("longTermRetentionBackups")
+        if "batch_pool" not in wanted:
+            skipped_embeds.add("pools")
         _embed(reader, request, embedded_parents, known_diagnostics, skipped_embeds)
         azure_swc.collect_nested_metadata(reader, request, embedded_parents)
         azure_network_catalog.collect_children(reader, request, scopes, wanted)
@@ -2696,6 +2775,7 @@ def collect(connector, requirements=None, *, transport=None):
         azure_application_compute_2_native.collect_synapse_sql_private_endpoints(reader, request, reader.collections, wanted)
         azure_acr_public_ip_review_20261020.collect(reader, request, scopes, wanted)
         azure_automation_aci_metadata_native_20261020.collect(reader, request, scopes, wanted)
+        azure_devtestlab_native.collect(reader, request, scopes, wanted)
         # Authoritative parent gathers reduce to one complete subscription scope.
         derived = {
             "flow_log": ("network_watcher", "flowLogs"), "backup_protected_item": ("recovery_vault", "backupProtectedItems"), "backup_policy": ("recovery_vault", "backupPolicies"), "backup_job": ("recovery_vault", "backupJobs"),
@@ -2705,6 +2785,7 @@ def collect(connector, requirements=None, *, transport=None):
             "sql_database_ltr_policy": ("sql_database", "backupLongTermRetentionPolicies"), "sql_ltr_backup": ("sql_database", "longTermRetentionBackups"), "sql_restore_point": ("sql_database", "restorePoints"), "sql_vulnerability_assessment": ("sql_server", "vulnerabilityAssessment"), "sql_encryption_protector": ("sql_server", "encryptionProtector"),
             "managed_instance_database": ("mssql_managed_instance", "databases"),
             "app_service_slot": ("app_service", "slots"), "automation_variable": ("automation_account", "variables"),
+            "batch_pool": ("batch_account", "pools"),
         }
         for output, (parent_kind, field) in derived.items():
             if output not in wanted:
@@ -2738,6 +2819,11 @@ def collect(connector, requirements=None, *, transport=None):
                 status = "partial" if bad and items else bad if bad else "collected" if items else "empty"
                 reader.collections.append({"type": output, "scope": scope, "service": service_for('azure', output, service_for('azure', parent_kind)), "status": status, "items": items,
                                            **({"error": {"code": "parent_inventory_incomplete"}} if bad else {})})
+        if "app_service_slot" in wanted:
+            slot_parents = [("app_service_slot", item) for collection in reader.collections
+                            if collection["type"] == "app_service_slot" for item in collection["items"]
+                            if isinstance(item.get("properties"), dict)]
+            _embed(reader, request, slot_parents)
         azure_swc.collect_managed_instance_tde(reader, request, scopes, wanted)
         storage_jobs = []
         for collection in reader.collections:
@@ -2792,9 +2878,17 @@ def collect(connector, requirements=None, *, transport=None):
                             if kind == 'named_location':
                                 for row in page:
                                     azure_remaining_services_1_native.graph_identity(kind, row)
+                            if kind in azure_agent_identity_native.ENDPOINTS:
+                                page = [azure_agent_identity_native.project(kind, row) for row in page]
+                                for row in page:
+                                    if row["id"].casefold() in seen_graph:
+                                        raise ValueError("duplicate Graph agent identity")
+                                    seen_graph.add(row["id"].casefold())
                             if kind in ("directory_application", "directory_service_principal", "directory_user",
                                         "directory_group", "user_registration_detail", "directory_role_assignment",
-                                        "directory_role_definition", "directory_role_eligibility_schedule",
+                                        "directory_role_definition", azure_entitlement_native.PARENT,
+                                        azure_entitlement_native.CATALOG, azure_entitlement_native.ROLE_ASSIGNMENT,
+                                        "directory_role_eligibility_schedule",
                                         "directory_role_eligibility_instance", "directory_role_assignment_instance"):
                                 for row in page:
                                     rid = row.get("id") if isinstance(row, dict) else None
@@ -2852,6 +2946,7 @@ def collect(connector, requirements=None, *, transport=None):
                     yield rows
             jobs.append(("directory_cba_configuration", tenant_scope, "Microsoft.Graph", cba_configuration))
         reader.run(jobs)
+        azure_entitlement_native.collect(reader, request, wanted, tenant_scope, GRAPH)
         for aggregate_kind, parent_kind in (("application_scope", "directory_application"),
                                              ("service_principal_scope", "directory_service_principal")):
             if aggregate_kind not in wanted:
@@ -2877,6 +2972,85 @@ def collect(connector, requirements=None, *, transport=None):
                                        **({"error": parent["error"]} if item is None and parent is not None and "error" in parent else {})})
         object_collections = {kind: [item for c in reader.collections if c["type"] == kind for item in c["items"]]
                               for kind in ("directory_application", "directory_service_principal", "directory_group", "directory_administrative_unit")}
+        for kind, endpoint in (("directory_group_eligibility_schedule", "eligibilitySchedules"),
+                               ("directory_group_eligibility_instance", "eligibilityScheduleInstances")):
+            if kind not in wanted:
+                continue
+            jobs = []
+            for group in object_collections["directory_group"]:
+                group_id = group.get("id")
+                if not isinstance(group_id, str) or not group_id:
+                    continue
+                query = urlencode({"$filter": f"groupId eq '{group_id}'"})
+                url = GRAPH + "/v1.0/identityGovernance/privilegedAccess/group/" + endpoint + "?" + query
+                def eligibility_rows(url=url, group_id=group_id):
+                    for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                        for row in page:
+                            if (not isinstance(row, dict) or not isinstance(row.get("id"), str)
+                                    or str(row.get("groupId", "")).casefold() != group_id.casefold()
+                                    or not isinstance(row.get("principalId"), str)
+                                    or str(row.get("accessId", "")).casefold() not in ("member", "owner")):
+                                raise ValueError("malformed or cross-group PIM eligibility")
+                        yield page
+                jobs.append((kind, tenant_scope + "/groups/" + group_id, "Microsoft.Graph", eligibility_rows))
+            reader.run(jobs)
+            parents = [c for c in reader.collections if c["type"] == "directory_group" and c["scope"] == tenant_scope]
+            parent_states = {c["status"] for c in parents}
+            if not parents or not parent_states <= {"collected", "empty"}:
+                reader.collections.append({"type": kind, "scope": tenant_scope, "service": "Microsoft.Graph",
+                                           "status": "not_collected" if not parents else next(iter(sorted(parent_states - {"collected", "empty"}))),
+                                           "items": [], "error": {"code": "parent_inventory_unavailable"}, "parent_inventory": "directory_group"})
+            elif not jobs:
+                reader.collections.append({"type": kind, "scope": tenant_scope, "service": "Microsoft.Graph",
+                                           "status": "empty", "items": [], "parent_inventory": "directory_group"})
+        if "directory_role_pim_policy" in wanted:
+            query = urlencode({"$filter": "scopeId eq '/' and scopeType eq 'DirectoryRole'",
+                               "$expand": "policy($expand=rules)"})
+            url = GRAPH + "/v1.0/policies/roleManagementPolicyAssignments?" + query
+            def role_policy_rows():
+                for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                    for row in page:
+                        if (not isinstance(row, dict) or not isinstance(row.get("id"), str)
+                                or row.get("scopeId") != "/"
+                                or str(row.get("scopeType", "")).casefold() not in ("directoryrole", "directory")
+                                or not isinstance(row.get("roleDefinitionId"), str)
+                                or not isinstance(row.get("policy"), dict)):
+                            raise ValueError("malformed directory PIM policy assignment")
+                    yield page
+            reader.run([("directory_role_pim_policy", tenant_scope, "Microsoft.Graph", role_policy_rows)])
+        for policy_kind, access_id in (("directory_group_pim_policy", "member"),
+                                       ("directory_group_pim_owner_policy", "owner")):
+            if policy_kind not in wanted:
+                continue
+            jobs = []
+            for group in object_collections["directory_group"]:
+                group_id = group.get("id")
+                if not isinstance(group_id, str) or not group_id:
+                    continue
+                query = urlencode({"$filter": f"scopeId eq '{group_id}' and scopeType eq 'Group' and roleDefinitionId eq '{access_id}'",
+                                   "$expand": "policy($expand=rules)"})
+                url = GRAPH + "/v1.0/policies/roleManagementPolicyAssignments?" + query
+                def policy_rows(url=url, group_id=group_id, access_id=access_id):
+                    for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                        for row in page:
+                            if (not isinstance(row, dict) or not isinstance(row.get("id"), str)
+                                    or str(row.get("scopeId", "")).casefold() != group_id.casefold()
+                                    or str(row.get("roleDefinitionId", "")).casefold() != access_id
+                                    or not isinstance(row.get("policy"), dict)):
+                                raise ValueError("malformed or cross-group PIM policy assignment")
+                        yield page
+                jobs.append((policy_kind, tenant_scope + "/groups/" + group_id,
+                             "Microsoft.Graph", policy_rows))
+            reader.run(jobs)
+            parents = [c for c in reader.collections if c["type"] == "directory_group" and c["scope"] == tenant_scope]
+            parent_states = {c["status"] for c in parents}
+            if not parents or not parent_states <= {"collected", "empty"}:
+                reader.collections.append({"type": policy_kind, "scope": tenant_scope,
+                                           "service": "Microsoft.Graph", "status": "not_collected" if not parents else next(iter(sorted(parent_states - {"collected", "empty"}))),
+                                           "items": [], "error": {"code": "parent_inventory_unavailable"}, "parent_inventory": "directory_group"})
+            elif not jobs:
+                reader.collections.append({"type": policy_kind, "scope": tenant_scope,
+                                           "service": "Microsoft.Graph", "status": "empty", "items": [], "parent_inventory": "directory_group"})
         if "directory_owner" in wanted or "directory_administrative_unit_member" in wanted:
             jobs = []
             owner_types = (("directory_application", "applications", "application"),

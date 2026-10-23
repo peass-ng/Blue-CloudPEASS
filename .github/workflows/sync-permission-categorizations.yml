@@ -59,15 +59,15 @@ jobs:
         with:
           python-version: '3.12'
       - name: Fetch canonical privesc paths and cited pages with retries
-        run: python scripts/fetch_hacktricks_permissions.py --destination .canonical-source --with-privesc
+        run: python scripts/fetch_hacktricks_permissions.py --destination .canonical-source --with-privesc --require-privesc --revision-file risk_rules/hacktricks-privesc-source.json
       - name: Install offline validation dependencies
         run: python -m pip install --retries 5 --timeout 30 'PyYAML>=6' 'pytest>=8'
       - name: Synchronize and verify canonical privesc paths
         # Upstream content is schema-validated before writing; conflicting edits and dropped
         # technique ids without a reviewed ledger fail this step and leave the branch unchanged.
         run: |
-          python scripts/sync_hacktricks_privesc.py --book-root .canonical-source --allow-missing-upstream
-          python scripts/sync_hacktricks_privesc.py --book-root .canonical-source --allow-missing-upstream --check
+          python scripts/sync_hacktricks_privesc.py --book-root .canonical-source
+          python scripts/sync_hacktricks_privesc.py --book-root .canonical-source --check
           python -m pytest -q tests/test_privesc_sync.py tests/test_peaso_privesc_schema_ext_jsonschema.py
       - name: Commit changed privesc catalog
         env:

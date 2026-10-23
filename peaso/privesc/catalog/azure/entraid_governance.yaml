@@ -19,6 +19,8 @@
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entra-id-governance-privesc.md#catalog-scoped-self-grant-privesc
   source_revision: 171e422
   summary: A Catalog owner or Access package manager can package a group already in its catalog behind a no-approval policy (an assignment manager can assign an existing package) and obtain membership or ownership of that group.
+  source_selector:
+    source_reaches_kind: azure_user
   requires:
     all_of: []
     any_of:
@@ -34,6 +36,7 @@
     kind: entra_group
     selector:
       entra_resource_in_catalog: true
+      entra_catalog_self_grant_group: true
     scope: tenant
     aggregate_as: "Groups in Entitlement Management catalogs managed by the source"
   conditions:
@@ -58,6 +61,8 @@
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entra-id-governance-privesc.md#catalog-scoped-self-grant-privesc
   source_revision: 171e422
   summary: A catalog manager can package a Microsoft Entra role already added to its catalog behind a no-approval policy and obtain that role.
+  source_selector:
+    source_reaches_kind: azure_user
   requires:
     all_of: []
     any_of:
@@ -73,6 +78,7 @@
     kind: entra_role
     selector:
       entra_resource_in_catalog: true
+      entra_catalog_self_grant_role: true
     scope: tenant
     aggregate_as: "Entra roles in Entitlement Management catalogs managed by the source"
   conditions:
@@ -93,27 +99,31 @@
   provider: azure
   service: entraid
   title: Create an auto-assignment policy that keeps re-granting catalog groups
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entra-id-governance-privesc.md#auto-assignment-policy-abuse-persistence
-  source_revision: 658a097d5c
-  summary: An Identity Governance Administrator or EntitlementManagement.ReadWrite.All holder can attach an automatic-assignment policy matching an attribute it controls and obtain, and keep re-obtaining, the groups packaged in any catalog.
+  source: src/pentesting-cloud/azure-security/az-persistence/az-entra-id-governance-persistence.md#auto-assignment-policy-abuse-persistence
+  source_revision: 9689c125e1
+  summary: An Identity Governance Administrator or app with EntitlementManagement.ReadWrite.All can add an automatic-assignment policy to an existing access package that grants a group Member role to a user it controls.
   requires:
-    all_of: []
     any_of:
       - - graph_app_permission: EntitlementManagement.ReadWrite.All
       - - entra_role: Identity Governance Administrator
+          scope: "/"
+  source_selector:
+    source_reaches_kind: azure_user
   target:
     kind: entra_group
     selector:
-      entra_resource_in_catalog: true
+      entra_auto_assignment_package_group: true
     scope: tenant
-    aggregate_as: "Groups in Entitlement Management catalogs"
+    aggregate_as: "Groups granted as members by existing access packages"
   conditions:
-    - id: regrant_on_every_cycle
-      description: The policy re-evaluates and re-grants on each cycle, so removing the assignment alone is undone.
+    - id: automatic_assignment_evaluation
+      description: The tenant needs Identity Governance licensing, a supported rule matching a controlled user, and successful policy evaluation to issue the assignment.
+    - id: delegated_graph_scope
+      description: A delegated user needs an app with EntitlementManagement.ReadWrite.All scope to create the policy.
   blockers: []
   confidence: conditional
   severity: high
   mitigation: Alert on automatic-assignment policy creation and review policies whose attribute rules match few or external principals.
   references:
     - https://learn.microsoft.com/en-us/entra/id-governance/entitlement-management-access-package-auto-assignment-policy
-  notes: Persistence variant of azure-entraid-entitlement-catalog-self-grant-group; the reached set is the same groups.
+  notes: This path uses an existing access package with the target group's Member role, not any group merely present in a catalog. A user source can target itself; an app-only source needs a separately modeled path to a user it controls. Graph app-only permission must be an enabled role on the Microsoft Graph service principal. The policy can reassign access while the user still matches its rule.

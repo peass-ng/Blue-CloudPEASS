@@ -17,11 +17,11 @@
   requires:
     all_of:
       - action: Microsoft.Logic/workflows/write
-        scope: '{target.host_resource}'
+        scope: '*'
   target:
     kind: azure_managed_identity
     selector:
-      attached_to_service: Microsoft.Logic/workflows
+      azure_logicapp_existing_identity_path: true
     scope: inherited_scope
     aggregate_as: Identities of Logic App {target.host_resource}
   conditions:
@@ -29,7 +29,7 @@
       description: 'The modified workflow must run: a recurrence/event trigger, triggers/run/action, or a callback URL.'
   blockers:
     - azure_deny_assignment
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict workflows/write and keep workflow identities least-privileged.
   references:
@@ -40,21 +40,20 @@
   provider: azure
   service: logic_apps
   title: Create or update a workflow with a user-assigned identity
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftresourcessubscriptionsresourcegroupsread-microsoftlogicworkflowsread-microsoftlogicworkflowswrite--microsoftmanagedidentityuserassignedidentitiesassignaction--microsoftlogicworkflowstriggersrunaction
-  source_revision: 171e422
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#assign-a-user-assigned-identity-to-a-writable-workflow
+  source_revision: 85987e6273
   summary: The source can obtain the privileges of user-assigned identities assignable in scope.
   requires:
     all_of:
       - action: Microsoft.ManagedIdentity/userAssignedIdentities/assign/action
-        scope: '{target.id}'
+        scope: '*'
       - action: Microsoft.Logic/workflows/write
-        scope: '{pivot}'
-  pivot_resource_type: Microsoft.Resources/resourceGroups|Microsoft.Logic/workflows
+        scope: '*'
   target:
     kind: azure_managed_identity
     selector:
       managed_identity_type: user_assigned
-      azure_identity_assignable_in_scope: true
+      azure_logicapp_assign_uami_path: true
     scope: inherited_scope
     aggregate_as: User-assigned identities assignable in {scope}
   conditions:
@@ -62,7 +61,7 @@
       description: 'The workflow must run: triggers/run/action, a callback URL, or a recurrence trigger.'
   blockers:
     - azure_deny_assignment
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict userAssignedIdentities/assign/action and workflows/write.
   references:

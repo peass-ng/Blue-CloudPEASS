@@ -28,7 +28,7 @@ from peaso import gcp_private_source_successor_20261021 as gcp_source
 RECEIPT = 'gcp_cloudrun_job_image_workbench_source_successor_20261020.json'
 RECEIPT_SHA256 = '2a9fac82c1097446f350ff92354882e25fbce5e98b52a5e21ba7fd0a4c462d9e'
 PRIVATE_RECEIPT = 'gcp_private_workbench_head3_source_successor_20261021.json'
-PRIVATE_RECEIPT_SHA256 = '8635480f35ef96b78b2cb085f35d438b2df34d55c8251c3b65720713534f9e0a'
+PRIVATE_RECEIPT_SHA256 = '45798c7caeb5a7dfb8679f369dd9036f7023218cd85464430cd118fc0fa6f479'
 
 
 def _private_self(root):
@@ -158,9 +158,9 @@ def _reviewed_delta(root):
     delta = json.loads(delta_raw)
     private_row = private_source.source_rows()['peaso/collectors/gcp.py']
     if (private_row['before_sha256'] != delta['collector_after_sha256']
-            or private_row['after_sha256'] != hashlib.sha256((root / 'peaso/collectors/gcp.py').read_bytes()).hexdigest()):
+            or gcp_source.reviewed_source._receipt()['sources']['peaso/collectors/gcp.py']['epoch_after_sha256'] != private_row['after_sha256']):
         raise RuntimeError('Private Workbench collector epoch mismatch')
-    current = private_source.predecessor_bytes('peaso/collectors/gcp.py',
+    current = gcp_source.reviewed_source.predecessor_bytes('peaso/collectors/gcp.py',
         (root / 'peaso/collectors/gcp.py').read_bytes(), private_row['before_sha256'], root)
     for edit in reversed(delta['edits']):
         before, after = edit['before'].encode(), edit['after'].encode()

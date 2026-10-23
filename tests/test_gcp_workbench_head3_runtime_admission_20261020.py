@@ -1,6 +1,6 @@
 """Focused real registry/normal-engine Workbench admission and fault proof."""
 from copy import deepcopy
-from tests.shared_admission_epoch_compatibility_20261020 import copy_workbench_inputs, workbench_file_at_epoch
+from tests.shared_admission_epoch_compatibility_20261020 import workbench_file_at_epoch
 import gzip
 import hashlib
 import inspect
@@ -40,6 +40,10 @@ class NativeHTTP:
 
     def request(self, method, url, **kwargs):
         self.calls.append((method, url))
+        policy = re.fullmatch(r'https://notebooks.googleapis.com/v2/(projects/[^/]+)/locations/[^/]+/instances/[^/]+:getIamPolicy', url)
+        if policy:
+            assert method == 'GET' and policy[1] in self.rows
+            return {'bindings': [], 'version': 3}, 'wb-policy-' + policy[1].split('/')[1]
         match = re.fullmatch(r'https://notebooks.googleapis.com/v2/(projects/[^/]+)/locations/-/instances', url)
         assert method == 'GET' and match and match[1] in self.rows
         if self.denied:
@@ -64,7 +68,7 @@ def collect(rows, **transport_options):
         'inventories': ['workbench_instance'], 'include_inherited': False,
         'metrics_scopes': False, 'concurrency': 1}}
     snapshot = gcp.GCPCollector(connector, requirements=['workbench_instance'], transport=transport).collect()
-    assert len(transport.calls) == len(rows)
+    assert sum(url.endswith('/instances') for _, url in transport.calls) == len(rows)
     return snapshot, transport
 
 
@@ -105,7 +109,7 @@ def test_normal_engine_native_row(cid, case, expected):
     snapshot, transport = collect({SCOPE: [native]})
     output = findings(snapshot, [cid])
     assert {finding['status'] for finding in output} == {expected}, output
-    assert len(transport.calls) == 1
+    assert sum(url.endswith('/instances') for _, url in transport.calls) == 1
     assert 'unsupported-expression' not in json.dumps([f['evidence'] for f in output])
 
 
@@ -133,7 +137,7 @@ def test_multi_asset_multi_project_and_saved_json_replay_use_only_existing_list(
     path.write_text(json.dumps(snapshot))
     replay = findings(json.loads(path.read_text()))
     assert replay == original
-    assert len(transport.calls) == 2
+    assert sum(url.endswith('/instances') for _, url in transport.calls) == 2
 
 
 def test_actual_registered_predicates_cases_and_default_metadata_plan():
@@ -217,17 +221,20 @@ def test_actual_engine_source_substitution_is_unknown_and_restored_is_pass(monke
     assert {f['status'] for f in findings(snapshot)} == {'PASS'}
 
 
-def test_disk_source_negative_current_baseline_and_restored_in_isolated_copy(tmp_path):
-    receipt, _ = admission.reviewed_inputs()
-    copy_workbench_inputs(tmp_path, receipt)
-    admission.reviewed_inputs(tmp_path)
-    path = tmp_path / 'peaso/checks/gcp_workbench_head3_proposal_20261020.py'
-    original = path.read_bytes()
-    path.write_bytes(original + b'\n# substituted source witness\n')
-    with pytest.raises(RuntimeError, match='reviewed source changed'):
-        admission.reviewed_inputs(tmp_path)
-    path.write_bytes(original)
-    admission.reviewed_inputs(tmp_path)
+def test_disk_source_negative_current_baseline_and_restored(monkeypatch):
+    admission.reviewed_inputs()
+    path = Path(__file__).resolve().parents[1] / 'peaso/checks/gcp_workbench_head3_proposal_20261020.py'
+    original = Path.read_bytes
+
+    def substituted(candidate):
+        raw = original(candidate)
+        return raw + b'\n# substituted source witness\n' if candidate.resolve() == path else raw
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, 'read_bytes', substituted)
+        with pytest.raises((RuntimeError, ValueError), match='(reviewed source changed|current source mismatch)'):
+            admission.reviewed_inputs()
+    admission.reviewed_inputs()
 
 
 def test_preserved_accepted_proposal_bytes_and_exact_legacy_registry_predicates():
@@ -282,4 +289,4 @@ def test_coherent_init_normal_snapshot(status):
     output = findings(snapshot)
     assert sum(finding['status'] == status for finding in output) == 3
     assert sum(finding['status'] == 'NOT_APPLICABLE' for finding in output) == (3 if status == 'PASS' else 0)
-    assert len(transport.calls) == 1
+    assert sum(url.endswith('/instances') for _, url in transport.calls) == 1

@@ -1,6 +1,6 @@
 # Kubernetes privilege-escalation catalog ledger (HackTricks Cloud 329aec912e90)
 
-The row classification below started at historical revision `329aec912e90`. At HackTricks Cloud [PR #481](https://github.com/HackTricks-wiki/hacktricks-cloud/pull/481) head `4202559da3`, its rows cover **422 of 422 headings across 50 scoped Kubernetes and OpenShift pages**. The 2026-10-16 strict catalog review now has **72 active techniques and 221 exclusions**. Four exact reviewed-evidence variants activate Argo CD remote credentials, static Google keys, GKE RBAC self-grants, and Kiam/Kube2IAM role credentials; metadata-only guesses remain excluded. The Kubernetes HackTricks change moves secret-copy, admission-bypass, generic API operations, host-file reads, controller/status side effects, and OpenShift label discovery out of the privilege-escalation section; their exclusion links below follow the destination pages. The [PR #479 interim snapshot](privesc-k8s-pr479-head.md) is historical and should not be read as the final PR #481 heading count.
+The row classification below started at historical revision `329aec912e90`. At HackTricks Cloud [PR #481](https://github.com/HackTricks-wiki/hacktricks-cloud/pull/481) head `4202559da3`, its rows cover **422 of 422 headings across 50 scoped Kubernetes and OpenShift pages**. The current automatic catalog has **80 Kubernetes techniques**; the reconciliation section below records additions since that heading sweep. Four exact reviewed-evidence variants activate Argo CD remote credentials, static Google keys, GKE RBAC self-grants, and Kiam/Kube2IAM role credentials; metadata-only guesses remain excluded. The Kubernetes HackTricks change moves secret-copy, admission-bypass, generic API operations, host-file reads, controller/status side effects, and OpenShift label discovery out of the privilege-escalation section; their exclusion links below follow the destination pages. The [PR #479 interim snapshot](privesc-k8s-pr479-head.md) is historical and should not be read as the final PR #481 heading count.
 
 This ledger lists every heading in the Kubernetes and OpenShift pages of HackTricks Cloud at revision `4202559da31f53bb101052ab4622a636d243c4a5`. Each heading maps to one of these:
 
@@ -24,7 +24,7 @@ The ledger is generated from the checkout, the catalog and the manual rows. `tes
 
 ## Summary
 
-- **Current strict catalog:** 72 k8s entries and 221 k8s exclusions. The legacy ServiceAccount token and four newly activated paths require fresh reviewed proof of the exact source action, accepted target and permission gain; Secret metadata alone creates no edge. The reviewed Helm values-to-RBAC grant is active only with typed evidence of the exact source ServiceAccount and newly granted Secret permissions.
+- **Current automatic catalog:** 80 k8s entries. The legacy ServiceAccount token and reviewed evidence variants require proof of the exact source action, accepted target and permission gain; Secret metadata alone creates no edge. The reviewed Helm values-to-RBAC grant is active only with typed evidence of the exact source ServiceAccount and newly granted Secret permissions.
 - **Current ledger row counts:** covered: 70, excluded: 124, out-of-scope: 37, structural: 216 (total rows: 447).
 - **Catalog before this pass:** 67 k8s entries and 115 k8s exclusions.
 - **Catalog after this pass:** 71 k8s entries and 132 k8s exclusions. `load_catalog(strict=True)` passes.
@@ -1063,3 +1063,18 @@ These rows cover headings added or retained as inbound pointers by the current H
 | `kubernetes-security/kubernetes-basic-information/access-and-common-concepts.md#create-or-patch-rolebindingsclusterrolebindings` | Create or patch RoleBindings/ClusterRoleBindings | - | excluded | excluded: "RoleBinding/ClusterRoleBinding writes without bind"; delegation of already held permissions. |
 | `kubernetes-security/kubernetes-post-exploitation/attacking-kubernetes-from-inside-a-pod.md#podsportforward-network-access` | pods/portforward network access | - | excluded | excluded: "pods/portforward"; network access to a Pod listener. |
 | `kubernetes-security/kubernetes-enumeration/rbac-objects.md#diagnostic-non-resource-urls` | Diagnostic non-resource URLs | - | excluded | excluded: "/debug/* and /metrics non-resource URLs"; diagnostic read only. |
+
+## Current CSPM catalog reconciliation (HackTricks Cloud `89b86ec2c8e39b14601a867b698a31b31be2a231`)
+
+The heading sweep above records its historical source revision. The rows below record changes to the current automatic catalog. RETIRED entries remain documented in the source and exclusion catalog; they do not run as automatic checks.
+
+| Technique ID | Source | Current disposition | Reason |
+| --- | --- | --- | --- |
+| `k8s-configconnector-project-iam-grant` | `src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-config-controller-privesc.md#kubernetes-rbac-over-a-kcc-resource--act-as-the-configured-config-connector-identity` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-configconnector-service-account-key` | `src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-config-controller-privesc.md#kcc-iamserviceaccountkey-plus-secret-read--mint-a-long-lived-key-for-a-more-privileged-service-account` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-rbac-bind-existing-clusterrole-new-permission` | `src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bind` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-rbac-bind-existing-role-new-permission` | `src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bind` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-rbac-csr-kube-apiserver-client-serviceaccount` | `src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#certificate-signing-requests` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-rbac-escalate-aggregating-clusterrole-namespace` | `src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bindings-and-aggregated-clusterroles` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-rbac-modify-existing-clusterrolebinding-new-permission` | `src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bind` | ACTIVE | Reviewed source-bound automatic path. |
+| `k8s-rbac-modify-existing-rolebinding-new-permission` | `src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bind` | ACTIVE | Reviewed source-bound automatic path. |

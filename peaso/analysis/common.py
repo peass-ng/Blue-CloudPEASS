@@ -117,13 +117,14 @@ def source(snapshot, resource, path):
 
 def finding(snapshot, resource, category, check, title, severity, evidence, *, status="MANUAL"):
     from peaso.finding_types import type_for
+    from peaso.presentation_metadata_20261020 import type_for as presentation_type_for
     from peaso.check_services import service_for
     from .finding_clarity import HOW, ACTION, evidence_summary, network_priority
     if check == "analysis.network_review":
         severity = network_priority(evidence, severity)
     result = {"id": stable_id(category, check, node_id(resource)),
             "category": category, "check_id": check, "title": title,
-            "finding_type": type_for(check),
+            "finding_type": presentation_type_for(check) if type(check) is str and check.startswith("analysis.") else type_for(check),
             "provider": resource["provider"], "service": service_for(resource["provider"], resource["type"], resource.get("service")),
             "resource_id": resource.get("id", native_id(resource)), "scope": resource["scope"], "severity": severity,
             "status": status, "frameworks": frameworks_for(check), "evidence": _share(evidence),

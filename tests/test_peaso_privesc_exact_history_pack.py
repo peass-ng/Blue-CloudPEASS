@@ -63,6 +63,28 @@ def test_missing_archive_and_manifest_use_exact_pinned_pack(tmp_path, monkeypatc
     assert recovered == expected
 
 
+def test_historical_safe_loaders_preserve_complete_entries_and_order(monkeypatch):
+    import yaml
+    from peaso.privesc import schema
+    if not hasattr(yaml, 'CSafeLoader'):
+        pytest.skip('LibYAML safe constructor is unavailable')
+    row = next(item for item in declarations()
+               if item[1].name == 'prior-bulk-691-final-two-role-effects-catalog.tar.gz')
+    monkeypatch.setattr(schema, 'SAFE_YAML_LOADER', yaml.SafeLoader)
+    expected_current = catalog._verified_archived_current(*row)
+    catalog._verified_prior.cache_clear()
+    expected_prior = catalog._verified_prior()
+    monkeypatch.setattr(schema, 'SAFE_YAML_LOADER', yaml.CSafeLoader)
+    actual_current = catalog._verified_archived_current(*row)
+    catalog._verified_prior.cache_clear()
+    actual_prior = catalog._verified_prior()
+    catalog._verified_prior.cache_clear()
+    assert actual_current == expected_current
+    assert list(actual_current) == list(expected_current)
+    assert actual_prior == expected_prior
+    assert list(actual_prior[0]) == list(expected_prior[0])
+
+
 @pytest.mark.parametrize('target', ['pack', 'archive', 'manifest'])
 def test_pack_and_changed_present_originals_fail_closed(tmp_path, monkeypatch, target):
     row = next(item for item in declarations()

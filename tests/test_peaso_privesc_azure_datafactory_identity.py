@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import copy
 
-from peaso import privesc
 from peaso.privesc.schema import load_catalog
-from tests.test_peaso_privesc_schema_ext import reached
+from peaso.privesc.versioned_catalog import _verified_previous_current
+from peaso.privesc.effective_permissions.azure import AzureModel
+from peaso.privesc.evaluator import Evaluator
 from tests.test_peaso_privesc_schema_ext_azure import RG, ROLE_ID, az
 
 TECHNIQUE = "azure-datafactory-dataplane-access-token"
@@ -15,7 +16,11 @@ IDENTITY = "mi-finance"
 
 
 def _case():
-    entry = next(e for e in load_catalog()["entries"] if e["id"] == TECHNIQUE)
+    # This contract is retained only for regression of the archived evaluator.
+    # Its active automatic technique was retired because these facts require
+    # successful token use and pipeline execution outside passive collection.
+    assert TECHNIQUE not in {e["id"] for e in load_catalog()["entries"]}
+    entry = _verified_previous_current()[TECHNIQUE]
     fact = {
         "TechniqueId": TECHNIQUE, "SourceId": "u-alice", "TargetKind": "azure_managed_identity",
         "TargetId": IDENTITY, "TargetScope": FACTORY, "Status": "verified",
@@ -39,13 +44,14 @@ def _case():
 
 
 def _paths(entry, snap):
-    return {k: v for k, v in reached(privesc.analyze(snap, entries=[entry]), "u-alice", TECHNIQUE).items()
-            if not k.startswith(("unknown:", "unresolved:"))}
+    return {target_id: grant.confidence for reach in Evaluator(AzureModel(snap), [entry]).run()
+            if reach.source.id == "u-alice" for target_id, grant in reach.targets.items()
+            if not target_id.startswith(("unknown:", "unresolved:"))}
 
 
-def test_typed_token_pipeline_identity_join_is_required():
+def test_retired_token_pipeline_path_stays_inactive_even_with_supplied_fact():
     entry, snap = _case()
-    assert _paths(entry, snap) == {IDENTITY: "conditional"}
+    assert _paths(entry, snap) == {}
     for key, value in (
         ("TokenAuthorizesPipelineRun", False), ("PipelineRunSucceeded", False),
         ("ManagedIdentityTokenObtained", False), ("IdentityPrincipalId", "mi-other"),
@@ -61,7 +67,7 @@ def test_typed_token_pipeline_identity_join_is_required():
     assert _paths(entry, no_action) == {}
 
 
-def test_user_assigned_identity_requires_credential_binding():
+def test_retired_user_assigned_identity_path_stays_inactive():
     entry, snap = _case()
     uami = f"{RG}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/finance-mi"
     graph = next(c for c in snap["collections"] if c["type"] == "resource_graph")["items"]
@@ -74,4 +80,4 @@ def test_user_assigned_identity_requires_credential_binding():
     fact.update(IdentityType="user_assigned", IdentityCredentialBindingVerified=True,
                 FactoryCredentialId=FACTORY + "/credentials/finance-mi",
                 IdentityCredentialEvidenceRef="credential-binding-1")
-    assert _paths(entry, snap) == {IDENTITY: "conditional"}
+    assert _paths(entry, snap) == {}

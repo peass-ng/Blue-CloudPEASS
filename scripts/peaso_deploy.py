@@ -53,6 +53,10 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_automatic_environment_33_scope_candidate.py',
+    'tests/test_peaso_gcp_scoped_resume_candidate.py',
+    'tests/test_private_shared_finite_batch_20261023.py',
+    'tests/test_peaso_k8s_evidence_explanations_current_20261023.py',
     'scripts/verify_workload_environment_discovery_candidate.py',
     'scripts/verify_automatic_batch_consumer_candidate.py',
     'docs/scan-execution.md',

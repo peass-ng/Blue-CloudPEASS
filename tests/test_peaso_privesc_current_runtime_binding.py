@@ -12,6 +12,21 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_reviewed_691_binding_retains_retired_techniques_without_reviving_them():
+    ident = "gcp-artifactregistry-repositories-update-dependency-confusion"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and current == {}
+    previous_binding = {
+        "schema": catalog.BINDING_SCHEMA,
+        "manifest_sha256": catalog.REVIEWED_691_PREVIOUS_MANIFEST,
+        "effective_tree_sha256": catalog.REVIEWED_691_PREVIOUS_TREE,
+        "source_revision": catalog.V4_REVISION,
+    }
+    previous, status = catalog.lookup_entries([ident], previous_binding)
+    assert status == "exact_previous_current" and ident in previous
+    assert len(catalog._verified_reviewed_691_previous()) == 691
+
+
 def test_previous_aws_audit_binding_keeps_its_original_entries():
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST,
@@ -154,7 +169,8 @@ def test_elasticbeanstalk_role_execution_binding_preserves_previous_catalog():
     assert status == "exact_strict_privesc"
     entry = current[ident]
     assert "elasticbeanstalk_environment_role_effect_reviewed" in entry["preconditions"]
-    assert entry["requires"]["all_of"] == []
+    assert entry["requires"]["all_of"] == [
+        {"action": "elasticbeanstalk:CreateEnvironment"}]
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_TREE,
@@ -171,10 +187,12 @@ def test_emr_runtime_role_binding_preserves_previous_catalog():
            "aws-emr-addjobflowsteps-runtime-role")
     current, status = catalog.lookup_entries(ids, catalog.current_binding())
     assert status == "exact_strict_privesc" and set(current) == set(ids)
-    assert current[ids[0]]["requires"]["all_of"] == []
+    assert current[ids[0]]["requires"]["all_of"] == [
+        {"action": "elasticmapreduce:RunJobFlow"}]
     assert "emr_new_cluster_instance_role_effect_reviewed" in current[ids[0]]["preconditions"]
     assert current[ids[1]]["preconditions"] == ["emr_cluster_session_runtime_role"]
-    assert current[ids[1]]["requires"]["all_of"] == []
+    assert current[ids[1]]["requires"]["all_of"] == [
+        {"action": "elasticmapreduce:GetClusterSessionCredentials"}]
     assert "emr_existing_cluster_runtime_step_role" in current[ids[2]]["preconditions"]
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.EMR_RUNTIME_689_PREVIOUS_MANIFEST,

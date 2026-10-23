@@ -26,6 +26,8 @@ providers:
       unless the exact usable credential and its target principal are verified.
     source_sections:
       - src/pentesting-cloud/azure-security/az-privilege-escalation/
+      - src/pentesting-cloud/azure-security/az-post-exploitation/
+      - src/pentesting-cloud/azure-security/az-persistence/
   gcp:
     description: >-
       Active techniques must show how a source principal's effective permissions or
@@ -39,6 +41,8 @@ providers:
       unless the exact usable credential and its target principal are verified.
     source_sections:
       - src/pentesting-cloud/gcp-security/gcp-privilege-escalation/
+      - src/pentesting-cloud/gcp-security/gcp-persistence/
+      - src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/
   k8s:
     description: >-
       Active techniques must show how a source principal's effective permissions or
@@ -53,3 +57,4 @@ providers:
     source_sections:
       - src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/
       - src/pentesting-cloud/openshift-pentesting/openshift-privilege-escalation/
+      - src/pentesting-cloud/gcp-security/gcp-privilege-escalation/

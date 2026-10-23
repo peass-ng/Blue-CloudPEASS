@@ -287,7 +287,7 @@ export function App() {
             <div key={p.label}>
               {(p.group || (p.label === "Hardening & Compliance" && !aiAvailable)) && <div className="nav-group">{p.group || "SECURITY INSIGHTS"}</div>}
               <button
-                className={`nav-item ${page === p.label ? "active" : ""}`}
+                className={`nav-item ${p.ai ? "nav-item-ai" : ""} ${page === p.label ? "active" : ""}`}
                 onClick={() => navigate(p.label)}
                 aria-label={p.label}
                 aria-current={page === p.label ? "page" : undefined}

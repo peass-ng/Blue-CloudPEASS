@@ -5,6 +5,7 @@ an ``_excluded.yaml`` item or a NEEDS SCHEMA proposal. These tests keep the ledg
 """
 import os
 import re
+import json
 from collections import Counter
 
 import pytest
@@ -21,6 +22,16 @@ LEDGER = Path(os.environ.get("PEASO_GCP_PRIVESC_LEDGER") or ROOT / "docs" / "pri
 
 ROW = re.compile(r"^\| `#([^`]+)` \| (.*) \| ([A-Z+-]+) \| (.*) \|$")
 PAGE = re.compile(r"^### `(src/[^`]+\.md)`$")
+CURRENT = re.compile(r"^\| `(gcp-[a-z0-9-]+)` \| `([^`]+)` \| (ACTIVE|RETIRED) \| (.*) \|$")
+
+
+def _current_rows():
+    text = LEDGER.read_text(encoding="utf-8")
+    manifest_revision = json.loads((ROOT / "risk_rules/hacktricks-privesc-source.json").read_text())["revision"]
+    assert f"## Current CSPM catalog reconciliation (HackTricks Cloud `{manifest_revision}`)" in text
+    section = text.split("## Current CSPM catalog reconciliation", 1)[1]
+    return {m.group(1): (m.group(2), m.group(3), m.group(4))
+            for line in section.splitlines() if (m := CURRENT.match(line))}
 
 
 def _ledger_rows(text=None):
@@ -52,14 +63,22 @@ def _excluded_sources():
 
 def test_ledger_mapped_ids_exist_in_gcp_catalog():
     ids = _catalog_ids()
+    retired = {ident for ident, (_, status, _) in _current_rows().items() if status == "RETIRED"}
+    excluded_ids = {item.get("id") for path in CATALOG.glob("_excluded*.yaml")
+                    for item in (yaml.safe_load(path.read_text()) or [])}
+    assert retired <= excluded_ids
     missing = []
     for page, anchor, status, mapping in _ledger_rows():
         if not status.startswith("COVERED"):
             continue
         mapped = re.findall(r"`(gcp-[a-z0-9-]+)`", mapping)
         assert mapped, f"{page}#{anchor}: COVERED row without catalog ids"
-        missing += [f"{page}#{anchor} -> {i}" for i in mapped if i not in ids]
+        missing += [f"{page}#{anchor} -> {i}" for i in mapped if i not in ids and i not in retired]
     assert not missing, "ledger ids missing from catalog:\n" + "\n".join(missing)
+    historical = {i for _, _, status, mapping in _ledger_rows() if status.startswith("COVERED")
+                  for i in re.findall(r"`(gcp-[a-z0-9-]+)`", mapping)}
+    assert retired == historical - ids
+    assert {i for i, (_, status, _) in _current_rows().items() if status == "ACTIVE"} == ids - historical
 
 
 def test_ledger_excluded_rows_are_in_excluded_yaml():
@@ -112,8 +131,19 @@ def test_every_gcp_catalog_entry_is_referenced_by_the_ledger():
     referenced = set()
     for _, _, status, mapping in _ledger_rows():
         referenced |= set(re.findall(r"`(gcp-[a-z0-9-]+)`", mapping))
+    referenced |= {ident for ident, (_, status, _) in _current_rows().items() if status == "ACTIVE"}
     unreferenced = sorted(_catalog_ids() - referenced)
     assert not unreferenced, "catalog entries not mapped by any ledger row: " + ", ".join(unreferenced)
+
+
+def test_current_gcp_reconciliation_has_exact_sources_and_exclusions():
+    entries = {e["id"]: e for e in load_catalog()["entries"] if e["provider"] == "gcp"}
+    excluded = {item.get("id"): item for path in CATALOG.glob("_excluded*.yaml")
+                for item in (yaml.safe_load(path.read_text()) or []) if item.get("id")}
+    for ident, (source, status, reason) in _current_rows().items():
+        record = entries[ident] if status == "ACTIVE" else excluded[ident]
+        assert source in (record["source"] if isinstance(record["source"], list) else [record["source"]])
+        assert reason.strip()
 
 
 def test_needs_schema_section_present():
@@ -141,10 +171,15 @@ def _current_gcp_checkout():
         return None
     matching = [root for root, revision in _checkouts()
                 if revision == GCP_CURRENT_SOURCE_REVISION and (root / GCP_SOURCE_TREE).is_dir()]
-    assert matching, ("current GCP heading coverage requires canonical source revision "
-                      + GCP_CURRENT_SOURCE_REVISION
-                      + "; historical source links use their separate authored-revision validation")
-    return matching[0]
+    if matching:
+        return matching[0]
+    # A selected checkout at the current CSPM source revision uses the
+    # reconciliation rows. An unrelated checkout must not silently satisfy
+    # the historical heading sweep.
+    current_revision = json.loads((ROOT / "risk_rules/hacktricks-privesc-source.json").read_text())["revision"]
+    if any(revision == current_revision for _, revision in _checkouts()):
+        return None
+    raise AssertionError("historical GCP heading coverage requires source revision " + GCP_CURRENT_SOURCE_REVISION)
 
 
 def _gcp_heading_sources(root):

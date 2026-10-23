@@ -1,0 +1,1562 @@
+{
+  "azure.aks.azure_rbac": [
+    "The AKS Azure RBAC setting remains unknown.",
+    "The team cannot tell which Azure roles may authorize Kubernetes API actions."
+  ],
+  "azure.aks.defender_monitoring": [
+    "The Defender monitoring setting remains unknown.",
+    "The team cannot tell whether cluster threats may raise a finding."
+  ],
+  "azure.aks.rbac": [
+    "The Kubernetes RBAC setting remains unknown.",
+    "The team cannot tell which cluster actions users may be allowed to take."
+  ],
+  "azure.app.client_certificates": [
+    "The App Service client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.app.request_logging": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure.cis.agentless_discovery_kubernetes_component_status": [
+    "The agentless Kubernetes discovery setting remains unknown.",
+    "The team cannot tell whether clusters may be found for security review."
+  ],
+  "azure.cis.agentless_scanning_machines_component_status": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.cis.auto_provision_defender_containers_components": [
+    "The Defender component setting remains unknown.",
+    "The team cannot tell which security data may reach Defender."
+  ],
+  "azure.cis.auto_provisioning_log_analytics_agent_vms": [
+    "The VM Log Analytics agent setting remains unknown.",
+    "The team cannot tell whether VM events may reach the monitoring workspace."
+  ],
+  "azure.cis.defender_external_attack_surface_monitoring_easm": [
+    "The Defender EASM workspace state remains unknown.",
+    "The team cannot tell whether outside-facing assets may receive review."
+  ],
+  "azure.cis.endpoint_protection_vms_installed": [
+    "The VM endpoint protection state remains unknown.",
+    "The team cannot tell which harmful software actions may be blocked."
+  ],
+  "azure.cis.entra_activity_diagnostic": [
+    "The Entra audit or sign-in log export remains unknown.",
+    "The team cannot tell whether account activity may be available for review."
+  ],
+  "azure.cis.entra_graph_activity_diagnostic": [
+    "The Microsoft Graph activity log export remains unknown.",
+    "The team cannot tell whether Graph actions may be available for review."
+  ],
+  "azure.cis.exclusionary_device_code_flow_policy_considered": [
+    "The device-code sign-in policy remains unknown.",
+    "The team cannot tell whether that sign-in path is reviewed or blocked."
+  ],
+  "azure.cis.exclusionary_geographic_access_policy_considered": [
+    "The geographic sign-in policy remains unknown.",
+    "The team cannot tell whether sign-ins from unapproved locations are reviewed or blocked."
+  ],
+  "azure.cis.file_integrity_monitoring_component_status": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.cis.intune_logs_captured_sent_log_analytics": [
+    "The Intune log export remains unknown.",
+    "The team cannot tell whether device management events may be available for review."
+  ],
+  "azure.cis.monitor_resource_logging_services_support_it": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.cis.mysql_single_audit_log_enabled": [
+    "The MySQL audit or event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.cis.mysql_single_audit_log_events_connection": [
+    "The MySQL audit or event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.cis.postgresql_single_log_checkpoints": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.cis.postgresql_single_log_connections": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.cis.postgresql_single_log_disconnections": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.cis.shared_access_signature_tokens_expire_within_hour": [
+    "The SAS token lifetime remains unknown.",
+    "The team cannot tell how long a shared token may work."
+  ],
+  "azure.cis.unity_catalog_configured_databricks": [
+    "The Unity Catalog assignment remains unknown.",
+    "The team cannot tell which data catalog may govern this workspace."
+  ],
+  "azure.claude.acr_geo_replication": [
+    "The registry replication setting remains unknown.",
+    "The team cannot tell whether images have a copy in another region."
+  ],
+  "azure.claude.acr_quarantine_policy": [
+    "The registry quarantine policy remains unknown.",
+    "The team cannot tell whether new images may be held for review."
+  ],
+  "azure.claude.acr_retention_policy": [
+    "The registry retention policy remains unknown.",
+    "The team cannot tell how long old images may remain."
+  ],
+  "azure.claude.acr_trust_policy": [
+    "The registry trust policy remains unknown.",
+    "The team cannot tell whether image signatures may be required."
+  ],
+  "azure.claude.activity_log_alert_nsg_delete": [
+    "The network security group deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network security group deletion later."
+  ],
+  "azure.claude.activity_log_alert_nsg_write": [
+    "The network security group change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network security group change later."
+  ],
+  "azure.claude.activity_log_alert_policy_assignment_delete": [
+    "The policy assignment deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted policy removal later."
+  ],
+  "azure.claude.activity_log_alert_policy_assignment_write": [
+    "The policy assignment change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted policy change later."
+  ],
+  "azure.claude.activity_log_alert_public_ip_delete": [
+    "The public IP address deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted public IP address deletion later."
+  ],
+  "azure.claude.activity_log_alert_public_ip_write": [
+    "The public IP address change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted public IP address change later."
+  ],
+  "azure.claude.activity_log_alert_security_solution_delete": [
+    "The security solution deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted security solution removal later."
+  ],
+  "azure.claude.activity_log_alert_security_solution_write": [
+    "The security solution change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted security solution change later."
+  ],
+  "azure.claude.activity_log_alert_service_health": [
+    "The service health event alert setting remains unknown.",
+    "If the alert is absent, the team may notice a service problem later."
+  ],
+  "azure.claude.activity_log_alert_sql_firewall_rule_delete": [
+    "The SQL firewall rule deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule deletion later."
+  ],
+  "azure.claude.activity_log_alert_sql_firewall_rule_write": [
+    "The SQL firewall rule change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_administrative_operations": [
+    "The subscription administrative operation alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted subscription change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_nsg_delete": [
+    "The network security group deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network security group deletion later."
+  ],
+  "azure.claude.activity_log_alert_subscription_nsg_rule_delete": [
+    "The network security group rule deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network rule deletion later."
+  ],
+  "azure.claude.activity_log_alert_subscription_nsg_rule_write": [
+    "The network security group rule change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network rule change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_nsg_write": [
+    "The network security group change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network security group change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_policy_assignment_delete": [
+    "The policy assignment deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted policy removal later."
+  ],
+  "azure.claude.activity_log_alert_subscription_policy_assignment_write": [
+    "The policy assignment change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted policy change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_public_ip_delete": [
+    "The public IP address deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted public IP address deletion later."
+  ],
+  "azure.claude.activity_log_alert_subscription_public_ip_write": [
+    "The public IP address change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted public IP address change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_security_solution_delete": [
+    "The security solution deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted security solution removal later."
+  ],
+  "azure.claude.activity_log_alert_subscription_security_solution_write": [
+    "The security solution change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted security solution change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_sql_firewall_rule_delete": [
+    "The SQL firewall rule deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule deletion later."
+  ],
+  "azure.claude.activity_log_alert_subscription_sql_firewall_rule_write": [
+    "The SQL firewall rule change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule change later."
+  ],
+  "azure.claude.activity_log_alert_subscription_sql_server": [
+    "The SQL server change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL server change later."
+  ],
+  "azure.claude.activity_log_storage_private": [
+    "The activity-log container public access setting remains unknown.",
+    "The team cannot tell whether anonymous users may read those logs."
+  ],
+  "azure.claude.aks_azure_policy_addon": [
+    "The AKS policy add-on state remains unknown.",
+    "The team cannot tell whether cluster policy decisions may run."
+  ],
+  "azure.claude.aks_container_insights_logging": [
+    "The AKS Container Insights setting remains unknown.",
+    "The team cannot tell whether cluster events may reach the workspace."
+  ],
+  "azure.claude.aks_max_pods_at_least_50": [
+    "The node pod limit remains unknown.",
+    "The team cannot tell how many pods may run on each node."
+  ],
+  "azure.claude.aks_node_public_ip_disabled": [
+    "The AKS node public IP assignment remains unknown.",
+    "The team cannot tell whether nodes have a direct public address."
+  ],
+  "azure.claude.bastion_host_exists": [
+    "The Bastion host inventory remains unknown.",
+    "The team cannot tell whether admins have that remote connection path."
+  ],
+  "azure.claude.cosmos_automatic_failover": [
+    "The Cosmos DB failover setting remains unknown.",
+    "The team cannot tell whether another region may take over after a failure."
+  ],
+  "azure.claude.databricks_diagnostic_log_delivery": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.databricks_subnet_nsg": [
+    "The Databricks subnet NSG attachment remains unknown.",
+    "The team cannot tell whether subnet traffic has those network rules."
+  ],
+  "azure.claude.defender_assessment_endpoint_protection": [
+    "The Defender assessment state remains unknown.",
+    "The team cannot tell which resources may have unresolved security findings."
+  ],
+  "azure.claude.defender_assessment_running_images_vulnerabilities": [
+    "The Defender assessment state remains unknown.",
+    "The team cannot tell which resources may have unresolved security findings."
+  ],
+  "azure.claude.defender_assessment_system_updates": [
+    "The Defender assessment state remains unknown.",
+    "The team cannot tell which resources may have unresolved security findings."
+  ],
+  "azure.claude.defender_assessment_vulnerability_solution": [
+    "The Defender assessment state remains unknown.",
+    "The team cannot tell which resources may have unresolved security findings."
+  ],
+  "azure.claude.defender_container_registry_plan_standard": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.claude.defender_container_registry_vulnerability_scanning": [
+    "The registry vulnerability scanning extension remains unknown.",
+    "The team cannot tell whether image weaknesses may be found."
+  ],
+  "azure.claude.defender_database_plans_standard": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.claude.defender_default_initiative_no_disabled_effects": [
+    "The Defender policy state remains unknown.",
+    "The team cannot tell which security rules may apply to resources."
+  ],
+  "azure.claude.defender_default_policy_enforced": [
+    "The Defender policy state remains unknown.",
+    "The team cannot tell which security rules may apply to resources."
+  ],
+  "azure.claude.defender_dns_plan_standard": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.claude.defender_iot_security_solution_enabled": [
+    "The Defender security solution state remains unknown.",
+    "The team cannot tell which findings may be available for review."
+  ],
+  "azure.claude.defender_kubernetes_plan_standard": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.claude.defender_plan_standard_any": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.claude.entra_app_credential_not_expiring": [
+    "The app credential expiry remains unknown.",
+    "The team cannot tell when this credential may stop working."
+  ],
+  "azure.claude.entra_global_admin_fewer_than_five": [
+    "The Global Administrator assignment count remains unknown.",
+    "The team cannot tell how many people may hold broad directory control."
+  ],
+  "azure.claude.entra_guest_access_restricted": [
+    "The guest directory access policy remains unknown.",
+    "The team cannot tell which directory objects guests may read."
+  ],
+  "azure.claude.entra_guest_invites_admins_only": [
+    "The guest invitation policy remains unknown.",
+    "The team cannot tell which users may invite outside people."
+  ],
+  "azure.claude.entra_m365_group_creation_restricted": [
+    "The Microsoft 365 group creation policy remains unknown.",
+    "The team cannot tell which users may create groups."
+  ],
+  "azure.claude.entra_named_location_trusted": [
+    "The named location trust setting remains unknown.",
+    "The team cannot tell whether that IP range may get trusted sign-in treatment."
+  ],
+  "azure.claude.entra_security_defaults_enabled": [
+    "The tenant sign-in baseline remains unknown.",
+    "The team cannot tell which default sign-in safeguards may apply."
+  ],
+  "azure.claude.entra_trusted_named_location_exists": [
+    "The trusted IP location inventory remains unknown.",
+    "The team cannot tell whether trusted network locations are configured."
+  ],
+  "azure.claude.entra_user_consent_disabled": [
+    "The default user consent policy remains unknown.",
+    "The team cannot tell whether users may approve an app\u2019s requested access."
+  ],
+  "azure.claude.entra_user_consent_not_legacy": [
+    "The self-consent policy selection remains unknown.",
+    "The team cannot tell which app permissions users may approve."
+  ],
+  "azure.claude.entra_users_cannot_create_apps": [
+    "The app registration policy remains unknown.",
+    "The team cannot tell which users may register applications."
+  ],
+  "azure.claude.entra_users_cannot_create_security_groups": [
+    "The security group creation policy remains unknown.",
+    "The team cannot tell which users may create groups."
+  ],
+  "azure.claude.entra_users_cannot_create_tenants": [
+    "The tenant creation policy remains unknown.",
+    "The team cannot tell which users may create directories."
+  ],
+  "azure.claude.eventhub_namespace_logging": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.flow_log_enabled": [
+    "The network traffic log setting remains unknown.",
+    "The team cannot tell whether connection paths may leave records for review."
+  ],
+  "azure.claude.flow_log_traffic_analytics": [
+    "The network traffic log setting remains unknown.",
+    "The team cannot tell whether connection paths may leave records for review."
+  ],
+  "azure.claude.gateway_subnet_no_nsg": [
+    "The gateway subnet NSG attachment remains unknown.",
+    "The team cannot tell whether that network layout may affect gateway traffic."
+  ],
+  "azure.claude.iam_custom_role_administers_locks": [
+    "The resource-lock administrator role remains unknown.",
+    "The team cannot tell who may change deletion locks."
+  ],
+  "azure.claude.iam_disabled_user_no_owner": [
+    "The disabled user Owner assignment remains unknown.",
+    "The team cannot tell whether that account may still control the subscription."
+  ],
+  "azure.claude.iam_disabled_user_no_role_assignment": [
+    "The disabled user role assignment remains unknown.",
+    "The team cannot tell what Azure access that account may still hold."
+  ],
+  "azure.claude.iam_external_user_no_owner": [
+    "The outside user Owner assignment remains unknown.",
+    "The team cannot tell whether an outside account may control the subscription."
+  ],
+  "azure.claude.iam_external_user_no_reader": [
+    "The outside user Reader assignment remains unknown.",
+    "The team cannot tell whether an outside account may read subscription details."
+  ],
+  "azure.claude.iam_external_user_no_write": [
+    "The outside user write assignment remains unknown.",
+    "The team cannot tell whether an outside account may change resources."
+  ],
+  "azure.claude.iam_no_custom_role": [
+    "The custom role inventory remains unknown.",
+    "The team cannot tell which custom permissions may exist."
+  ],
+  "azure.claude.iam_no_user_access_administrator_assignment": [
+    "The User Access Administrator assignment remains unknown.",
+    "The team cannot tell who may change access for other users."
+  ],
+  "azure.claude.iam_root_custom_role_no_wildcard": [
+    "The root-scope custom role actions remain unknown.",
+    "The team cannot tell whether a role may grant broad control."
+  ],
+  "azure.claude.iam_subscription_owner_between_2_and_3": [
+    "The subscription Owner count remains unknown.",
+    "The team cannot tell how many people may control the subscription."
+  ],
+  "azure.claude.iam_subscription_owner_max_3": [
+    "The subscription Owner count remains unknown.",
+    "The team cannot tell how many people may control the subscription."
+  ],
+  "azure.claude.iam_subscription_owner_more_than_1": [
+    "The subscription Owner count remains unknown.",
+    "The team cannot tell how many people may control the subscription."
+  ],
+  "azure.claude.iam_subscription_tenant_transfer_restricted": [
+    "The subscription transfer policy remains unknown.",
+    "The team cannot tell whether a subscription may move to another directory."
+  ],
+  "azure.claude.iam_user_no_contributor_assignment": [
+    "The user Contributor assignment remains unknown.",
+    "The team cannot tell whether that account may change resources."
+  ],
+  "azure.claude.insights_activity_logs_container_private": [
+    "The activity-log container public access setting remains unknown.",
+    "The team cannot tell whether anonymous users may read those logs."
+  ],
+  "azure.claude.insights_operational_logs_container_private": [
+    "The operational-log container public access setting remains unknown.",
+    "The team cannot tell whether anonymous users may read those logs."
+  ],
+  "azure.claude.iot_hub_logging": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.keyvault_audit_and_alllogs_groups": [
+    "The vault audit log setting remains unknown.",
+    "The team cannot tell whether key or secret activity may be recorded."
+  ],
+  "azure.claude.keyvault_audit_logging": [
+    "The vault audit log setting remains unknown.",
+    "The team cannot tell whether key or secret activity may be recorded."
+  ],
+  "azure.claude.logic_app_workflow_diagnostic_logging": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.mysql_flexible_audit_log_connection": [
+    "The MySQL audit or event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.claude.mysql_flexible_audit_log_enabled": [
+    "The MySQL audit or event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.claude.mysql_flexible_high_availability": [
+    "The database high-availability setting remains unknown.",
+    "The team cannot tell whether a second instance may take over after a failure."
+  ],
+  "azure.claude.network_watcher_flow_logs_traffic_analytics": [
+    "The network traffic log setting remains unknown.",
+    "The team cannot tell whether connection paths may leave records for review."
+  ],
+  "azure.claude.network_watcher_in_vnet_region": [
+    "The regional Network Watcher inventory remains unknown.",
+    "The team cannot tell whether that network tool is present near the VNet."
+  ],
+  "azure.claude.nic_no_public_ip": [
+    "The network interface public IP assignment remains unknown.",
+    "The team cannot tell whether this interface has a direct public address."
+  ],
+  "azure.claude.nsg_diagnostic_logging": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.postgresql_flexible_high_availability": [
+    "The database high-availability setting remains unknown.",
+    "The team cannot tell whether a second instance may take over after a failure."
+  ],
+  "azure.claude.postgresql_flexible_log_checkpoints": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.claude.postgresql_flexible_log_connections": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.claude.postgresql_flexible_log_disconnections": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.claude.search_service_logging_enabled": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.search_service_replica_count_above_3": [
+    "The search replica count remains unknown.",
+    "The team cannot tell how much replica capacity may remain after a failure."
+  ],
+  "azure.claude.servicebus_namespace_logging_enabled": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.sql_firewall_no_internet_or_azure_services": [
+    "The SQL firewall source rule remains unknown.",
+    "The team cannot tell which client address ranges may be allowed."
+  ],
+  "azure.claude.storage_account_geo_redundant": [
+    "The storage replication setting remains unknown.",
+    "The team cannot tell whether a copy may exist in another region."
+  ],
+  "azure.claude.storage_blob_classic_logging": [
+    "The storage access log setting remains unknown.",
+    "The team cannot tell whether reads or changes to stored data may be recorded."
+  ],
+  "azure.claude.storage_blob_diagnostic_logging": [
+    "The storage access log setting remains unknown.",
+    "The team cannot tell whether reads or changes to stored data may be recorded."
+  ],
+  "azure.claude.storage_container_no_public_access": [
+    "The blob container public access setting remains unknown.",
+    "The team cannot tell whether anonymous users may read its files."
+  ],
+  "azure.claude.storage_key_expiration_policy_90": [
+    "The storage key expiry policy remains unknown.",
+    "The team cannot tell when key replacement may be prompted."
+  ],
+  "azure.claude.storage_key_expiration_policy_max_90": [
+    "The storage key expiry policy remains unknown.",
+    "The team cannot tell when key replacement may be prompted."
+  ],
+  "azure.claude.storage_queue_classic_logging": [
+    "The storage access log setting remains unknown.",
+    "The team cannot tell whether reads or changes to stored data may be recorded."
+  ],
+  "azure.claude.storage_queue_diagnostic_logging": [
+    "The storage access log setting remains unknown.",
+    "The team cannot tell whether reads or changes to stored data may be recorded."
+  ],
+  "azure.claude.storage_table_classic_logging": [
+    "The storage access log setting remains unknown.",
+    "The team cannot tell whether reads or changes to stored data may be recorded."
+  ],
+  "azure.claude.storage_table_diagnostic_logging": [
+    "The storage access log setting remains unknown.",
+    "The team cannot tell whether reads or changes to stored data may be recorded."
+  ],
+  "azure.claude.storage_trusted_azure_services_bypass": [
+    "The trusted-service network bypass remains unknown.",
+    "The team cannot tell whether approved Azure services may cross the storage network rule."
+  ],
+  "azure.claude.stream_analytics_job_logging_enabled": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.subscription_diagnostic_setting_any_categories": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.subscription_diagnostic_setting_categories": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.subscription_diagnostic_setting_exists": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude.vm_antimalware_auto_upgrade": [
+    "The antimalware update setting remains unknown.",
+    "The team cannot tell whether new protection updates may reach the VM."
+  ],
+  "azure.claude.vm_antimalware_extension": [
+    "The VM endpoint protection state remains unknown.",
+    "The team cannot tell which harmful software actions may be blocked."
+  ],
+  "azure.claude.vm_dependency_agent_linux": [
+    "The network traffic log setting remains unknown.",
+    "The team cannot tell whether connection paths may leave records for review."
+  ],
+  "azure.claude.vm_dependency_agent_windows": [
+    "The network traffic log setting remains unknown.",
+    "The team cannot tell whether connection paths may leave records for review."
+  ],
+  "azure.claude.vm_jit_access": [
+    "The VM just-in-time access setting remains unknown.",
+    "The team cannot tell when an admin port may be opened."
+  ],
+  "azure.claude.vm_no_public_ip": [
+    "The VM network interface public IP assignment remains unknown.",
+    "The team cannot tell whether this VM has a direct public address."
+  ],
+  "azure.claude.vm_site_recovery_enabled": [
+    "The VM Site Recovery protection state remains unknown.",
+    "The team cannot tell whether this VM may fail over after an outage."
+  ],
+  "azure.claude.vm_windows_exploit_guard": [
+    "The VM endpoint protection state remains unknown.",
+    "The team cannot tell which harmful software actions may be blocked."
+  ],
+  "azure.claude.vm_windows_no_reversible_password_encryption": [
+    "The reversible password storage setting remains unknown.",
+    "The team cannot tell how Windows may store local account passwords."
+  ],
+  "azure.claude.vmss_boot_diagnostics": [
+    "The VM boot diagnostic setting remains unknown.",
+    "The team cannot tell whether startup details may be available after a failure."
+  ],
+  "azure.claude.vmss_not_empty": [
+    "The VM scale set capacity remains unknown.",
+    "The team cannot tell whether an instance may be available to serve work."
+  ],
+  "azure.claude.vnet_gateway_no_basic_sku": [
+    "The gateway service tier remains unknown.",
+    "The team cannot tell which network features may be available."
+  ],
+  "azure.claude2.activity_log_alert_service_health": [
+    "The service health event alert setting remains unknown.",
+    "If the alert is absent, the team may notice a service problem later."
+  ],
+  "azure.claude2.aks_azure_monitor_metrics_enabled": [
+    "The service metric export remains unknown.",
+    "The team cannot tell whether performance data may be available for review."
+  ],
+  "azure.claude2.aks_private_cluster_nodes_without_public_ip": [
+    "The AKS private API and node IP settings remain unknown.",
+    "The team cannot tell whether the cluster has public network addresses."
+  ],
+  "azure.claude2.api_app_client_certificates": [
+    "The API app client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.claude2.apim_consumption_client_certificate": [
+    "The client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.claude2.app_workers_more_than_one": [
+    "The app worker count remains unknown.",
+    "The team cannot tell whether another worker may serve requests after one fails."
+  ],
+  "azure.claude2.application_insights_configured": [
+    "The application tracing or diagnostic setting remains unknown.",
+    "The team cannot tell whether API activity may be available for review."
+  ],
+  "azure.claude2.application_insights_workspace_based": [
+    "The application tracing or diagnostic setting remains unknown.",
+    "The team cannot tell whether API activity may be available for review."
+  ],
+  "azure.claude2.batch_account_resource_logs": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.claude2.entra_global_admin_between_2_and_4": [
+    "The Global Administrator assignment count remains unknown.",
+    "The team cannot tell how many people may hold broad directory control."
+  ],
+  "azure.claude2.function_app_authentication_enabled": [
+    "The Function App authentication setting remains unknown.",
+    "The team cannot tell whether callers may send requests without signing in."
+  ],
+  "azure.claude2.function_app_client_certificates": [
+    "The Function App client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.claude2.nsg_flow_log_configured": [
+    "The network traffic log setting remains unknown.",
+    "The team cannot tell whether connection paths may leave records for review."
+  ],
+  "azure.claude2.prowler_app_authentication": [
+    "The App Service authentication setting remains unknown.",
+    "The team cannot tell whether callers may send requests without signing in."
+  ],
+  "azure.claude2.prowler_app_client_certificates_required": [
+    "The client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.claude2.prowler_app_http_logs": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure.claude2.prowler_function_ftp_ftps_disabled": [
+    "The Function App deployment FTP setting remains unknown.",
+    "The team cannot tell whether those deployment paths may accept connections."
+  ],
+  "azure.claude2.prowler_function_identity_not_admin": [
+    "The Function App identity role assignments remain unknown.",
+    "The team cannot tell whether that app identity may change or grant access to resources."
+  ],
+  "azure.claude2.sql_server_threat_detection_all_alerts": [
+    "The SQL threat detection alert setting remains unknown.",
+    "If the alert is absent, the team may notice a database threat later."
+  ],
+  "azure.claude2.web_app_always_on": [
+    "The Always On setting remains unknown.",
+    "The team cannot tell whether idle time may stop the app process."
+  ],
+  "azure.claude2.web_app_authentication_enabled": [
+    "The web app authentication setting remains unknown.",
+    "The team cannot tell whether callers may send requests without signing in."
+  ],
+  "azure.claude2.web_app_client_certificates": [
+    "The web app client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.claude2.web_app_diagnostic_http_log_category": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure.claude2.web_app_diagnostic_logs_enabled": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure.claude2.web_app_failed_request_tracing": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure.claude2.web_app_health_check": [
+    "The app health-check path remains unknown.",
+    "The team cannot tell whether unhealthy workers may be identified."
+  ],
+  "azure.claude2.web_app_incoming_client_cert": [
+    "The web app client-certificate setting remains unknown.",
+    "The team cannot tell whether callers must present a certificate."
+  ],
+  "azure.defender.standard_tier": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.encryption.automation_cmk_declared": [
+    "The Automation key source remains unknown.",
+    "The team cannot tell who controls the key for its stored data."
+  ],
+  "azure.encryption.log_analytics_cluster_cmk_declared": [
+    "The cluster identity for key access remains unknown.",
+    "The team cannot tell whether it may use the customer key for stored logs."
+  ],
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": [
+    "The job storage key source remains unknown.",
+    "The team cannot tell who controls the key for its stored data."
+  ],
+  "azure.gap.arc_kubernetes_cluster_azure_defender_extension_installed": [
+    "The Defender component setting remains unknown.",
+    "The team cannot tell which security data may reach Defender."
+  ],
+  "azure.gap.audit_diagnostic_setting": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.gap.capacity_usage_alerts": [
+    "The capacity usage alert setting remains unknown.",
+    "If the alert is absent, the team may notice a capacity problem that slows the service later."
+  ],
+  "azure.gap.compute_vm_adaptive_application_controls_enabled": [
+    "The VM application control state remains unknown.",
+    "The team cannot tell which programs may be allowed to run."
+  ],
+  "azure.gap.compute_vm_malware_agent_automatic_upgrade_enabled": [
+    "The antimalware signature update setting remains unknown.",
+    "The team cannot tell whether new threat definitions may reach this VM."
+  ],
+  "azure.gap.compute_vm_rdp_service_disabled": [
+    "The VM RDP service state remains unknown.",
+    "The team cannot tell whether that remote sign-in service may accept connections."
+  ],
+  "azure.gap.compute_vm_scale_set_endpoint_protection_solution_installed": [
+    "The VM endpoint protection state remains unknown.",
+    "The team cannot tell which harmful software actions may be blocked."
+  ],
+  "azure.gap.iot_hub_encrypted_with_cmk": [
+    "The DPS customer-key policy state remains unknown.",
+    "The team cannot tell whether the intended key controls may apply."
+  ],
+  "azure.gap.kubernetes_cluster_https_enabled": [
+    "The AKS API HTTPS setting remains unknown.",
+    "The team cannot tell whether API clients must use an encrypted connection."
+  ],
+  "azure.gap.kubernetes_cluster_service_listen_to_allowed_ports": [
+    "The Kubernetes service port list remains unknown.",
+    "The team cannot tell which declared service ports may accept cluster traffic."
+  ],
+  "azure.gap.monitor_log_profile_enabled_for_all_categories": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure.gap.network_security_group_rdp_access_restricted": [
+    "The Windows remote-login right remains unknown.",
+    "The team cannot tell which users may sign in remotely."
+  ],
+  "azure.gap.postgres_db_server_log_duration_on": [
+    "The PostgreSQL event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.htbp.acr.anonymous_pull_disabled": [
+    "The registry anonymous pull setting remains unknown.",
+    "The team cannot tell whether unauthenticated users may download images."
+  ],
+  "azure.htbp.appservice.scm_site_restricted_like_main": [
+    "The deployment-site access rule remains unknown.",
+    "The team cannot tell which callers may reach that site."
+  ],
+  "azure.htbp.automation.webhook_expiry_bounded": [
+    "The webhook expiry remains unknown.",
+    "The team cannot tell how long its URL may accept calls."
+  ],
+  "azure.htbp.entra.app_no_tier0_graph_application_permissions": [
+    "The app registration permission list remains unknown.",
+    "The team cannot tell whether the app requests broad directory access."
+  ],
+  "azure.htbp.entra.temporary_access_pass_one_time": [
+    "The Temporary Access Pass lifetime remains unknown.",
+    "The team cannot tell how long or how often that pass may be used."
+  ],
+  "azure.htbp.keyvault.template_deployment_disabled": [
+    "The Key Vault template deployment setting remains unknown.",
+    "The team cannot tell whether a deployment may retrieve vault secrets."
+  ],
+  "azure.htbp.logicapp.request_trigger_caller_restricted": [
+    "The Logic App trigger caller policy remains unknown.",
+    "The team cannot tell who may invoke the trigger with its URL."
+  ],
+  "azure.htbp.storage.sftp_local_users_disabled": [
+    "The storage SFTP local-user setting remains unknown.",
+    "The team cannot tell whether local SFTP accounts may sign in."
+  ],
+  "azure.htbp.synapse.firewall_no_allow_all_internet": [
+    "The Synapse firewall address range remains unknown.",
+    "The team cannot tell which client addresses may be allowed."
+  ],
+  "azure.iam.review_owner_assignment": [
+    "The Owner assignment review state remains unknown.",
+    "The team cannot tell whether broad access received a current review."
+  ],
+  "azure.logging.aci_log_analytics_declared": [
+    "The container group Log Analytics declaration remains unknown.",
+    "The team cannot tell whether its logs have a workspace destination."
+  ],
+  "azure.logging.managed_hsm_audit_destination_declared": [
+    "The vault audit log setting remains unknown.",
+    "The team cannot tell whether key or secret activity may be recorded."
+  ],
+  "azure.other.access_analysis_coverage": [
+    "The access analysis coverage remains unknown.",
+    "The team cannot tell which access paths may receive review."
+  ],
+  "azure.other.acr_untagged_retention": [
+    "The untagged image retention setting remains unknown.",
+    "The team cannot tell how long old image versions may remain."
+  ],
+  "azure.other.activity_alert": [
+    "The activity alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted resource change later."
+  ],
+  "azure.other.attack_t1049": [
+    "The detection rule for ATT&CK T1049 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1069": [
+    "The detection rule for ATT&CK T1069 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1074": [
+    "The detection rule for ATT&CK T1074 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1082": [
+    "The detection rule for ATT&CK T1082 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1087": [
+    "The detection rule for ATT&CK T1087 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1110": [
+    "The detection rule for ATT&CK T1110 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1119": [
+    "The detection rule for ATT&CK T1119 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1136": [
+    "The detection rule for ATT&CK T1136 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1199": [
+    "The detection rule for ATT&CK T1199 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1201": [
+    "The detection rule for ATT&CK T1201 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1213": [
+    "The detection rule for ATT&CK T1213 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1491": [
+    "The detection rule for ATT&CK T1491 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1496": [
+    "The detection rule for ATT&CK T1496 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1499": [
+    "The detection rule for ATT&CK T1499 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1518": [
+    "The detection rule for ATT&CK T1518 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1525": [
+    "The detection rule for ATT&CK T1525 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1526": [
+    "The detection rule for ATT&CK T1526 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1537": [
+    "The detection rule for ATT&CK T1537 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1546": [
+    "The detection rule for ATT&CK T1546 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1552": [
+    "The detection rule for ATT&CK T1552 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1562": [
+    "The detection rule for ATT&CK T1562 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1578": [
+    "The detection rule for ATT&CK T1578 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1580": [
+    "The detection rule for ATT&CK T1580 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1606": [
+    "The detection rule for ATT&CK T1606 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1614": [
+    "The detection rule for ATT&CK T1614 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1619": [
+    "The detection rule for ATT&CK T1619 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1621": [
+    "The detection rule for ATT&CK T1621 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1648": [
+    "The detection rule for ATT&CK T1648 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.attack_t1651": [
+    "The detection rule for ATT&CK T1651 remains unknown.",
+    "The team cannot tell whether that activity could raise an alert."
+  ],
+  "azure.other.audit_storage_access_logging": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure.other.azure_activity_anomaly": [
+    "The Azure activity anomaly alert setting remains unknown.",
+    "If the alert is absent, the team may notice unusual Azure activity later."
+  ],
+  "azure.other.blob_uniform_access": [
+    "The blob container access setting remains unknown.",
+    "The team cannot tell which users may read stored files."
+  ],
+  "azure.other.blob_uniform_deny": [
+    "The Blob access denial state remains unknown.",
+    "The team cannot tell whether a denied user may still read protected files."
+  ],
+  "azure.other.build_private_network": [
+    "The build agent network setting remains unknown.",
+    "The team cannot tell which outside paths may reach build workers."
+  ],
+  "azure.other.change_approval_trace": [
+    "The change approval record remains unknown.",
+    "The team cannot tell who approved a change to this resource."
+  ],
+  "azure.other.credential_creation_role_scope": [
+    "The credential creation role scope remains unknown.",
+    "The team cannot tell who may create credentials for other identities."
+  ],
+  "azure.other.database_backup_alert": [
+    "The database backup alert setting remains unknown.",
+    "If the alert is absent, the team may notice a failed database backup later."
+  ],
+  "azure.other.database_backup_role_scope": [
+    "The database backup role scope remains unknown.",
+    "The team cannot tell who may make or restore database copies."
+  ],
+  "azure.other.database_default_login_restricted": [
+    "The default SQL login setting remains unknown.",
+    "The team cannot tell which built-in accounts may sign in."
+  ],
+  "azure.other.devops_security_test_evidence": [
+    "The security test record remains unknown.",
+    "The team cannot tell which changes received a security test."
+  ],
+  "azure.other.diagnostic_destination_alert": [
+    "The diagnostic destination alert setting remains unknown.",
+    "If the alert is absent, the team may notice a break in log delivery later."
+  ],
+  "azure.other.endpoint_certificate_trust": [
+    "The endpoint certificate trust state remains unknown.",
+    "The team cannot tell which certificate may identify the service to clients."
+  ],
+  "azure.other.entra_identity_audit_events": [
+    "The Entra audit or sign-in log export remains unknown.",
+    "The team cannot tell whether account activity may be available for review."
+  ],
+  "azure.other.enumeration_alert": [
+    "The enumeration alert setting remains unknown.",
+    "If the alert is absent, the team may notice unusual resource listing later."
+  ],
+  "azure.other.enumeration_logging": [
+    "The enumeration log setting remains unknown.",
+    "The team cannot tell whether list operations may be recorded."
+  ],
+  "azure.other.function_invoke_rate_limit": [
+    "The Function API rate limit remains unknown.",
+    "The team cannot tell how repeated calls may be handled."
+  ],
+  "azure.other.gateway_affinity_cookie_timeout": [
+    "The session affinity timeout remains unknown.",
+    "The team cannot tell when an idle session may lose its routing link."
+  ],
+  "azure.other.gateway_backend_health_alert": [
+    "The gateway backend health alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unhealthy backend later."
+  ],
+  "azure.other.gateway_client_rate_limit": [
+    "The gateway client rate limit remains unknown.",
+    "The team cannot tell how bursts of requests may be handled."
+  ],
+  "azure.other.gateway_server_header_rewrite": [
+    "The Server header rewrite remains unknown.",
+    "The team cannot tell whether responses may reveal the backend server name."
+  ],
+  "azure.other.gateway_throttle_log_alert": [
+    "The gateway access log setting remains unknown.",
+    "The team cannot tell whether incoming traffic may leave records for review."
+  ],
+  "azure.other.gateway_vmss_autoscale": [
+    "The gateway scale behavior remains unknown.",
+    "The team cannot tell how capacity may respond to rising demand."
+  ],
+  "azure.other.lb_certificate_auto_renew": [
+    "The gateway certificate renewal setting remains unknown.",
+    "The team cannot tell when an expiring certificate may be replaced."
+  ],
+  "azure.other.lb_weight_change_authorized": [
+    "The load-balancer routing approval remains unknown.",
+    "The team cannot tell who may change where traffic is sent."
+  ],
+  "azure.other.log_expiry_query": [
+    "The expired-log query state remains unknown.",
+    "The team cannot tell whether old events may still be read."
+  ],
+  "azure.other.log_writer_separation": [
+    "The log writer permission scope remains unknown.",
+    "The team cannot tell whether a writer may also read or delete records."
+  ],
+  "azure.other.metric_ingestion_rate_alert": [
+    "The metric ingestion rate alert setting remains unknown.",
+    "If the alert is absent, the team may notice a drop in metric collection later."
+  ],
+  "azure.other.ml_compute_access_roles": [
+    "The ML compute role scope remains unknown.",
+    "The team cannot tell who may control the compute or its data."
+  ],
+  "azure.other.ml_compute_file_download_restricted": [
+    "The ML file-download setting remains unknown.",
+    "The team cannot tell whether users may copy sensitive files."
+  ],
+  "azure.other.ml_download_audit": [
+    "The Azure ML audit export remains unknown.",
+    "The team cannot tell whether ML file and compute activity may be available for review."
+  ],
+  "azure.other.ml_root_exception": [
+    "The ML root sign-in setting remains unknown.",
+    "The team cannot tell who may receive root access on this compute."
+  ],
+  "azure.other.ml_sensitive_root_disabled": [
+    "The ML root sign-in setting remains unknown.",
+    "The team cannot tell who may receive root access on this compute."
+  ],
+  "azure.other.ml_sensitive_terminal_disabled": [
+    "The ML terminal setting remains unknown.",
+    "The team cannot tell who may open an interactive shell."
+  ],
+  "azure.other.ml_subnet_baseline": [
+    "The ML subnet NSG state remains unknown.",
+    "The team cannot tell which network rules may apply to this compute."
+  ],
+  "azure.other.ml_terminal_exception": [
+    "The ML terminal exception remains unknown.",
+    "The team cannot tell who may open a terminal under that exception."
+  ],
+  "azure.other.monitor_alert_ack_authorization": [
+    "The alert acknowledgement role remains unknown.",
+    "The team cannot tell who may silence a warning."
+  ],
+  "azure.other.monitor_dashboard_access": [
+    "The dashboard viewer role remains unknown.",
+    "The team cannot tell who may read monitoring data."
+  ],
+  "azure.other.monitor_external_lateral_access": [
+    "The monitoring identity destination scope remains unknown.",
+    "The team cannot tell which internal systems it may contact."
+  ],
+  "azure.other.monitor_stream_auth": [
+    "The log publisher authorization remains unknown.",
+    "The team cannot tell which senders may write to the stream."
+  ],
+  "azure.other.nsg_port_protocol_assignment": [
+    "The service port and protocol assignment remains unknown.",
+    "The team cannot tell which traffic the rule may carry."
+  ],
+  "azure.other.retention_change_alert": [
+    "The retention change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted retention change later."
+  ],
+  "azure.other.runtime_public_ip": [
+    "The ML compute public IP assignment remains unknown.",
+    "The team cannot tell whether its nodes have direct public addresses."
+  ],
+  "azure.other.security_event_correlation": [
+    "The security log correlation setting remains unknown.",
+    "The team cannot tell whether related events may be reviewed together."
+  ],
+  "azure.other.snapshot_sharing_scope": [
+    "The snapshot sharing setting remains unknown.",
+    "The team cannot tell which people may receive a copy."
+  ],
+  "azure.other.storage_lifecycle": [
+    "The blob deletion schedule remains unknown.",
+    "The team cannot tell when stored files may be removed."
+  ],
+  "azure.other.vault_key_approved_algorithm": [
+    "The vault key algorithm remains unknown.",
+    "The team cannot tell which cryptographic method protects the key use."
+  ],
+  "azure.other.vault_old_secret_disabled": [
+    "The old secret version state remains unknown.",
+    "The team cannot tell whether an earlier version may still work."
+  ],
+  "azure.port.ad_authorization_policy_guest_invite_restricted": [
+    "The guest invitation role policy remains unknown.",
+    "The team cannot tell which users may invite outside people."
+  ],
+  "azure.port.ad_authorization_policy_guest_user_access_restricted": [
+    "The guest directory role policy remains unknown.",
+    "The team cannot tell which directory objects guests may read."
+  ],
+  "azure.port.ad_authorization_policy_user_consent_disallowed": [
+    "The default user consent policy remains unknown.",
+    "The team cannot tell whether users may approve an app\u2019s requested access."
+  ],
+  "azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions": [
+    "The reviewed user consent policy assignment remains unknown.",
+    "The team cannot tell which app permissions users may approve."
+  ],
+  "azure.port.ad_security_defaults_policy_enabled": [
+    "The tenant Security Defaults setting remains unknown.",
+    "The team cannot tell which baseline sign-in safeguards may apply."
+  ],
+  "azure.port.databricks_workspace_no_public_ip_enabled": [
+    "The Databricks public IP setting remains unknown.",
+    "The team cannot tell whether workspace nodes have direct public addresses."
+  ],
+  "azure.port.defender_required_mcas": [
+    "The Defender integration setting remains unknown.",
+    "The team cannot tell whether related security signals may be shared."
+  ],
+  "azure.port.defender_required_wdatp": [
+    "The Defender integration setting remains unknown.",
+    "The team cannot tell whether related security signals may be shared."
+  ],
+  "azure.port.iam_user_not_allowed_to_create_security_group": [
+    "The security group creation policy remains unknown.",
+    "The team cannot tell which users may create groups."
+  ],
+  "azure.port.iam_user_not_allowed_to_register_application": [
+    "The app registration policy remains unknown.",
+    "The team cannot tell which users may register applications."
+  ],
+  "azure.port.keyvault_logging_enabled": [
+    "The vault audit log setting remains unknown.",
+    "The team cannot tell whether key or secret activity may be recorded."
+  ],
+  "azure.port.monitor_log_alert_create_policy_assignment": [
+    "The policy assignment creation alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted policy assignment later."
+  ],
+  "azure.port.monitor_log_alert_create_update_nsg": [
+    "The network security group change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network security group change later."
+  ],
+  "azure.port.monitor_log_alert_create_update_public_ip_address": [
+    "The public IP address change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted public IP address change later."
+  ],
+  "azure.port.monitor_log_alert_create_update_security_solution": [
+    "The security solution change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted security solution change later."
+  ],
+  "azure.port.monitor_log_alert_create_update_sql_servers_firewall_rule": [
+    "The SQL firewall rule change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule change later."
+  ],
+  "azure.port.monitor_log_alert_delete_nsg": [
+    "The network security group deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted network security group deletion later."
+  ],
+  "azure.port.monitor_log_alert_delete_policy_assignment": [
+    "The policy assignment deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted policy removal later."
+  ],
+  "azure.port.monitor_log_alert_delete_public_ip_address": [
+    "The public IP address deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted public IP address deletion later."
+  ],
+  "azure.port.monitor_log_alert_delete_security_solution": [
+    "The security solution deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted security solution removal later."
+  ],
+  "azure.port.monitor_log_alert_delete_sql_servers_firewall_rule": [
+    "The SQL firewall rule deletion alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule deletion later."
+  ],
+  "azure.port.security_center_defender_for_api_enabled": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.security_center_defender_for_cloudposture_enabled": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_appservice": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_containerregistry": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_containers": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_cosmosdb": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_database": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_dns": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_k8s": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_keyvault": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_resource_manager": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_server": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_sqldb": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_sqlservervm": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_azure_defender_on_for_storage": [
+    "The Defender pricing plan remains unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure.port.securitycenter_mcas_integration": [
+    "The Defender integration setting remains unknown.",
+    "The team cannot tell whether related security signals may be shared."
+  ],
+  "azure.port.securitycenter_wdatp_integration": [
+    "The Defender integration setting remains unknown.",
+    "The team cannot tell whether related security signals may be shared."
+  ],
+  "azure.port.storage_account_geo_redundant_enabled": [
+    "The storage replication SKU remains unknown.",
+    "The team cannot tell whether a copy may exist in another region."
+  ],
+  "azure.port.storage_account_key_rotation_reminder_enabled": [
+    "The storage key expiry policy remains unknown.",
+    "The team cannot tell when key replacement may be prompted."
+  ],
+  "azure.port.storage_account_trusted_microsoft_services_enabled": [
+    "The trusted-service network bypass remains unknown.",
+    "The team cannot tell whether approved Azure services may cross the storage network rule."
+  ],
+  "azure.review.ai_services.audit_logging": [
+    "The AI service Audit log setting remains unknown.",
+    "The team cannot tell whether its account activity may be recorded."
+  ],
+  "azure.review.managed_hsm.audit_storage_destination": [
+    "The vault audit log setting remains unknown.",
+    "The team cannot tell whether key or secret activity may be recorded."
+  ],
+  "azure.sql.auditing": [
+    "The SQL audit or resource log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure.sql.threat_alerts_all": [
+    "The SQL threat alert setting remains unknown.",
+    "If the alert is absent, the team may notice a database threat later."
+  ],
+  "azure.sql.threat_detection": [
+    "The SQL threat detection setting remains unknown.",
+    "The team cannot tell whether suspicious database activity may raise an alert."
+  ],
+  "azure.storage.cross_tenant_replication": [
+    "The cross-tenant replication setting remains unknown.",
+    "The team cannot tell whether data may be copied to another directory."
+  ],
+  "azure.storage.no_blob_public_access": [
+    "The blob anonymous access setting remains unknown.",
+    "The team cannot tell whether unauthenticated users may read stored files."
+  ],
+  "azure.vault.rbac": [
+    "The Key Vault Azure RBAC setting remains unknown.",
+    "The team cannot tell which role rules may govern key and secret access."
+  ],
+  "azure_aks_cluster_10_2_1_1_17_885658f": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure_api_management_10_3_1_3_8a50dc0": [
+    "The application tracing or diagnostic setting remains unknown.",
+    "The team cannot tell whether API activity may be available for review."
+  ],
+  "azure_api_management_app_http_logs_enabled_21c108d": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure_api_management_app_http_logs_enabled_9b3b56e": [
+    "The application tracing or diagnostic setting remains unknown.",
+    "The team cannot tell whether API activity may be available for review."
+  ],
+  "azure_api_management_app_http_logs_enabled_9ef06db": [
+    "The application tracing or diagnostic setting remains unknown.",
+    "The team cannot tell whether API activity may be available for review."
+  ],
+  "azure_api_management_appinsights_ensure_is_configured_42aac6a": [
+    "The application tracing or diagnostic setting remains unknown.",
+    "The team cannot tell whether API activity may be available for review."
+  ],
+  "azure_app_service_app_function_latest_runtime_version_f50215a": [
+    "The Function App runtime and scale state remains unknown.",
+    "The team cannot tell whether the app may run on approved versions and capacity."
+  ],
+  "azure_application_gateway_app_ensure_http_is_redirected_to_https_debad63": [
+    "The gateway HTTPS binding and certificate state remains unknown.",
+    "The team cannot tell which client requests may use a trusted encrypted path."
+  ],
+  "azure_application_gateway_app_http_logs_enabled_2de0361": [
+    "The gateway access log setting remains unknown.",
+    "The team cannot tell whether incoming traffic may leave records for review."
+  ],
+  "azure_c5_dev_08_02b": [
+    "The production change log setting remains unknown.",
+    "The team cannot tell who changed this component or when."
+  ],
+  "azure_c5_ops_05_04ac": [
+    "The deviation reporting state remains unknown.",
+    "The team cannot tell whether a security change may reach a reviewer."
+  ],
+  "azure_c5_ops_13_01b": [
+    "The security log correlation setting remains unknown.",
+    "The team cannot tell whether related events may be reviewed together."
+  ],
+  "azure_c5_ops_17_02ac": [
+    "The log and infrastructure protection state remains unknown.",
+    "The team cannot tell which records may remain available after a failure."
+  ],
+  "azure_c5_ops_17_02b": [
+    "The failure notice state remains unknown.",
+    "The team cannot tell whether the right department may hear about a problem."
+  ],
+  "azure_c5_ops_25_02b": [
+    "The vulnerability severity criteria remain unknown.",
+    "The team cannot tell how reported weaknesses may be ranked."
+  ],
+  "azure_c5_ops_33_03b": [
+    "The Windows patching state remains unknown.",
+    "The team cannot tell whether required updates may be installed."
+  ],
+  "azure_c5_pi_01_02ac": [
+    "The app sign-in setting remains unknown.",
+    "The team cannot tell how customers may identify themselves."
+  ],
+  "azure_cosmos_account_10_2_1_1_13_5c115b0": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure_cosmos_account_10_2_1_1_23_e04a63d": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure_devops_project_6_5_5_2_2908a87": [
+    "The pipeline job limit remains unknown.",
+    "The team cannot tell how many deployment jobs may run at once."
+  ],
+  "azure_diagnostic_setting_11_5_2_3_7959930": [
+    "The diagnostic activity alert setting remains unknown.",
+    "If the alert is absent, the team may notice an important diagnostic event later."
+  ],
+  "azure_diagnostic_setting_app_http_logs_enabled_d32e8e1": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure_directory_user_7_2_1_19_28e2aa7": [
+    "The group-based role assignment state remains unknown.",
+    "The team cannot tell which groups may grant Azure access."
+  ],
+  "azure_firewall_policy_10_2_1_1_24_0781f5f": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure_frontdoor_monitor_storage_account_with_activity_logs_is_private_d42518a": [
+    "The web request log setting remains unknown.",
+    "The team cannot tell whether requests may leave records for review."
+  ],
+  "azure_log_analytics_workspace_monitor_diagnostic_setting_with_appropriate_categories_48f6b2b": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure_management_group_7_2_1_12_3f8ec01": [
+    "The management group role assignments remain unknown.",
+    "The team cannot tell whether prohibited roles may hold broad access."
+  ],
+  "azure_management_group_7_2_1_13_50babe4": [
+    "The management group role principals remain unknown.",
+    "The team cannot tell which identities may hold Azure access."
+  ],
+  "azure_ml_workspace_1_2_8_37_973721f": [
+    "The ML compute node public IP assignment remains unknown.",
+    "The team cannot tell whether its nodes have direct public addresses."
+  ],
+  "azure_pci_10_2_1_1_16": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure_pci_10_2_1_1_25": [
+    "The MySQL audit or event log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure_role_assignment_7_2_1_14_6743a56": [
+    "The custom role action list remains unknown.",
+    "The team cannot tell whether a root-scope role may grant broad control."
+  ],
+  "azure_role_assignment_aks_cluster_rbac_enabled_675305a": [
+    "The AKS custom Azure role assignment remains unknown.",
+    "The team cannot tell which identities may use that Kubernetes access."
+  ],
+  "azure_route_table_network_http_internet_access_restricted_5cd2484": [
+    "The route destination list remains unknown.",
+    "The team cannot tell where default network traffic may go."
+  ],
+  "azure_search_service_10_6_3_27_ba08488": [
+    "The search document access rule remains unknown.",
+    "The team cannot tell which users may read indexed data."
+  ],
+  "azure_security_pricing_compute_vm_security_configuration_vulnerabilities_remediated_64c8b1c": [
+    "The VM security findings remain unknown.",
+    "The team cannot tell which baseline weaknesses may still need work."
+  ],
+  "azure_security_pricing_policy_ensure_asc_enforcement_enabled_70150a3": [
+    "The required Defender plan tiers remain unknown.",
+    "The team cannot tell which paid security features may be available."
+  ],
+  "azure_sql_database_sqlserver_auditing_enabled_77d6841": [
+    "The SQL audit or resource log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure_storage_account_10_2_1_1_20_5914d2c": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ],
+  "azure_storage_account_10_5_1_13_2f5d4f6": [
+    "The blob lifecycle policy remains unknown.",
+    "The team cannot tell when old blob versions may be deleted."
+  ],
+  "azure_storage_account_monitor_alert_create_update_sqlserver_fr_7a7ddfa": [
+    "The SQL firewall rule change alert setting remains unknown.",
+    "If the alert is absent, the team may notice an unwanted SQL firewall rule change later."
+  ],
+  "azure_storage_account_sqlserver_auditing_enabled_e4e4b28": [
+    "The SQL audit or resource log setting remains unknown.",
+    "The team cannot tell whether database activity may leave a record."
+  ],
+  "azure_storage_account_storage_blob_public_access_level_is_disabled_4211794": [
+    "The storage network and blob access settings remain unknown.",
+    "The team cannot tell which network or anonymous reads may be allowed."
+  ],
+  "azure_storage_account_storage_ensure_azure_services_are_trusted_to_access_is_enabled_7677ce9": [
+    "The storage Event Grid setting remains unknown.",
+    "The team cannot tell whether required storage events may reach subscribers."
+  ],
+  "azure_synapse_workspace_10_2_1_1_28_47f4840": [
+    "The Synapse key or SQL audit setting remains unknown.",
+    "The team cannot tell whether data protection and activity records meet the intended policy."
+  ],
+  "azure_vm_1_4_5_1_d40be43": [
+    "The VM public IP assignment remains unknown.",
+    "The team cannot tell whether these VMs have direct public addresses."
+  ],
+  "azure_vm_8_2_1_1_712e1ad": [
+    "The VM SSH key launch setting remains unknown.",
+    "The team cannot tell which key may allow remote sign-in."
+  ],
+  "azure_vm_monitor_diagnostic_setting_with_appropriate_categories_4e20679": [
+    "The service metric export remains unknown.",
+    "The team cannot tell whether performance data may be available for review."
+  ],
+  "azure_vnet_gateway_10_2_1_1_14_4189d89": [
+    "The service diagnostic log setting remains unknown.",
+    "The team cannot tell whether service events may be available for review."
+  ]
+}

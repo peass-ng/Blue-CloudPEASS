@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 
 from peaso import privesc
+from peaso.privesc.effective_permissions.gcp_external_principal import FIREBASE_CUSTOM_TOKEN_AUDIENCE
 from peaso.privesc.schema import validate_entry
 from tests.test_peaso_privesc_schema_ext import reached, snapshot
 
@@ -66,6 +67,23 @@ def paths(snap, entry=ENTRY):
             if not target.startswith(("unknown:", "unresolved:"))}
 
 
+def firebase_fact(entry):
+    signer = "signer@p1.iam.gserviceaccount.com"
+    account = SCOPE + "/accounts/uid-7"
+    return {**proof(), "TechniqueId": entry["id"],
+            "ActionResource": SCOPE + "/serviceAccounts/" + signer,
+            "AccessPermission": entry["requires"]["all_of"][0]["action"],
+            "TargetPlane": "firebase_auth", "TargetServiceResource": account,
+            "TargetPrincipalId": "uid-7", "ObservedPrincipalId": "uid-7",
+            "PriorTestedResource": account, "AfterTestedResource": account,
+            "GainedPermission": "app.admin", "PriorTestedPermission": "app.admin",
+            "AfterTestedPermission": "app.admin", "SignedTokenAlgorithm": "RS256",
+            "SignedTokenIssuer": signer, "SignedTokenSubject": signer,
+            "SignedTokenAudience": FIREBASE_CUSTOM_TOKEN_AUDIENCE,
+            "SignedTokenUid": "uid-7", "ExchangeProjectId": "p1",
+            "ExchangeUid": "uid-7", "ExchangeAccepted": True}
+
+
 def test_exact_reviewed_login_and_new_permission_reach_only_named_principal():
     assert validate_entry(ENTRY)[0] == []
     got = paths(case())
@@ -115,7 +133,7 @@ def test_wrong_action_and_ambiguous_subject_do_not_join():
     assert paths(case([proof(), second])) == {}
 
 
-def test_firebase_project_action_binds_one_user_and_new_app_permission():
+def test_firebase_exact_signer_and_accepted_exchange_bind_one_user():
     import yaml
     from pathlib import Path
 
@@ -123,14 +141,7 @@ def test_firebase_project_action_binds_one_user_and_new_app_permission():
                             / "peaso/privesc/catalog/gcp/firebase_external.yaml").read_text())[0]
     assert validate_entry(entry)[0] == []
     action = entry["requires"]["all_of"][0]["action"]
-    fact = {**proof(), "TechniqueId": entry["id"], "ActionResource": SCOPE,
-            "AccessPermission": action, "TargetPlane": "firebase_auth",
-            "TargetServiceResource": SCOPE + "/accounts/uid-7",
-            "TargetPrincipalId": "uid-7", "ObservedPrincipalId": "uid-7",
-            "PriorTestedResource": SCOPE + "/accounts/uid-7",
-            "AfterTestedResource": SCOPE + "/accounts/uid-7",
-            "GainedPermission": "app.admin", "PriorTestedPermission": "app.admin",
-            "AfterTestedPermission": "app.admin"}
+    fact = firebase_fact(entry)
     assert len(paths(case([fact], permission=False), entry)) == 0
     snap = snapshot("gcp", [
         ("project", SCOPE, [{"projectId": "p1", "name": "projects/123", "_ancestry": []}]),
@@ -141,16 +152,24 @@ def test_firebase_project_action_binds_one_user_and_new_app_permission():
     ])
     snap["created_at"] = "2026-10-16T11:05:00Z"
     assert len(paths(snap, entry)) == 1
+    for field, value in (("ActionResource", SCOPE),
+                         ("SignedTokenIssuer", "other@p1.iam.gserviceaccount.com"),
+                         ("SignedTokenAudience", "https://other.example.test"),
+                         ("SignedTokenUid", "uid-8"),
+                         ("ExchangeProjectId", "p2"),
+                         ("ExchangeAccepted", False)):
+        altered = copy.deepcopy(fact)
+        altered[field] = value
+        next(c for c in snap["collections"] if c["type"] == "gcp_external_principal_evidence")["items"] = [altered]
+        assert paths(snap, entry) == {}, (field, value)
 
 
-def test_catalog_vmware_and_cloudsql_rows_require_exact_plane_and_permission():
+def test_active_external_principal_rows_require_exact_plane_and_permission():
     import yaml
     from pathlib import Path
 
     catalog = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/gcp"
     entries = yaml.safe_load((catalog / "vmware_external.yaml").read_text())
-    entries += yaml.safe_load((catalog / "cloudsql_external.yaml").read_text())
-    entries += yaml.safe_load((catalog / "bms_external.yaml").read_text())
     entries += yaml.safe_load((catalog / "agentregistry_external.yaml").read_text())
     entries += yaml.safe_load((catalog / "firebase_external.yaml").read_text())[1:]
     for entry in entries:
@@ -187,15 +206,26 @@ def test_catalog_vmware_and_cloudsql_rows_require_exact_plane_and_permission():
                         PriorTestedResource="https://api.example.test/accounts/victim-7",
                         AfterTestedResource="https://api.example.test/accounts/victim-7",
                         GainedPermission="account.read", PriorTestedPermission="account.read",
-                        AfterTestedPermission="account.read")
+                        AfterTestedPermission="account.read",
+                        QuotaProject=SCOPE, ServiceProjectedUrnBefore="urn:mcp:provider1",
+                        ServiceProjectedUrnAfter="urn:mcp:provider1",
+                        BindingResource=SCOPE + "/locations/us-central1/bindings/b1",
+                        BindingTargetUrn="urn:mcp:provider1",
+                        BindingAuthProvider=SCOPE + "/locations/us-central1/authProviders/ap1",
+                        ServiceUrlBefore="https://provider.example.test/mcp",
+                        ServiceUrlAfter="https://capture.example.test/mcp",
+                        CaptureEndpointUrl="https://capture.example.test/mcp",
+                        VictimPrincipalId="victim-7", CredentialKind="api_key",
+                        CredentialHeaderName="Authorization",
+                        VictimInvocationObservedAt="2026-10-16T11:02:20Z",
+                        CredentialCapturedAt="2026-10-16T11:02:30Z",
+                        BindingPresentBefore=True, BindingPresentAfter=True,
+                        ServiceUpdatedOnlyInterfaces=True,
+                        VictimRuntimeAuthorizedToRetrieve=True,
+                        VictimUsedBindingAwareRuntime=True,
+                        CredentialCapturedAtControlledEndpoint=True)
         if plane == "firebase_auth":
-            fact.update(ActionResource=SCOPE + "/serviceAccounts/signer@p1.iam.gserviceaccount.com",
-                        TargetServiceResource=SCOPE + "/accounts/uid-7",
-                        TargetPrincipalId="uid-7", ObservedPrincipalId="uid-7",
-                        PriorTestedResource=SCOPE + "/accounts/uid-7",
-                        AfterTestedResource=SCOPE + "/accounts/uid-7",
-                        GainedPermission="app.admin", PriorTestedPermission="app.admin",
-                        AfterTestedPermission="app.admin")
+            fact.update(firebase_fact(entry))
         if plane == "firebase_idp":
             fact.update(ActionResource=SCOPE,
                         TargetServiceResource="https://idp.example.test/accounts/user-8",

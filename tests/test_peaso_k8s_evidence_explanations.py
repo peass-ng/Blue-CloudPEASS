@@ -9,7 +9,8 @@ import pytest
 from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.native_only import exclusions
-from peaso.checks.k8s_evidence_explanations import evidence_summary, review_rows, reviewed_explanation
+from peaso.checks.k8s_evidence_explanations import (evidence_summary, review_rows, current_review_rows,
+    all_review_rows, reviewed_explanation)
 from tests.test_peaso_k8s_observed_configuration import (
     cases_for, current_native_cases, preserved_predecessors, compatibility_receipt,
     recorded_observation, SELECTED_SECRET_IDS, AUTHORIZATION_FIXTURE_IDS)
@@ -90,9 +91,12 @@ def observations_for(cid):
 
 
 def test_every_current_registered_id_has_exact_review_records():
-    assert len(K8S) == 1016
-    assert set(review_rows()) == set(K8S)
-    assert set(compatibility_receipt()['registered_ids']) == set(K8S)
+    assert len(K8S) == 1031
+    assert len(review_rows()) == 1016
+    assert len(current_review_rows()) == 15
+    assert set(review_rows()).isdisjoint(current_review_rows())
+    assert set(all_review_rows()) == set(K8S)
+    assert set(compatibility_receipt()['registered_ids']) == set(review_rows())
     assert review_rows() == json.loads(preserved_predecessors()['files']['peaso/checks/k8s_evidence_explanations.json']['source'])
     for cid, row in review_rows().items():
         if cid.startswith('k8s.review.kubelet_configmap.'):
@@ -108,7 +112,7 @@ def test_every_current_registered_id_has_exact_review_records():
         assert len(row['purpose']) < 160 and len(row['limit']) < 150, cid
 
 
-@pytest.mark.parametrize('cid', sorted(K8S))
+@pytest.mark.parametrize('cid', sorted(review_rows()))
 def test_every_existing_status_witness_has_short_explanatory_output(cid):
     observed = list(observations_for(cid))
     assert observed
@@ -196,7 +200,7 @@ def test_review_ledger_accounts_for_each_id_and_replays_every_saved_explanation(
     original = preserved_predecessors()['files']['docs/evidence-reviews/k8s.json']['source']
     assert path.read_text() == original
     ledger = json.loads(original)
-    assert set(ledger['checks']) == set(K8S)
+    assert set(ledger['checks']) == set(review_rows())
     for cid, entry in ledger['checks'].items():
         if cid in current_native_cases() or cid in SELECTED_SECRET_IDS:
             # Exact historical entries remain preserved, including older text
@@ -237,7 +241,7 @@ def test_unhashable_identifiers_and_reason_payloads_do_not_crash():
         assert evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': 'FAIL', 'evidence': {'reason': reason}}) is None
 
 
-@pytest.mark.parametrize('cid', sorted(K8S))
+@pytest.mark.parametrize('cid', sorted(review_rows()))
 def test_observations_are_sentences_not_raw_field_label_tables(cid):
     import re
     for state, finding in observations_for(cid):

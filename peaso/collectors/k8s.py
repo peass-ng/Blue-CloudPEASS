@@ -99,6 +99,12 @@ class K8sReader(_Reader):
 
 # Inventory paths; the transport separately admits metadata-only Secret lists and exact node configz.
 ENDPOINTS = {
+    "configsync_rootsync": ("/apis/configsync.gke.io/v1beta1/rootsyncs", True),
+    "configconnector": ("/apis/core.cnrm.cloud.google.com/v1beta1/configconnectors", False),
+    "configconnectorcontext": ("/apis/core.cnrm.cloud.google.com/v1beta1/configconnectorcontexts", True),
+    "kcc_iampolicy": ("/apis/iam.cnrm.cloud.google.com/v1beta1/iampolicies", True),
+    "kcc_iampartialpolicy": ("/apis/iam.cnrm.cloud.google.com/v1beta1/iampartialpolicies", True),
+    "kcc_project": ("/apis/resourcemanager.cnrm.cloud.google.com/v1beta1/projects", True),
     "role": ("/apis/rbac.authorization.k8s.io/v1/roles", True),
     "clusterrole": ("/apis/rbac.authorization.k8s.io/v1/clusterroles", False),
     "rolebinding": ("/apis/rbac.authorization.k8s.io/v1/rolebindings", True),
@@ -728,6 +734,12 @@ def _native(item, kind, cluster, scope, namespaced):
     # LIST items may omit TypeMeta. A supplied contradictory type must never
     # acquire the requested endpoint's identity through provenance stamping.
     native_types = {
+        "configsync_rootsync": ("configsync.gke.io/v1beta1", "RootSync"),
+        "configconnector": ("core.cnrm.cloud.google.com/v1beta1", "ConfigConnector"),
+        "configconnectorcontext": ("core.cnrm.cloud.google.com/v1beta1", "ConfigConnectorContext"),
+        "kcc_iampolicy": ("iam.cnrm.cloud.google.com/v1beta1", "IAMPolicy"),
+        "kcc_iampartialpolicy": ("iam.cnrm.cloud.google.com/v1beta1", "IAMPartialPolicy"),
+        "kcc_project": ("resourcemanager.cnrm.cloud.google.com/v1beta1", "Project"),
         "pod": ("v1", "Pod"), "podtemplate": ("v1", "PodTemplate"),
         "replicationcontroller": ("v1", "ReplicationController"),
         "namespace": ("v1", "Namespace"), "node": ("v1", "Node"),
@@ -777,6 +789,9 @@ def _native(item, kind, cluster, scope, namespaced):
     from peaso.secret_evidence import pod_environment
     pod_environment(item, kind=kind, resource_id='k8s://' + '/'.join(quote(str(x), safe='') for x in (cluster, kind, namespace, meta.get('uid') or name)), scope=namespace if scope == '*' else scope)
     result = _sanitize(item)
+    if kind == "kcc_project":
+        from .k8s_kcc_project import project_identity
+        result = project_identity(result)
     annotations = meta.get("annotations", {})
     if isinstance(annotations, dict):
         mirror = annotations.get("kubernetes.io/config.mirror")
@@ -1717,7 +1732,7 @@ def collect(connector, requirements=None, *, api=None):
                     output.append(item)
                 yield output
             jobs.append((imported_kind, scopes[0], "kubernetes", supplied))
-        if actual.intersection({"api_discovery", "securitycontextconstraint", "admission_policy", *CUSTOM_NETWORK_POLICY_GROUPS}) or discover_psp:
+        if actual.intersection({"api_discovery", "securitycontextconstraint", "admission_policy", "configsync_rootsync", "configconnector", "configconnectorcontext", "kcc_iampolicy", "kcc_iampartialpolicy", "kcc_project", *CUSTOM_NETWORK_POLICY_GROUPS}) or discover_psp:
             def discovery():
                 document = reader.call(api.get_json, "/apis")
                 groups = document.get("groups") if isinstance(document, dict) else None
@@ -1727,6 +1742,57 @@ def collect(connector, requirements=None, *, api=None):
                     "provenance": {"cluster_id": cluster, "source": "GET /apis", "authoritative_for": "advertised API groups only"}}
                 # Kyverno / Gatekeeper CRD presence from served API groups; presence is not enforcement evidence.
                 item["policy_engines"] = _policy_engines({group["name"] for group in groups})
+                if actual.intersection({"configconnector", "configconnectorcontext", "kcc_iampolicy", "kcc_iampartialpolicy"}):
+                    kcc_group = next((group for group in groups if group["name"] == "iam.cnrm.cloud.google.com"), None)
+                    served = any(isinstance(version, dict) and version.get("groupVersion") ==
+                                 "iam.cnrm.cloud.google.com/v1beta1"
+                                 for version in (kcc_group or {}).get("versions", []))
+                    if served:
+                        try:
+                            iam_api = reader.call(api.get_json, "/apis/iam.cnrm.cloud.google.com/v1beta1")
+                            resources = iam_api.get("resources") if isinstance(iam_api, dict) else None
+                            if not isinstance(resources, list) or any(not isinstance(resource, dict)
+                                    or not isinstance(resource.get("name"), str) for resource in resources):
+                                raise ValueError("malformed Config Connector IAM API discovery")
+                            for field, name in (("kccIAMPolicyMemberAdvertised", "iampolicymembers"),
+                                                ("kccIAMPolicyAdvertised", "iampolicies"),
+                                                ("kccIAMPartialPolicyAdvertised", "iampartialpolicies"),
+                                                ("kccIAMServiceAccountKeyAdvertised", "iamserviceaccountkeys")):
+                                item[field] = any(resource.get("name") == name and resource.get("namespaced") is True
+                                                  for resource in resources)
+                        except Exception as exc:
+                            status, error = _safe_error(exc)
+                            item.setdefault("_coverage", {})["kccIAMPolicyMemberAdvertised"] = {
+                                "status": status, "error": error, "reason": "Config Connector IAM resource discovery unavailable"}
+                    else:
+                        item["kccIAMPolicyMemberAdvertised"] = False
+                        item["kccIAMPolicyAdvertised"] = False
+                        item["kccIAMPartialPolicyAdvertised"] = False
+                        item["kccIAMServiceAccountKeyAdvertised"] = False
+                if "kcc_project" in actual:
+                    project_group = next((group for group in groups
+                                          if group["name"] == "resourcemanager.cnrm.cloud.google.com"), None)
+                    project_served = any(isinstance(version, dict) and version.get("groupVersion") ==
+                                         "resourcemanager.cnrm.cloud.google.com/v1beta1"
+                                         for version in (project_group or {}).get("versions", []))
+                    if project_served:
+                        try:
+                            project_api = reader.call(
+                                api.get_json, "/apis/resourcemanager.cnrm.cloud.google.com/v1beta1")
+                            resources = project_api.get("resources") if isinstance(project_api, dict) else None
+                            if not isinstance(resources, list) or any(not isinstance(resource, dict)
+                                    or not isinstance(resource.get("name"), str) for resource in resources):
+                                raise ValueError("malformed Config Connector Project API discovery")
+                            item["kccProjectAdvertised"] = any(
+                                resource.get("name") == "projects" and resource.get("namespaced") is True
+                                for resource in resources)
+                        except Exception as exc:
+                            status, error = _safe_error(exc)
+                            item.setdefault("_coverage", {})["kccProjectAdvertised"] = {
+                                "status": status, "error": error,
+                                "reason": "Config Connector Project resource discovery unavailable"}
+                    else:
+                        item["kccProjectAdvertised"] = False
                 if discover_psp:
                     try:
                         version = reader.call(api.get_json, "/version")
@@ -1824,6 +1890,8 @@ def collect(connector, requirements=None, *, api=None):
                     except Exception as exc:
                         reader.unavailable("admission_policy", scopes[0], "kubernetes", exc)
                     else:
+                        for discovery_item in discovered["items"]:
+                            discovery_item["admissionPolicyResources"] = sorted(advertised)
                         if not advertised:
                             reader.collections.append({"type": "admission_policy", "scope": scopes[0], "service": "kubernetes",
                                 "status": "not_collected", "coverage_status": "not_applicable", "items": [],
@@ -1835,6 +1903,36 @@ def collect(connector, requirements=None, *, api=None):
                                 _admission_policy_pages(reader, api, cluster, scopes[0], advertised)))
         for kind in sorted(actual.intersection(ENDPOINTS) - CUSTOM_NETWORK_POLICY_GROUPS.keys()):
             path, namespaced = ENDPOINTS[kind]
+            if kind in ("configsync_rootsync", "configconnector", "configconnectorcontext", "kcc_iampolicy", "kcc_iampartialpolicy", "kcc_project"):
+                discovery = next((row for row in reader.collections if row["type"] == "api_discovery"), None)
+                core = kind in ("configconnector", "configconnectorcontext")
+                group_name = ("configsync.gke.io" if kind == "configsync_rootsync" else
+                              "core.cnrm.cloud.google.com" if core else
+                              "resourcemanager.cnrm.cloud.google.com" if kind == "kcc_project" else
+                              "iam.cnrm.cloud.google.com")
+                group_version = group_name + "/v1beta1"
+                group_served = bool(discovery and discovery["status"] in ("collected", "empty") and
+                    any(group.get("name") == group_name and any(isinstance(version, dict) and
+                        version.get("groupVersion") == group_version for version in group.get("versions", []))
+                        for item in discovery["items"] for group in item.get("groups", [])))
+                resource_field = {"kcc_iampolicy": "kccIAMPolicyAdvertised",
+                                  "kcc_iampartialpolicy": "kccIAMPartialPolicyAdvertised",
+                                  "kcc_project": "kccProjectAdvertised"}.get(kind)
+                resource_values = [item.get(resource_field) for item in discovery["items"]] if (
+                    resource_field and group_served) else []
+                for scope in scopes if namespaced else [scopes[0]]:
+                    if discovery is None or discovery["status"] not in ("collected", "empty"):
+                        reader.unavailable(kind, scope, "kubernetes", K8sReadError("api_discovery_incomplete"))
+                    elif not group_served or resource_field and resource_values == [False]:
+                        reader.collections.append({"type": kind, "scope": scope, "service": "kubernetes",
+                            "status": "empty", "items": [],
+                            "applicability": {"observed_api_version_absent": group_version if not group_served else
+                                              group_version + "/" + path.rsplit("/", 1)[-1],
+                                              "source": "GET /apis"}})
+                    elif resource_field and resource_values != [True]:
+                        reader.unavailable(kind, scope, "kubernetes", K8sReadError("kcc_resource_discovery_incomplete"))
+                if (not group_served or resource_field and resource_values != [True]):
+                    continue
             if kind == "namespace" and scopes != ["*"]:
                 for scope in scopes:
                     def namespace(scope=scope):

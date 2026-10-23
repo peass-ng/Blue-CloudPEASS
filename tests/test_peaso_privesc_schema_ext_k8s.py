@@ -56,7 +56,9 @@ def pod(name, namespace, sa_name, node=None, phase="Running"):
 
 
 def node(name):
-    return {"kind": "Node", "metadata": meta(name), "provenance": PROV, "spec": {"providerID": "kind://docker/x/" + name}}
+    return {"kind": "Node", "metadata": meta(name), "provenance": PROV,
+            "spec": {"providerID": "kind://docker/x/" + name},
+            "status": {"conditions": [{"type": "Ready", "status": "True"}]}}
 
 
 def secret(name, namespace, stype="Opaque", labels=None):
@@ -176,7 +178,8 @@ def test_namespace_absent_and_scc_user_subjects():
     scc_users = k8s_entry("k8s-t-scc", {"all_of": [{"verb": "create", "resource": "serviceaccounts", "namespace": "*"}]},
                           {"kind": "k8s_service_account", "selector": {"k8s_sa_named_in_scc_users": True}, "scope": "cluster"})
     result = privesc.analyze(snap, entries=[absent_ns, scc_users])
-    assert set(reached(result, DEV, "k8s-t-nsabsent")) == {f"k8s:{C}:sa:gone:deployer", f"k8s:{C}:sa:b:runner"}
+    # The SCC lists runner but does not grant host access, so recreating it adds no privileged path.
+    assert set(reached(result, DEV, "k8s-t-nsabsent")) == {f"k8s:{C}:sa:gone:deployer"}
     assert set(reached(result, DEV, "k8s-t-scc")) == {f"k8s:{C}:sa:b:runner", f"k8s:{C}:sa:a:web"}
     # Not OpenShift: no SCC targets at all.
     plain = k8s_snap(clusterroles=[view, create], crbs=binds, sas=[sa("web", "a")],

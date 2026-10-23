@@ -1,22 +1,17 @@
 {
   "aws-amplify-updateapp-passrole": {
-    "purpose": "A controlled Amplify build may use the service role assigned to its app.",
-    "label": "Assign a passed service role to an Amplify app build",
+    "purpose": "Changing an Amplify role and controlled build or SSR code may expose the passed role\u2019s privileges.",
+    "label": "Repoint an Amplify app's service or compute role to a passed role and build it",
     "review_status": "source_reviewed"
   },
   "aws-amplify-updateapp-passrole-ssr": {
-    "purpose": "A reachable deployed SSR route may use the compute role assigned to its app.",
+    "purpose": "Changing an Amplify role and controlled build or SSR code may expose the passed role\u2019s privileges.",
     "label": "Repoint an Amplify SSR compute role and invoke controlled SSR code",
     "review_status": "source_reviewed"
   },
   "aws-amplifybackend-createtoken-studio-admin": {
     "purpose": "Minting a Studio login may grant administration of the linked Gen 1 application backend.",
     "label": "Mint an Amplify Studio administrator login for a Gen 1 backend",
-    "review_status": "source_reviewed"
-  },
-  "aws-apigateway-integration-credentials-passrole": {
-    "purpose": "Invoking a changed API integration may exercise the passed API Gateway role\u2019s service actions.",
-    "label": "Create a REST API AWS-service integration that runs with a passed credentials role",
     "review_status": "source_reviewed"
   },
   "aws-apprunner-passrole-createservice": {
@@ -207,7 +202,7 @@
     "review_status": "source_reviewed"
   },
   "aws-deadline-passrole-fleet-createworker": {
-    "purpose": "A controlled Deadline queue or fleet worker may exchange credentials for the passed role.",
+    "purpose": "A new Deadline fleet worker may perform a specific reviewed operation through the configured fleet role.",
     "label": "Attach a passed role to a fleet and vend it to a registered worker",
     "review_status": "source_reviewed"
   },
@@ -627,11 +622,6 @@
     "label": "Add or change a workflow step that runs a script on managed nodes",
     "review_status": "source_reviewed"
   },
-  "aws-finspace-passrole-createkxcluster": {
-    "purpose": "A controlled FinSpace kdb cluster may run q code with the passed role.",
-    "label": "Create a FinSpace Managed kdb cluster with a passed execution role",
-    "review_status": "source_reviewed"
-  },
   "aws-kafkaconnect-passrole-createconnector": {
     "purpose": "A controlled MSK Connect plugin may run in workers carrying the passed execution role.",
     "label": "Create an MSK Connect connector with a passed service execution role",
@@ -733,7 +723,7 @@
     "review_status": "source_reviewed"
   },
   "aws-scheduler-passrole-createschedule-or-updateschedule": {
-    "purpose": "A Scheduler target may exercise supported API actions with the passed role.",
+    "purpose": "A scheduled IAM policy write may grant the schedule editor a new permission.",
     "label": "Create or update a schedule that runs with a passed execution role",
     "review_status": "source_reviewed"
   },
@@ -888,14 +878,9 @@
     "review_status": "source_reviewed"
   },
   "gcp-artifactregistry-upload-artifacts": {
-    "purpose": "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
-    "label": "Push a malicious image or package version consumed by a privileged workload",
-    "review_status": "source_reviewed"
-  },
-  "gcp-artifactregistry-tags-update": {
-    "purpose": "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
-    "label": "Repoint a mutable tag to an attacker digest already in the package",
-    "review_status": "source_reviewed"
+    "purpose": "A changed mutable Docker tag may run attacker code when a named workload later fetches that image.",
+    "label": "Replace a tagged Docker image consumed by a privileged workload",
+    "review_status": "source_and_runtime_reviewed"
   },
   "gcp-artifactregistry-repositories-setiampolicy": {
     "purpose": "Changing repository IAM may enable artifact replacement and code execution by a consuming workload.",
@@ -905,11 +890,6 @@
   "gcp-artifactregistry-gcrio-namespace-squat": {
     "purpose": "Claiming a legacy gcr.io repository namespace may replace artifacts consumed by an existing workload.",
     "label": "Create the missing gcr.io-named repository to claim a redirected legacy namespace",
-    "review_status": "source_reviewed"
-  },
-  "gcp-artifactregistry-repositories-update-dependency-confusion": {
-    "purpose": "Changing virtual-repository precedence may feed an attacker package to a consuming workload.",
-    "label": "Reconfigure a virtual repository's upstreams to enable dependency confusion",
     "review_status": "source_reviewed"
   },
   "gcp-batch-jobs-create-actas": {
@@ -927,11 +907,6 @@
     "label": "Run a BigQuery continuous query bound to a chosen service account",
     "review_status": "source_reviewed"
   },
-  "gcp-bigquery-table-row-credential": {
-    "purpose": "A verified usable table-row credential may reach only the named identity it authenticates.",
-    "label": "Read BigQuery table rows",
-    "review_status": "source_reviewed"
-  },
   "gcp-bigquery-spark-procedure-connection-identity": {
     "purpose": "A Spark stored procedure may execute code with the delegated connection\u2019s service identity.",
     "label": "Create or replace a Spark stored procedure that runs code as an existing Spark connection's service identity",
@@ -940,41 +915,6 @@
   "gcp-bigquery-row-policy-create-self-grant": {
     "purpose": "A self-targeted row policy may newly permit filtered reads of that exact BigQuery table.",
     "label": "Self-grant filtered row access by creating a row access policy",
-    "review_status": "source_reviewed"
-  },
-  "gcp-bigtable-row-credential": {
-    "purpose": "A verified usable Bigtable-cell credential may reach only its named identity.",
-    "label": "Read Bigtable base-table rows",
-    "review_status": "source_reviewed"
-  },
-  "gcp-bms-direct-initial-secret-exact-server-user": {
-    "purpose": "A still-valid BMS initial password may enable login as the exact named server OS user.",
-    "label": "Reach one BMS server user through its still-valid initial password secret",
-    "review_status": "source_reviewed"
-  },
-  "gcp-biglake-connection-table-bounded-storage-read": {
-    "purpose": "A connection-backed BigLake table may newly expose one protected storage object.",
-    "label": "Read one protected storage object through a connection-backed BigLake table",
-    "review_status": "source_reviewed"
-  },
-  "gcp-bigquery-remote-function-bounded-cloudrun-invoke": {
-    "purpose": "A connection-backed remote function may newly permit one configured Cloud Run application invocation.",
-    "label": "Invoke one protected Cloud Run endpoint through an exact remote function",
-    "review_status": "source_reviewed"
-  },
-  "gcp-bigquery-authorized-routine-bounded-table-access": {
-    "purpose": "An authorized callable routine may newly expose one protected table through that routine.",
-    "label": "Gain bounded protected-table access through one authorized routine",
-    "review_status": "source_reviewed"
-  },
-  "gcp-bigquery-authorized-view-bounded-table-access": {
-    "purpose": "An existing authorized view may newly expose its protected source table through that view.",
-    "label": "Gain bounded protected-table access through one authorized view",
-    "review_status": "source_reviewed"
-  },
-  "gcp-bigquery-authorized-dataset-existing-view-bounded-table-access": {
-    "purpose": "An existing authorized view may newly expose its protected source table through that view.",
-    "label": "Gain bounded protected-table access through one existing view in an authorized dataset",
     "review_status": "source_reviewed"
   },
   "gcp-cloudbuild-builds-create-custom-sa-actas": {
@@ -1032,11 +972,6 @@
     "label": "Inject interpreter startup hooks through a function's environment variables",
     "review_status": "source_reviewed"
   },
-  "gcp-cloudfunctions-setiampolicy-actas": {
-    "purpose": "A controlled function deployment or reconfiguration may execute with its selected service account.",
-    "label": "Self-grant function update rights through the function IAM policy",
-    "review_status": "source_reviewed"
-  },
   "gcp-cloudfunctions-source-deploy-build-identity": {
     "purpose": "A source-based function build may run controlled build steps with the project\u2019s default build identity.",
     "label": "Run attacker build hooks as a function's build service account during source deployment",
@@ -1057,11 +992,6 @@
     "label": "Update an existing scheduler job to call Google APIs as a chosen service account",
     "review_status": "source_reviewed"
   },
-  "gcp-secretmanager-managed-rotation-exact-cloudsql-user": {
-    "purpose": "Managed credential rotation may set a new password for one exact eligible Cloud SQL user.",
-    "label": "Reset one Cloud SQL user's password through managed secret rotation",
-    "review_status": "source_reviewed"
-  },
   "gcp-cloudtasks-tasks-create-actas": {
     "purpose": "A controlled queued task may send authenticated requests as the selected service account.",
     "label": "Enqueue HTTP tasks authenticated as a chosen service account",
@@ -1075,11 +1005,6 @@
   "gcp-composer-environments-create-actas": {
     "purpose": "A controlled Composer environment and delivered DAG may execute with the selected service account.",
     "label": "Create a Composer environment running as a chosen service account",
-    "review_status": "source_reviewed"
-  },
-  "gcp-composer-environments-executeairflowcommand": {
-    "purpose": "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
-    "label": "Execute Airflow CLI commands in a Composer environment",
     "review_status": "source_reviewed"
   },
   "gcp-composer-environments-update": {
@@ -1118,9 +1043,9 @@
     "review_status": "source_reviewed"
   },
   "gcp-compute-projects-setcommoninstancemetadata": {
-    "purpose": "Changed project metadata may run startup or login code on VMs carrying the selected service accounts.",
-    "label": "Modify project-wide instance metadata to run on every VM of the project",
-    "review_status": "source_reviewed"
+    "purpose": "A project metadata change may run startup code or permit SSH access on an eligible VM carrying the selected service account.",
+    "label": "Use project metadata on an attached service account VM",
+    "review_status": "source_and_runtime_reviewed"
   },
   "gcp-compute-instances-setiampolicy": {
     "purpose": "Changing VM IAM may enable a login path to the attached service account.",
@@ -1137,14 +1062,9 @@
     "label": "Log in as an unprivileged user to an OS Login VM and use its service account",
     "review_status": "source_reviewed"
   },
-  "gcp-compute-images-create-family-poison": {
-    "purpose": "A later VM launched from a changed image family may execute with its attached service account.",
-    "label": "Publish a newer image into an image family consumed by instance templates",
-    "review_status": "source_reviewed"
-  },
   "gcp-configcontroller-kcc-resource-write": {
-    "purpose": "A controlled Config Connector resource may exercise the reconciler\u2019s cloud identity.",
-    "label": "Write Config Connector resources so KCC acts as its configured Google service account",
+    "purpose": "A writable Config Connector IAM resource may let the caller grant itself project IAM permissions through the namespace's controller identity.",
+    "label": "Change project IAM through Config Connector",
     "review_status": "source_reviewed"
   },
   "gcp-configdelivery-fleetpackage-publish": {
@@ -1352,11 +1272,6 @@
     "label": "Create an Eventarc Advanced pipeline that sends a service account's OAuth token to an attacker endpoint",
     "review_status": "source_reviewed"
   },
-  "gcp-firebaseauth-users-update-exact-user-credential": {
-    "purpose": "A changed Firebase password may enable a verified new application action as the exact user.",
-    "label": "Reset a known Firebase user password and reach that exact app principal",
-    "review_status": "source_reviewed"
-  },
   "gcp-firebase-signblob-exact-custom-token-user": {
     "purpose": "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
     "label": "Sign a custom token as a project service account and reach one Firebase user",
@@ -1367,11 +1282,6 @@
     "label": "Sign a custom JWT as a project service account and reach one Firebase user",
     "review_status": "source_reviewed"
   },
-  "gcp-firebaseauth-configs-update-exact-idp-principal": {
-    "purpose": "A changed blocking function may capture a usable IdP credential for the exact external principal.",
-    "label": "Capture one usable federated IdP credential through a configured blocking function",
-    "review_status": "source_reviewed"
-  },
   "gcp-firebaseapphosting-backends-update-actas": {
     "purpose": "A changed App Hosting backend may deploy controlled code under the selected service account.",
     "label": "Switch an App Hosting backend's runtime identity to a chosen service account",
@@ -1380,11 +1290,6 @@
   "gcp-firebaseapphosting-build-rollout-existing-backend": {
     "purpose": "A controlled build and rollout may execute as the existing App Hosting backend identity without caller actAs.",
     "label": "Deploy an image to an existing Firebase App Hosting backend and run as its service account",
-    "review_status": "source_reviewed"
-  },
-  "gcp-firebaseapphosting-backends-update-source": {
-    "purpose": "A redirected auto-rollout source may run changed code with the existing backend service account.",
-    "label": "Repoint an App Hosting backend's source repository to attacker-controlled code",
     "review_status": "source_reviewed"
   },
   "gcp-hypercomputecluster-login-node-startup-actas": {
@@ -1428,9 +1333,9 @@
     "review_status": "source_reviewed"
   },
   "gcp-inframanager-deployments-create-actas": {
-    "purpose": "A controlled Infrastructure Manager deployment may execute with the selected service account.",
+    "purpose": "A deployment could run Terraform as the selected service account and use its permissions.",
     "label": "Create an Infrastructure Manager deployment applied as a chosen service account",
-    "review_status": "source_reviewed"
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-osconfig-patchjobs-exec": {
     "purpose": "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
@@ -1453,8 +1358,8 @@
     "review_status": "source_reviewed"
   },
   "gcp-privatecatalog-product-version-poison": {
-    "purpose": "A changed shared solution may exercise a consumer project\u2019s Google APIs Service Agent when deployed.",
-    "label": "Replace the template of a shared Service Catalog solution version that consumers deploy",
+    "purpose": "A shared Deployment Manager version may let a consumer deployment change project IAM through its Google APIs Service Agent.",
+    "label": "Replace a shared Service Catalog solution version",
     "review_status": "source_reviewed"
   },
   "gcp-connectors-connections-setiampolicy-connection-self-grant": {
@@ -1468,9 +1373,9 @@
     "review_status": "source_reviewed"
   },
   "gcp-compute-snapshots-setiampolicy-snapshot-self-grant": {
-    "purpose": "The caller could grant itself permission to use the exact snapshot read-only.",
-    "label": "Self-grant compute.snapshots.useReadOnly on a snapshot",
-    "review_status": "source_reviewed"
+    "purpose": "A policy writer may grant itself read-only use of one ready global or regional snapshot.",
+    "label": "Grant yourself read-only use of a snapshot",
+    "review_status": "source_and_runtime_reviewed"
   },
   "gcp-compute-disks-setiampolicy-disk-self-grant": {
     "purpose": "The caller could grant itself permission to use the exact disk read-only.",
@@ -1483,14 +1388,14 @@
     "review_status": "source_reviewed"
   },
   "gcp-iap-tunnelinstances-setiampolicy-instance-self-grant": {
-    "purpose": "The caller could grant itself permission to access the exact VM through an IAP tunnel.",
-    "label": "Self-grant iap.tunnelInstances.accessViaIAP on a instance",
-    "review_status": "source_reviewed"
+    "purpose": "A caller that can change an instance's IAP policy could grant itself new tunnel access to that VM.",
+    "label": "Self-grant IAP tunnel access on an instance",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-iap-tunnelzones-setiampolicy-zone-self-grant": {
-    "purpose": "The caller could grant itself permission to access VMs only within the exact IAP tunnel zone.",
-    "label": "Self-grant iap.tunnelInstances.accessViaIAP on a zone",
-    "review_status": "source_reviewed"
+    "purpose": "A caller that can change an IAP zone policy could gain new tunnel access to VMs in that zone.",
+    "label": "Self-grant IAP tunnel access across a zone",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-cloudkms-cryptokeys-setiampolicy-crypto-key-self-grant": {
     "purpose": "The caller could grant itself permission to decrypt with the exact crypto key.",
@@ -1503,9 +1408,9 @@
     "review_status": "source_reviewed"
   },
   "gcp-compute-recoverablesnapshots-setiampolicy-recoverable-snapshot-self-grant": {
-    "purpose": "The caller could grant itself permission to recover the exact recoverable snapshot.",
-    "label": "Self-grant compute.recoverableSnapshots.recover on a recoverable snapshot",
-    "review_status": "source_reviewed"
+    "purpose": "A policy writer may grant itself recovery access to one ready recoverable snapshot.",
+    "label": "Grant yourself recovery access to a recoverable snapshot",
+    "review_status": "source_and_runtime_reviewed"
   },
   "gcp-containeranalysis-notes-setiampolicy-note-self-grant": {
     "purpose": "The caller could grant itself permission to attach an occurrence to the exact analysis note.",
@@ -1613,29 +1518,29 @@
     "review_status": "source_reviewed"
   },
   "gcp-identitytoolkit-tenants-setiampolicy-tenant-self-grant": {
-    "purpose": "The caller could grant itself permission to update users within the exact Identity Platform tenant.",
-    "label": "Self-grant firebaseauth.users.update on a tenant",
-    "review_status": "source_reviewed"
+    "purpose": "A tenant policy change could give the caller new permission to update users in that tenant.",
+    "label": "Self-grant user administration in an Identity Platform tenant",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-healthcare-datasets-setiampolicy-dataset-self-grant": {
-    "purpose": "The caller could grant itself permission to read FHIR resources in the exact Healthcare dataset.",
-    "label": "Self-grant healthcare.fhirResources.get on a dataset",
-    "review_status": "source_reviewed"
+    "purpose": "A dataset IAM policy change could grant the caller search permission on an existing child FHIR store.",
+    "label": "Gain FHIR store search access through a dataset IAM policy",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-healthcare-fhirstores-setiampolicy-fhir-store-self-grant": {
-    "purpose": "The caller could grant itself permission to read resources in the exact FHIR store.",
-    "label": "Self-grant healthcare.fhirResources.get on a fhir store",
-    "review_status": "source_reviewed"
+    "purpose": "A FHIR store IAM policy change could grant the caller new resource read permission on that exact store.",
+    "label": "Gain FHIR resource read access through a FHIR store IAM policy",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-healthcare-dicomstores-setiampolicy-dicom-store-self-grant": {
-    "purpose": "The caller could grant itself permission to read resources in the exact DICOM store.",
-    "label": "Self-grant healthcare.dicomStores.dicomWebRead on a dicom store",
-    "review_status": "source_reviewed"
+    "purpose": "A DICOM store IAM policy change could grant the caller new DICOMweb read permission on that exact store.",
+    "label": "Gain DICOMweb read access through a DICOM store IAM policy",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-healthcare-hl7v2stores-setiampolicy-hl7v2-store-self-grant": {
-    "purpose": "The caller could grant itself permission to read messages in the exact HL7v2 store.",
-    "label": "Self-grant healthcare.hl7V2Messages.get on a hl7v2 store",
-    "review_status": "source_reviewed"
+    "purpose": "An HL7v2 store IAM policy change could grant the caller new message-list permission on that exact store.",
+    "label": "Gain HL7v2 message list access through a store IAM policy",
+    "review_status": "source_runtime_and_negative_cases_reviewed"
   },
   "gcp-healthcare-consentstores-setiampolicy-consent-store-self-grant": {
     "purpose": "The caller could grant itself permission to read consents in the exact consent store.",
@@ -1687,21 +1592,6 @@
     "label": "Self-grant pubsub.subscriptions.consume on a subscription",
     "review_status": "source_reviewed"
   },
-  "gcp-runtimeconfig-configs-setiampolicy-config-self-grant": {
-    "purpose": "The caller could grant itself permission to read variables from the exact runtime configuration.",
-    "label": "Self-grant runtimeconfig.variables.get on a config",
-    "review_status": "source_reviewed"
-  },
-  "gcp-spanner-databases-setiampolicy-database-self-grant": {
-    "purpose": "The caller could grant itself permission to read the exact Spanner database.",
-    "label": "Self-grant spanner.databases.read on a database",
-    "review_status": "source_reviewed"
-  },
-  "gcp-spanner-instances-setiampolicy-instance-self-grant": {
-    "purpose": "The caller could grant itself permission to read databases within the exact Spanner instance.",
-    "label": "Self-grant spanner.databases.read on a instance",
-    "review_status": "source_reviewed"
-  },
   "gcp-vmwareengine-privateclouds-setiampolicy-private-cloud-self-grant": {
     "purpose": "The caller could grant itself permission to read vCenter credentials for the exact private cloud.",
     "label": "Self-grant vmwareengine.privateClouds.showVcenterCredentials on a private cloud",
@@ -1732,48 +1622,38 @@
     "label": "Self-grant domains.registrations.configureDns on a domain registration",
     "review_status": "source_reviewed"
   },
-  "gcp-servicedirectory-namespaces-setiampolicy-self-grant": {
-    "purpose": "The caller could grant itself permission to create services within the exact directory namespace.",
-    "label": "Self-grant servicedirectory.services.create on a namespace",
-    "review_status": "source_reviewed"
-  },
-  "gcp-servicedirectory-services-setiampolicy-self-grant": {
-    "purpose": "The caller could grant itself permission to update the exact directory service.",
-    "label": "Self-grant servicedirectory.services.update on a service",
-    "review_status": "source_reviewed"
-  },
   "gcp-contactcenterinsights-authorizedviews-setiampolicy-self-grant": {
     "purpose": "The caller could grant itself permission to read the exact Contact Center authorized view.",
     "label": "Self-grant authorized-view read access",
     "review_status": "source_reviewed"
   },
   "gcp-resourcemanager-organizations-setiampolicy": {
-    "purpose": "Changing resource-hierarchy IAM may grant owner-level permissions over that organization, folder or project.",
-    "label": "Rewrite the organization IAM policy",
+    "purpose": "A new Organization Policy Admin role could let the source change security rules across projects.",
+    "label": "Self-grant Organization Policy Admin access",
     "review_status": "source_reviewed"
   },
   "gcp-resourcemanager-folders-setiampolicy": {
-    "purpose": "Changing resource-hierarchy IAM may grant owner-level permissions over that organization, folder or project.",
-    "label": "Rewrite a folder IAM policy",
+    "purpose": "A new Folder Admin role could let the source change the folder and access in its projects.",
+    "label": "Self-grant Folder Admin access on a folder",
     "review_status": "source_reviewed"
   },
   "gcp-resourcemanager-projects-setiampolicy": {
-    "purpose": "Changing resource-hierarchy IAM may grant owner-level permissions over that organization, folder or project.",
-    "label": "Rewrite a project IAM policy",
+    "purpose": "A new Editor role could let the source change services and resources in the project.",
+    "label": "Self-grant Editor access on a project",
     "review_status": "source_reviewed"
   },
   "gcp-run-services-create-actas": {
-    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "purpose": "Creating a Cloud Run service may start code under a service account the caller can attach.",
     "label": "Deploy a Cloud Run service running as a chosen service account",
     "review_status": "source_reviewed"
   },
   "gcp-run-services-update-actas": {
-    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "purpose": "Updating a ready Cloud Run service may start new code under a service account the caller can attach.",
     "label": "Redeploy an existing Cloud Run service with new code, environment or identity",
     "review_status": "source_reviewed"
   },
   "gcp-run-services-setiampolicy-actas": {
-    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "purpose": "A service policy writer may grant missing update rights and deploy code under its pinned service account.",
     "label": "Self-grant update rights on a Cloud Run service through its IAM policy",
     "review_status": "source_reviewed"
   },
@@ -1783,7 +1663,7 @@
     "review_status": "source_reviewed"
   },
   "gcp-run-jobs-update-run-actas": {
-    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "purpose": "Changing and running an existing Cloud Run job may execute code under a service account the caller can attach.",
     "label": "Update and execute an existing Cloud Run job with new code or identity",
     "review_status": "source_reviewed"
   },
@@ -1813,28 +1693,13 @@
     "review_status": "source_reviewed"
   },
   "gcp-run-jobs-setiampolicy": {
-    "purpose": "A controlled Cloud Run job invocation or override may execute as its already pinned service account.",
+    "purpose": "Changing a Cloud Run job policy may add the missing rights needed to run code as its pinned service account.",
     "label": "Self-grant execute-with-overrides on an existing Cloud Run job through its IAM policy",
     "review_status": "source_reviewed"
   },
   "gcp-run-jobs-runwithoverrides": {
-    "purpose": "A controlled Cloud Run job invocation or override may execute as its already pinned service account.",
+    "purpose": "Override rights on a ready Cloud Run job with a recorded interpreter command may let the source run code as its pinned service account.",
     "label": "Execute an existing Cloud Run job with overridden args or environment",
-    "review_status": "source_reviewed"
-  },
-  "gcp-saasservicemgmt-release-unit-actuation": {
-    "purpose": "A controlled release applied to a unit may exercise the existing actuation service account\u2019s management rights.",
-    "label": "Apply an attacker blueprint release to existing Units as their actuation service account",
-    "review_status": "source_reviewed"
-  },
-  "gcp-securesourcemanager-push-cicd": {
-    "purpose": "A writable source repository may supply code later executed by its linked build or deployment identity.",
-    "label": "Push code to a repository that feeds a CI/CD pipeline",
-    "review_status": "source_reviewed"
-  },
-  "gcp-securesourcemanager-setiampolicy": {
-    "purpose": "A writable source repository may supply code later executed by its linked build or deployment identity.",
-    "label": "Self-grant write on a Secure Source Manager instance or repository through IAM",
     "review_status": "source_reviewed"
   },
   "gcp-sourcerepos-update-build-trigger": {
@@ -1982,26 +1847,6 @@
     "label": "Publish an Application Integration version with a chosen run-as service account",
     "review_status": "source_reviewed"
   },
-  "gcp-workspace-dwd-keyless-signjwt": {
-    "purpose": "Domain-wide delegation may act as approved Workspace users only within the service account\u2019s delegated scopes.",
-    "label": "Sign a delegation JWT with a domain-wide-delegated service account's Google-managed key",
-    "review_status": "source_reviewed"
-  },
-  "gcp-workspace-dwd-key-create": {
-    "purpose": "Domain-wide delegation may act as approved Workspace users only within the service account\u2019s delegated scopes.",
-    "label": "Create a key for a domain-wide-delegated service account",
-    "review_status": "source_reviewed"
-  },
-  "gcp-workspace-cloud-dns-admin-recovery": {
-    "purpose": "Usable primary-domain DNS control may support recovery of the tenant\u2019s Workspace super-admin account.",
-    "label": "Publish the administrator-recovery DNS challenge for the Workspace primary domain",
-    "review_status": "source_reviewed"
-  },
-  "gcp-workspace-addons-deployment-update": {
-    "purpose": "A changed HTTP add-on may reach invoking Workspace users only within their already consented scopes.",
-    "label": "Repoint an existing HTTP Workspace add-on deployment to a source-controlled endpoint",
-    "review_status": "source_reviewed"
-  },
   "gcp-agentidentity-retrieve-credentials": {
     "purpose": "A retrieved or redirected OAuth token may reach only its verified user and already consented scopes.",
     "label": "Retrieve a stored OAuth token from an Agent Identity auth provider",
@@ -2038,8 +1883,8 @@
     "review_status": "source_reviewed"
   },
   "azure-datafactory-github-oauth-external-principal": {
-    "purpose": "A usable factory OAuth token may grant new repository actions as its verified GitHub subject.",
-    "label": "Reach a named GitHub repository principal through a factory OAuth token",
+    "purpose": "A returned token from a supplied GitHub code may grant a new action as its verified GitHub subject.",
+    "label": "Exchange a supplied GitHub authorization code through Data Factory",
     "review_status": "source_reviewed"
   },
   "azure-eventgrid-mqtt-client-grant-external-principal": {
@@ -2357,11 +2202,6 @@
     "label": "Grant a Kusto cluster-wide role through ARM principal assignments",
     "review_status": "source_reviewed"
   },
-  "azure-datafactory-dataplane-access-token": {
-    "purpose": "A runnable factory activity may expose the exact factory managed identity\u2019s token.",
-    "label": "Use a factory data-plane token to execute as one exact managed identity",
-    "review_status": "source_reviewed"
-  },
   "azure-mysql-flexible-admin-password-reset": {
     "purpose": "Resetting database administrator credentials may grant control of the named database service.",
     "label": "Reset the MySQL Flexible Server administrator password",
@@ -2408,7 +2248,7 @@
     "review_status": "source_reviewed"
   },
   "azure-devtestlabs-apply-artifacts": {
-    "purpose": "Lab artifacts may run as root or SYSTEM and expose the backing VM\u2019s managed identities.",
+    "purpose": "An enabled script artifact on a writable lab VM may expose that VM\u2019s attached identity.",
     "label": "Apply an artifact to a lab VM to run code in the guest",
     "review_status": "source_reviewed"
   },
@@ -3093,12 +2933,12 @@
     "review_status": "source_reviewed"
   },
   "k8s-rbac-dangling-serviceaccount-reference": {
-    "purpose": "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+    "purpose": "A missing ServiceAccount in an existing namespace has a binding that grants an additional Kubernetes action.",
     "label": "Create a ServiceAccount referenced by an existing binding but missing",
     "review_status": "source_reviewed"
   },
   "k8s-rbac-serviceaccount-in-absent-namespace": {
-    "purpose": "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+    "purpose": "A ServiceAccount name in a missing namespace is linked to a useful binding or a host-access SCC.",
     "label": "Create the missing namespace and ServiceAccount named by a binding or SCC",
     "review_status": "source_reviewed"
   },
@@ -3230,6 +3070,316 @@
   "k8s-rbac-modify-existing-rolebinding-new-permission": {
     "purpose": "Adding the source to this exact RoleBinding may add permissions it does not hold in the namespace.",
     "label": "Add the source to an existing RoleBinding that grants a new permission",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-passrole-createappblockbuilder": {
+    "purpose": "A new AppStream app block builder may expose a passed role during a streaming session.",
+    "label": "Create and stream into an app block builder with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-passrole-createimagebuilder": {
+    "purpose": "A new AppStream image builder may expose a passed role during a streaming session.",
+    "label": "Create and stream into an image builder with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-passrole-updateappblockbuilder": {
+    "purpose": "Changing an existing AppStream app block builder role may expose that role during a streaming session.",
+    "label": "Set a passable role on a streamable app block builder",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-passrole-updatefleet": {
+    "purpose": "Changing an existing AppStream fleet role may expose that role during a streaming session.",
+    "label": "Set a passable role on a streamable fleet",
+    "review_status": "source_reviewed"
+  },
+  "aws-codepipeline-passrole-createpipeline-codebuild-codecommit": {
+    "purpose": "A new pipeline using a controlled CodeCommit branch may run build code with the passed CodeBuild role.",
+    "label": "Create a pipeline and CodeBuild project using a CodeCommit source",
+    "review_status": "source_reviewed"
+  },
+  "aws-codepipeline-passrole-createpipeline-codebuild-ecr": {
+    "purpose": "A new pipeline using a tagged ECR image may run build code with the passed CodeBuild role.",
+    "label": "Create a pipeline and CodeBuild project using an ECR source",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-containers-passrole-startjobrun-pod-identity": {
+    "purpose": "An EMR on EKS job may run controlled code with the passed Pod Identity role when its associations match.",
+    "label": "Start an EMR on EKS job through EKS Pod Identity",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-runstatement-interactive-session": {
+    "purpose": "A statement in a ready Glue interactive session may run code with its attached role.",
+    "label": "Run code in an existing Glue interactive session",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-updatedevendpoint": {
+    "purpose": "An added SSH key may let the source enter a ready Glue development endpoint and use its attached role.",
+    "label": "Add an SSH key to an existing Glue development endpoint",
+    "review_status": "source_reviewed"
+  },
+  "azure-apim-developer-portal-shared-token-external-principal": {
+    "purpose": "A verified shared token may allow the source to sign in as the named developer portal user.",
+    "label": "Sign in as one named developer-portal user with a shared token",
+    "review_status": "source_reviewed"
+  },
+  "azure-aro-list-admin-credentials": {
+    "purpose": "The ARO administrator kubeconfig may allow cluster administrator actions.",
+    "label": "Retrieve the ARO administrator kubeconfig",
+    "review_status": "source_reviewed"
+  },
+  "azure-authorization-elevateaccess-pim-eligible-global-admin": {
+    "purpose": "Activating an eligible Global Administrator role may permit elevation to root User Access Administrator.",
+    "label": "Activate an eligible Global Administrator role and elevate Azure access",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-group-readwrite-all-controlled-user": {
+    "purpose": "Graph group write access may add a controlled user to a cloud managed group with additional privileges.",
+    "label": "Graph group permissions add a controlled user to groups",
+    "review_status": "source_reviewed"
+  },
+  "azure-storage-local-user-create-with-sftp-access": {
+    "purpose": "A new SFTP local user may read data from an existing container through its own SSH key.",
+    "label": "Create a Storage SFTP local user with container access",
+    "review_status": "source_reviewed"
+  },
+  "gcp-artifactregistry-repositories-setiampolicy-repository-self-grant": {
+    "purpose": "A repository IAM policy change may grant the source upload access it lacked before.",
+    "label": "Self-grant upload access to an Artifact Registry repository",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-instances-setiampolicy-instance-admin-self-grant": {
+    "purpose": "A Bigtable instance IAM policy change may grant the source update access it lacked before.",
+    "label": "Self-grant Bigtable instance administration",
+    "review_status": "source_reviewed"
+  },
+  "gcp-configcontroller-kcc-service-account-key": {
+    "purpose": "A Config Connector IAMServiceAccountKey resource may yield a usable key for the named Google service account.",
+    "label": "Obtain a service account key through Config Connector",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networkconnectivity-hubs-setiampolicy-group-use-self-grant": {
+    "purpose": "A hub IAM policy change may grant the source use of its groups when it lacked that access.",
+    "label": "Grant self group use through a hub IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-organizations-setiampolicy-deny-admin": {
+    "purpose": "A new Deny Admin role could let the source create deny policies across the organization.",
+    "label": "Self-grant Deny Admin access on an organization",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-organizations-setiampolicy-role-admin": {
+    "purpose": "A new Organization Role Administrator role could let the source create custom roles across the organization.",
+    "label": "Self-grant Organization Role Administrator access",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-projects-setiampolicy-project-delete": {
+    "purpose": "A new Project Deleter role could let the source delete the project.",
+    "label": "Self-grant Project Deleter access",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-projects-setiampolicy-sa-token": {
+    "purpose": "A project IAM policy writer could grant itself permission to mint tokens for the named service account.",
+    "label": "Grant access to impersonate a project service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-instances-create-update-cross-project-actas": {
+    "purpose": "A Cloud Run instance may run under a service account from another project when the host action, attachment policy, and service-agent grant permit it.",
+    "label": "Deploy or update a Cloud Run instance with a cross-project service account",
+    "review_status": "source_reviewed"
+  },
+  "k8s-configconnector-project-iam-grant": {
+    "purpose": "A Config Connector IAM resource may grant control of a Google Cloud project policy.",
+    "label": "Change project IAM through Config Connector",
+    "review_status": "source_reviewed"
+  },
+  "k8s-configconnector-service-account-key": {
+    "purpose": "A Config Connector key resource may yield a usable key for the named Google service account.",
+    "label": "Obtain a Google service account key through Config Connector",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-csr-kube-apiserver-client-serviceaccount": {
+    "purpose": "CSR creation, read and approval grants may yield a client certificate for a directly bound ServiceAccount username.",
+    "label": "Issue and approve a client certificate for a bound ServiceAccount username",
+    "review_status": "source_reviewed"
+  },
+  "azure-audit-microsoftwebstaticsiteslistsecretsaction": {
+    "purpose": "The site deployment token may allow content changes on the named Static Web App.",
+    "label": "Read a Static Web Apps deployment token for one site",
+    "review_status": "source_reviewed"
+  },
+  "aws-apprunner-mutable-ecr-autodeploy": {
+    "purpose": "A replacement image on an auto-deployed ECR tag may run with the App Runner service instance role.",
+    "label": "Push an image to a watched App Runner tag",
+    "review_status": "source_reviewed"
+  },
+  "aws-apprunner-updateservice": {
+    "purpose": "A changed App Runner start command may run with the service\u2019s existing instance role.",
+    "label": "Change the start command of an App Runner service",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-createappblockbuilderstreamingurl": {
+    "purpose": "A builder streaming session may expose the app block builder\u2019s recorded machine role.",
+    "label": "Open an AppStream app block builder session",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-createimagebuilderstreamingurl": {
+    "purpose": "An image builder streaming session may expose the builder\u2019s recorded machine role.",
+    "label": "Open an AppStream image builder session",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-createstreamingurl-existing-fleet": {
+    "purpose": "A fleet desktop session may expose the fleet\u2019s recorded machine role.",
+    "label": "Open an AppStream fleet desktop session",
+    "review_status": "source_reviewed"
+  },
+  "aws-appsync-passrole-new-api-sigv4": {
+    "purpose": "An IAM-signed AppSync HTTP resolver may call an AWS API with the passed service role.",
+    "label": "Create an AppSync API with a signed HTTP resolver",
+    "review_status": "source_reviewed"
+  },
+  "aws-athena-createpresignednotebookurl": {
+    "purpose": "An open Athena notebook may run work with its existing Spark execution role.",
+    "label": "Open an existing Athena Spark notebook",
+    "review_status": "source_reviewed"
+  },
+  "aws-athena-getsessionendpoint-spark-connect": {
+    "purpose": "A Spark Connect endpoint token may let its holder submit work with an active Athena session role.",
+    "label": "Open an Athena Spark Connect session",
+    "review_status": "source_reviewed"
+  },
+  "aws-athena-startcalculationexecution-existing-session": {
+    "purpose": "A calculation in an existing Athena Spark session may run code with that session\u2019s execution role.",
+    "label": "Submit a calculation to an Athena Spark session",
+    "review_status": "source_reviewed"
+  },
+  "aws-batch-submitjob-existing-definition": {
+    "purpose": "A Batch command override may run with the role of an active existing job definition.",
+    "label": "Submit a Batch job with a command override",
+    "review_status": "source_reviewed"
+  },
+  "aws-cognito-getopenidtokenfordeveloperidentity": {
+    "purpose": "A developer identity token may be exchanged for the pool\u2019s configured authenticated IAM role.",
+    "label": "Exchange a Cognito developer identity token",
+    "review_status": "source_reviewed"
+  },
+  "aws-cognito-getopenidtokenfordeveloperidentity-classic": {
+    "purpose": "A developer identity token may be exchanged through STS for a role trusting that Basic-authentication pool.",
+    "label": "Use a Cognito developer token with a trusting role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cognito-setidentitypoolroles-developer-token": {
+    "purpose": "A changed pool role and developer token may give the caller credentials for the passed IAM role.",
+    "label": "Set a Cognito pool role and mint a developer token",
+    "review_status": "source_reviewed"
+  },
+  "aws-cognito-updateidentitypool-enable-classic-developer-token": {
+    "purpose": "Enabling Basic authentication may let a developer token reach a role trusting that pool.",
+    "label": "Enable Cognito Basic authentication for developer tokens",
+    "review_status": "source_reviewed"
+  },
+  "aws-cognito-updateidentitypool-enable-guest-classic-role": {
+    "purpose": "Enabling guest Basic authentication may let a guest token reach the pool\u2019s trusting IAM role.",
+    "label": "Enable a Cognito guest Basic flow",
+    "review_status": "source_reviewed"
+  },
+  "aws-deadline-existing-queue-role-vend": {
+    "purpose": "A queue role session may return credentials for the IAM role configured on that Deadline Cloud queue.",
+    "label": "Request an existing Deadline queue role session",
+    "review_status": "source_reviewed"
+  },
+  "aws-deadline-existing-worker-role-vend": {
+    "purpose": "A worker role session may return credentials for its Deadline Cloud fleet role.",
+    "label": "Request an existing Deadline worker role session",
+    "review_status": "source_reviewed"
+  },
+  "aws-deadline-new-worker-existing-fleet-role-vend": {
+    "purpose": "A new worker on a customer-managed fleet may request credentials for that fleet\u2019s IAM role.",
+    "label": "Register a Deadline worker and request its fleet role",
+    "review_status": "source_reviewed"
+  },
+  "aws-dynamodb-putresourcepolicy-self-getitem": {
+    "purpose": "Replacing a table policy may grant the same-account caller GetItem on that table.",
+    "label": "Grant self GetItem through a DynamoDB table policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-executecommand": {
+    "purpose": "ECS Exec on a running task container may expose the task\u2019s recorded IAM role.",
+    "label": "Open a running ECS task container",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-addjobflowsteps": {
+    "purpose": "An EMR command step may run with the cluster\u2019s EC2 instance-profile role.",
+    "label": "Add a command step to an existing EMR cluster",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-addjobflowsteps-runtime-role": {
+    "purpose": "An EMR step may run under an authorized runtime role on a compatible cluster.",
+    "label": "Submit an EMR step with a runtime role",
+    "review_status": "source_reviewed"
+  },
+  "aws-flink-studio-presigned-url": {
+    "purpose": "An open Studio notebook may run work with its recorded Flink execution role.",
+    "label": "Open an existing Flink Studio notebook",
+    "review_status": "source_reviewed"
+  },
+  "aws-gamelift-getcomputeaccess-shared-fleet-role": {
+    "purpose": "A shell on an active GameLift fleet host may read its shared instance-role credentials file.",
+    "label": "Open a GameLift fleet host with shared role credentials",
+    "review_status": "source_reviewed"
+  },
+  "aws-gameliftstreams-createstreamsessionadminshell": {
+    "purpose": "An admin shell in a live GameLift Streams session may expose the session\u2019s existing IAM role.",
+    "label": "Open a GameLift Streams admin shell",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-overwrite-existing-job-script": {
+    "purpose": "A replaced Glue job script may run with the existing job role when the job next runs.",
+    "label": "Replace the script of an existing Glue job",
+    "review_status": "source_reviewed"
+  },
+  "aws-iot-update-existing-alias-new-certificate": {
+    "purpose": "A repointed IoT role alias and controlled certificate may return credentials for the passed IAM role.",
+    "label": "Repoint an IoT role alias and authenticate with a certificate",
+    "review_status": "source_reviewed"
+  },
+  "aws-mwaa-s3-putobject-dag": {
+    "purpose": "A Python DAG uploaded to the configured MWAA folder may run with the environment execution role.",
+    "label": "Upload a DAG to an MWAA environment",
+    "review_status": "source_reviewed"
+  },
+  "aws-quicksight-updateuser-admin": {
+    "purpose": "Updating the caller\u2019s active IAM-backed QuickSight user may give it the ADMIN role in QuickSight.",
+    "label": "Promote an existing QuickSight user",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-updatenotebookinstancelifecycleconfig": {
+    "purpose": "A changed notebook lifecycle script may run with the notebook execution role on its next start.",
+    "label": "Replace an attached SageMaker notebook lifecycle script",
+    "review_status": "source_reviewed"
+  },
+  "aws-scheduler-passrole-updateschedule-self-grant": {
+    "purpose": "A changed schedule may use its passed role to write an IAM policy that grants the editor a new permission.",
+    "label": "Update a schedule to write an IAM self-grant",
+    "review_status": "source_reviewed"
+  },
+  "aws-sns-settopicattributes-self-subscribe": {
+    "purpose": "Replacing a topic policy may grant the same-account caller Subscribe on that topic.",
+    "label": "Grant self Subscribe through an SNS topic policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-sqs-setqueueattributes-self-receive": {
+    "purpose": "Replacing a queue policy may grant the same-account caller ReceiveMessage on that queue.",
+    "label": "Grant self ReceiveMessage through an SQS queue policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-sendcommand-hybrid-role": {
+    "purpose": "A shell command on an online hybrid node may reach its recorded IAM role.",
+    "label": "Run a command on an online SSM hybrid node",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-startsession-hybrid-role": {
+    "purpose": "A shell session on an online hybrid node may reach its recorded IAM role.",
+    "label": "Open a shell on an online SSM hybrid node",
     "review_status": "source_reviewed"
   }
 }

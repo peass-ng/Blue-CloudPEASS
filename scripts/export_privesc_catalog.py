@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Export the Blue-CloudPEASS privesc catalog into the HackTricks Cloud upstream layout.
 
-Writes <book-root>/src/privilege-escalation-paths/:
+Writes <book-root>/src/privilege-escalation-paths-cspm-reviewed/:
     README.md                          (format + contribution guide, generated, deterministic)
     privesc-technique.schema.json      (copied from peaso/privesc/ when it exists)
     <provider>/<service>.yaml          (byte-for-byte copies of peaso/privesc/catalog/<provider>/*.yaml)
@@ -26,15 +26,15 @@ _spec.loader.exec_module(sync_module)
 SyncError = sync_module.SyncError
 SCHEMA_NAME = 'privesc-technique.schema.json'
 
-README = """# Privilege escalation paths
+README = """# Reviewed privilege escalation paths for CSPM
 
 {{#include ../banners/hacktricks-training.md}}
 
-HackTricks Cloud maintains the machine-readable privilege-escalation technique catalog consumed by \
-[Blue-CloudPEASS](https://github.com/peass-ng/PEASSo-CSPM). Each entry describes, without any exploitation \
-steps, which permissions let a principal obtain the privileges of another principal (or an administrative \
-entity), and links to the HackTricks page that documents the technique. Edit the files here; consumers \
-fetch and validate them weekly.
+This directory is the reviewed machine-readable technique set consumed by \
+[Blue-CloudPEASS](https://github.com/peass-ng/PEASSo-CSPM). It is separate from the broader \
+`src/privilege-escalation-paths` research catalog so new research stays available without creating \
+unreviewed CSPM checks. Each active entry links to its HackTricks source page. Consumers fetch and \
+validate this reviewed set weekly.
 
 ## Layout
 

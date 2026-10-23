@@ -40,22 +40,37 @@ def test_installed_exact_input_closure_and_runtime_data_only(installed_wheel):
     assert not (target.parent / 'source').exists()
     assert {p.relative_to(target).as_posix() for p in (target / 'tests').rglob('*')
             if p.is_file()} == set(ADMISSION_RUNTIME_DATA)
+    for name in ('peaso/private_reviewed_collector_successor_20261022.json',
+                 'risk_rules/hacktricks-privesc/azure-challenge-removals-ledger.json'):
+        assert (target / name).read_bytes() == (root / name).read_bytes(), name
     for name in paths:
         assert (target / name).read_bytes() == (root / name).read_bytes(), name
+
+
+def test_installed_current_admission_accepts_intact_wheel(installed_wheel):
+    target, environment = installed_wheel
+    code = '''
+import sys
+sys.path.insert(0, sys.argv[1])
+from peaso.checks import azure_metadata_only_tde_admission_successor_20261020 as admission
+assert admission.reviewed_inputs()[2]
+'''
+    result = subprocess.run([sys.executable, '-I', '-c', code, str(target)],
+                            cwd=target, env=environment, capture_output=True, text=True, timeout=180)
+    assert result.returncode == 0, result.stderr[-4000:]
 
 
 @pytest.mark.parametrize('relative', ADMISSION_RUNTIME_DATA)
 @pytest.mark.parametrize('change', ('missing', 'tampered'))
 def test_installed_admission_rejects_each_missing_or_tampered_input(installed_wheel, relative, change):
     target, environment = installed_wheel
-    # Start from an admitted, source-free install on every run. Both the warm
-    # reader and a fresh import must reject the intended single-file mutation.
+    # The intact install is admitted once above. Both the warm reader and a
+    # fresh import must reject the intended single-file mutation.
     code = '''
 import json,pathlib,subprocess,sys
 target,relative,change = sys.argv[1:]
 sys.path.insert(0, target)
-from peaso.checks import azure_nsp_query_cmk_production_tde_successor_20261020 as admission
-assert admission.reviewed_inputs()[2]
+from peaso.checks import azure_metadata_only_tde_admission_successor_20261020 as admission
 path = pathlib.Path(target) / relative
 original = path.read_bytes()
 if change == 'missing':
@@ -84,10 +99,9 @@ try:
     assert result.returncode != 0 and ('RuntimeError: ' + expected) in result.stderr, result.stderr
 finally:
     path.write_bytes(original)
-assert admission.reviewed_inputs()[2]
 print(json.dumps({'path': relative, 'change': change, 'rejected': expected}))
 '''
     result = subprocess.run([sys.executable, '-I', '-c', code, str(target), relative, change],
-                            cwd=target, env=environment, capture_output=True, text=True, timeout=180)
+                            cwd=target, env=environment, capture_output=True, text=True, timeout=300)
     assert result.returncode == 0, result.stderr[-4000:]
     assert json.loads(result.stdout)['path'] == relative

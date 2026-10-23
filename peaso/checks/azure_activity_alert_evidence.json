@@ -1,0 +1,102 @@
+{
+  "azure.claude.activity_log_alert_nsg_delete": {
+    "event": "an NSG is deleted",
+    "impact": "changes to network traffic rules"
+  },
+  "azure.claude.activity_log_alert_nsg_write": {
+    "event": "an NSG is created or changed",
+    "impact": "changes to network traffic rules"
+  },
+  "azure.claude.activity_log_alert_policy_assignment_delete": {
+    "event": "a policy assignment is deleted",
+    "impact": "changes to assigned security policy"
+  },
+  "azure.claude.activity_log_alert_policy_assignment_write": {
+    "event": "a policy assignment is created or changed",
+    "impact": "changes to assigned security policy"
+  },
+  "azure.claude.activity_log_alert_public_ip_delete": {
+    "event": "a public IP address is deleted",
+    "impact": "changes to public network access"
+  },
+  "azure.claude.activity_log_alert_public_ip_write": {
+    "event": "a public IP address is created or changed",
+    "impact": "changes to public network access"
+  },
+  "azure.claude.activity_log_alert_security_solution_delete": {
+    "event": "a security solution is deleted",
+    "impact": "changes to security monitoring"
+  },
+  "azure.claude.activity_log_alert_security_solution_write": {
+    "event": "a security solution is created or changed",
+    "impact": "changes to security monitoring"
+  },
+  "azure.claude.activity_log_alert_service_health": {
+    "event": "a Service Health incident is reported",
+    "impact": "a service outage"
+  },
+  "azure.claude.activity_log_alert_sql_firewall_rule_delete": {
+    "event": "a SQL firewall rule is deleted",
+    "impact": "changes to database network access"
+  },
+  "azure.claude.activity_log_alert_sql_firewall_rule_write": {
+    "event": "a SQL firewall rule is created or changed",
+    "impact": "changes to database network access"
+  },
+  "azure.claude.activity_log_alert_subscription_administrative_operations": {
+    "event": "a network or SQL firewall operation occurs",
+    "impact": "changes to network or database access"
+  },
+  "azure.claude.activity_log_alert_subscription_nsg_delete": {
+    "event": "an NSG is deleted",
+    "impact": "changes to network traffic rules"
+  },
+  "azure.claude.activity_log_alert_subscription_nsg_rule_delete": {
+    "event": "an NSG rule is deleted",
+    "impact": "changes to network traffic rules"
+  },
+  "azure.claude.activity_log_alert_subscription_nsg_rule_write": {
+    "event": "an NSG rule is created or changed",
+    "impact": "changes to network traffic rules"
+  },
+  "azure.claude.activity_log_alert_subscription_nsg_write": {
+    "event": "an NSG is created or changed",
+    "impact": "changes to network traffic rules"
+  },
+  "azure.claude.activity_log_alert_subscription_policy_assignment_delete": {
+    "event": "a policy assignment is deleted",
+    "impact": "changes to assigned security policy"
+  },
+  "azure.claude.activity_log_alert_subscription_policy_assignment_write": {
+    "event": "a policy assignment is created or changed",
+    "impact": "changes to assigned security policy"
+  },
+  "azure.claude.activity_log_alert_subscription_public_ip_delete": {
+    "event": "a public IP address is deleted",
+    "impact": "changes to public network access"
+  },
+  "azure.claude.activity_log_alert_subscription_public_ip_write": {
+    "event": "a public IP address is created or changed",
+    "impact": "changes to public network access"
+  },
+  "azure.claude.activity_log_alert_subscription_security_solution_delete": {
+    "event": "a security solution is deleted",
+    "impact": "changes to security monitoring"
+  },
+  "azure.claude.activity_log_alert_subscription_security_solution_write": {
+    "event": "a security solution is created or changed",
+    "impact": "changes to security monitoring"
+  },
+  "azure.claude.activity_log_alert_subscription_sql_firewall_rule_delete": {
+    "event": "a SQL firewall rule is deleted",
+    "impact": "changes to database network access"
+  },
+  "azure.claude.activity_log_alert_subscription_sql_firewall_rule_write": {
+    "event": "a SQL firewall rule is created or changed",
+    "impact": "changes to database network access"
+  },
+  "azure.claude.activity_log_alert_subscription_sql_server": {
+    "event": "a SQL server is changed",
+    "impact": "changes to database services"
+  }
+}

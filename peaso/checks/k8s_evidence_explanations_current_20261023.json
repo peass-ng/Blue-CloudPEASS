@@ -1,0 +1,159 @@
+{
+  "k8s.iam.clusterrole_has_declared_consumers": {
+    "purpose": "A declared RBAC or aggregation consumer helps identify ClusterRoles that may still be needed; observed use is separate.",
+    "source": "peaso/unused_iam_k8s.py::role_consumers",
+    "kind": "consumers",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "resource_name",
+      "consumers",
+      "reason"
+    ]
+  },
+  "k8s.iam.clusterrolebinding_subjects_exist": {
+    "purpose": "A ClusterRoleBinding with no existing subject may leave an obsolete grant; external identity existence needs separate evidence.",
+    "source": "peaso/unused_iam_k8s.py::binding_subjects",
+    "kind": "subjects",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "subject_count",
+      "missing_service_accounts",
+      "external_subjects",
+      "reason"
+    ]
+  },
+  "k8s.iam.legacy_serviceaccount_token_recently_used": {
+    "purpose": "The tracked last-use date helps review legacy ServiceAccount tokens; it does not cover untracked or manual tokens.",
+    "source": "peaso/unused_iam_k8s.py::token_activity",
+    "kind": "token",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "resource_name",
+      "threshold_days",
+      "timestamp_precision",
+      "last_used_date",
+      "days_since_last_successful_use"
+    ]
+  },
+  "k8s.iam.role_has_declared_consumers": {
+    "purpose": "A declared RBAC consumer helps identify Roles that may still be needed; observed use is separate.",
+    "source": "peaso/unused_iam_k8s.py::role_consumers",
+    "kind": "consumers",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "resource_name",
+      "consumers",
+      "reason"
+    ]
+  },
+  "k8s.iam.rolebinding_subjects_exist": {
+    "purpose": "A RoleBinding with no existing subject may leave an obsolete grant; external identity existence needs separate evidence.",
+    "source": "peaso/unused_iam_k8s.py::binding_subjects",
+    "kind": "subjects",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "subject_count",
+      "missing_service_accounts",
+      "external_subjects",
+      "reason"
+    ]
+  },
+  "k8s.iam.serviceaccount_has_declared_consumers": {
+    "purpose": "A workload, binding, token or cloud identity reference can justify retaining a ServiceAccount; external use is separate.",
+    "source": "peaso/unused_iam_k8s.py::account_consumers",
+    "kind": "consumers",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "resource_name",
+      "consumers",
+      "reason"
+    ]
+  },
+  "k8s.network.endpoints_controller_service_reference_resolves": {
+    "purpose": "The controller-owned Endpoints reference is compared with the current Service UID; endpoint traffic is separate.",
+    "source": "peaso/unused_network_k8s_20261021.py::endpoints",
+    "kind": "reference",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "service_name",
+      "summary"
+    ]
+  },
+  "k8s.network.endpointslice_service_reference_resolves": {
+    "purpose": "The EndpointSlice Service label is compared with current same-namespace Services; endpoint traffic is separate.",
+    "source": "peaso/unused_network_k8s_20261021.py::endpointslice",
+    "kind": "reference",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "service_name",
+      "summary"
+    ]
+  },
+  "k8s.network.ingress_service_backends_resolve": {
+    "purpose": "The Ingress backend names are checked against current same-namespace Services; controller routing is separate.",
+    "source": "peaso/unused_network_k8s_20261021.py::ingress",
+    "kind": "ingress",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "summary"
+    ]
+  },
+  "k8s.network.networkpolicy_selects_current_pod": {
+    "purpose": "Current Pod selectors indicate whether this NetworkPolicy matches a captured Pod; future Pods and CNI enforcement are separate.",
+    "source": "peaso/unused_network_k8s_20261021.py::networkpolicy",
+    "kind": "policy",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "summary"
+    ]
+  },
+  "k8s.network.service_has_current_backend_declaration": {
+    "purpose": "Current Pod selectors and EndpointSlice addresses show declared Service backends; readiness and traffic are separate.",
+    "source": "peaso/unused_network_k8s_20261021.py::service",
+    "kind": "service",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "summary"
+    ]
+  },
+  "k8s.review.selected_flux_artifact_secret_indicators": {
+    "purpose": "Offline inspection covers the selected verified Flux artifact bytes; detected values remain hidden and are not validated.",
+    "source": "peaso/checks/k8s_selected_flux_artifact_review_20261021.py::evaluate",
+    "kind": "selected_secret",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "observed",
+      "complete"
+    ]
+  },
+  "k8s.review.selected_registry_image_high_vulnerabilities": {
+    "purpose": "A fresh complete scan of the selected Pod image identifies recorded HIGH or CRITICAL package vulnerabilities; runtime image use is separate.",
+    "source": "peaso/checks/k8s_selected_registry_image_review_20261021.py::evaluate",
+    "kind": "selected_vulnerability",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "observed",
+      "complete"
+    ]
+  },
+  "k8s.review.selected_registry_image_secret_indicators": {
+    "purpose": "Offline inspection covers the selected verified Pod image bytes; detected values remain hidden and are not validated.",
+    "source": "peaso/checks/k8s_selected_registry_image_review_20261021.py::evaluate",
+    "kind": "selected_secret",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "observed",
+      "complete"
+    ]
+  },
+  "k8s.review.selected_text_content.secret_indicators": {
+    "purpose": "Offline inspection covers explicitly selected Kubernetes text fields; detected values remain hidden and are not validated.",
+    "source": "peaso/checks/k8s_selected_text_content_review.py::evaluate",
+    "kind": "selected_secret",
+    "renderer": "current_native",
+    "evidence_fields": [
+      "observed",
+      "complete"
+    ]
+  }
+}

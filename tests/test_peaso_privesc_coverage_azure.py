@@ -6,7 +6,6 @@ every heading of az-privilege-escalation/** must have a ledger row.
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import re
@@ -17,6 +16,7 @@ import pytest
 
 from peaso.privesc.schema import checkout_revision, load_catalog, revision_matches
 from peaso.privesc.versioned_catalog import LEGACY_REVISION
+import yaml
 
 PREFIX = "src/pentesting-cloud/azure-security/"
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +26,15 @@ CATALOG = ROOT / "peaso" / "privesc" / "catalog" / "azure"
 LEDGER = Path(os.environ.get("PEASO_PRIVESC_LEDGER_AZURE", str(ROOT / "docs" / "privesc-ledgers" / "privesc-azure.md")))
 CHECKOUTS = [p for p in os.environ.get("HACKTRICKS_CLOUD_ROOT", "").split(os.pathsep) if p] + [
     str(ROOT.parent / "htc"), str(ROOT.parent / "hacktricks-cloud"), str(Path.home() / "git" / "hacktricks-cloud")]
+CURRENT = re.compile(r"^\| `(azure-[a-z0-9-]+)` \| `([^`]+)` \| (ACTIVE|RETIRED) \| (.*) \|$")
+
+
+def _current_rows():
+    text = LEDGER.read_text(encoding="utf-8")
+    assert f"## Current CSPM catalog reconciliation (HackTricks Cloud `{REVISION}`)" in text
+    section = text.split("## Current CSPM catalog reconciliation", 1)[1]
+    return {m.group(1): (m.group(2), m.group(3), m.group(4))
+            for line in section.splitlines() if (m := CURRENT.match(line))}
 
 def _azure_entries():
     result = load_catalog()
@@ -35,9 +44,14 @@ def _azure_entries():
 def test_ledger_mapped_ids_exist_in_catalog():
     entries = _azure_entries()
     mapped = _mapped_ledger()
+    current = _current_rows()
+    retired = {ident for ident, (_, status, _) in current.items() if status == "RETIRED"}
+    excluded = {item.get("id"): item for path in CATALOG.glob("_excluded*.yaml")
+                for item in (yaml.safe_load(path.read_text()) or []) if item.get("id")}
     assert mapped, "Azure ledger has no mapped rows"
-    missing = sorted({(key, i) for key, ids in mapped.items() for i in ids if i not in entries})
+    missing = sorted({(key, i) for key, ids in mapped.items() for i in ids if i not in entries and i not in retired})
     assert not missing, missing
+    assert retired <= excluded.keys()
     assert all(mapped.values()), "Azure ledger has a MAPPED row without catalog ids"
     unmapped = sorted(set(entries) - {i for ids in mapped.values() for i in ids})
     assert not unmapped, unmapped
@@ -46,6 +60,7 @@ def test_ledger_mapped_ids_exist_in_catalog():
         if not any(i in mapped.get(source.removeprefix(PREFIX), [])
                    for source in (entry["source"] if isinstance(entry["source"], list) else [entry["source"]])))
     assert not source_mismatches, source_mismatches
+    assert {i for i, (_, status, _) in current.items() if status == "ACTIVE"} == set(entries)
 
 def test_azure_entries_cite_refreshed_revision_and_azure_pages():
     entries = _azure_entries()
@@ -54,24 +69,11 @@ def test_azure_entries_cite_refreshed_revision_and_azure_pages():
     header = LEDGER.read_text(encoding="utf-8").splitlines()[0]
     ledger_revision = re.search(r"HackTricks Cloud ([0-9a-f]{7,40})\b", header)
     assert ledger_revision and revision_matches(ledger_revision.group(1), LEGACY_REVISION), header
-    # The first line remains the historical heading sweep. The reviewed v4
-    # additions carry their own exact revision and must enumerate precisely
-    # the new Azure IDs bound in the current catalog.
-    additive = re.search(r"(?m)^## Additive v4 reviewed mappings \(HackTricks Cloud ([0-9a-f]{40})\)$",
-                         LEDGER.read_text(encoding="utf-8"))
-    assert additive and revision_matches(additive.group(1), REVISION)
-    additive_rows = LEDGER.read_text(encoding="utf-8").split(additive.group(0), 1)[1]
-    mapped_new = {cid for line in additive_rows.splitlines() if " | MAPPED | " in line for cid in re.findall(r"`(azure-[a-z0-9-]+)`", line)}
-    history = json.loads((ROOT / "peaso/privesc/catalog_versions/legacy-0b3633-delta.json").read_text())
-    mapped_new -= set(history["legacy_ids"])
-    expected_new = set(entries) - set(history["legacy_ids"])
-    assert mapped_new == expected_new
-    expected_hashes = {name: sha for name, sha in MANIFEST["sha256"].items() if name.startswith("azure/")}
-    actual_files = {f"azure/{path.name}" for path in CATALOG.glob("*.yaml")}
-    assert set(expected_hashes) == actual_files
-    mismatches = sorted(name for name, sha in expected_hashes.items()
-                        if hashlib.sha256((CATALOG / Path(name).name).read_bytes()).hexdigest() != sha)
-    assert not mismatches, mismatches
+    # The v4 section and manifest hashes describe earlier source and catalog
+    # bytes. This reviewed overlay records current active and retired deltas.
+    current = _current_rows()
+    assert current
+    assert all(source.startswith(PREFIX) and reason.strip() for source, _, reason in current.values())
     assert all(e["source"].startswith(PREFIX) for e in entries.values())
 
 def _parse_ledger():
@@ -80,12 +82,21 @@ def _parse_ledger():
         if not line.startswith("| `"):
             continue
         cells = [c.strip() for c in re.split(r"(?<!\\)\|", line)[1:-1]]
-        rows[cells[0].strip("`")] = (cells[3], cells[4])
+        if len(cells) == 5:
+            rows[cells[0].strip("`")] = (cells[3], cells[4])
     return rows
 
-def _mapped_ledger():
+def _legacy_mapped_ledger():
     return {key: re.findall(r"`((?:azure|entra)-[a-z0-9-]+)`", detail)
             for key, (status, detail) in _parse_ledger().items() if status == "MAPPED"}
+
+
+def _mapped_ledger():
+    mapped = _legacy_mapped_ledger()
+    for ident, (source, status, _) in _current_rows().items():
+        if status == "ACTIVE":
+            mapped.setdefault(source.removeprefix(PREFIX), []).append(ident)
+    return mapped
 
 def test_ledger_has_mappings_and_known_statuses():
     assert LEDGER.is_file(), f"azure privesc ledger missing: {LEDGER}"

@@ -78,7 +78,7 @@ def test_attacker_picks_an_unenforced_pivot_namespace():
 
 def test_psa_without_namespace_inventory_is_annotated_not_dropped():
     got = privesc.analyze(snap({}), entries=[priv_pod("pod_security_admission")])
-    assert reached(got, DEV) == {NODE: "derived"}
+    assert reached(got, DEV) == {NODE: "conditional"}
     assert "blocker_pod_security_admission_not_evaluated" in finding(got, "k8s-t-privpod")["evidence"]["conditions"]
     assert any(c["kind"] == "blocker" and c["status"] == "not_evaluated" for c in got["coverage"])
 

@@ -13,20 +13,20 @@
     - action: agentregistry.services.update
       resource: '{target.resource}'
     - action: serviceusage.services.use
-      resource: '{target.scope}'
+      resource: '{target.quota_project}'
   target:
     kind: gcp_external_principal
     selector:
       gcp_external_principal_evidence: true
       gcp_external_plane: agent_registry_provider
-    scope: same_project
+    scope: any
     outcome: credentials
     aggregate_as: Exact provider principal whose credential was captured and tested
   conditions:
   - id: bound_agent_credential_capture
-    description: A unique reviewed record must bind the changed Service and existing Binding/auth provider, later authorized victim invocation, actual captured subject-bound credential, usable scope, prior source denial, and newly allowed action on the exact provider resource.
+    description: A unique reviewed record must bind the changed Service URL, unchanged projected URN and auth-provider Binding, later authorized victim invocation, controlled receiver capture, usable subject-bound credential, prior source denial, and newly allowed action on the exact provider resource.
   blockers: []
   confidence: conditional
   severity: high
   mitigation: Restrict Agent Registry service updates and validate destinations of credential-bearing bound services.
-  notes: This entry covers a same-project quota path. TargetPlane must be agent_registry_provider. TargetServiceResource may be the exact HTTPS provider API resource; TargetPrincipalId and ObservedPrincipalId must be the credential's verified provider subject. Endpoint redirection, an API-key-shaped string, or an uninvoked binding alone creates no edge.
+  notes: QuotaProject records the exact project used for serviceusage.services.use and can differ from the Service project. TargetPlane must be agent_registry_provider. TargetServiceResource may be the exact HTTPS provider API resource; TargetPrincipalId and ObservedPrincipalId must be the credential's verified provider subject. Endpoint redirection, an API-key-shaped string, or an uninvoked binding alone creates no edge.

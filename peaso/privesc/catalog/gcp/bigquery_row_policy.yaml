@@ -9,7 +9,7 @@
   title: Self-grant filtered row access by creating a row access policy
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryrowaccesspoliciescreateupdate--self-grant-filtered-row-access
   source_revision: f0f683242a
-  summary: The source creates a row access policy on an exact table with itself in GRANT TO, which automatically grants the system-managed filteredDataViewer role and its bigquery.rowAccessPolicies.getFilteredData permission on that table.
+  summary: The source can create a new row access policy with itself in GRANT TO on a table that already has row policies, adding filtered row access it does not currently hold.
   requires:
     all_of:
     - action: bigquery.rowAccessPolicies.create
@@ -28,13 +28,13 @@
     outcome: permission_grant
     grants:
     - bigquery.rowAccessPolicies.getFilteredData
-    aggregate_as: Verified row-policy self-grant on an exact table
+    aggregate_as: Possible row-policy self-grant on an exact table
   conditions:
-  - id: exact_reviewed_row_policy_grant
-    description: Requires complete, unique evidence binding the exact table, source principal as policy grantee, prior absence, accepted CREATE ROW ACCESS POLICY DDL, and effective filteredDataViewer permission after the mutation.
+  - id: exact_row_policy_self_grant
+    description: Requires an existing table with row policies, complete policy IAM inventory, no prior filteredDataViewer grant to the source, and the exact permissions to create a policy that grants the source access.
   blockers:
   - gcp_deny_policy
   confidence: conditional
   severity: high
   mitigation: Restrict row access policy creation on sensitive tables and review policy grantees and filters.
-  notes: The gcp_resource_self_grant_evidence record must name the exact table in both TargetResource and GrantedResource, the source as GrantedPrincipalId, AccessPermission bigquery.rowAccessPolicies.create, and GrantedPermissions exactly bigquery.rowAccessPolicies.getFilteredData. The CREATE action alone never creates a graph path.
+  notes: A new policy can grant the source filteredDataViewer on this table. Tables without existing row policies already expose all rows to a principal with tables.getData, so they are excluded. Missing policy IAM, group, deny, or organization evidence leaves the path unresolved; the 400-policy table limit blocks a new policy.

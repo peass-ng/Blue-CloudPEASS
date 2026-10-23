@@ -611,58 +611,58 @@
   },
   "k8s-rbac-constrained-impersonation-associated-node": {
     "FAIL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice read a pod on that node or request its service account token.",
+      "That could expose pod details or allow access granted to its service account."
     ],
     "MANUAL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice read a pod on that node or request its service account token.",
+      "That could expose pod details or allow access granted to its service account."
     ],
     "UNKNOWN": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The target's matching action is incomplete, so the usable impersonated permission is unclear.",
+      "The possible access to resources covered by that permission is therefore unclear."
     ]
   },
   "k8s-rbac-constrained-impersonation-node": {
     "FAIL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice read a pod on that node or request its service account token.",
+      "That could expose pod details or allow access granted to its service account."
     ],
     "MANUAL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice read a pod on that node or request its service account token.",
+      "That could expose pod details or allow access granted to its service account."
     ],
     "UNKNOWN": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The target's matching action is incomplete, so the usable impersonated permission is unclear.",
+      "The possible access to resources covered by that permission is therefore unclear."
     ]
   },
   "k8s-rbac-constrained-impersonation-serviceaccount": {
     "FAIL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice use one permission held by that identity.",
+      "That could expose data or change resources within that permission's scope."
     ],
     "MANUAL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice use one permission held by that identity.",
+      "That could expose data or change resources within that permission's scope."
     ],
     "UNKNOWN": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The target's matching action is incomplete, so the usable impersonated permission is unclear.",
+      "The possible access to resources covered by that permission is therefore unclear."
     ]
   },
   "k8s-rbac-constrained-impersonation-user": {
     "FAIL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice use one permission held by that identity.",
+      "That could expose data or change resources within that permission's scope."
     ],
     "MANUAL": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The matching impersonate-on action may let alice use one permission held by that identity.",
+      "That could expose data or change resources within that permission's scope."
     ],
     "UNKNOWN": [
-      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
-      "That could let alice use the permitted part of that identity\u2019s access."
+      "The target's matching action is incomplete, so the usable impersonated permission is unclear.",
+      "The possible access to resources covered by that permission is therefore unclear."
     ]
   },
   "k8s-rbac-csr-kube-apiserver-client-group": {
@@ -695,16 +695,16 @@
   },
   "k8s-rbac-dangling-serviceaccount-reference": {
     "FAIL": [
-      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
-      "That could let alice use the permissions bound to that name."
+      "The referenced role grants an action that alice cannot already perform.",
+      "Recreating and using that ServiceAccount may expose resources allowed by the new action."
     ],
     "MANUAL": [
-      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
-      "That could let alice use the permissions bound to that name."
+      "The referenced role grants an action that alice cannot already perform.",
+      "Using the new ServiceAccount may expose resources if admission and token settings allow it."
     ],
     "UNKNOWN": [
-      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
-      "That could let alice use the permissions bound to that name."
+      "The ServiceAccount inventory, namespace inventory, or referenced role rules are incomplete.",
+      "Whether alice could gain the binding's access to workloads or data remains unclear."
     ]
   },
   "k8s-rbac-escalate-aggregating-clusterrole": {
@@ -877,16 +877,16 @@
   },
   "k8s-rbac-serviceaccount-in-absent-namespace": {
     "FAIL": [
-      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
-      "That could let alice use the permissions bound to that name."
+      "The ServiceAccount name is linked to a useful binding or a host-access SCC.",
+      "Creating the namespace and ServiceAccount may let alice use those rights over workloads or data."
     ],
     "MANUAL": [
-      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
-      "That could let alice use the permissions bound to that name."
+      "The ServiceAccount name is linked to a useful binding or a host-access SCC.",
+      "Creating the namespace and ServiceAccount may let alice use those rights if admission allows it."
     ],
     "UNKNOWN": [
-      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
-      "That could let alice use the permissions bound to that name."
+      "The namespace inventory or referenced binding rules are incomplete.",
+      "Whether alice could gain access to workloads or data through this name remains unclear."
     ]
   },
   "k8s-rbac-serviceaccounts-token-create": {
@@ -1125,6 +1125,48 @@
     "UNKNOWN": [
       "Adding rules to the aggregated ClusterRole may grant workload and token permissions in the bound namespace.",
       "That could let someone using the source identity access ServiceAccounts in that namespace."
+    ]
+  },
+  "k8s-configconnector-project-iam-grant": {
+    "FAIL": [
+      "An IAM policy resource could grant new project permissions.",
+      "Those permissions may allow changes to services and data in that project."
+    ],
+    "MANUAL": [
+      "An IAM policy resource could grant new project permissions.",
+      "Those permissions may allow changes to services and data in that project."
+    ],
+    "UNKNOWN": [
+      "If the controller and permissions match, an IAM resource could change project access.",
+      "That may allow changes to services and data in that project."
+    ]
+  },
+  "k8s-configconnector-service-account-key": {
+    "FAIL": [
+      "A new key could let someone act as the named Google service account.",
+      "They may reach data or services allowed to that account."
+    ],
+    "MANUAL": [
+      "A new key could let someone act as the named Google service account.",
+      "They may reach data or services allowed to that account."
+    ],
+    "UNKNOWN": [
+      "If those resources and permissions match, a new key could be usable.",
+      "It may then allow access to data or services allowed to that account."
+    ]
+  },
+  "k8s-rbac-csr-kube-apiserver-client-serviceaccount": {
+    "FAIL": [
+      "Those grants may let alice obtain a certificate with the bound ServiceAccount's username.",
+      "That could expose data or allow changes covered by that ServiceAccount's direct RBAC role."
+    ],
+    "MANUAL": [
+      "Those grants may let alice obtain a certificate with the bound ServiceAccount's username.",
+      "That could expose data or allow changes covered by that ServiceAccount's direct RBAC role."
+    ],
+    "UNKNOWN": [
+      "Whether alice can obtain a certificate for that username is unclear.",
+      "The data and resources that username could reach through its binding remain uncertain."
     ]
   }
 }

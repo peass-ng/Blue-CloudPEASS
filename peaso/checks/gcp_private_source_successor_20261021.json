@@ -39,7 +39,7 @@
       "kwdefaults": "None"
     }
   },
-  "normalized_module_sha256": "ea523066c073a6ff867bd2474b4546482c3e274a93515b72d1b5c66dc3cc084e",
+  "normalized_module_sha256": "3a7ac4aa5911bedf21b0d26353f3cd7818fac4f6a19030df74095ec910f12d62",
   "private_manifest_sha256": "d542df25acc387f0dc8e2b97dc356fd3409b13b144b72f1260e447a400f42320",
   "private_roster": [
     "peaso/collectors/aws_additional_secret_indicators.py",
