@@ -12,6 +12,42 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_source_anchor_repin_preserves_previous_report_binding():
+    ident = "azure-policy-assignment-write-user-assigned-identity"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.SOURCE_ANCHOR_685_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.SOURCE_ANCHOR_685_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["source_revision"] != "4393380a88845b42bd208d3adbb6d61ad89f02fb"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["source_revision"] == "4393380a88845b42bd208d3adbb6d61ad89f02fb"
+    assert len(catalog._verified_source_anchor_685_previous()) == 685
+
+
+def test_source_anchor_repin_changes_only_seven_provenance_values():
+    old = catalog._verified_source_anchor_685_previous()
+    current = catalog._verified_current(str(catalog.CATALOG_DIR), str(catalog._paths()[1]))
+    assert old.keys() == current.keys()
+    changed = set()
+    for ident in old:
+        assert {key: value for key, value in old[ident].items() if key != "source_revision"} == {
+            key: value for key, value in current[ident].items() if key != "source_revision"}
+        if old[ident].get("source_revision") != current[ident].get("source_revision"):
+            changed.add(ident)
+    assert changed == {
+        "azure-policy-assignment-write-user-assigned-identity",
+        "azure-avs-run-command-vcenter-grant-external-principal",
+        "azure-cosmos-other-api-role-assignment-write",
+        "azure-entraid-group-owner-membership",
+        "gcp-gkehub-features-configmanagement",
+        "gcp-agentidentity-retrieve-credentials",
+        "gcp-agentidentity-update-token-url",
+    }
+
+
 def test_beanstalk_prefilter_change_preserves_previous_report_binding():
     ident = "aws-elasticbeanstalk-passrole-create-environment"
     old = {"schema": catalog.BINDING_SCHEMA,

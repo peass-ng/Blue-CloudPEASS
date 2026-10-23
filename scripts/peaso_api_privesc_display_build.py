@@ -240,6 +240,10 @@ def render_documents():
         document['catalog_source_identities'] = {name: main_manifest['sources'][name] for name in FROZEN_SOURCES}
         return _documents(_compact(document), main_manifest)
     cases = binding_cases()
+    if sys.argv[1:] == ['--incremental-source-anchor-685']:
+        return _incremental_current_documents(main_manifest, current, cases,
+                                              catalog.SOURCE_ANCHOR_685_PREVIOUS_MANIFEST,
+                                              catalog.SOURCE_ANCHOR_685_PREVIOUS_TREE)
     if sys.argv[1:] == ['--incremental-appstream']:
         return _incremental_current_documents(main_manifest, current, cases,
                                               catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
