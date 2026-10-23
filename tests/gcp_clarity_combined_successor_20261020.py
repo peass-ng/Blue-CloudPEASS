@@ -145,9 +145,12 @@ def extension_cases(cid, cases):
 def current_golden_rows(historical):
     """Preserve every row; seven exact prose errata and one source-pair delta."""
     assert digest(historical) == digest(checked('tests/fixtures/gcp-natural-evidence-golden.json'))
-    for path in ('peaso/checks/gcp_natural_evidence.py', 'peaso/checks/gcp_evidence_explanations.py',
-                 'peaso/checks/gcp_evidence_explanations.json'):
+    for path in ('peaso/checks/gcp_natural_evidence.py', 'peaso/checks/gcp_evidence_explanations.json'):
         assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == PINNED_FILES[path]
+    historical_source = gzip.decompress((ROOT / 'tests/fixtures/gcp_evidence_explanations_predecessor_b775.py.gz').read_bytes())
+    assert hashlib.sha256(historical_source).hexdigest() == PINNED_FILES['peaso/checks/gcp_evidence_explanations.py']
+    assert hashlib.sha256((ROOT / 'peaso/checks/gcp_evidence_explanations.py').read_bytes()).hexdigest() == 'a67e98105d1a17c608252d621a329cf86716878e992389b3377276670361d841'
+    assert hashlib.sha256((ROOT / 'peaso/checks/gcp_evidence_explanations_current_20261023.json').read_bytes()).hexdigest() == 'd0cfac399589ee9597ea4fd404560ea3cc30155ceb20f888ca37b3f66467cc63'
     result = deepcopy(historical)
     seen = set()
     for row in result:

@@ -367,9 +367,9 @@ def _request(request):
             s3_source_targets({**content_options, '_content_secret_scan_kinds': [S3_SOURCE_KIND]}, connector.get('scopes', []))
         if 'content_secret_scans' in content_options and type(content_options['content_secret_scans']) is not bool:
             raise ValueError('content_secret_scans must be a boolean')
-        if LAMBDA_ENV_OPTION in content_options or (content_options.get('content_secret_scans') is True and LAMBDA_ENV_CHECK in (request.get('checks') or [])):
+        if LAMBDA_ENV_OPTION in content_options:
             lambda_environment_targets({**content_options, '_content_secret_scan_kinds': [LAMBDA_ENV_KIND]}, connector.get('scopes', []))
-        if CONFIG_CONTENT_OPTION in content_options or (content_options.get('content_secret_scans') is True and CONFIG_CONTENT_CHECK in (request.get('checks') or [])):
+        if CONFIG_CONTENT_OPTION in content_options:
             configuration_content_targets({**content_options, '_content_secret_scan_kinds': [CONFIG_CONTENT_KIND]}, connector.get('scopes', []))
     from .collectors.k8s_selected_registry_image_20261021 import OPTION as K8S_IMAGE_OPTION, ALLOWLIST as K8S_IMAGE_ALLOWLIST, selected_targets as k8s_image_targets, registry_credentials as k8s_image_credentials, SECRET_CHECK as K8S_IMAGE_SECRET_CHECK, VULN_CHECK as K8S_IMAGE_VULN_CHECK
     if (K8S_IMAGE_OPTION in content_options or K8S_IMAGE_ALLOWLIST in content_options) and connector['provider'] != 'k8s':
@@ -390,7 +390,7 @@ def _request(request):
         from .collectors.k8s_literal_secret_indicators import selected_targets as k8s_literal_targets, KIND as K8S_LITERAL_KIND, CHECK as K8S_LITERAL_CHECK, OPTION as K8S_LITERAL_OPTION
         if ('content_secret_scans' in content_options and type(content_options['content_secret_scans']) is not bool):
             raise ValueError('content_secret_scans must be a boolean')
-        if K8S_LITERAL_OPTION in content_options or (content_options.get('content_secret_scans') is True and K8S_LITERAL_CHECK in (request.get('checks') or [])):
+        if K8S_LITERAL_OPTION in content_options:
             k8s_literal_targets({**content_options, '_content_secret_scan_kinds': [K8S_LITERAL_KIND]}, connector.get('scopes', []))
         from .collectors.k8s_selected_text_content import selected_targets as k8s_text_targets, KIND as K8S_TEXT_KIND, CHECK as K8S_TEXT_CHECK, OPTION as K8S_TEXT_OPTION
         if K8S_TEXT_OPTION in content_options or (content_options.get('content_secret_scans') is True and K8S_TEXT_CHECK in (request.get('checks') or [])):
@@ -402,7 +402,7 @@ def _request(request):
         from .collectors.azure_app_settings_secret_indicators import selected_targets as azure_settings_targets, KIND as AZURE_SETTINGS_KIND, CHECK as AZURE_SETTINGS_CHECK, OPTION as AZURE_SETTINGS_OPTION
         if ('content_secret_scans' in content_options and type(content_options['content_secret_scans']) is not bool):
             raise ValueError('content_secret_scans must be a boolean')
-        if AZURE_SETTINGS_OPTION in content_options or (content_options.get('content_secret_scans') is True and AZURE_SETTINGS_CHECK in (request.get('checks') or [])):
+        if AZURE_SETTINGS_OPTION in content_options:
             azure_settings_targets({**content_options, '_content_secret_scan_kinds': [AZURE_SETTINGS_KIND]}, connector.get('scopes', []))
         from .collectors.azure_acr_image_secret_indicators import selected_targets as azure_acr_targets, KIND as AZURE_ACR_KIND, CHECK as AZURE_ACR_CHECK, OPTION as AZURE_ACR_OPTION
         from .collectors.azure_acr_image_vulnerabilities_20261021 import selected_targets as azure_acr_vuln_targets, KIND as AZURE_ACR_VULN_KIND, CHECK as AZURE_ACR_VULN_CHECK, OPTION as AZURE_ACR_VULN_OPTION
@@ -411,7 +411,7 @@ def _request(request):
         if AZURE_ACR_VULN_OPTION in content_options or (content_options.get('image_vulnerability_scans') is True and AZURE_ACR_VULN_CHECK in (request.get('checks') or [])):
             azure_acr_vuln_targets(content_options, connector.get('scopes', []))
         from .collectors.azure_selected_configuration_secret_indicators import selected_targets as azure_configuration_targets, KIND as AZURE_CONFIG_KIND, CHECK as AZURE_CONFIG_CHECK, OPTION as AZURE_CONFIG_OPTION
-        if AZURE_CONFIG_OPTION in content_options or (content_options.get('content_secret_scans') is True and AZURE_CONFIG_CHECK in (request.get('checks') or [])):
+        if AZURE_CONFIG_OPTION in content_options:
             azure_configuration_targets({**content_options, '_content_secret_scan_kinds': [AZURE_CONFIG_KIND]}, connector.get('scopes', []))
         from .collectors.azure_selected_storage_secret_indicators import selected_targets as storage_targets, KIND as STORAGE_KIND, CHECK as STORAGE_CHECK, OPTION as STORAGE_OPTION
         if STORAGE_OPTION in content_options or (content_options.get('content_secret_scans') is True and STORAGE_CHECK in (request.get('checks') or [])):
@@ -1440,6 +1440,9 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                 attach_package_source(scoped_indexes[scope], snapshot, scope)
         return scoped_indexes[scope]
 
+    automatic_batch_adapter = None
+    if evaluation_metadata.get('automatic_workload_environment_batches'):
+        from .checks import automatic_workload_batch as automatic_batch_adapter
     for settled_checks, check in enumerate(selected):
         emit_progress(phase="evaluating", provider=provider, completed=settled_checks,
                       total=len(selected), resources=len(inventory), dynamic_total=False)
@@ -1515,6 +1518,8 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                 and getattr(check, "target", "resource") == "resource" else None)
             unsupported_region = _unsupported_aws_region(snapshot, collection)
             scope_findings = []
+            prepared_automatic = (automatic_batch_adapter.prepare(scoped_index(scope), check.id)
+                if automatic_batch_adapter is not None else None)
             for resource in by_scope.get((check.kind, scope), []):
                 # The rule index is scoped; foreign subscriptions/namespaces cannot satisfy a check.
                 scoped = scoped_index(scope)
@@ -1522,7 +1527,9 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                     # Sealed native data is a read-only view: checks share it instead of deep-copying it.
                     if global_binding_conflict:
                         raise ValueError("contradictory AWS global account provenance")
-                    status, evidence = ("NOT_APPLICABLE", management_only) if management_only else check.evaluate(resource["data"], scoped)
+                    status, evidence = (("NOT_APPLICABLE", management_only) if management_only else
+                        automatic_batch_adapter.evaluate_prepared(resource["data"], scoped, check.evaluate, prepared_automatic)
+                        if prepared_automatic is not None else check.evaluate(resource["data"], scoped))
                     if status not in ("PASS", "FAIL", "UNKNOWN", "DENIED", "EMPTY", "MANUAL", "NOT_APPLICABLE") or not isinstance(evidence, dict):
                         raise ValueError("invalid check result")
                 except (KeyError, TypeError, ValueError, AttributeError, IndexError) as exc:

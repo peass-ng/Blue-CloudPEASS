@@ -53,6 +53,10 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'scripts/verify_workload_environment_discovery_candidate.py',
+    'scripts/verify_automatic_batch_consumer_candidate.py',
+    'docs/scan-execution.md',
+    'tests/test_ai_selected_stages.py',
     'tests/test_aws_ecs_configuration_literals.py',
     'tests/test_batch_content_reuse.py',
     'examples/benchmark_peaso_batch_content_reuse.py',
@@ -1473,6 +1477,16 @@ REPRODUCTION_INPUT_PATTERNS = (
     'examples/benchmark_peaso_leaks.py',
     'examples/benchmark_peaso_secret_batch_capacity.py',
     'examples/benchmark_peaso_network.py',
+    'examples/benchmark_peaso_network_paging.py',
+    'scripts/benchmark_api_grouped_selection.py',
+    'scripts/benchmark_api_principal_hydration.py',
+    'scripts/benchmark_api_summary_rendering.py',
+    'scripts/benchmark_report_publication_summary.py',
+    'tests/test_peaso_finding_summary_shared_constants.py',
+    'tests/test_peaso_principal_finding_hydration.py',
+    'tests/test_peaso_network_page_index.py',
+    'tests/test_peaso_grouped_selection_paging_regression.py',
+    'tests/fixtures/gcp_evidence_explanations_predecessor_b775.py.gz',
     'examples/verify_installed_peaso.py',
     'frontend/.gitignore',
     'frontend/tests/fixtures/aws-batch-evidence.json',

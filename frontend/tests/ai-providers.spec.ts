@@ -16,7 +16,7 @@ async function settings(page: Page, hosted = true) {
 test("hosted default only identifies HackTricks AI and hides platform model and thinking", async ({ page }) => {
   await settings(page);
   await page.goto("/#Settings");
-  await expect(page.getByText("HackTricks AI is used.", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("AI provider").locator("option:checked")).toHaveText("HackTricks AI (default)");
   await expect(page.getByLabel("AI provider")).toHaveValue("");
   await expect(page.getByLabel("Model ID")).toHaveCount(0);
   await expect(page.getByLabel("Thinking effort")).toHaveCount(0);
@@ -83,7 +83,6 @@ test("failed custom validation pauses AI and marks Settings until explicit reval
   await page.getByRole("button", { name: "Validate and save AI" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "AI is paused:" })).toContainText(error.message);
   await expect(page.getByRole("img", { name: "AI configuration needs attention" })).toBeVisible();
-  await expect(page.getByText("HackTricks AI is used.", { exact: true })).toHaveCount(0);
   await expect(page.getByText("test-private-key", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Revalidate saved AI configuration" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "AI is paused:" })).toHaveCount(0);
@@ -101,7 +100,7 @@ test("a launch-time credential failure reaches the navigation and open Settings 
     configuration_error: expired ? error : null,
   } }));
   await page.goto("/#Settings");
-  await expect(page.getByText("Your AI configuration is used.", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("AI provider")).toHaveValue("openrouter");
   expired = true;
   await expect(page.getByRole("img", { name: "AI configuration needs attention" })).toBeVisible({ timeout: 10000 });
   await expect(page.getByRole("alert")).toContainText("No AI workloads will be launched.", { timeout: 10000 });

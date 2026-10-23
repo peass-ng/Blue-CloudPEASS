@@ -289,106 +289,138 @@ def expand_projected_node(graph, node_id, *, projected=None, projection_max_node
 
 
 def page_graph(graph, page=0, page_size=120, *, max_edges=1000):
-    """One page of a complete graph, ordered by containment (VPC/VNet/network -> subnet -> resources).
-
-    Subtrees that fit a page are never split; a page lists its containers' ancestors as context nodes, and
-    edges that cross the page boundary are kept with their off-page endpoint as a stub carrying its page.
-    """
+    """One bounded graph page; GraphPageIndex reuses immutable preparation across pages."""
     for name, value in (("page", page), ("page_size", page_size), ("max_edges", max_edges)):
         if isinstance(value, bool) or not isinstance(value, int) or value < (0 if name == "page" else 1):
             raise ValueError(f"{name} must be a {'non-negative' if name == 'page' else 'positive'} integer")
-    nodes = {n["id"]: n for n in graph["nodes"]}
-    children = defaultdict(list)
-    roots = []
-    for node in graph["nodes"]:
-        parent = node.get("parent_id")
-        (children[parent] if parent in nodes and parent != node["id"] else roots).append(node)
-    order = lambda n: (0 if n["type"] in CONTAINER_TYPES else 1, n["type"] in CONTAINER_TYPES and n["type"] not in PRESERVED_TYPES,
-                       n.get("provider", ""), n.get("scope", ""), n["type"], str(n.get("label", "")), n["id"])
-    size = {}
+    return GraphPageIndex(graph, page_size, _index_edges=False).page(page, max_edges=max_edges)
 
-    def subtree_size(node_id):  # iterative post-order; containment may be deep but never cyclic past roots
-        stack, seen = [(node_id, False)], set()
-        while stack:
-            current, done = stack.pop()
-            if done:
-                size[current] = 1 + sum(size.get(c["id"], 0) for c in children.get(current, []))
-                continue
-            if current in seen:
-                continue
-            seen.add(current)
-            stack.append((current, True))
-            stack.extend((c["id"], False) for c in children.get(current, []) if c["id"] not in size)
-        return size[node_id]
 
-    units = []  # lists of node ids kept together on one page whenever they fit
+class GraphPageIndex:
+    """Containment pages and incident edges for one immutable graph and page size.
 
-    def collect(node_id, stack):
-        stack.append(node_id)
-        while stack:
-            current = stack.pop()
-            if subtree_size(current) <= page_size:
-                unit, walk = [], [current]
-                while walk:
-                    item = walk.pop()
-                    unit.append(item)
-                    walk.extend(c["id"] for c in sorted(children.get(item, []), key=order, reverse=True))
-                units.append(unit)
-            else:
-                units.append([current])
-                stack.extend(c["id"] for c in sorted(children.get(current, []), key=order, reverse=True))
+    Callers retaining an index must bind its lifetime to the exact graph revision.
+    Nodes and edges are referenced, never copied or modified during preparation.
+    """
+    def __init__(self, graph, page_size=120, *, _index_edges=True):
+        if isinstance(page_size, bool) or not isinstance(page_size, int) or page_size < 1:
+            raise ValueError("page_size must be a positive integer")
+        nodes = {n["id"]: n for n in graph["nodes"]}
+        children = defaultdict(list)
+        roots = []
+        for node in graph["nodes"]:
+            parent = node.get("parent_id")
+            (children[parent] if parent in nodes and parent != node["id"] else roots).append(node)
+        order = lambda n: (0 if n["type"] in CONTAINER_TYPES else 1, n["type"] in CONTAINER_TYPES and n["type"] not in PRESERVED_TYPES,
+                           n.get("provider", ""), n.get("scope", ""), n["type"], str(n.get("label", "")), n["id"])
+        size = {}
 
-    for root in sorted(roots, key=order):
-        collect(root["id"], [])
-    placed = {nid for unit in units for nid in unit}
-    for node in sorted((n for n in graph["nodes"] if n["id"] not in placed), key=order):  # parent cycles
-        if node["id"] not in placed:
-            units.append([node["id"]])
-            placed.add(node["id"])
-    pages, current = [], []
-    for unit in units:
-        if current and len(current) + len(unit) > page_size:
+        def subtree_size(node_id):  # iterative post-order; containment may be deep but never cyclic past roots
+            stack, seen = [(node_id, False)], set()
+            while stack:
+                current, done = stack.pop()
+                if done:
+                    size[current] = 1 + sum(size.get(c["id"], 0) for c in children.get(current, []))
+                    continue
+                if current in seen:
+                    continue
+                seen.add(current)
+                stack.append((current, True))
+                stack.extend((c["id"], False) for c in children.get(current, []) if c["id"] not in size)
+            return size[node_id]
+
+        units = []  # lists of node ids kept together on one page whenever they fit
+
+        def collect(node_id, stack):
+            stack.append(node_id)
+            while stack:
+                current = stack.pop()
+                if subtree_size(current) <= page_size:
+                    unit, walk = [], [current]
+                    while walk:
+                        item = walk.pop()
+                        unit.append(item)
+                        walk.extend(c["id"] for c in sorted(children.get(item, []), key=order, reverse=True))
+                    units.append(unit)
+                else:
+                    units.append([current])
+                    stack.extend(c["id"] for c in sorted(children.get(current, []), key=order, reverse=True))
+
+        for root in sorted(roots, key=order):
+            collect(root["id"], [])
+        placed = {nid for unit in units for nid in unit}
+        for node in sorted((n for n in graph["nodes"] if n["id"] not in placed), key=order):  # parent cycles
+            if node["id"] not in placed:
+                units.append([node["id"]])
+                placed.add(node["id"])
+        pages, current = [], []
+        for unit in units:
+            if current and len(current) + len(unit) > page_size:
+                pages.append(current)
+                current = []
+            current.extend(unit)
+        if current:
             pages.append(current)
-            current = []
-        current.extend(unit)
-    if current:
-        pages.append(current)
-    page_of = {nid: i for i, ids in enumerate(pages) for nid in ids}
-    summary = []
-    for i, ids in enumerate(pages):
-        tops = [nodes[n] for n in ids if nodes[n]["type"] in CONTAINER_TYPES]
-        summary.append({"page": i, "count": len(ids), "containers": [str(n.get("label", n["id"])) for n in tops[:5]],
-                        "containers_total": len(tops)})
-    if page >= max(len(pages), 1):
-        raise ValueError("page out of range")
-    selected = pages[page] if pages else []
-    on_page = set(selected)
-    context = {}
-    for nid in selected:
-        parent = nodes[nid].get("parent_id")
-        while parent in nodes and parent not in on_page and parent not in context:
-            context[parent] = _stub(nodes[parent], context=True, page=page_of.get(parent))
-            parent = nodes[parent].get("parent_id")
-    stubs, page_edges, crossing = {}, [], 0
-    for edge in graph["edges"]:
-        src_in, dst_in = edge["source"] in on_page, edge["target"] in on_page
-        if not (src_in or dst_in):
-            continue
-        if src_in and dst_in:
-            page_edges.append(edge)
-            continue
-        other = edge["target"] if src_in else edge["source"]
-        crossing += 1
-        if other not in context and other not in stubs:
-            stubs[other] = _stub(nodes.get(other, {"id": other, "label": other}), page=page_of.get(other))
-        page_edges.append({**edge, "cross_page": True})
-    page_edges.sort(key=lambda e: (bool(e.get("cross_page")), e["id"]))
-    return bounded_boundary_view({"nodes": [nodes[n] for n in selected] + list(context.values()) + sorted(stubs.values(), key=lambda n: n["id"]),
-            "edges": page_edges, "page": page, "page_size": page_size, "page_count": len(pages),
-            "total_nodes": len(nodes), "total_edges": len(graph["edges"]), "cross_page_edges": crossing,
-            "edges_truncated": len(page_edges) > max_edges, "pages": summary,
-            "paging": "containment hierarchy (network/VPC -> subnet -> resources); cross-page edges keep a stub endpoint with its page"}, max(500, page_size), max_edges)
+        page_of = {nid: i for i, ids in enumerate(pages) for nid in ids}
+        summary = []
+        for i, ids in enumerate(pages):
+            tops = [nodes[n] for n in ids if nodes[n]["type"] in CONTAINER_TYPES]
+            summary.append({"page": i, "count": len(ids), "containers": [str(n.get("label", n["id"])) for n in tops[:5]],
+                            "containers_total": len(tops)})
+        self.graph, self.page_size = graph, page_size
+        self.nodes, self.pages, self.page_of, self.summary = nodes, pages, page_of, summary
+        self.incident = None
+        if not _index_edges:
+            return
+        self.incident = defaultdict(list)
+        repeated_pages = defaultdict(set)
+        for number, ids in enumerate(pages):
+            for nid in ids:
+                if page_of[nid] != number:
+                    repeated_pages[nid].update((number, page_of[nid]))
+        for edge in graph["edges"]:
+            incident_pages = {page_of.get(edge["source"]), page_of.get(edge["target"])}
+            incident_pages.update(repeated_pages.get(edge["source"], ()))
+            incident_pages.update(repeated_pages.get(edge["target"], ()))
+            for number in incident_pages:
+                if number is not None:
+                    self.incident[number].append(edge)
 
+    def page(self, page=0, *, max_edges=1000):
+        page_size = self.page_size
+        for name, value in (("page", page), ("page_size", page_size), ("max_edges", max_edges)):
+            if isinstance(value, bool) or not isinstance(value, int) or value < (0 if name == "page" else 1):
+                raise ValueError(f"{name} must be a {'non-negative' if name == 'page' else 'positive'} integer")
+        graph, nodes, pages, page_of, summary = self.graph, self.nodes, self.pages, self.page_of, self.summary
+        if page >= max(len(pages), 1):
+            raise ValueError("page out of range")
+        selected = pages[page] if pages else []
+        on_page = set(selected)
+        context = {}
+        for nid in selected:
+            parent = nodes[nid].get("parent_id")
+            while parent in nodes and parent not in on_page and parent not in context:
+                context[parent] = _stub(nodes[parent], context=True, page=page_of.get(parent))
+                parent = nodes[parent].get("parent_id")
+        stubs, page_edges, crossing = {}, [], 0
+        for edge in (graph["edges"] if self.incident is None else self.incident.get(page, ())):
+            src_in, dst_in = edge["source"] in on_page, edge["target"] in on_page
+            if not (src_in or dst_in):
+                continue
+            if src_in and dst_in:
+                page_edges.append(edge)
+                continue
+            other = edge["target"] if src_in else edge["source"]
+            crossing += 1
+            if other not in context and other not in stubs:
+                stubs[other] = _stub(nodes.get(other, {"id": other, "label": other}), page=page_of.get(other))
+            page_edges.append({**edge, "cross_page": True})
+        page_edges.sort(key=lambda e: (bool(e.get("cross_page")), e["id"]))
+        return bounded_boundary_view({"nodes": [nodes[n] for n in selected] + list(context.values()) + sorted(stubs.values(), key=lambda n: n["id"]),
+                "edges": page_edges, "page": page, "page_size": page_size, "page_count": len(pages),
+                "total_nodes": len(nodes), "total_edges": len(graph["edges"]), "cross_page_edges": crossing,
+                "edges_truncated": len(page_edges) > max_edges, "pages": summary,
+                "paging": "containment hierarchy (network/VPC -> subnet -> resources); cross-page edges keep a stub endpoint with its page"}, max(500, page_size), max_edges)
 
 # Definition-only node types: a definition with no edge in the IAM graph (an unassigned built-in or custom
 # role) grants nothing to anyone. Large tenants repeat ~1k built-in definitions per subscription, so the

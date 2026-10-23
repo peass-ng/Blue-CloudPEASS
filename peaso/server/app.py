@@ -1026,7 +1026,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     def finding_selection(tenant, ident, categories=None, framework=None, severity=None,
                           service=None, status=None, search=None, group_by="service", sort_by=None,
-                          status_count_aggregation=None, finding_type=None):
+                          status_count_aggregation=None, finding_type=None, *, sort_cards=True):
         row, bundle = owned_bundle(tenant, ident)
         bundle = finding_review_context(tenant, ident, bundle)
         summary = bundle.get("summary", bundle)
@@ -1162,7 +1162,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                         continue
                 elif not selected(value):
                     continue
-                selected_rows.append((value, sort_card(value)))
+                # Grouped callers construct their final sort cards after aggregation.
+                selected_rows.append((value, sort_card(value) if sort_cards else None))
         for check in facet_checks:
             facets["frameworks"].update(labels.get(check, []))
         status_filter_counts = None
@@ -1175,7 +1176,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, finding_type: str | None = None, group_by: Literal["service", "check_id", "resource_id", "finding_type"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle, selected_rows, facets, account_label, labels, meta, field, status_filter_counts, status_filter_total = finding_selection(
             user.tenant_id, ident, categories, framework, severity, service, status, search, group_by, sort_by,
-            status_count_aggregation=aggregation, finding_type=finding_type)
+            status_count_aggregation=aggregation, finding_type=finding_type, sort_cards=aggregation != "check")
         service_groups = None
         type_groups = None
         if aggregation == "check":
@@ -1255,7 +1256,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                       secret_offset: int = Query(default=0, ge=0, le=50000), user=Depends(identity)):
         from .finding_groups_static_20261021 import group_id, group_findings, placement, member_scopes, STATUS_ORDER
         row, bundle, selected, _, _, labels, meta, field, _, _ = finding_selection(
-            user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type)
+            user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type, sort_cards=False)
         provider = bundle.get("summary", bundle).get("provider", "")
         members = [dict(value, provider=value.get("provider") or provider,
                    severity=field(value, "severity") if isinstance(field(value, "severity"), str) else "info")
@@ -1387,7 +1388,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if aggregation == "check":
             from .finding_groups_static_20261021 import group_findings
             from collections import Counter
-            _, _, selected, _, _, _, _, field, _, _ = finding_selection(user.tenant_id, ident)
+            _, _, selected, _, _, _, _, field, _, _ = finding_selection(user.tenant_id, ident, sort_cards=False)
             provider = value.get("provider", "")
             groups = group_findings(dict(item, provider=item.get("provider") or provider,
                 severity=field(item, "severity") if isinstance(field(item, "severity"), str) else "info",
@@ -1723,10 +1724,11 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if bundle.get("bundle_version") == 1:
             summaries = finding_index(user.tenant_id, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))
         else:
-            summaries = [finding_summary(f) for f in bundle.get("findings", [])]
+            summaries = (finding_summary(f) for f in bundle.get("findings", []))
         labels, meta = check_labels(bundle), check_fields(bundle)
         findings = [with_labels(with_meta(finding_summary(f), meta, bundle), labels)
-                    for f in (with_meta(f, meta, bundle) for f in summaries) if f.get("category") == "privesc"]
+                    for f in (with_meta(f, meta, bundle) for f in summaries) if f.get("category") == "privesc"
+                    and finding_summary({"resource_id": f.get("resource_id")}).get("resource_id") == principal_id]
         card = queries.principal_card(index, principal_id, findings)
         for key in ("outgoing", "incoming", "findings"):
             card[key + "_total"] = len(card.get(key, []))
@@ -1773,11 +1775,17 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def graph_views(tenant, reference):
         from peaso.analysis import project_graph
         value = artifacts.get(tenant, reference)
-        return value, project_graph(value, 500)
+
+        @lru_cache(maxsize=1)
+        def pages(page_size):
+            from peaso.analysis.projection import GraphPageIndex
+            return GraphPageIndex(value, page_size)
+
+        return value, project_graph(value, 500), pages
 
     def full_graph(tenant, bundle, kind):
         if bundle.get("bundle_version") == 1:
-            return graph_views(tenant, bundle["graphs"][kind])
+            return graph_views(tenant, bundle["graphs"][kind])[:2]
         from peaso.analysis import project_graph
         value = bundle.get("graphs", {}).get(kind, {"nodes": [], "edges": []})
         return value, project_graph(value, 500)
@@ -1793,13 +1801,20 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         except KeyError:
             raise HTTPException(404, "Node not found in the 500-node projection") from None
 
+    def network_page_index(tenant, reference, page_size):
+        # Share the graph's bounded lifetime; a second cache would retain evicted graphs.
+        return graph_views(tenant, reference)[2](page_size)
+
     @app.get("/api/scans/{ident}/graphs/network/page")
     def graph_network_page(ident: str, page: int = Query(default=0, ge=0), page_size: int = Query(default=120, ge=1, le=2000),
                            max_edges: int = Query(default=1000, ge=1, le=20000), user=Depends(identity)):
         from peaso.analysis import page_graph
         row, bundle = owned_bundle(user.tenant_id, ident)
-        value, _ = full_graph(user.tenant_id, bundle, "network")
+        reference = bundle.get("graphs", {}).get("network") if bundle.get("bundle_version") == 1 else None
         try:
+            if reference:
+                return network_page_index(user.tenant_id, reference, page_size).page(page, max_edges=max_edges)
+            value, _ = full_graph(user.tenant_id, bundle, "network")
             return page_graph(value, page, page_size, max_edges=max_edges)
         except ValueError:
             raise HTTPException(404, "Page out of range") from None

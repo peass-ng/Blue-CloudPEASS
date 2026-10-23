@@ -41,6 +41,7 @@ export function State({
   empty,
   onRetry,
   title,
+  emptyMessage,
   children,
 }: {
   loading?: boolean;
@@ -48,6 +49,7 @@ export function State({
   empty?: boolean;
   onRetry?: () => void;
   title?: string;
+  emptyMessage?: string;
   children?: ReactNode;
 }) {
   if (loading)
@@ -77,8 +79,7 @@ export function State({
         <ShieldCheck />
         <h3>{title || "No evidence yet"}</h3>
         <p>
-          Connect a cloud environment and run a scan. Missing evidence does not
-          mean a resource is secure.
+          {emptyMessage || "Connect a cloud environment and run a scan. Missing evidence does not mean a resource is secure."}
         </p>
         {children}
       </div>

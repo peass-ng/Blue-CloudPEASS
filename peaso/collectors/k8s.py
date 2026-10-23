@@ -1541,13 +1541,21 @@ def collect(connector, requirements=None, *, api=None):
         raise ValueError("unsupported Kubernetes inventory requirement")
     wanted = set(requested)
     actual = set(wanted)
+    auto_workload_literals = (options.get('content_secret_scans') is True
+        and literals.KIND in options.get('_content_secret_scan_kinds', [])
+        and literals.OPTION not in options and literals.KIND in wanted)
+    if auto_workload_literals:
+        wanted.update(('pod', 'deployment', 'daemonset', 'statefulset', 'replicaset',
+            'job', 'cronjob', 'replicationcontroller', 'podtemplate'))
+        actual.update(wanted)
     legacy_psp_requested = options.get(legacy_psp.OPTION) is True and "api_discovery" in wanted
     annotation_context = None
     scopes = connector.get("scopes") or ["*"]
     if not isinstance(scopes, list) or any(not isinstance(x, str) or (x != "*" and (len(x) > 63 or re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", x) is None)) for x in scopes):
         raise ValueError("scopes must contain valid namespaces or '*'")
     scopes = ["*"] if "*" in scopes else list(dict.fromkeys(scopes))
-    literals.selected_targets(options, scopes)  # Reject malformed selectors before authentication.
+    if not auto_workload_literals:
+        literals.selected_targets(options, scopes)  # Reject malformed selectors before authentication.
     log_targets = log_samples.selected_targets(options, scopes)
     selected_metadata.preflight(options, scopes)
     selected_text.selected_targets(options, scopes)
@@ -1568,7 +1576,10 @@ def collect(connector, requirements=None, *, api=None):
     reader = K8sReader(options)
     reader.collection_callback = options.get("_collection_callback")
     from peaso.collection_events import SettledCollections
-    reader.collections = SettledCollections(reader.collection_callback, deferred={"network_interface"})
+    deferred = {"network_interface"}
+    if auto_workload_literals:
+        deferred.add(literals.KIND)
+    reader.collections = SettledCollections(reader.collection_callback, deferred=deferred)
     private_content = ((log_samples.KIND in wanted and log_samples.enabled(options))
         or (literals.KIND in wanted and literals.enabled(options))
         or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))
@@ -1900,11 +1911,62 @@ def collect(connector, requirements=None, *, api=None):
         # Optional content/images run after native inventory and network batches
         # have become durable; their latency never hides completed core data.
         if literals.KIND in wanted:
-            if private_content:
-                with log_samples.private_native_logs():
-                    literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
-            else:
-                literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
+            literal_options = options
+            if auto_workload_literals:
+                from . import workload_environment_discovery as environment_discovery
+                literal_plan = environment_discovery.k8s_workloads(reader.collections, cluster, expected_scopes=scopes)
+                reader.automatic_literal_coverage = {'discovered': literal_plan.discovered,
+                    'planned': len(literal_plan.targets), 'complete': literal_plan.complete,
+                    'reason': literal_plan.reason}
+                reader.automatic_literal_batches = []
+            if auto_workload_literals and literal_plan.targets:
+                all_matches = set()
+                for batch in environment_discovery.batches(literal_plan.targets, 1):
+                    literal_options = {**options, literals.OPTION: list(batch)}
+                    scope = batch[0]['namespace'] if batch[0]['namespace'] in scopes else '*'
+                    if private_content:
+                        with log_samples.private_native_logs():
+                            literal_metadata, matches = literals.collect(reader, api, literal_options, [scope], cluster)
+                    else:
+                        literal_metadata, matches = literals.collect(reader, api, literal_options, [scope], cluster)
+                    all_matches.update(matches)
+                    batch_id = literals.KIND + ':' + str(len(reader.automatic_literal_batches) + 1)
+                    reader.collections[-1]['automatic_batch'] = batch_id
+                    reader.automatic_literal_batches.append({'id': batch_id, 'scope': scope,
+                        'metadata': literal_metadata,
+                        'issues': environment_discovery.native_denial_issues(
+                            literals.KIND, literals.MARKER, reader.collections[-1]['items'],
+                            literal_metadata)})
+                literal_matches = all_matches
+                environment_discovery.fold_collections(reader.collections,
+                    literals.KIND, reader.automatic_literal_batches)
+            elif not auto_workload_literals:
+                if private_content:
+                    with log_samples.private_native_logs():
+                        literal_metadata, literal_matches = literals.collect(reader, api, literal_options, scopes, cluster)
+                else:
+                    literal_metadata, literal_matches = literals.collect(reader, api, literal_options, scopes, cluster)
+            elif auto_workload_literals:
+                literal_metadata = {literals.KIND + '_authorized': True,
+                    literals.KIND + '_selection': {scope: [] for scope in scopes}}
+                for scope in scopes:
+                    reader.collections.append({'type': literals.KIND, 'scope': scope, 'service': 'kubernetes',
+                        'status': 'empty' if literal_plan.complete else 'unknown', 'items': [],
+                        **({} if literal_plan.complete else {'error': {'code': literal_plan.reason}})})
+            if auto_workload_literals:
+                literal_content_complete = all(
+                    row['status'] in ('collected', 'empty') and
+                    all(item.get(literals.MARKER, {}).get('complete') is True for item in row['items'])
+                    for row in reader.collections if row['type'] == literals.KIND)
+                reader.automatic_literal_coverage.update(
+                    inspected=sum(len(row['items']) for row in reader.collections if row['type'] == literals.KIND),
+                    targets=environment_discovery.target_coverage(literal_plan.targets,
+                        literals.identity, reader.collections, literals.KIND, literals.MARKER,
+                        {ident: issue for batch in reader.automatic_literal_batches
+                         for ident, issue in batch['issues'].items()}),
+                    complete=literal_plan.complete and literal_content_complete,
+                    reason=literal_plan.reason if not literal_plan.complete else
+                           'automatic_content_incomplete' if not literal_content_complete else 'complete')
         if selected_metadata.KIND in wanted:
             selected_metadata_facts, selected_metadata_matches = selected_metadata.collect(
                 reader, api, options, scopes, cluster)
@@ -1978,6 +2040,9 @@ def collect(connector, requirements=None, *, api=None):
         metadata["file_metadata_coverage"] = _file_metadata_coverage(
             options, cluster, reader.collections, captured_at)
     metadata.update(literal_metadata)
+    if auto_workload_literals:
+        metadata['automatic_workload_environment_coverage'] = {literals.KIND: reader.automatic_literal_coverage}
+        metadata['automatic_workload_environment_batches'] = {literals.KIND: reader.automatic_literal_batches}
     metadata.update(log_metadata)
     metadata.update(selected_metadata_facts)
     metadata.update(text_facts)

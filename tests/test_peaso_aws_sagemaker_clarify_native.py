@@ -1,6 +1,6 @@
 """Real SDK shapes through native collection, pinned SW48 and the public engine."""
 import copy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import pytest
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, collect_live
@@ -9,7 +9,7 @@ from tests.archived_check_contract import evaluate_snapshot, plan_collection
 CHECK = 'aws_sagemaker_model_clarify_bias_job'
 SCOPE = ACCOUNT + '/' + REGION
 PREFIX = 'arn:aws:sagemaker:' + REGION + ':' + ACCOUNT + ':'
-TIME = datetime(2026, 10, 15, tzinfo=timezone.utc)
+TIME = datetime.now(timezone.utc) - timedelta(days=1)
 
 
 def capture(sdk, monkeypatch, mode='good'):
@@ -50,6 +50,12 @@ def capture(sdk, monkeypatch, mode='good'):
     if mode == 'wrong_type':schedule['MonitoringType'] = 'ModelQuality'
     schedules = [] if mode == 'no_schedule' else [schedule]
     sm.add_response('list_monitoring_schedules', {'MonitoringScheduleSummaries': schedules}, {})
+    if schedules:
+        # The network metadata fetcher reads the schedule detail after its
+        # summary; this is a separate read from the Clarify join below.
+        sm.add_response('describe_monitoring_schedule',
+            dict(schedule, MonitoringScheduleConfig={'MonitoringType': schedule['MonitoringType']}),
+            {'MonitoringScheduleName': 'schedule'})
     job = {'ProcessingJobName': 'job', 'ProcessingJobArn': PREFIX + 'processing-job/job',
         'CreationTime': TIME, 'ProcessingJobStatus': 'Completed'}
     jobs = [] if mode == 'no_jobs' else [copy.deepcopy(job)]
@@ -67,6 +73,10 @@ def capture(sdk, monkeypatch, mode='good'):
         # The existing detail enricher runs first for every job; the new
         # linkage enricher consumes that exact single-flight cached response.
         sm.add_response('describe_processing_job', detail_job(summary, mode == 'mixed_unrelated' and summary['ProcessingJobName'] == 'other'), {'ProcessingJobName': summary['ProcessingJobName']})
+    if jobs and mode != 'missing_link':
+        # MetadataSession and the native Clarify join have distinct cache
+        # identities, so the join makes its own bounded list read.
+        sm.add_response('list_monitoring_schedules', {'MonitoringScheduleSummaries': schedules}, {})
     if jobs and mode not in ('missing_link', 'no_schedule', 'wrong_type'):
         execution = {'MonitoringScheduleName': 'schedule', 'ScheduledTime': TIME,
             'CreationTime': TIME, 'LastModifiedTime': TIME, 'MonitoringExecutionStatus': 'Completed',

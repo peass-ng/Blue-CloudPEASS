@@ -666,7 +666,9 @@ def collect_selected(requests,session,region,caller,options,scopes):
                     owned=requests.call(session,own_service,region,own_operation,_metadata_profile=PROFILE,**own_args)
                     if owned[MARKER]['status']!='owned_document_metadata':raise ValueError('document_owner_unresolved')
                 item=requests.call(session,service,region,operation,_metadata_profile=PROFILE,**args)
-        except Exception:
+        except Exception as exc:
+            from .workload_environment_discovery import record_denial
+            record_denial(requests, exc, info['id'], service, operation)
             marker=base(info,requests,locator);marker['principal']=principal
             item={'id':info['id'],MARKER:marker,'_provenance':{'scope':info['scope'],'capture':marker['capture'],'selection_locator':info['id']}}
         items.append(item)

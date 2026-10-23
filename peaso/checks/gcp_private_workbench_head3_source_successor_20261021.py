@@ -28,7 +28,7 @@ from peaso import gcp_private_source_successor_20261021 as gcp_source
 RECEIPT = 'gcp_cloudrun_job_image_workbench_source_successor_20261020.json'
 RECEIPT_SHA256 = '2a9fac82c1097446f350ff92354882e25fbce5e98b52a5e21ba7fd0a4c462d9e'
 PRIVATE_RECEIPT = 'gcp_private_workbench_head3_source_successor_20261021.json'
-PRIVATE_RECEIPT_SHA256 = '069ca36640510a8091e2540b7430ba771551b61942441b1b94bd743cee2ebcea'
+PRIVATE_RECEIPT_SHA256 = '8635480f35ef96b78b2cb085f35d438b2df34d55c8251c3b65720713534f9e0a'
 
 
 def _private_self(root):

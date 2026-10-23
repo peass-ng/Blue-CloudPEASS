@@ -119,3 +119,9 @@ AWS and GCP application-log pages share one bounded offline TruffleHog preparati
 ECR layer downloads can resume twice after an interrupted read using the same validated signed URL. A continuation must return the exact remaining byte range; only a file with the full expected size and SHA-256 enters the image scanners. Resumes share the original download deadline, and explicit request caps retain their existing behavior.
 
 Section readiness aggregates settled collection keys once per poll. Sections still publish independently when their required reads finish; denied and partial evidence keep their original status.
+
+### Repeated network map pages
+
+The API reuses containment pages and incident-edge indexes for each tenant, immutable graph reference and page size. A new graph artifact always creates a new index; every request still checks scan ownership. The existing four-entry graph cache retains at most one page-size index per graph, sharing references to graph nodes and edges without changing their evidence, ordering or display limits. Standalone `page_graph` calls avoid building the reusable edge index.
+
+In an offline 20,401-node / 20,000-edge fixture, 22 page requests used about 0.07 CPU seconds including preparation, versus 0.88 seconds rebuilding each page. This measures page projection, not whole-scan or browser latency. Reproduce against a saved earlier `projection.py` with `python -m examples.benchmark_peaso_network_paging --baseline /path/to/baseline_projection.py`.

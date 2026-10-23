@@ -23,10 +23,15 @@ CURRENT_EXAMPLES=[row for row in GOLDEN if 'reviewed_fields' in row]
 def test_every_registered_gcp_check_has_a_reviewed_natural_example():
     historical={x['finding']['check_id'] for x in GOLDEN}
     admitted=set(CURRENT_NATIVE_EXAMPLES)-{FUNCTION_ID}
+    current=set(json.loads((Path(__file__).parents[1]/'peaso/checks/gcp_evidence_explanations_current_20261023.json').read_text()))
+    ledger=json.loads((Path(__file__).parents[1]/'docs/evidence-reviews/gcp.json').read_text())['checks']
     assert not historical & admitted
-    assert historical | admitted=={c.id for c in CHECKS if c.provider=='gcp'}
+    assert not current & (historical | admitted)
+    assert historical | admitted | current=={c.id for c in CHECKS if c.provider=='gcp'}
     assert len(historical)==525
     assert len(admitted)==11
+    assert len(current)==23
+    assert all(ledger[cid]['branch_coverage'].get('PASS') or ledger[cid]['branch_coverage'].get('FAIL') for cid in current)
 
 
 @pytest.mark.parametrize('cid,example', [(cid, row) for cid, rows in CURRENT_NATIVE_EXAMPLES.items()

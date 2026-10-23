@@ -4,9 +4,94 @@ The JSON catalog is keyed by exact check ID. Observations are drawn from typed
 recorded fields; verdicts never manufacture missing settings or permissions.
 """
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
-CATALOG = json.loads(Path(__file__).with_suffix('.json').read_text())
+_HISTORICAL_CATALOG = json.loads(Path(__file__).with_suffix('.json').read_text())
+_CURRENT_REVIEW = json.loads(Path(__file__).with_name('gcp_evidence_explanations_current_20261023.json').read_text())
+if set(_HISTORICAL_CATALOG) & set(_CURRENT_REVIEW):
+    raise ValueError('GCP current explanation duplicates a historical review')
+CATALOG = {**_HISTORICAL_CATALOG, **_CURRENT_REVIEW}
+
+
+def _historical_activity_observation(check_id, status, evidence):
+    """Explain the two native identity-activity outcomes from their bound fields."""
+    account = 'gcp.claude.service_account.recently_used'
+    key = 'gcp.claude.service_account_key.recently_used'
+    if check_id not in (account, key) or evidence.get('threshold_days') != 180:
+        return None
+    if (check_id == key and status == 'PASS' and isinstance(evidence.get('key_name'), str)
+            and isinstance(evidence.get('created_at'), str)
+            and type(evidence.get('object_age_days')) is int
+            and 0 <= evidence['object_age_days'] <= 180):
+        try:
+            datetime.fromisoformat(evidence['created_at'])
+        except ValueError:
+            return None
+        return (f'The recorded key is {evidence["object_age_days"]} days old, within the '
+                '180-day inactivity threshold; creation date alone does not establish authentication.')
+    name = evidence.get('identity_name')
+    endpoint = evidence.get('activity_source_endpoint')
+    if not isinstance(name, str) or not name.startswith('projects/') or not isinstance(endpoint, str):
+        return None
+    expected = '/activityTypes/serviceAccountKeyLastAuthentication/activities:query' if check_id == key else '/activityTypes/serviceAccountLastAuthentication/activities:query'
+    if not endpoint.startswith('https://policyanalyzer.googleapis.com/v1/projects/') or not endpoint.endswith(expected):
+        return None
+    try:
+        start = datetime.fromisoformat(evidence['observation_start'])
+        end = datetime.fromisoformat(evidence['observation_end'])
+        last = (datetime.fromisoformat(evidence['reported_last_authentication'])
+                if evidence.get('reported_last_authentication') else None)
+    except (KeyError, TypeError, ValueError):
+        return None
+    if start.tzinfo is None or end.tzinfo is None or last is not None and last.tzinfo is None:
+        return None
+    if start >= end or last is not None and not start <= last <= end:
+        return None
+    if status == 'PASS' and last is not None:
+        days = evidence.get('days_since_reported_authentication')
+        if type(days) is int and days == (end - last).days and 0 <= days <= 183:
+            return (f'The bound activity observation records authentication {days} '
+                    f'{"day" if days == 1 else "days"} before its end.')
+    if status == 'FAIL' and end - start > timedelta(days=180):
+        if last is not None and end - last > timedelta(days=180):
+            return 'The bound activity observation records no authentication within its latest 180 days.'
+        if last is None and type(evidence.get('days_without_observed_authentication')) is int and evidence['days_without_observed_authentication'] > 180:
+            return 'The bound activity observation records no authentication across more than 180 days.'
+    return None
+
+
+def _current_observation(check_id, status, evidence):
+    """Use only a bounded observation emitted by the reviewed native check."""
+    if check_id not in _CURRENT_REVIEW:
+        return None
+    if len(evidence) < 2:
+        return None
+    if check_id == 'gcp.review.cloud_run.selected_job_image_vulnerabilities':
+        findings = evidence.get('vulnerabilities')
+        if (isinstance(findings, list) and len(findings) <= 1000
+                and evidence.get('association_kind') == 'desired_digest_declaration'
+                and evidence.get('runtime_image_proven') is False
+                and isinstance(evidence.get('source_requests'), list)
+                and evidence['source_requests']):
+            if status == 'FAIL' and findings:
+                return (f'The selected declared Cloud Run Job image has {len(findings)} recorded '
+                        'HIGH or CRITICAL package vulnerability findings.')
+            if status == 'PASS' and not findings and evidence.get('coverage_status') == 'COMPLETE':
+                return ('The recorded complete scan found no HIGH or CRITICAL package '
+                        'vulnerabilities in the selected declared Cloud Run Job image.')
+    for field in ('summary', 'observed', 'Observed'):
+        value = evidence.get(field)
+        if not isinstance(value, str):
+            continue
+        lines = value.splitlines()
+        if (not 1 <= len(lines) <= 3 or any(not line.strip() for line in lines)
+                or len(value) > 700 or any(ord(char) < 32 and char not in '\n\t' for char in value)):
+            continue
+        observation = ' '.join(line.strip() for line in lines)
+        if len(observation.split()) <= 85:
+            return observation
+    return None
 
 
 def reviewed_explanation(check_id, observation, status):
@@ -379,6 +464,12 @@ def evidence_summary(finding):
                            'NOT_APPLICABLE': 'The recorded resource is outside this check’s evaluated scope.',
                            'EMPTY': 'No applicable resources were recorded in the assessed scope.'}[status]
     elif status in {'PASS', 'FAIL'}:
+        historical_activity = _historical_activity_observation(cid, status, evidence)
+        if historical_activity:
+            return reviewed_explanation(cid, historical_activity, status)
+        current = _current_observation(cid, status, evidence)
+        if current:
+            return reviewed_explanation(cid, current, status)
         from .gcp_workbench_head3_observed_20261020 import observation as head3
         configured = head3(finding)
         if configured:

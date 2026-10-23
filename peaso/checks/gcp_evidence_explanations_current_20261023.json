@@ -1,0 +1,94 @@
+{
+  "gcp.iam.api_key_recent_recorded_successful_requests": {
+    "purpose": "Recorded successful API key requests inform an age-based cleanup review; the selected metric window cannot establish universal use.",
+    "missing_observation": "The current API key request metrics do not establish recent successful activity."
+  },
+  "gcp.iam.custom_role_has_declared_grants": {
+    "purpose": "A declared custom-role grant identifies a current policy consumer; it does not prove the granted permissions were exercised.",
+    "missing_observation": "The current scoped IAM inventory does not establish whether this custom role has a grant."
+  },
+  "gcp.iam.directory_user_recent_recorded_login": {
+    "purpose": "A recorded Directory login informs an account cleanup review; selected audit coverage cannot establish all sign-ins.",
+    "missing_observation": "The current Directory login records do not establish recent account activity."
+  },
+  "gcp.iam.hmac_key_recent_recorded_successful_requests": {
+    "purpose": "Recorded successful HMAC requests inform an age-based cleanup review; the selected metric window cannot establish universal use.",
+    "missing_observation": "The current HMAC request metrics do not establish recent successful activity."
+  },
+  "gcp.iam.role_grant_has_observed_permission_use": {
+    "purpose": "Observed permission use can justify reviewing this grant; unused permissions and activity outside the insight window remain unproven.",
+    "missing_observation": "The current IAM insight does not establish permission use for this exact role grant."
+  },
+  "gcp.iam.service_account_no_active_unused_insight": {
+    "purpose": "An active unused-access insight is a cleanup signal; its absence does not establish that the account is used.",
+    "missing_observation": "The current service-account insight inventory does not establish an active unused-access signal."
+  },
+  "gcp.iam.static_group_has_members": {
+    "purpose": "Direct static-group membership identifies declared consumers, but does not prove sign-in or effective access.",
+    "missing_observation": "The current Cloud Identity membership list does not establish this static group’s direct members."
+  },
+  "gcp.iam.workforce_pool_has_enabled_provider": {
+    "purpose": "An enabled workforce provider leaves a declared federation path available; actual sign-in activity is not established.",
+    "missing_observation": "The current workforce pool inventory does not establish whether a provider is enabled."
+  },
+  "gcp.iam.workload_identity_pool_has_enabled_provider": {
+    "purpose": "An enabled workload provider leaves a declared federation path available; token use is not established.",
+    "missing_observation": "The current workload identity pool inventory does not establish whether a provider is enabled."
+  },
+  "gcp.network.address_reserved_without_users": {
+    "purpose": "Current address users describe attachment only; traffic and historical use are not established.",
+    "missing_observation": "The current Compute address inventory does not establish the reserved address’s users."
+  },
+  "gcp.network.backend_service_has_members": {
+    "purpose": "Current backend groups and bindings describe membership only; request traffic is not established.",
+    "missing_observation": "The current backend-service inventory does not establish its declared members."
+  },
+  "gcp.network.endpoint_group_without_endpoints": {
+    "purpose": "A current endpoint count describes membership only; traffic and historical use are not established.",
+    "missing_observation": "The current endpoint-group inventory does not establish its endpoint count."
+  },
+  "gcp.network.firewall_policy_without_associations": {
+    "purpose": "Current firewall-policy associations describe attachment only; effective traffic decisions are not established.",
+    "missing_observation": "The current firewall-policy inventory does not establish its associations."
+  },
+  "gcp.network.http_proxy_forwarding_rule_reference": {
+    "purpose": "A current forwarding-rule reference identifies a declared HTTP proxy consumer; traffic is not established.",
+    "missing_observation": "The current forwarding-rule inventory does not establish a reference to this HTTP proxy."
+  },
+  "gcp.network.https_proxy_forwarding_rule_reference": {
+    "purpose": "A current forwarding-rule reference identifies a declared HTTPS proxy consumer; traffic is not established.",
+    "missing_observation": "The current forwarding-rule inventory does not establish a reference to this HTTPS proxy."
+  },
+  "gcp.review.app_engine_flex.selected_version_image_high_vulnerabilities": {
+    "purpose": "Only the selected immutable App Engine Flex image and the recorded scanner database were reviewed; other images and runtime bytes remain outside scope.",
+    "missing_observation": "The selected App Engine Flex image lacks a complete, identity-bound vulnerability review."
+  },
+  "gcp.review.app_engine_flex.selected_version_image_secret_indicators": {
+    "purpose": "Only the selected immutable App Engine Flex image was scanned; credential validity, other images and runtime bytes remain outside scope.",
+    "missing_observation": "The selected App Engine Flex image lacks complete, identity-bound detector coverage."
+  },
+  "gcp.review.artifact_image.selected_image_vulnerabilities": {
+    "purpose": "Only the selected registry image and recorded scanner database were reviewed; other tags, images and runtime bytes remain outside scope.",
+    "missing_observation": "The selected registry image lacks a complete, identity-bound vulnerability review."
+  },
+  "gcp.review.cloud_run.selected_job_image_vulnerabilities": {
+    "purpose": "Only the selected Cloud Run Job image and recorded scanner database were reviewed; executed image bytes remain unproven.",
+    "missing_observation": "The selected Cloud Run Job image lacks a complete, identity-bound vulnerability review."
+  },
+  "gcp.review.cloudrun_worker_pool.selected_revision_image_secret_indicators": {
+    "purpose": "Only the selected worker-pool revision image was scanned; executed bytes and credential validity remain unproven.",
+    "missing_observation": "The selected worker-pool revision image lacks complete, identity-bound detector coverage."
+  },
+  "gcp.review.developerconnect.selected_repository_file_secret_indicators": {
+    "purpose": "Only the selected current repository file was scanned; repository history and credential validity remain outside scope.",
+    "missing_observation": "The selected Developer Connect file lacks complete, identity-bound detector coverage."
+  },
+  "gcp.review.gke.selected_pod_image_high_vulnerabilities": {
+    "purpose": "Only the selected GKE Pod image and recorded scanner database were reviewed; other Pods and executed bytes remain outside scope.",
+    "missing_observation": "The selected GKE Pod image lacks a complete, identity-bound vulnerability review."
+  },
+  "gcp.review.gke.selected_pod_image_secret_indicators": {
+    "purpose": "Only the selected GKE Pod image was scanned; other Pods, runtime bytes and credential validity remain outside scope.",
+    "missing_observation": "The selected GKE Pod image lacks complete, identity-bound detector coverage."
+  }
+}

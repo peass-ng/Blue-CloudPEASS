@@ -747,7 +747,10 @@ class Requests:
             failure = _failure(exc)
             if _metadata_profile in ('aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1'):
                 # Unknown provider error codes can echo a selected name/value.
-                failure = ReadFailure(failure.status, 'selected_configuration_read_unavailable' if _metadata_profile == 'aws-selected-configuration-content-v1' else 'lambda_environment_read_unavailable')
+                if (getattr(self, 'automatic_workload_environment_active', False) is not True
+                        or failure.status != 'denied' or failure.code not in {
+                        'AccessDenied', 'AccessDeniedException', 'UnauthorizedOperation', 'ForbiddenException'}):
+                    failure = ReadFailure(failure.status, 'selected_configuration_read_unavailable' if _metadata_profile == 'aws-selected-configuration-content-v1' else 'lambda_environment_read_unavailable')
             # A failed projection's traceback can retain raw provider payload
             # in frame locals. Cache a fresh code/status-only exception that
             # has never been raised, and raise a separate sanitized instance.
@@ -2046,8 +2049,20 @@ def collect(connector, requirements=None):
 
     requests = Requests(options)
     requests.progress_callback = progress_callback
-    aws_lambda_environment_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
-    aws_selected_configuration_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
+    # Named opt-in without a hand-picked target uses completed native inventory.
+    # Keep the selected reader dormant until its exact targets are planned.
+    granted_content = options.get('_content_secret_scan_kinds', [])
+    auto_lambda_environment = (options.get('content_secret_scans') is True
+        and aws_lambda_environment_secret_indicators.KIND in granted_content
+        and aws_lambda_environment_secret_indicators.OPTION not in options)
+    auto_ecs_environment = (options.get('content_secret_scans') is True
+        and aws_selected_configuration_secret_indicators.KIND in granted_content
+        and aws_selected_configuration_secret_indicators.OPTION not in options)
+    initial_content_options = {**options, '_content_secret_scan_kinds': [kind for kind in granted_content
+        if not (auto_lambda_environment and kind == aws_lambda_environment_secret_indicators.KIND)
+        and not (auto_ecs_environment and kind == aws_selected_configuration_secret_indicators.KIND)]}
+    aws_lambda_environment_secret_indicators.initialize(requests, initial_content_options, connector.get('scopes') or [])
+    aws_selected_configuration_secret_indicators.initialize(requests, initial_content_options, connector.get('scopes') or [])
     aws_s3_selected_source_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_ecs_environment_file_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_workload_referenced_source_indicators.initialize(requests, options, connector.get('scopes') or [])
@@ -2093,6 +2108,17 @@ def collect(connector, requirements=None):
     if requirements is not None and (not isinstance(requirements, list) or any(not isinstance(x, str) for x in requirements)):
         raise ValueError("requirements must be a list of resource types")
     wanted = set(inventories) & (set(requirements) if requirements is not None else set(AWS_TYPES))
+    if auto_lambda_environment and aws_lambda_environment_secret_indicators.KIND in wanted:
+        wanted.remove(aws_lambda_environment_secret_indicators.KIND)
+        wanted.add('lambda_function')
+    else:
+        auto_lambda_environment = False
+    if auto_ecs_environment and aws_selected_configuration_secret_indicators.KIND in wanted:
+        wanted.remove(aws_selected_configuration_secret_indicators.KIND)
+        wanted.update({'ecs_task_definition', 'codebuild_project',
+            'batch_job_definition', 'amplify_app', 'glue_job'})
+    else:
+        auto_ecs_environment = False
     if not image_targets:
         wanted.discard(image_vulnerabilities.KIND)
     if not public_targets:
@@ -2217,7 +2243,9 @@ def collect(connector, requirements=None):
             envelope["error"] = error
         collections.append(envelope)
         from peaso.collection_events import emit_collection
-        emit_collection(collection_callback, envelope)
+        if not ((auto_lambda_environment and kind == aws_lambda_environment_secret_indicators.KIND)
+                or (auto_ecs_environment and kind == aws_selected_configuration_secret_indicators.KIND)):
+            emit_collection(collection_callback, envelope)
         emit_progress(progress_callback, phase="collecting", provider="aws", scope=scope, completed=len(collections),
             total=progress_total, resources=total_items, dynamic_total=progress_total is None)
 
@@ -2864,6 +2892,91 @@ def collect(connector, requirements=None):
                 for region in regions_for(identity["Account"]):
                     for kind in sorted((set(SPECS) - GLOBAL_TYPES - wanted - {"vpc_account_inventory"}) | unsupported):
                         append(kind, f"{identity['Account']}/{region}", SPECS.get(kind, ("aws",))[0], ReadResult([], "not_collected", {"code": "unsupported_inventory" if kind in unsupported else "inventory_not_requested"}))
+        if auto_lambda_environment or auto_ecs_environment:
+            from . import workload_environment_discovery as environment_discovery
+            automatic = {}
+            automatic_batches = {}
+            automatic_configuration_redactions = {}
+            automatic_configuration_overflow = False
+            for active, producer, make_plan, option, kind, service in (
+                (auto_lambda_environment, aws_lambda_environment_secret_indicators,
+                 environment_discovery.aws_lambda, aws_lambda_environment_secret_indicators.OPTION,
+                 aws_lambda_environment_secret_indicators.KIND, 'lambda'),
+                (auto_ecs_environment, aws_selected_configuration_secret_indicators,
+                 environment_discovery.aws_configuration, aws_selected_configuration_secret_indicators.OPTION,
+                 aws_selected_configuration_secret_indicators.KIND, 'ecs')):
+                if not active:
+                    continue
+                source_scopes = sorted({identity['Account'] + '/' + region
+                    for _, identity in contexts for region in regions_for(identity['Account'])})
+                plan = make_plan(collections, expected_scopes=source_scopes)
+                automatic[kind] = {'discovered': plan.discovered, 'planned': len(plan.targets),
+                                   'complete': plan.complete, 'reason': plan.reason}
+                content_complete = True
+                automatic_batches[kind] = []
+                by_scope = {}
+                for target in plan.targets:
+                    scope = (producer.parse(target)[3] + '/' + producer.parse(target)[2]
+                             if isinstance(target, str) else target['scope'])
+                    by_scope.setdefault(scope, []).append(target)
+                for session, identity in contexts:
+                    account = identity.get('Account')
+                    for region in regions_for(account):
+                        scope = account + '/' + region
+                        for batch in environment_discovery.batches(by_scope.get(scope, ()), producer.MAX_TARGETS):
+                            planned_options = {**options, option: list(batch)}
+                            producer.initialize(requests, planned_options, [scope])
+                            requests.automatic_workload_environment_active = True
+                            requests.automatic_workload_environment_issues = {}
+                            try:
+                                read = producer.collect_selected(requests, session, region, identity,
+                                    planned_options, [scope])
+                                batch_issues = dict(requests.automatic_workload_environment_issues)
+                            finally:
+                                requests.automatic_workload_environment_active = False
+                                requests.automatic_workload_environment_issues = {}
+                            batch_metadata = dict(getattr(requests,
+                                'lambda_environment_metadata' if isinstance(batch[0], str)
+                                else 'configuration_content_metadata'))
+                            if not read.items or read.status not in ('collected', 'empty') or any(
+                                    not row.get(producer.MARKER, {}).get('complete') for row in read.items):
+                                content_complete = False
+                            append(kind, scope, service, read, account, region)
+                            collection = collections[-1]
+                            batch_id = kind + ':' + str(len(automatic_batches[kind]) + 1)
+                            collection['automatic_batch'] = batch_id
+                            automatic_batches[kind].append({'id': batch_id, 'scope': scope,
+                                'metadata': batch_metadata, 'issues': batch_issues})
+                            if (collection['status'] not in ('collected', 'empty')
+                                    or len(collection['items']) != len(read.items)):
+                                content_complete = False
+                            if not isinstance(batch[0], str):
+                                for length, fingerprints in requests.configuration_content_redactions.items():
+                                    automatic_configuration_redactions.setdefault(length, set()).update(fingerprints)
+                                automatic_configuration_overflow |= requests.configuration_content_redaction_overflow
+                if not plan.targets:
+                    for scope in sorted({c['scope'] for c in collections if c['type'] in
+                            ({'lambda_function'} if kind == aws_lambda_environment_secret_indicators.KIND
+                             else {'ecs_task_definition'})}):
+                        append(kind, scope, service, ReadResult([], 'empty' if plan.complete else 'unknown',
+                            None if plan.complete else {'code': plan.reason}))
+                environment_discovery.fold_collections(collections, kind, automatic_batches[kind])
+                automatic[kind]['complete'] = plan.complete and content_complete
+                automatic[kind]['inspected'] = sum(len(c['items']) for c in collections if c['type'] == kind)
+                automatic[kind]['uninspected'] = max(0, plan.discovered - automatic[kind]['inspected'])
+                issues = {ident: issue for record in automatic_batches[kind]
+                    for ident, issue in record['issues'].items()}
+                automatic[kind]['targets'] = environment_discovery.target_coverage(
+                    plan.targets, producer.identity, collections, kind, producer.MARKER, issues)
+                if not content_complete and plan.complete:
+                    automatic[kind]['reason'] = 'automatic_content_incomplete'
+            metadata['automatic_workload_environment_coverage'] = automatic
+            metadata['automatic_workload_environment_batches'] = automatic_batches
+            if automatic_configuration_redactions:
+                requests.configuration_content_redactions = automatic_configuration_redactions
+                if sum(len(values) for values in automatic_configuration_redactions.values()) > aws_selected_configuration_secret_indicators.MAX_REDACTION_DESCRIPTORS:
+                    automatic_configuration_overflow = True
+            requests.configuration_content_redaction_overflow |= automatic_configuration_overflow
     collections.sort(key=lambda c: (c["scope"], c["type"]))
     from peaso.collectors.aws_lambda_role_usage import summarize_lambda_role_usage
     metadata["lambda_execution_role_usage"] = summarize_lambda_role_usage(

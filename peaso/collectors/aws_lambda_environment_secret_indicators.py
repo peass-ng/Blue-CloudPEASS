@@ -172,6 +172,10 @@ def project_response(response,service,operation,arguments,*,request_context=None
                 or not isinstance(metadata.get('RequestId'),str) or not _UUID.fullmatch(metadata['RequestId'])):
             raise Incomplete('native_read_provenance')
         env=response.get('Environment')
+        if isinstance(env,dict) and set(env)=={'Variables'} and env['Variables']=={}:
+            raise Incomplete('environment_no_literals')
+        if isinstance(env,dict) and 'Error' in env:
+            raise Incomplete('environment_error')
         if not isinstance(env,dict) or set(env)!={'Variables'} or not isinstance(env['Variables'],dict) or not 1<=len(env['Variables'])<=MAX_VARIABLES:
             raise Incomplete('environment_unavailable')
         parts=[];actual=0
@@ -195,6 +199,16 @@ def project_response(response,service,operation,arguments,*,request_context=None
         _remaining(requests)
         if outcome['complete'] is not True:raise Incomplete('engines_incomplete')
         marker['complete']=True
+    except Incomplete as exc:
+        if (getattr(requests, 'automatic_workload_environment_active', False) is True
+                and str(exc) in {'environment_unavailable', 'environment_empty',
+                    'environment_no_literals', 'environment_error',
+                    'environment_unsupported', 'native_identity_or_partial',
+                    'response_bound', 'response_total_bound'}):
+            requests.automatic_workload_environment_issues[identity(arn)] = {
+                'status': 'unknown', 'code': str(exc),
+                'operation': 'lambda:GetFunctionConfiguration'}
+        marker['complete']=False
     except Exception:
         marker['complete']=False
     return {'id':identity(arn),MARKER:marker,'_provenance':{'scope':marker['scope'],
@@ -217,7 +231,9 @@ def collect_selected(requests,session,region,caller,options,scopes):
         try:
             _remaining(requests)
             item=requests.call(session,'lambda',region,'get_function_configuration',_metadata_profile=PROFILE,FunctionName=arn)
-        except Exception:
+        except Exception as exc:
+            from .workload_environment_discovery import record_denial
+            record_denial(requests, exc, identity(arn), 'lambda', 'get_function_configuration')
             marker=_base(arn,requests)
             item={'id':identity(arn),MARKER:marker,'_provenance':{'scope':marker['scope'],'capture':marker['capture'],'request_locator':marker['request']['locator']}}
         items.append(item)

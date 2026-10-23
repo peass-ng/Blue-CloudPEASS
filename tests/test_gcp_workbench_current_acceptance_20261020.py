@@ -227,19 +227,21 @@ def test_six_new_evidence_rows_use_actual_runtime_branches(cid):
         assert CATALOG[cid]['purpose'] in recorded['example']
 
 
-def test_evidence_ledger_preserves_all_prior_records_and_adds_only_six():
+def test_evidence_ledger_preserves_all_prior_records_and_adds_current_successor():
     previous = json.loads(preserved_accounting()['sources']['docs/evidence-reviews/gcp.json']['content'])
     current = json.loads(Path('docs/evidence-reviews/gcp.json').read_text())
-    assert current['registered_check_count'] == 536
-    assert current['checks'].keys() - previous['checks'].keys() == ALL_ADMISSIONS | {JOB_ID}
+    current_reviews = set(json.loads(Path('peaso/checks/gcp_evidence_explanations_current_20261023.json').read_text()))
+    assert len(current_reviews) == 23
+    assert current['registered_check_count'] == 559
+    assert current['checks'].keys() - previous['checks'].keys() == ALL_ADMISSIONS | {JOB_ID} | current_reviews
     preserved = deepcopy(current['checks'])
     erratum = preserved[FUNCTION_ID].pop('current_erratum')
     assert erratum == 'docs/check-review/gcp-function-current-ledger-erratum-20261020.json'
-    assert {k: v for k, v in preserved.items() if k not in ALL_ADMISSIONS and k != JOB_ID} == previous['checks']
-    assert len(current['checks']) == 536 + current['alias_count']
+    assert {k: v for k, v in preserved.items() if k not in ALL_ADMISSIONS and k != JOB_ID and k not in current_reviews} == previous['checks']
+    assert len(current['checks']) == 559 + current['alias_count']
     immediate = json.loads(current_predecessors()['sources']['docs/evidence-reviews/gcp.json']['content'])
-    assert current['checks'].keys() - immediate['checks'].keys() == HEAD_IDS | {JOB_ID}
-    assert {k: v for k, v in preserved.items() if k not in HEAD_IDS and k != JOB_ID} == immediate['checks']
+    assert current['checks'].keys() - immediate['checks'].keys() == HEAD_IDS | {JOB_ID} | current_reviews
+    assert {k: v for k, v in preserved.items() if k not in HEAD_IDS and k != JOB_ID and k not in current_reviews} == immediate['checks']
     assert {k: v for k, v in current.items() if k not in {'checks', 'registered_check_count', 'current_source_conservation'}} == {k: v for k, v in immediate.items() if k not in {'checks', 'registered_check_count'}}
 
 

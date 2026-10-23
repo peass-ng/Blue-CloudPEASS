@@ -1852,7 +1852,15 @@ def collect(connector, requirements=None, *, transport=None):
     if isinstance(supplied_policy, dict) and "sw32" in supplied_policy:
         from peaso.azure_sw32_policy import normalize_sw32
         sw32_owner = normalize_sw32(supplied_policy["sw32"])
-    azure_selected_configuration_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    content_grants = options.get('_content_secret_scan_kinds', [])
+    auto_app_settings = (options.get('content_secret_scans') is True
+        and azure_app_settings_secret_indicators.KIND in content_grants
+        and azure_app_settings_secret_indicators.OPTION not in options)
+    auto_container_literals = (options.get('content_secret_scans') is True
+        and azure_selected_configuration_secret_indicators.KIND in content_grants
+        and azure_selected_configuration_secret_indicators.OPTION not in options)
+    if not auto_container_literals:
+        azure_selected_configuration_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_selected_declaration_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_selected_log_sample_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_ml_selected_job_secret_indicators.selected_targets(options, connector.get('scopes', []))
@@ -1867,13 +1875,22 @@ def collect(connector, requirements=None, *, transport=None):
     azure_selected_storage_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_flex_deployment_archives_20261021.selected_targets(options, connector.get('scopes', []))
     azure_devops_selected_content_secret_indicators.selected_targets(options, connector.get('scopes', []), auth)
-    azure_app_settings_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    if not auto_app_settings:
+        azure_app_settings_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_acr_image_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_selected_aks_image_20261021.selected_targets(options, connector.get('scopes', []), options.get('_azure_aks_image_named_checks', []))
     azure_acr_image_vulnerabilities_20261021.selected_targets(options, connector.get('scopes', []))
     azure_databricks_native.validate_auth(auth)
     azure_databricks_native.normalize(options)
     wanted = _selected(options, requirements)
+    if auto_app_settings and azure_app_settings_secret_indicators.KIND in wanted:
+        wanted.update(('app_service', 'app_service_slot'))
+    else:
+        auto_app_settings = False
+    if auto_container_literals and azure_selected_configuration_secret_indicators.KIND in wanted:
+        wanted.update(('container_group', 'container_app'))
+    else:
+        auto_container_literals = False
     metadata_only_selection = False
     if package_grant is None:
         wanted.discard(package_source.KIND)
@@ -1899,7 +1916,12 @@ def collect(connector, requirements=None, *, transport=None):
     reader = _Reader(options)
     reader.progress_callback = options.get("_progress_callback")
     from peaso.collection_events import SettledCollections
-    reader.collections = SettledCollections(options.get("_collection_callback"), deferred={"subscription", "network_interface"})
+    deferred = {"subscription", "network_interface"}
+    if auto_app_settings:
+        deferred.add(azure_app_settings_secret_indicators.KIND)
+    if auto_container_literals:
+        deferred.add(azure_selected_configuration_secret_indicators.KIND)
+    reader.collections = SettledCollections(options.get("_collection_callback"), deferred=deferred)
     reader.progress_provider = "azure"
     reader.progress("discovering")
     credential_context_id = uuid4().hex
@@ -2537,7 +2559,7 @@ def collect(connector, requirements=None, *, transport=None):
         if options.get("_azure_app_service_runtime_checks") == ["azure.review.app_service.runtime_support_declared"]:
             from . import azure_app_service_runtime_producer_20261021
             azure_app_service_runtime_producer_20261021.collect_selected(
-                reader, transport.request, scopes, reader.collections)
+                reader, transport.request, scopes, list(reader.collections))
         if "key_rotation_policy" in wanted:
             for collection in [c for c in reader.collections if c["type"] == "key_metadata"]:
                 if collection["status"] not in ("collected", "empty"):
@@ -3053,7 +3075,62 @@ def collect(connector, requirements=None, *, transport=None):
         if package_grant is not None:
             package_source.collect(reader, transport, package_grant, scopes,
                 customer_context_id=customer_context_id, credential_context_id=credential_context_id)
-        azure_selected_configuration_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        if auto_container_literals:
+            from . import workload_environment_discovery as environment_discovery
+            container_plan = environment_discovery.azure_containers(reader.collections, expected_scopes=scopes)
+            reader.automatic_container_literal_batches = []
+            container_redactions = set()
+            if container_plan.targets:
+                for scope in scopes:
+                    targets = [t for t in container_plan.targets
+                        if azure_selected_configuration_secret_indicators.parse(t)[1].casefold() == scope.casefold()]
+                    for batch in environment_discovery.batches(targets, 8):
+                        azure_selected_configuration_secret_indicators.collect(reader, transport, [scope], wanted,
+                            {**options, azure_selected_configuration_secret_indicators.OPTION: list(batch)})
+                        batch_id = azure_selected_configuration_secret_indicators.KIND + ':' + str(
+                            len(reader.automatic_container_literal_batches) + 1)
+                        reader.collections[-1]['automatic_batch'] = batch_id
+                        reader.automatic_container_literal_batches.append({'id': batch_id, 'scope': scope,
+                            'metadata': reader.configuration_secret_metadata.copy(),
+                            'issues': environment_discovery.native_denial_issues(
+                                azure_selected_configuration_secret_indicators.KIND,
+                                azure_selected_configuration_secret_indicators.MARKER,
+                                reader.collections[-1]['items'], reader.configuration_secret_metadata)})
+                        container_redactions.update(reader.configuration_secret_redactions)
+                reader.configuration_secret_redactions = container_redactions
+                environment_discovery.fold_collections(reader.collections,
+                    azure_selected_configuration_secret_indicators.KIND,
+                    reader.automatic_container_literal_batches)
+            else:
+                reader.configuration_secret_redactions = set()
+                reader.configuration_secret_metadata = {}
+                for scope in scopes:
+                    reader.collections.append({'type': azure_selected_configuration_secret_indicators.KIND,
+                        'scope': scope, 'service': 'Microsoft.Resources', 'items': [],
+                        'status': 'empty' if container_plan.complete else 'unknown',
+                        **({} if container_plan.complete else {'error': {'code': container_plan.reason}})})
+            container_content_complete = True
+            for row in reader.collections:
+                if row['type'] == azure_selected_configuration_secret_indicators.KIND:
+                    if row['status'] not in ('collected', 'empty'):
+                        container_content_complete = False
+                    if any(not item.get(azure_selected_configuration_secret_indicators.MARKER, {}).get('complete')
+                           for item in row['items']):
+                        container_content_complete = False
+            reader.automatic_container_literal_coverage = {'discovered': container_plan.discovered,
+                'planned': len(container_plan.targets),
+                'inspected': sum(len(r['items']) for r in reader.collections if r['type'] == azure_selected_configuration_secret_indicators.KIND),
+                'targets': environment_discovery.target_coverage(container_plan.targets,
+                    azure_selected_configuration_secret_indicators.identity, reader.collections,
+                    azure_selected_configuration_secret_indicators.KIND,
+                    azure_selected_configuration_secret_indicators.MARKER,
+                    {ident: issue for batch in reader.automatic_container_literal_batches
+                     for ident, issue in batch['issues'].items()}),
+                'complete': container_plan.complete and container_content_complete,
+                'reason': container_plan.reason if not container_plan.complete else
+                          'automatic_content_incomplete' if not container_content_complete else 'complete'}
+        else:
+            azure_selected_configuration_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_selected_declaration_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_selected_log_sample_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_ml_selected_job_secret_indicators.collect(reader, transport, scopes, wanted, options)
@@ -3065,7 +3142,62 @@ def collect(connector, requirements=None, *, transport=None):
         azure_selected_storage_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_flex_deployment_archives_20261021.collect(reader, transport, scopes, wanted, options)
         azure_devops_selected_content_secret_indicators.collect(reader, request, transport, scopes, wanted, options, auth)
-        azure_app_settings_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        if auto_app_settings:
+            from . import workload_environment_discovery as environment_discovery
+            settings_plan = environment_discovery.azure_settings(reader.collections, expected_scopes=scopes)
+            reader.automatic_app_settings_batches = []
+            app_redactions = set()
+            if settings_plan.targets:
+                for scope in scopes:
+                    targets = [t for t in settings_plan.targets
+                        if azure_app_settings_secret_indicators._RESOURCE.fullmatch(t)[1].casefold() == scope.casefold()]
+                    for batch in environment_discovery.batches(targets, 8):
+                        azure_app_settings_secret_indicators.collect(reader, transport, [scope], wanted,
+                            {**options, azure_app_settings_secret_indicators.OPTION: list(batch)})
+                        batch_id = azure_app_settings_secret_indicators.KIND + ':' + str(
+                            len(reader.automatic_app_settings_batches) + 1)
+                        reader.collections[-1]['automatic_batch'] = batch_id
+                        reader.automatic_app_settings_batches.append({'id': batch_id, 'scope': scope,
+                            'metadata': reader.app_setting_secret_metadata.copy(),
+                            'issues': environment_discovery.native_denial_issues(
+                                azure_app_settings_secret_indicators.KIND,
+                                azure_app_settings_secret_indicators.MARKER,
+                                reader.collections[-1]['items'], reader.app_setting_secret_metadata)})
+                        app_redactions.update(reader.app_setting_secret_redactions)
+                reader.app_setting_secret_redactions = app_redactions
+                environment_discovery.fold_collections(reader.collections,
+                    azure_app_settings_secret_indicators.KIND,
+                    reader.automatic_app_settings_batches)
+            else:
+                reader.app_setting_secret_redactions = set()
+                reader.app_setting_secret_metadata = {}
+                for scope in scopes:
+                    reader.collections.append({'type': azure_app_settings_secret_indicators.KIND,
+                        'scope': scope, 'service': 'Microsoft.Web', 'items': [],
+                        'status': 'empty' if settings_plan.complete else 'unknown',
+                        **({} if settings_plan.complete else {'error': {'code': settings_plan.reason}})})
+            settings_content_complete = True
+            for row in reader.collections:
+                if row['type'] == azure_app_settings_secret_indicators.KIND:
+                    if row['status'] not in ('collected', 'empty'):
+                        settings_content_complete = False
+                    if any(not item.get(azure_app_settings_secret_indicators.MARKER, {}).get('complete')
+                           for item in row['items']):
+                        settings_content_complete = False
+            reader.automatic_app_settings_coverage = {'discovered': settings_plan.discovered,
+                'planned': len(settings_plan.targets),
+                'inspected': sum(len(r['items']) for r in reader.collections if r['type'] == azure_app_settings_secret_indicators.KIND),
+                'targets': environment_discovery.target_coverage(settings_plan.targets,
+                    azure_app_settings_secret_indicators.identity, reader.collections,
+                    azure_app_settings_secret_indicators.KIND,
+                    azure_app_settings_secret_indicators.MARKER,
+                    {ident: issue for batch in reader.automatic_app_settings_batches
+                     for ident, issue in batch['issues'].items()}),
+                'complete': settings_plan.complete and settings_content_complete,
+                'reason': settings_plan.reason if not settings_plan.complete else
+                          'automatic_content_incomplete' if not settings_content_complete else 'complete'}
+        else:
+            azure_app_settings_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_acr_image_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_selected_aks_image_20261021.collect(reader, request, transport, scopes, wanted, options, auth)
         azure_acr_image_vulnerabilities_20261021.collect(reader, transport, scopes, wanted, options)
@@ -3145,6 +3277,15 @@ def collect(connector, requirements=None, *, transport=None):
         azure_identity_enforcement_review_20261020.collect(reader, request, scopes, wanted, transport,
             credential_context_id, customer_context_id)
     metadata = reader.metadata()
+    if auto_container_literals or auto_app_settings:
+        metadata['automatic_workload_environment_coverage'] = {}
+        metadata['automatic_workload_environment_batches'] = {}
+        if auto_container_literals:
+            metadata['automatic_workload_environment_coverage'][azure_selected_configuration_secret_indicators.KIND] = reader.automatic_container_literal_coverage
+            metadata['automatic_workload_environment_batches'][azure_selected_configuration_secret_indicators.KIND] = reader.automatic_container_literal_batches
+        if auto_app_settings:
+            metadata['automatic_workload_environment_coverage'][azure_app_settings_secret_indicators.KIND] = reader.automatic_app_settings_coverage
+            metadata['automatic_workload_environment_batches'][azure_app_settings_secret_indicators.KIND] = reader.automatic_app_settings_batches
     metadata.update(getattr(reader, 'unused_arm_role_metadata', {}))
     metadata.update(getattr(reader, "nsp_query_cmk_metadata", {}))
     metadata.update(getattr(reader, 'configuration_secret_metadata', {}))

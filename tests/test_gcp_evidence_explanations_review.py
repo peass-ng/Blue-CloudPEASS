@@ -16,6 +16,31 @@ CHECK_BY_ID = {check.id: check for check in CHECKS if check.provider == 'gcp'}
 SUPPLEMENTAL = json.loads((ROOT / 'tests/fixtures/gcp-reviewed-evidence.json').read_text())
 LEDGER = json.loads((ROOT / 'docs/evidence-reviews/gcp.json').read_text())
 LABELS = ('pass', 'fail', 'unknown', 'missing', 'malformed', 'manual', 'not_applicable', 'empty', 'denied')
+CURRENT_SOURCE_REVIEWS = {
+    'gcp.iam.api_key_recent_recorded_successful_requests',
+    'gcp.iam.custom_role_has_declared_grants',
+    'gcp.iam.directory_user_recent_recorded_login',
+    'gcp.iam.hmac_key_recent_recorded_successful_requests',
+    'gcp.iam.role_grant_has_observed_permission_use',
+    'gcp.iam.service_account_no_active_unused_insight',
+    'gcp.iam.static_group_has_members',
+    'gcp.iam.workforce_pool_has_enabled_provider',
+    'gcp.iam.workload_identity_pool_has_enabled_provider',
+    'gcp.network.address_reserved_without_users',
+    'gcp.network.backend_service_has_members',
+    'gcp.network.endpoint_group_without_endpoints',
+    'gcp.network.firewall_policy_without_associations',
+    'gcp.network.http_proxy_forwarding_rule_reference',
+    'gcp.network.https_proxy_forwarding_rule_reference',
+    'gcp.review.app_engine_flex.selected_version_image_high_vulnerabilities',
+    'gcp.review.app_engine_flex.selected_version_image_secret_indicators',
+    'gcp.review.artifact_image.selected_image_vulnerabilities',
+    'gcp.review.cloud_run.selected_job_image_vulnerabilities',
+    'gcp.review.cloudrun_worker_pool.selected_revision_image_secret_indicators',
+    'gcp.review.developerconnect.selected_repository_file_secret_indicators',
+    'gcp.review.gke.selected_pod_image_high_vulnerabilities',
+    'gcp.review.gke.selected_pod_image_secret_indicators',
+}
 
 
 def test_enrollment_alone_does_not_explain_enforced_mfa():
@@ -47,6 +72,8 @@ def findings():
 
 def test_catalog_and_ledger_account_for_every_native_and_retired_alias():
     aliases = {old: new for old, new in CHECK_ALIASES.items() if old.startswith('gcp')}
+    current = json.loads((ROOT/'peaso/checks/gcp_evidence_explanations_current_20261023.json').read_text())
+    assert set(current) == CURRENT_SOURCE_REVIEWS
     assert set(CATALOG) == set(CHECK_BY_ID) | set(aliases)
     assert set(LEDGER['checks']) == set(CATALOG)
     import csv
@@ -54,8 +81,8 @@ def test_catalog_and_ledger_account_for_every_native_and_retired_alias():
     selected_content = {'gcp.review.cloudtasks.selected_payload_secret_indicators',
                         'gcp.review.bigquery.selected_routine_secret_indicators'}
     assert len(baseline) == 525 and not baseline & selected_content
-    assert set(CHECK_BY_ID) == baseline | selected_content | set(ADDED_EXTENSION_REVIEWS)
-    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 527 + len(ADDED_EXTENSION_REVIEWS) == 536
+    assert set(CHECK_BY_ID) == baseline | selected_content | set(ADDED_EXTENSION_REVIEWS) | CURRENT_SOURCE_REVIEWS
+    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 527 + len(ADDED_EXTENSION_REVIEWS) + len(CURRENT_SOURCE_REVIEWS) == 559
     for cid in CHECK_BY_ID:
         assert (extension_cases(cid, CASES) if cid == JOB_ID else CASES.get(cid)) or SUPPLEMENTAL.get(cid), cid
         assert LEDGER['checks'][cid]['branch_coverage'], cid
@@ -90,6 +117,27 @@ def test_absent_evidence_never_creates_a_setting_or_grant(cid, status):
         assert not any(claim in summary.split(CATALOG[cid]['purpose'])[0] for claim in (' is enabled', ' is disabled', 'grants roles/', ' permits unencrypted'))
 
 
+@pytest.mark.parametrize('cid', sorted(CURRENT_SOURCE_REVIEWS))
+def test_current_review_rejects_unbound_observation_text(cid):
+    for status in ('PASS', 'FAIL'):
+        for evidence in ({}, {'summary': 'A grant is active.'},
+                         {'observed': 'The setting is enabled.'},
+                         {'Observed': 'No vulnerability was found.'}):
+            summary = evidence_summary(dict(provider='gcp', check_id=cid,
+                                            status=status, evidence=evidence))
+            assert summary.startswith(CATALOG[cid]['missing_observation'])
+
+
+@pytest.mark.parametrize('cid', ('gcp.claude.service_account.recently_used',
+                                 'gcp.claude.service_account_key.recently_used'))
+def test_historical_activity_requires_bound_native_observation(cid):
+    for status in ('PASS', 'FAIL'):
+        summary = evidence_summary(dict(provider='gcp', check_id=cid, status=status,
+                                        evidence={'threshold_days': 180,
+                                                  'summary': 'Authentication is confirmed.'}))
+        assert summary.startswith(CATALOG[cid]['missing_observation'])
+
+
 def test_public_identity_explains_who_can_use_the_declared_grant():
     finding = dict(provider='gcp', check_id='gcp.storage.no_public_iam', status='FAIL', evidence={'public_bindings': [{'role': 'roles/storage.objectViewer', 'members': ['allUsers']}]})
     summary = evidence_summary(finding)
@@ -107,3 +155,14 @@ def test_failed_scalar_is_read_from_the_recorded_value_and_field():
     assert 'Secure Boot is disabled.' not in evidence_summary(finding)
     finding['evidence'] = {'field': 'unrelated', 'configured': True}
     assert 'Secure Boot is enabled.' not in evidence_summary(finding)
+
+
+@pytest.mark.parametrize('field', ['observation_start', 'observation_end', 'reported_last_authentication'])
+def test_mixed_timezone_activity_evidence_does_not_break_presentation(field):
+    from peaso.checks.gcp_evidence_explanations import _historical_activity_observation
+    evidence = {'threshold_days': 180, 'identity_name': 'projects/example/serviceAccounts/test@example.iam.gserviceaccount.com',
+                'activity_source_endpoint': 'https://policyanalyzer.googleapis.com/v1/projects/example/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query',
+                'observation_start': '2026-01-01T00:00:00+00:00', 'observation_end': '2026-10-01T00:00:00+00:00',
+                'reported_last_authentication': '2026-09-01T00:00:00+00:00', 'days_since_reported_authentication': 30}
+    evidence[field] = evidence[field].replace('+00:00', '')
+    assert _historical_activity_observation('gcp.claude.service_account.recently_used', 'PASS', evidence) is None

@@ -33,9 +33,19 @@ def preserved_predecessors():
 @lru_cache(maxsize=1)
 def current_native_cases():
     """Verified test-only native inputs; never mutate global historical CASES."""
-    from peaso.checks import k8s_annotation_native_admission_20261020 as annotation
-    from peaso.checks import k8s_kubelet_configmap_admission_20261020 as kubelet
-    return {**annotation._reviewed_inputs()[1], **kubelet.reviewed_inputs()[1]}
+    import sys
+    from peaso.checks import k8s_annotation_native_source_successor_20261021 as annotation
+    from peaso.checks import k8s_kubelet_configmap_source_successor_20261021 as kubelet
+    annotation._self_proof()
+    annotation._source_proofs()
+    kubelet._receipt()
+    previous = sys.modules.get(annotation._PRIVATE_NAME)
+    current = sys.modules.get(kubelet.PRIVATE_NAME)
+    assert previous is not None and current is not None
+    annotation_cases = previous._reviewed_inputs()[1]
+    kubelet_cases = current.reviewed_inputs()[1]
+    assert set(annotation_cases).isdisjoint(kubelet_cases)
+    return {**annotation_cases, **kubelet_cases}
 
 
 SELECTED_SECRET_IDS = {
@@ -95,19 +105,36 @@ def cases_for(check_id,check):
         cases['unknown'] = deepcopy(cases['pass'])
         cases['unknown_index'] = deepcopy(cases.get('pass_index', cases.get('index', {})))
         changes = []
-        def replace_mode(value):
+        def replace_mode(value, expected, replacement):
             if isinstance(value, dict):
                 config = value.get('_component_config')
                 if isinstance(config, dict) and config.get('component') == 'kubelet':
-                    assert config['flags_complete'] is True and config['flags']['authorization-mode'] == 'RBAC'
-                    config['flags']['authorization-mode'] = 'Webhook'
+                    assert config['flags_complete'] is True and config['flags']['authorization-mode'] == expected
+                    config['flags']['authorization-mode'] = replacement
                     changes.append(True)
                 for child in value.values():
-                    replace_mode(child)
+                    replace_mode(child, expected, replacement)
             elif isinstance(value, list):
                 for child in value:
-                    replace_mode(child)
-        replace_mode(cases['pass'])
+                    replace_mode(child, expected, replacement)
+        # Older saved fixtures used RBAC as a malformed kubelet mode; the
+        # current native fixture already uses Webhook. Keep one valid PASS and
+        # one unchanged historical malformed UNKNOWN in either case.
+        def modes(value):
+            if isinstance(value, dict):
+                config = value.get('_component_config')
+                found = ([config['flags']['authorization-mode']] if isinstance(config, dict)
+                    and config.get('component') == 'kubelet' else [])
+                return found + [mode for child in value.values() for mode in modes(child)]
+            if isinstance(value, list):
+                return [mode for child in value for mode in modes(child)]
+            return []
+        mode, = modes(cases['pass'])
+        assert mode in ('RBAC', 'Webhook')
+        if mode == 'RBAC':
+            replace_mode(cases['pass'], 'RBAC', 'Webhook')
+        else:
+            replace_mode(cases['unknown'], 'Webhook', 'RBAC')
         assert changes == [True]
         return cases
     cases = None if check_id in SUPPLEMENTAL_IDS else CASES.get(check_id)
