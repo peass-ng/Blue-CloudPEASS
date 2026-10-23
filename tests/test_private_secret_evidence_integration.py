@@ -114,7 +114,7 @@ def test_worker_private_persistence_and_ai_input_exclusion(tmp_path, monkeypatch
     monkeypatch.setattr('peaso.engine.collect_snapshot', collect)
     context = multiprocessing.get_context('fork'); parent, child = context.Pipe(duplex=False)
     request = {'artifact_config': {'mode': 'file', 'root': str(artifacts.root)}, 'tenant_id': 'alice', 'scan_id': ident,
-               'connector': {'provider': 'aws', 'auth': {}}, 'ai_enabled': False, 'ai_context': {'identity_dir': str(identity_dir)}}
+               'connector': {'provider': 'aws', 'auth': {}, 'input_mode': 'offline_snapshot'}, 'ai_enabled': False, 'ai_context': {'identity_dir': str(identity_dir)}}
     process = context.Process(target=_process, args=('collector', request, child))
     try:
         process.start(); child.close(); assert parent.poll(15)
