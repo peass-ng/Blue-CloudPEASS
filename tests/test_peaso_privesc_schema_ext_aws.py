@@ -109,10 +109,11 @@ def test_sagemaker_notebook_instance_is_a_collected_host():
 
 
 def test_redshift_serverless_workgroup_carries_namespace_roles():
+    # A trust_allows_service list requires every service; this role trusts Redshift alone.
     wg = f"arn:aws:redshift-serverless:us-east-1:{ACCOUNT}:workgroup/w-1"
     e = entry("aws-t-rs", "aws", {"all_of": [{"action": "redshift-serverless:GetCredentials", "resource": "{target.resource_arn}"}]},
               {"kind": "aws_role", "scope": "same_account",
-               "selector": {"trust_allows_service": ["redshift.amazonaws.com", "redshift-serverless.amazonaws.com"],
+               "selector": {"trust_allows_service": "redshift.amazonaws.com",
                             "via_resource_type": "redshift_serverless_workgroup"}})
     users = [user("alice", allow("redshift-serverless:GetCredentials", wg))]
     roles = [role("ns-role", "redshift.amazonaws.com"), role("other-rs", "redshift-serverless.amazonaws.com")]
