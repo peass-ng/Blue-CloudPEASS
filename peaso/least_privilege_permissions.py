@@ -24,13 +24,26 @@ def _label(row):
         or data.get('metadata', {}).get('name') or row.get('native_id') or native_id(row))
 
 
-def enrich(card, provider, resources, observed_at):
+def enrich(card, provider, resources, observed_at, *, _rows=None):
     """Never expand wildcards or infer individual action usage from service activity."""
-    rows = [{**r, 'provider': provider} for r in resources if isinstance(r.get('data'), dict)]
+    rows = _rows if _rows is not None else [{**r, 'provider': provider} for r in resources if isinstance(r.get('data'), dict)]
     target = card['principal']
     now = _date(observed_at)
     permissions, unresolved = [], []
     principal_rows = []
+    gcp_email = target.split(':', 1)[1].casefold() if provider == 'gcp' and target.startswith(('user:', 'serviceAccount:')) else None
+    azure_aliases = {target.casefold()} if provider == 'azure' else set()
+    if provider == 'azure':
+        for identity in rows:
+            data = identity['data']
+            if identity['type'] in {'directory_user', 'directory_service_principal'} and str(data.get('id', '')).casefold() == target.casefold():
+                azure_aliases.update(str(data.get(key)).casefold() for key in ('userPrincipalName', 'mail', 'appId') if data.get(key))
+    gcp_insights = [r for r in rows if r['type'] == 'insight' and r['data'].get('insightSubtype') == 'PERMISSIONS_USAGE'
+                    and (r['data'].get('stateInfo') or {}).get('state') == 'ACTIVE'] if provider == 'gcp' else []
+    gcp_activity = [r for r in rows if r['type'] in {'activity', 'iam_usage_activity'} and gcp_email
+                    and str(r['data'].get('principalEmail', '')).casefold() == gcp_email] if provider == 'gcp' else []
+    azure_activity = [r for r in rows if r['type'] == 'activity_log' and
+                      str(r['data'].get('caller', '')).casefold() in azure_aliases] if provider == 'azure' else []
 
     def same(value):
         return canonical(provider, value) == canonical(provider, target)
@@ -65,6 +78,50 @@ def enrich(card, provider, resources, observed_at):
             latest = max((_date(s.get('last_accessed')) for s in exact), default=None, key=lambda d: d or datetime.min.replace(tzinfo=timezone.utc))
             if latest:
                 entry.update(last_accessed=latest.isoformat(), usage_basis='permission')
+        if provider == 'gcp':
+            for insight in gcp_insights:
+                data = insight['data']; content = data.get('content') or {}
+                if (insight.get('scope') != entry['scope'] or not same(content.get('member'))
+                        or content.get('role') != entry['group_key']
+                        or not re.fullmatch(r'[1-9][0-9]*s', str(data.get('observationPeriod', '')))
+                        or _date(data.get('lastRefreshTime')) is None
+                        or not isinstance(content.get('exercisedPermissions'), list)):
+                    continue
+                exercised = {p.casefold() for p in content['exercisedPermissions'] if isinstance(p, str)}
+                entry.update(usage_status='observed' if str(permission).casefold() in exercised else 'not_observed',
+                    usage_window_days=int(data['observationPeriod'][:-1]) // 86400,
+                    usage_window_end=data['lastRefreshTime'], usage_source='GCP IAM Policy Insight')
+                break
+            activity = [r for r in gcp_activity if r.get('scope') == entry['scope']
+                and r['data'].get('statusCode') in (None, 0)
+                and any(check.get('granted') is True and check.get('permission', '').casefold() == str(permission).casefold()
+                        for check in r['data'].get('authorizationInfo', []) if isinstance(check, dict))]
+            dates = [value for r in activity if (value := _date(r['data'].get('timestamp'))) is not None]
+            if dates:
+                entry.update(last_accessed=max(dates).isoformat(), usage_basis='permission', usage_status='observed',
+                    usage_source='GCP Cloud Audit Logs')
+        elif provider == 'azure':
+            def in_scope(event):
+                event_scope = str((event['data'].get('authorization') or {}).get('scope', '')).casefold().rstrip('/')
+                grant_scope = entry['scope'].casefold().rstrip('/')
+                return bool(grant_scope) and (event_scope == grant_scope or event_scope.startswith(grant_scope + '/'))
+            activity = [r for r in azure_activity if
+                isinstance(r['data'].get('status'), dict)
+                and str(r['data']['status'].get('value', '')).casefold() == 'succeeded'
+                and str((r['data'].get('authorization') or {}).get('action', '')).casefold() == str(permission).casefold()
+                and in_scope(r)]
+            dates = [value for r in activity if (value := _date(r['data'].get('eventTimestamp'))) is not None]
+            if dates:
+                entry.update(last_accessed=max(dates).isoformat(), usage_basis='permission', usage_source='Azure Activity Log')
+            else:
+                role_activity = [r for r in azure_activity if isinstance(r['data'].get('status'), dict)
+                    and str(r['data']['status'].get('value', '')).casefold() == 'succeeded' and in_scope(r)
+                    and str((r['data'].get('authorization') or {}).get('role', '')).casefold()
+                        in {entry['group_key'].casefold(), entry['group_key'].rsplit('/', 1)[-1].casefold(),
+                            entry['group_label'].casefold()}]
+                role_dates = [value for r in role_activity if (value := _date(r['data'].get('eventTimestamp'))) is not None]
+                if role_dates:
+                    entry.update(last_accessed=max(role_dates).isoformat(), usage_basis='role', usage_source='Azure Activity Log')
         accessed = _date(entry.get('last_accessed'))
         if now and accessed and accessed <= now:
             entry['days_since_last_access'] = (now - accessed).days
@@ -204,6 +261,12 @@ def enrich(card, provider, resources, observed_at):
                 current[field + '_label'] = labels[current[key]]
         exposures.append(current)
     identity_last_used = next((r['data'].get('RoleLastUsed', {}).get('LastUsedDate') for r in principal_rows if r['data'].get('RoleLastUsed', {}).get('LastUsedDate')), None)
+    if provider in {'gcp', 'azure'}:
+        events = gcp_activity if provider == 'gcp' else azure_activity
+        field = 'timestamp' if provider == 'gcp' else 'eventTimestamp'
+        dates = [value for event in events if (value := _date(event['data'].get(field))) is not None]
+        if dates:
+            identity_last_used = max(dates).isoformat()
     return dict(card, high_risk_permissions=sorted(permissions, key=lambda p: (RANK[p['severity']], p['permission'], p['scope'], p['source'])),
         permission_definitions_missing=sorted({str(x) for x in unresolved if x}), exposures=exposures,
         observed_at=observed_at, identity_last_used=identity_last_used)
@@ -212,8 +275,9 @@ def enrich(card, provider, resources, observed_at):
 def grant_groups(cards, provider, resources, observed_at):
     """Build policy/role groups from the same resolved grants used by principal details."""
     groups = {}
+    rows = [{**r, 'provider': provider} for r in resources if isinstance(r.get('data'), dict)]
     for card in cards:
-        for permission in enrich(card, provider, resources, observed_at)['high_risk_permissions']:
+        for permission in enrich(card, provider, resources, observed_at, _rows=rows)['high_risk_permissions']:
             key = permission['group_key']
             group = groups.setdefault(key, {'id': key, 'label': permission['group_label'],
                 'provider': provider, 'scopes': set(), 'principals': {}, 'permissions': [], 'severity': 'high'})

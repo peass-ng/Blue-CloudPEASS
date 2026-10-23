@@ -19,8 +19,10 @@ type Suggestion = {
 };
 type RiskPermission = {
   permission: string; severity: string; source: string; scope: string; resources: string[];
-  conditions?: unknown; exclusions?: string[]; last_accessed?: string; usage_basis?: "permission" | "service" | "policy";
-  days_since_last_access?: number; unused_finding?: boolean; group_key: string; group_label: string; principal?: string; principal_id?: string;
+  conditions?: unknown; exclusions?: string[]; last_accessed?: string; usage_basis?: "permission" | "service" | "policy" | "role";
+  days_since_last_access?: number; unused_finding?: boolean; usage_status?: "observed" | "not_observed";
+  usage_window_days?: number; usage_window_end?: string; usage_source?: string;
+  group_key: string; group_label: string; principal?: string; principal_id?: string;
 };
 type Principal = {
   id: string;
@@ -48,6 +50,26 @@ type Page = {
   coverage: { limitations: string[]; unused_access_analyzers?: number };
 };
 
+function hasUnusedEvidence(item: RiskPermission) { return !!item.unused_finding || item.usage_status === "not_observed"; }
+
+function PermissionUsage({ item }: { item: RiskPermission }) {
+  if (item.days_since_last_access != null) {
+    const basis = item.usage_basis === "permission" ? "Action last accessed"
+      : item.usage_basis === "policy" ? "Policy report: service activity · action use unknown"
+      : item.usage_basis === "role" ? "Role activity · action use unknown"
+      : "Principal service activity · action use unknown";
+    return <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
+      <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong>
+      <small>{basis}{item.usage_source ? ` · ${item.usage_source}` : ""}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
+    </div>;
+  }
+  if (item.usage_status) return <div className="least-usage unknown">
+    <strong>{item.usage_status === "observed" ? "Used" : "No use observed"} in {item.usage_window_days != null ? `${item.usage_window_days} day` : "the"} insight window</strong>
+    <small>{item.usage_source || "Provider insight"}; no exact last-use date</small>{item.usage_window_end && <time dateTime={item.usage_window_end}>Window ended {item.usage_window_end}</time>}
+  </div>;
+  return <span className="least-usage unknown">{item.unused_finding ? "Unused in analyzer window · no last-use date" : "Usage not available"}</span>;
+}
+
 export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean }) {
   const [search, setSearch] = useState("");
   const [offset, setOffset] = useState(0);
@@ -63,12 +85,12 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
   const grantDetails = useApi<GrantGroup>(`/scans/${encodeURIComponent(scanId)}/least-privilege/grants?key=${encodeURIComponent(selectedGrant?.id || "")}`, demo, !!scanId && !!selectedGrant);
   const detail = selected ? (details.data?.id === selected.id ? { ...selected, ...details.data } : selected) : undefined;
   const permissions = detail?.high_risk_permissions || [];
-  const visiblePermissions = permissions.filter(item => (!unusedOnly || item.unused_finding) && [item.permission, item.source, item.scope, ...item.resources].join(" ").toLowerCase().includes(permissionSearch.trim().toLowerCase()));
+  const visiblePermissions = permissions.filter(item => (!unusedOnly || hasUnusedEvidence(item)) && [item.permission, item.source, item.scope, ...item.resources].join(" ").toLowerCase().includes(permissionSearch.trim().toLowerCase()));
   const rows = page.data?.items || [];
   const principalRows = groupBy === "principal" ? rows as Principal[] : [];
   const grantRows = groupBy === "grant" ? rows as GrantGroup[] : [];
   const grant = selectedGrant ? (grantDetails.data?.id === selectedGrant.id ? grantDetails.data : selectedGrant) : undefined;
-  const grantPermissions = (grant?.permissions || []).filter(item => (!unusedOnly || item.unused_finding) &&
+  const grantPermissions = (grant?.permissions || []).filter(item => (!unusedOnly || hasUnusedEvidence(item)) &&
     [item.permission, item.source, item.scope, item.principal || "", ...item.resources].join(" ").toLowerCase().includes(permissionSearch.trim().toLowerCase()));
   return <div className="least-page">
     <div className="section-top">
@@ -139,15 +161,13 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
           <p>Declared permissions, including collected policy attachments and inherited role or group grants.</p>
           {details.isPending ? <p role="status">Loading permission details…</p> : details.error ? <State error={details.error} onRetry={() => void details.refetch()} /> : <>
             <div className="least-permission-toolbar"><label className="search-field"><Search size={16} /><input aria-label="Filter high-risk permissions" placeholder="Filter permissions, policies or scopes…" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} /></label>
-              {permissions.some(item => item.unused_finding) && <label className="least-unused-filter"><input type="checkbox" checked={unusedOnly} onChange={event => setUnusedOnly(event.target.checked)} /> Unused permissions (Access Analyzer)</label>}</div>
+              {permissions.some(hasUnusedEvidence) && <label className="least-unused-filter"><input type="checkbox" checked={unusedOnly} onChange={event => setUnusedOnly(event.target.checked)} /> Permissions without observed use</label>}</div>
             <div className="least-permissions-scroll"><table className="least-permissions-table"><thead><tr><th>Permission & granting policy</th><th>Criticality</th><th>Applies to</th><th>Last use</th></tr></thead><tbody>
               {visiblePermissions.map((item, index) => <tr key={`${item.permission}-${item.scope}-${index}`}>
                 <td><code>{item.permission}</code><small>{item.source}</small>{item.conditions != null && <details><summary>Grant conditions</summary><pre>{JSON.stringify(item.conditions, null, 2)}</pre></details>}
                   {!!item.exclusions?.length && <details><summary>Exclusions</summary><p>{item.exclusions.join(", ")}</p></details>}</td>
                 <td><Badge value={item.severity} /></td><td><span>{item.scope}</span>{item.resources.map(resource => <small key={resource}>{resource}</small>)}</td>
-                <td>{item.days_since_last_access != null ? <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
-                  <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong><small>{item.usage_basis === "permission" ? "Action last accessed" : item.usage_basis === "policy" ? "Policy service activity · action usage unknown" : "Principal service activity · action usage unknown"}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
-                </div> : <span className="least-usage unknown">{item.unused_finding ? "Unused in analyzer window · no last-use date" : "Usage not available"}</span>}</td>
+                <td><PermissionUsage item={item} /></td>
               </tr>)}
               {!visiblePermissions.length && <tr><td colSpan={4}>{permissionSearch || unusedOnly ? "No permissions match this filter." : "No high or critical permissions were resolved from the collected definitions."}</td></tr>}
             </tbody></table></div>
@@ -176,14 +196,12 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
           <h3>High & critical permissions</h3>
           {grantDetails.isPending ? <p role="status">Loading permission details…</p> : grantDetails.error ? <State error={grantDetails.error} onRetry={() => void grantDetails.refetch()} /> : <>
             <div className="least-permission-toolbar"><label className="search-field"><Search size={16} /><input aria-label="Filter grant permissions" placeholder="Filter permission, principal or scope…" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} /></label>
-              {grant.permissions?.some(item => item.unused_finding) && <label className="least-unused-filter"><input type="checkbox" checked={unusedOnly} onChange={event => setUnusedOnly(event.target.checked)} /> Unused permissions (Access Analyzer)</label>}</div>
+              {grant.permissions?.some(hasUnusedEvidence) && <label className="least-unused-filter"><input type="checkbox" checked={unusedOnly} onChange={event => setUnusedOnly(event.target.checked)} /> Permissions without observed use</label>}</div>
             <div className="least-permissions-scroll"><table className="least-permissions-table"><thead><tr><th>Permission & principal</th><th>Criticality</th><th>Applies to</th><th>Last use</th></tr></thead><tbody>
               {grantPermissions.map((item, index) => <tr key={`${item.principal_id}-${item.permission}-${item.scope}-${index}`}>
                 <td><code>{item.permission}</code><small>{item.principal}</small>{item.conditions != null && <details><summary>Grant conditions</summary><pre>{JSON.stringify(item.conditions, null, 2)}</pre></details>}</td>
                 <td><Badge value={item.severity} /></td><td><span>{item.scope}</span>{item.resources.map(resource => <small key={resource}>{resource}</small>)}</td>
-                <td>{item.days_since_last_access != null ? <div className={`least-usage ${item.days_since_last_access > 90 ? "stale" : "recent"}`}>
-                  <strong>{item.days_since_last_access} {item.days_since_last_access === 1 ? "day" : "days"} ago</strong><small>{item.usage_basis === "permission" ? "Action last accessed" : item.usage_basis === "policy" ? "Policy service activity · action usage unknown" : "Principal service activity · action usage unknown"}</small><time dateTime={item.last_accessed}>{item.last_accessed}</time>
-                </div> : <span className="least-usage unknown">{item.unused_finding ? "Unused in analyzer window · no last-use date" : "Usage not available"}</span>}</td>
+                <td><PermissionUsage item={item} /></td>
               </tr>)}
               {!grantPermissions.length && <tr><td colSpan={4}>No permissions match this filter.</td></tr>}
             </tbody></table></div>

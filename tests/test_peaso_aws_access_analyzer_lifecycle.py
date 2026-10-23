@@ -105,6 +105,28 @@ def test_existing_analyzers_in_other_region_are_reused_and_never_deleted(monkeyp
     assert {call[0] for call in requests.calls} == {"evidence"}
 
 
+def test_disabled_unused_analyzer_does_not_block_temporary_replacement(monkeypatch):
+    inactive = {"arn": "disabled-unused", "name": "disabled", "type": "ACCOUNT_UNUSED_ACCESS", "status": "DISABLED"}
+    requests = FakeRequests(monkeypatch, {REGIONS[0]: aws.ReadResult([inactive])})
+    with lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
+        manager.prepare(SESSION, IDENTITY, REGIONS[:1])
+        assert any(call[0] == "create" and call[3]["type"] == "ACCOUNT_UNUSED_ACCESS" for call in requests.calls)
+
+
+def test_existing_creating_unused_analyzer_is_waited_for_and_reused(monkeypatch):
+    name = "existing-unused"
+    creating = {"arn": f"arn:aws:access-analyzer:{REGIONS[0]}:{ACCOUNT}:analyzer/{name}",
+        "name": name, "type": "ACCOUNT_UNUSED_ACCESS", "status": "CREATING"}
+    requests = FakeRequests(monkeypatch, {REGIONS[0]: aws.ReadResult([creating])})
+    requests.records[name] = {**creating, "status": "ACTIVE"}
+    with lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
+        manager.prepare(SESSION, IDENTITY, REGIONS[:1])
+        result = manager.collect(SESSION, IDENTITY, REGIONS[0], enrich)
+        assert result.items[0]["status"] == "ACTIVE"
+    assert requests.now >= 180
+    assert name in requests.records
+
+
 def test_denied_listing_never_creates_analyzers_or_duplicates_unused(monkeypatch):
     requests = FakeRequests(monkeypatch, {REGIONS[0]: aws.ReadResult([], "denied", {"code": "AccessDenied"})})
     with lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:

@@ -45,6 +45,7 @@ class AnalyzerLifecycle:
         # Unused IAM analysis is account-global within a partition. Prefer an
         # existing analyzer anywhere in the scanned Regions; never duplicate it.
         unused_exists = any(item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}
+                            and item.get("status") in {"ACTIVE", "CREATING"}
                             for read in reads.values() for item in read.items)
         unused_regions = {}
         for region in regions:
@@ -52,7 +53,7 @@ class AnalyzerLifecycle:
         for region, read in reads.items():
             if read.status not in OK:
                 continue
-            types = {item.get("type") for item in read.items}
+            types = {item.get("type") for item in read.items if item.get("status") in {"ACTIVE", "CREATING"}}
             required = ["ACCOUNT"]
             if not unused_exists and region == unused_regions.get(partition) and all(r.status in OK for r in reads.values()):
                 required.append("ACCOUNT_UNUSED_ACCESS")
@@ -119,6 +120,26 @@ class AnalyzerLifecycle:
                     if summary.get("arn") != record["arn"] or summary.get("type") != record["type"]:
                         raise ValueError("unexpected analyzer summary")
                     item = next(row for row in read.items if row.get("arn") == record["arn"])
+                    item.update(summary)
+                    if summary.get("status") == "ACTIVE":
+                        break
+                    if summary.get("status") != "CREATING" or time.monotonic() >= deadline:
+                        from .aws import ReadFailure
+                        raise ReadFailure("timeout", "access_analyzer_not_active")
+                    self._wait(min(deadline, time.monotonic() + 10), account, region)
+            for item in read.items:
+                if item.get("status") != "CREATING" or item.get("_scan_temporary") or not isinstance(item.get("name"), str):
+                    continue
+                # Reuse a customer-owned analyzer that is still starting. Do
+                # not mistake its empty findings for a completed analysis.
+                self._wait(time.monotonic() + MINIMUM_AGE_SECONDS, account, region)
+                deadline = time.monotonic() + READY_TIMEOUT_SECONDS
+                client = self.requests.client(session, "accessanalyzer", region)
+                while True:
+                    self.requests.check_deadline()
+                    summary = client.get_analyzer(analyzerName=item["name"]).get("analyzer", {})
+                    if summary.get("arn") != item.get("arn") or summary.get("type") != item.get("type"):
+                        raise ValueError("unexpected analyzer summary")
                     item.update(summary)
                     if summary.get("status") == "ACTIVE":
                         break

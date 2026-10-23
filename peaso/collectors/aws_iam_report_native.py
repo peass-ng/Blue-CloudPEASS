@@ -49,7 +49,7 @@ def service_reports(requests, session, region, arns):
                  "semantics": "IAM service-access attempt history; effective permissions unassessed"}
         try:
             partition = session.get_partition_for_region(region)
-            match = re.fullmatch(r"arn:" + re.escape(partition) + r":iam::([0-9]{12}):(user|role)/.+", arn)
+            match = re.fullmatch(r"arn:" + re.escape(partition) + r":iam::([0-9]{12}):(user|role|policy)/.+", arn)
             if match is None or match.group(1) != account:
                 raise ReadFailure("malformed", "service_report_principal_arn_invalid")
             requests.check_deadline()

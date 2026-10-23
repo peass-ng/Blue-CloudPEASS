@@ -149,3 +149,44 @@ def test_grouped_policy_collects_distinct_principals_and_their_grants():
     assert groups[0]['id'] == policy_arn
     assert len(groups[0]['principals']) == 2
     assert groups[0]['permission_count'] == 2
+
+
+def test_gcp_insight_and_audit_distinguish_window_from_exact_last_use():
+    member = 'user:alice@example.test'
+    value = {'id': member, 'principal': member, 'suggestions': []}
+    role = 'projects/p/roles/operations'
+    permission = 'iam.serviceAccounts.getAccessToken'
+    rows = [row('iam_policy', {'bindings': [{'role': role, 'members': [member]}]}, 'projects/p'),
+        row('iam_role', {'name': role, 'includedPermissions': [permission]}, 'projects/p'),
+        row('insight', {'insightSubtype': 'PERMISSIONS_USAGE', 'stateInfo': {'state': 'ACTIVE'},
+            'content': {'member': member, 'role': role, 'exercisedPermissions': []},
+            'lastRefreshTime': '2026-10-20T00:00:00Z', 'observationPeriod': '7776000s'}, 'projects/p')]
+    candidate = enrich(value, 'gcp', rows, NOW)['high_risk_permissions'][0]
+    assert candidate['usage_status'] == 'not_observed'
+    assert candidate['usage_window_days'] == 90
+    assert 'last_accessed' not in candidate
+    rows.append(row('activity', {'principalEmail': 'alice@example.test', 'timestamp': '2026-10-20T12:00:00Z',
+        'statusCode': 0, 'authorizationInfo': [{'permission': permission, 'granted': True}]}, 'projects/p'))
+    observed = enrich(value, 'gcp', rows, NOW)['high_risk_permissions'][0]
+    assert observed['usage_status'] == 'observed'
+    assert observed['usage_basis'] == 'permission'
+    assert observed['days_since_last_access'] == 0
+    assert observed['usage_source'] == 'GCP Cloud Audit Logs'
+
+
+def test_azure_activity_requires_matching_caller_action_success_and_scope():
+    target = '12345678-1234-1234-1234-123456789012'
+    value = {'id': target, 'principal': target, 'suggestions': []}
+    scope = '/subscriptions/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+    action = 'Microsoft.Authorization/roleAssignments/write'
+    definition = row('role_definition', {'name': '/providers/Microsoft.Authorization/roleDefinitions/owner',
+        'properties': {'roleName': 'Owner', 'permissions': [{'actions': [action]}]}}, scope)
+    assignment = row('role_assignment', {'properties': {'principalId': target,
+        'roleDefinitionId': '/providers/Microsoft.Authorization/roleDefinitions/owner', 'scope': scope}}, scope)
+    event = {'caller': target, 'eventTimestamp': '2026-10-20T12:00:00Z',
+        'status': {'value': 'Succeeded'}, 'authorization': {'action': action, 'scope': scope + '/resourceGroups/app'}}
+    rows = [definition, assignment, row('activity_log', event, scope)]
+    observed = enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
+    assert observed['usage_basis'] == 'permission' and observed['days_since_last_access'] == 0
+    rows[-1]['data']['authorization']['scope'] = scope + '-foreign/resourceGroups/app'
+    assert 'last_accessed' not in enrich(value, 'azure', rows, NOW)['high_risk_permissions'][0]
