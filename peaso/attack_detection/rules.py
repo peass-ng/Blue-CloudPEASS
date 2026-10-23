@@ -237,6 +237,7 @@ from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
 from .aws_datasync_s3_b436 import normalize_aws_datasync_s3_b436, correlate_aws_datasync_new_role_task_b436
 from .aws_route53_zone_b437 import normalize_aws_route53_zone_b437
 from .aws_location_key_b438 import normalize_aws_location_key_b438
+from .aws_dlm_ssm_hook_b439 import normalize_aws_dlm_ssm_hook_b439, correlate_aws_dlm_new_ssm_hook_enabled_b439
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
@@ -344,8 +345,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "3be33430b0d70cbf38ced6b00f582273918cc308"
-DEFAULT_RULE_PACK_SHA256 = "5941e2c6a114a36b515a0759d9bbbe7b3f80a5bf177630318e6678dc0473a261"
+DEFAULT_RULE_REF = "49d923743b086dbc158f20408c48e3cbe4ee1686"
+DEFAULT_RULE_PACK_SHA256 = "c787398a2a8328920e41efe6cf8f52e53ab33b358e7ef958bf183af073833914"
 
 
 @dataclass(frozen=True)
@@ -644,6 +645,7 @@ def detect_aws_events(
         datasync_s3_b436 = normalize_aws_datasync_s3_b436(record)
         route53_zone_b437 = normalize_aws_route53_zone_b437(record)
         location_key_b438 = normalize_aws_location_key_b438(record)
+        dlm_ssm_hook_b439 = normalize_aws_dlm_ssm_hook_b439(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
@@ -928,6 +930,7 @@ def detect_aws_events(
                 + ([datasync_s3_b436] if datasync_s3_b436 is not None else [])
                 + ([route53_zone_b437] if route53_zone_b437 is not None else [])
                 + ([location_key_b438] if location_key_b438 is not None else [])
+                + ([dlm_ssm_hook_b439] if dlm_ssm_hook_b439 is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
@@ -1130,6 +1133,7 @@ def detect_aws_events(
     emr_inventory_records: list[Mapping[str, Any]] = []
     healthomics_read_set_records: list[Mapping[str, Any]] = []
     datasync_s3_b436_records: list[Mapping[str, Any]] = []
+    dlm_ssm_hook_b439_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -1233,6 +1237,8 @@ def detect_aws_events(
                 sts_records.append(record)
             if record.get("eventSource") == "datasync.amazonaws.com" and record.get("eventName") in {"CreateLocationS3", "CreateTask", "StartTaskExecution"}:
                 datasync_s3_b436_records.append(record)
+            if record.get("eventSource") == "dlm.amazonaws.com" and record.get("eventName") in {"CreateLifecyclePolicy", "UpdateLifecyclePolicy"}:
+                dlm_ssm_hook_b439_records.append(record)
             if record.get("eventSource") == "ecs.amazonaws.com" and record.get("eventName") in {"RegisterTaskDefinition", "CreateService", "UpdateService"}:
                 ecs_records.append(record)
             if record.get("eventSource") == "emr-serverless.amazonaws.com" and record.get("eventName") in {"StartSession", "GetSessionEndpoint"}:
@@ -1406,6 +1412,7 @@ def detect_aws_events(
     correlated += correlate_aws_emr_inventory(emr_inventory_records)
     correlated += correlate_aws_emr_security_reads(emr_inventory_records)
     correlated += correlate_aws_datasync_new_role_task_b436(datasync_s3_b436_records)
+    correlated += correlate_aws_dlm_new_ssm_hook_enabled_b439(dlm_ssm_hook_b439_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
