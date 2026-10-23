@@ -18,5 +18,15 @@
     "errors": 0,
     "skipped": 0,
     "junit_sha256": "719180ce527198fab32bfb4eda28d19b81373d2d95defdefc4881d96c9c3ecba"
+  },
+  {
+    "scope": "Main catalog binding and history focus",
+    "tested_revision": "5b5aa6a7da85105b28e3ab5bf2b163de439b39ff",
+    "hacktricks_source_revision": "4393380a88845b42bd208d3adbb6d61ad89f02fb",
+    "tests": 51,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit_sha256": "6c34e9390e2ff04c67d6a73a407ccf01121440cf04e28d109352aab5cecbb9ac"
   }
 ]
