@@ -1691,7 +1691,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def privesc_admins(ident: str, max_depth: int = Query(default=6, ge=1, le=20), include_unknown: bool = False, offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):
         from peaso.privesc import queries
         row, bundle, index = privesc_index(user.tenant_id, ident)
-        return page(queries.reach_admin(index, max_depth=max_depth, include_unknown=include_unknown), offset, limit)
+        return queries.reach_admin_page(index, max_depth=max_depth, include_unknown=include_unknown, offset=offset, limit=limit)
 
     @app.get("/api/scans/{ident}/privesc/paths")
     def privesc_paths(ident: str, source: str | None = Query(default=None, max_length=2000), source_alias: str | None = Query(default=None, alias="from", max_length=2000),
@@ -1711,7 +1711,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def privesc_broad(ident: str, min_targets: int = Query(default=50, ge=1, le=10_000_000), include_unknown: bool = False, offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):
         from peaso.privesc import queries
         row, bundle, index = privesc_index(user.tenant_id, ident)
-        return page(queries.broad_reach(index, min_targets=min_targets, include_unknown=include_unknown), offset, limit)
+        return queries.broad_reach_page(index, min_targets=min_targets, include_unknown=include_unknown, offset=offset, limit=limit)
 
     @app.get("/api/scans/{ident}/privesc/principals/{principal_id:path}")
     def privesc_principal(ident: str, principal_id: str, user=Depends(identity)):

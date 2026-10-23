@@ -578,6 +578,7 @@ class Worker:
             child.close()
             next_heartbeat = 0
             result = None
+            control_read = getattr(self.store, "job_control", self.store.job)
             while not self.stopping.is_set():
                 now = time.time()
                 if now >= job["deadline"]:
@@ -588,7 +589,7 @@ class Worker:
                         return True
                     next_heartbeat = now + max(0.2, self.settings.lease_seconds / 3)
                 # Cancellation is checked independently of the heartbeat interval.
-                if self.store.job(job["tenant"], job["id"])["status"] not in {"collecting", "analyzing"}:
+                if control_read(job["tenant"], job["id"])["status"] not in {"collecting", "analyzing"}:
                     return True
                 if parent.poll(0.2):
                     try:

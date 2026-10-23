@@ -128,6 +128,9 @@ def test_all_targets_refused_surfaces_only_curated_reason(crash_store, tmp_path,
     from peaso import worker
     from peaso.snapshot import make_snapshot
 
+    # This case supplies a synthetic collector denial, not live credentials.
+    # Credential preflight has its own tests; keep this fixture offline.
+    monkeypatch.setattr(worker, "_verify_aws_credentials", lambda connector: None)
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     artifacts = FileArtifacts(tmp_path / "artifacts")
     arn = "arn:aws:iam::222222222222:role/CustomerAudit"

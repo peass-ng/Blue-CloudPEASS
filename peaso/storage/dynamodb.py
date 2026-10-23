@@ -694,6 +694,16 @@ class DynamoStore:
             raise StoreError(404, "Scan not found")
         return value
 
+    def job_control(self, tenant, ident):
+        """Strongly consistent cancellation/TTL state, without the full job body."""
+        item = self.client.get_item(TableName=self.table, Key=attrs(self.key(tenant, "job", ident)),
+            ConsistentRead=True, ProjectionExpression="#status, #expires",
+            ExpressionAttributeNames={"#status": "status", "#expires": "expires_at"}).get("Item")
+        value = row(item) if item else None
+        if not value or value.get("expires_at", float("inf")) <= self.clock():
+            raise StoreError(404, "Scan not found")
+        return value
+
     def replace_completed_report(self, tenant, ident, expected_report, report):
         """Operator-only compare-and-swap; keep original runtime and job history."""
         values = {":report": report, ":expected": expected_report, ":completed": "completed", ":now": self.clock()}

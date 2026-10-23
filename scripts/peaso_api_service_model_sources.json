@@ -1557,7 +1557,7 @@
     "peaso/privesc/grant_evidence.py": "affb866d4f1ac92b7fd4515e1544144013cb55a2c6feba053dfcfcdc15b9e954",
     "peaso/privesc/graph.py": "235e5523e5e8e3451aeca2afc56e939dacd5d1e06b0c4e134dcd42038b20e791",
     "peaso/privesc/k8s_observed_impact.py": "703dfb2a9d72963283c696dbf6abd13c0182f9dd7d89f06060ce77bb7ff1da2d",
-    "peaso/privesc/queries.py": "00b0fa903164230b51b940a479bc93b0534788e13dd8515e200b431473139434",
+    "peaso/privesc/queries.py": "d0ece051637b4d9436149158b940e5327f2efee8a5f2bb269601d12522341251",
     "peaso/privesc/schema.py": "e0c936be6e05470d310f3309240e0c56fa9b2ad59a5f077b8a25697f039c28cb",
     "peaso/privesc/versioned_catalog.py": "ea9a9c8a276082ae3b1bf1ce57f8c22c1ff8e782e24a5825a28f0eb437cd9df1",
     "peaso/progress.py": "795477ca9c1c79f0cbecb67bd9ac0e3327c7984e4bdae105c5fe649a163974da",
@@ -1581,7 +1581,7 @@
     "peaso/server/__main__.py": "1030c9a852d7fbc23cece83cdc838d2fdb6bc80c799822d4396ed3aa41bfd3a5",
     "peaso/server/access_check.py": "f8a7c0866a42ac0426312ac6159be7b393c70a4975e618e6dcccdda99a2debad",
     "peaso/server/acr_image_selection_static_20261021.py": "99ac8a385f94fcbd529ff6582c20209bc699d1c3d4aeb7ce1a1233b99a227cdd",
-    "peaso/server/app.py": "80c7b59f9e413e1516122f1d4710f1a437469d70b483a8f4d4ca4e9b0d3216da",
+    "peaso/server/app.py": "b0e91f9f0b6750d6946664f91387dfb4a3284023544eb60f1b19375ab7a6eff0",
     "peaso/server/attack_logs.py": "bd9d35207edd00a7fd3d1630afd2d7e43064db6e03cd4c6f1b4ec510703e1315",
     "peaso/server/aws_access_requirements.py": "5440560f68b7a31551a6ba634bd2897fb8a80ac87c7822039fe1e2731dddba79",
     "peaso/server/aws_selector_logs.py": "a1c811ecc964a2fd39ebf7f35251ce82a4d09d0febbdfee3b3b122b49afd9bed",
@@ -1623,11 +1623,11 @@
     "peaso/storage/attack_history_ledger.py": "314ab90f5edc42a90c440083e9bce0f2a6127e56d5ea9ec25ecdd36fab310f3f",
     "peaso/storage/attack_history_sqlite.py": "7bdd270faf146612dc73269c4f60fead7900913b9b80dbcd399f8d8f89dcb4c5",
     "peaso/storage/cost.py": "ee83070f3f0843432b55d071979f3ba5b93b84533c9e780f498bf17a0e964922",
-    "peaso/storage/dynamodb.py": "5e7f2f8b2230a384a1e538b9dc75dc16d915a37f484f10f0c9c25720173898d6",
+    "peaso/storage/dynamodb.py": "74f6e55f76b528e530546f725210ce739f541d74c0e162a3abff3c0639f4780b",
     "peaso/storage/report_reuse.py": "cf5f9c6f9910e34d66f05f08d84e5d4fe35a29eb740802d1eb07b38419b4fef1",
     "peaso/storage/reports.py": "67844c36d92630df1117bde9ed32882150b839158f1eeaa353352a2c6783a63d",
     "peaso/storage/runtime.py": "d879d3526723a8d7920ccb7f7706c026c08c5723829d8f239e6701095198d0fb",
-    "peaso/storage/sqlite.py": "3657be688458868330402cfcfee73b410c02c8ffdae5ff94c2972496a6425892",
+    "peaso/storage/sqlite.py": "9acc946a7d59379f3e854883e19fc840c76f0b4237d82695181ca1384d656eb0",
     "peaso/trivy_container_runner_20261020.py": "903bdeb043ec4ce6c6f32ffd9d3a2933c4917694aea16ec8d83a3db8095af7e1",
     "peaso/trivy_database_20261021.py": "5e3686c4712175557ab4b1182e2bb82d155a78e4f39aa6c28ec0373860fe5987",
     "peaso/unused_iam_aws_activity.py": "6895e8c728e9f7ac38a90ef128c02e3e440d8e72ba54986a28cb1fdde0c7ac28",
@@ -1653,13 +1653,13 @@
     "peaso/unused_network_gcp.py": "c400e93b47669dc157cb62be05e4baeef46e1fa429dab70237db74ca21e665db",
     "peaso/unused_network_hardening.py": "afaa1e50bc08b1db3df45473ef9bd8cd87ba7738fab7bef9c912ed9e7eef2991",
     "peaso/unused_network_k8s_20261021.py": "fac6a448c011dde8c38d6b9492e28fd2bbabd1546223f97b0f2450d02ceb897a",
-    "peaso/worker.py": "6065daaeed795a0927e00eba498b54dd56ca5a3f42b6bad34fd1f0362ad3997c",
+    "peaso/worker.py": "46d157d0f89acf12e0efe549aedf3956f64b0a577842e4d68dff34598f1924fd",
     "peaso/worker_progress.py": "7e6b614877b9581a1d1a9305b32f81f4cec08a859287560605c78c21e8b5f308",
     "risk_rules/__init__.py": "536fd9c90e7ce607169a3a219358f8bdbb132fbcd79e1674d1f9ebaf1c5b0838",
     "scripts/cloud_permission_risks.py": "81da211c3f374714634956f8b33d1dd3b525078a59fd6496635a7bae33b6b0bb"
   },
   "python_source_count": 1657,
-  "python_source_sha256": "959bcf8dcc64ae7749a12fa8f6a8940b5b6232c4ad967aa43ab8adcd5a224240",
+  "python_source_sha256": "66b2445aa58c10840f47b21d7a06574148a0a65798176aa64022e7f0e8fda160",
   "review_context": {
     "adaptive_publication_qualification": "20 focused cases and reversed-order native/publication replay preserve final bytes and raw batches; no SDK client changes",
     "api_client_sites": 30,
@@ -1688,11 +1688,13 @@
         ],
         "removed": []
       },
+      "integration_base": "6abb9c2363688c3b34ebb7f1a278d204a5849ef2",
       "new_external_dependencies": false,
       "review": "API and scheduler require durable or renewable primary credentials. One bounded TLS JWKS GET verifies legacy Kubernetes token signatures using existing urllib3/PyJWT/cryptography; no SDK clients or credential factory behavior changed. Tenant ownership, encrypted auth, immutable job snapshots and quota remain enforced. Tests exercise synthetic signature failures, auth-bound proof invalidation, both storage adapters, schedule reactivation and connector switching; manual scans remain available.",
       "source_commit": "0c2716fe4bf380d95581080a8622a9fbae8b2571"
     },
-    "source_review": "Qualified factory/SW46/source-proof locality and network joins; current main offline event normalizers and historical ECS lineage; bounded S3 uploads retain tenant checks, encryption and manifest-last semantics. Added modules have no SDK calls. Exact API client closure unchanged."
+    "source_review": "Qualified factory/SW46/source-proof locality and network joins; current main offline event normalizers and historical ECS lineage; bounded S3 uploads retain tenant checks, encryption and manifest-last semantics. Added modules have no SDK calls. Exact API client closure unchanged.",
+    "top20_performance_review": "Five runtime files reviewed: fresh tenant-bound status/TTL reads use existing DynamoDB GetItem; privilege query generators retain original traversal and ordering, bounded heap selection changes response paging only.30 client construction sites, credential factories and API service roster unchanged. Native admission sources unchanged."
   },
-  "source_commit": "0c2716fe4bf380d95581080a8622a9fbae8b2571"
+  "source_commit": "099548d1c35959ab5cee41d20df6b9e95bcdd68d"
 }
