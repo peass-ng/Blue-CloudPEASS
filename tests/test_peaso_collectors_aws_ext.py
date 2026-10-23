@@ -419,7 +419,11 @@ def test_service_planes_drop_secrets(stub):
     amp.add_response("list_backend_environments", {"backendEnvironments": [{"backendEnvironmentArn": "arn:aws:amplify:us-east-1:123456789012:apps/a1/backendenvironments/dev",
         "environmentName": "dev", "createTime": "2026-01-01T00:00:00Z", "updateTime": "2026-01-01T00:00:00Z"}]}, {"appId": "a1"})
     amp.add_response("list_branches", {"branches": [{"branchArn": f"arn:aws:amplify:{REGION}:{ACCOUNT}:apps/a1/branches/main",
-        "branchName": "main", "stage": "PRODUCTION", "enableAutoBuild": True,
+        "branchName": "main", "description": "", "displayName": "main", "stage": "PRODUCTION",
+        "enableAutoBuild": True, "enableNotification": False, "createTime": "2026-01-01T00:00:00Z",
+        "updateTime": "2026-01-01T00:00:00Z", "customDomains": [], "framework": "React",
+        "activeJobId": "1", "totalNumberOfJobs": "1", "enableBasicAuth": False,
+        "ttl": "5", "enablePullRequestPreview": False,
         "environmentVariables": {"TOKEN": "branch-secret"}, "buildSpec": "branch-secret-build"}]}, {"appId": "a1"})
     read = run("amplify_app", session)
     dumped = json.dumps(read.items, default=str)
@@ -430,6 +434,23 @@ def test_service_planes_drop_secrets(stub):
     assert read.items[0]["Branches"]["items"][0]["BranchBuildSpecPresent"] is True
     assert "sk_live_secret" not in dumped and "dXNlcjpwYXNz" not in dumped and "secret-build" not in dumped
     assert "branch-secret" not in dumped
+
+
+def test_amplify_app_without_build_spec_does_not_claim_one(stub):
+    session, add = stub
+    amp = add("amplify")
+    amp.add_response("list_apps", {"apps": [{
+        "appId": "a2", "appArn": f"arn:aws:amplify:{REGION}:{ACCOUNT}:apps/a2",
+        "name": "plain", "description": "", "repository": "", "platform": "WEB",
+        "createTime": "2026-01-01T00:00:00Z", "updateTime": "2026-01-01T00:00:00Z",
+        "environmentVariables": {}, "defaultDomain": "a2.amplifyapp.com",
+        "enableBranchAutoBuild": False, "enableBasicAuth": False,
+    }]})
+    amp.add_response("list_backend_environments", {"backendEnvironments": []}, {"appId": "a2"})
+    amp.add_response("list_branches", {"branches": []}, {"appId": "a2"})
+    read = run("amplify_app", session)
+    assert read.items[0]["AppBuildSpecPresent"] is False
+    assert "buildSpec" not in json.dumps(read.items, default=str)
 
 
 def test_quicksight_not_subscribed_is_empty(stub):
