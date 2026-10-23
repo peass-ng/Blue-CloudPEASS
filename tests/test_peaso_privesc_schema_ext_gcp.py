@@ -66,15 +66,20 @@ DOMAINS_ENTRY = entry("gcp-t-domains", "gcp",
 def test_domains_registration_reaches_super_admin_of_that_domain():
     assert errors_of(DOMAINS_ENTRY) == []
     reg = "projects/p1/locations/global/registrations/corp.com"
-    extra = [("domains_registration", "projects/p1", [{"name": reg, "domainName": "corp.com"}]),
-             ("workspace_user", "customers/C1", [{"primaryEmail": "boss@corp.com", "id": "1", "isAdmin": True},
-                                                 {"primaryEmail": "boss@other.com", "id": "2", "isAdmin": True},
-                                                 {"primaryEmail": "intern@corp.com", "id": "3", "isAdmin": False}])]
+    extra = [("domains_registration", "projects/p1", [{"name": reg, "domainName": "corp.com", "state": "ACTIVE"}]),
+             ("workspace_customer", "customers/C1", [{"id": "C1", "customerDomain": "corp.com"},
+                                                     {"id": "C2", "customerDomain": "other.com"}]),
+             ("workspace_user", "customers/C1", [{"primaryEmail": "boss@corp.com", "id": "1", "customerId": "C1", "isAdmin": True},
+                                                 {"primaryEmail": "boss@other.com", "id": "2", "customerId": "C2", "isAdmin": True},
+                                                 {"primaryEmail": "intern@corp.com", "id": "3", "customerId": "C1", "isAdmin": False}])]
     bindings = [{"role": "projects/p1/roles/imager", "members": [ALICE]}]
     got = reached(privesc.analyze(gsnap(bindings, extra), entries=[DOMAINS_ENTRY]), ALICE, "gcp-t-domains")
     assert set(k for k in got if not k.startswith("unresolved:")) == {"user:boss@corp.com"}
     # Not collected: no members, only unresolved placeholders.
     got = reached(privesc.analyze(gsnap(bindings, extra[1:]), entries=[DOMAINS_ENTRY]), ALICE, "gcp-t-domains")
+    assert "user:boss@corp.com" not in got
+    inactive = [("domains_registration", "projects/p1", [{"name": reg, "domainName": "corp.com", "state": "SUSPENDED"}]), *extra[1:]]
+    got = reached(privesc.analyze(gsnap(bindings, inactive), entries=[DOMAINS_ENTRY]), ALICE, "gcp-t-domains")
     assert "user:boss@corp.com" not in got
 
 
