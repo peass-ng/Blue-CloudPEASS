@@ -8411,7 +8411,7 @@
     "status": "submitted_for_review",
     "source_of_truth": "HackTricks Cloud src/privilege-escalation-paths",
     "remaining": "HackTricks Cloud PR #495 remains open as a draft for review; no GCP, Azure, or Kubernetes technique review remains.",
-    "current_runtime": "CSPM main bundles the reviewed catalog synchronized from HackTricks Cloud commit 863f3ad53c745ff349950c79cffb8c0e3ac0e96b, recorded in risk_rules/hacktricks-privesc-source.json."
+    "current_runtime": "CSPM main bundles the catalog pinned by risk_rules/hacktricks-privesc-source.json; CSPM draft PR #291 contains additional source-anchor corrections and must be repinned after HackTricks Cloud PR #495 is accepted."
   },
   "retired_techniques": [
     {
