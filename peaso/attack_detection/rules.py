@@ -273,6 +273,7 @@ from .aws_healthomics_s3_alias_b420 import normalize as normalize_aws_healthomic
 from .aws_healthomics_runs_b421 import normalize as normalize_aws_healthomics_runs_b421
 from .aws_healthomics_bulk_reads_b423 import correlate as correlate_aws_healthomics_bulk_reads_b423
 from .aws_healthomics_log_reads_b422 import normalize as normalize_aws_healthomics_log_reads_b422
+from .aws_healthomics_s3_policy_b425 import normalize as normalize_aws_healthomics_s3_policy_b425
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -326,8 +327,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "ddf05e2e83c620a261769b5ca228ddeb0f7e898e"
-DEFAULT_RULE_PACK_SHA256 = "11da8ab53735845624159470e61213b99522367ed3ba28476a126f1e8602d9b4"
+DEFAULT_RULE_REF = "9ca37304b855c686cb50d6bb65344f66e592bc83"
+DEFAULT_RULE_PACK_SHA256 = "f85abdcce9c228f1ddc8e7718b86cb3d7239165477dacbdb419ef72888adebcb"
 
 
 @dataclass(frozen=True)
@@ -708,6 +709,7 @@ def detect_aws_events(
         healthomics_s3_alias_b420 = normalize_aws_healthomics_s3_alias_b420(record)
         healthomics_runs_b421 = normalize_aws_healthomics_runs_b421(record)
         healthomics_log_reads_b422 = normalize_aws_healthomics_log_reads_b422(record)
+        healthomics_s3_policy_b425 = normalize_aws_healthomics_s3_policy_b425(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -972,6 +974,7 @@ def detect_aws_events(
                 + ([healthomics_s3_alias_b420] if healthomics_s3_alias_b420 is not None else [])
                 + ([healthomics_runs_b421] if healthomics_runs_b421 is not None else [])
                 + ([healthomics_log_reads_b422] if healthomics_log_reads_b422 is not None else [])
+                + ([healthomics_s3_policy_b425] if healthomics_s3_policy_b425 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
