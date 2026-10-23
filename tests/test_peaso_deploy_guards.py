@@ -896,6 +896,24 @@ class DeploymentGuards(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "sizing"):
             deploy.verify_worker_resources({"collector": {"cpu": 512, "memory": 6144}, "analyzer": {"cpu": 512, "memory": 4096}})
 
+    def test_large_inventory_supported_sizes(self):
+        for memory in (6144, 8192, 12288, 16384):
+            deploy.verify_worker_resources({"collector": {"cpu": 2048, "memory": memory},
+                                            "analyzer": {"cpu": 1024, "memory": 8192}})
+        for cpu, memory in ((2048, 4096), (2048, 6145), (2048, 17408), (4096, 16384)):
+            with self.subTest(cpu=cpu, memory=memory), self.assertRaisesRegex(RuntimeError, "sizing"):
+                deploy.verify_worker_resources({"collector": {"cpu": cpu, "memory": memory},
+                                                "analyzer": {"cpu": 512, "memory": 4096}})
+
+    def test_large_sizing_reconstructs_reviewed_source(self):
+        import hashlib
+        source = (deploy.INFRA / "variables.tf").read_bytes()
+        self.assertEqual(hashlib.sha256(source).hexdigest(), deploy.WORKER_SIZING_CURRENT_SHA256)
+        for successor, predecessor in deploy.WORKER_SIZING_REVERSE:
+            self.assertEqual(source.count(successor), 1)
+            source = source.replace(successor, predecessor, 1)
+        self.assertEqual(hashlib.sha256(source).hexdigest(), deploy.RUNTIME_LIMITS_CURRENT_SHA256)
+
     def test_stale_override_refused_before_variables_are_rewritten(self):
         with tempfile.TemporaryDirectory() as folder, patch.object(deploy, "INFRA", Path(folder)):
             root = Path(folder)

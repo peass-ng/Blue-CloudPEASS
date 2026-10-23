@@ -40,6 +40,8 @@ REPOSITORY = f"{ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
 ZERO_IMAGE = REPOSITORY + "@sha256:" + "0" * 64
 CUSTOMER_ROLE_DOWNLOAD_KEY = "aws/customer-role.json"
 API_PACKAGE_KEY = "runtime-packages/api.zip"
+WORKER_SIZING_CURRENT_SHA256 = '918663f053ec9a2964cda023f9ec917e57eca5aa7497a8a02618008e016eb6a4'
+WORKER_SIZING_REVERSE = ((b'(resource.cpu == 1024 && contains([2048, 3072, 4096, 5120, 6144, 7168, 8192], resource.memory)) ||\n      (resource.cpu == 2048 && resource.memory >= 4096 && resource.memory <= 16384 && resource.memory % 1024 == 0)', b'(resource.cpu == 1024 && contains([2048, 3072, 4096, 5120, 6144, 7168, 8192], resource.memory))'), (b'supported 0.5/1/2 vCPU Fargate sizes', b'supported 0.5/1 vCPU Fargate sizes'))
 # Immutable data consumed by the source-bound native registry at import time.
 RUNTIME_ADMISSION_INPUTS = {
     "tests/fixtures/azure_nsp_query_cmk_metadata_proposal_20261020.json.gz":
@@ -54,6 +56,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_k8s_literal_scanner_deadline_successor_20261023.py',
     'tests/test_k8s_calico_alias_current_20261023.py',
     'tests/test_k8s_blob_redirect_current_20261023.py',
     'docs/api-sdk-source-review-20261023.json',
@@ -2543,7 +2546,8 @@ def write_vars(image, api_zip):
 
 def verify_worker_resources(resources):
     """Reject stale deployment overrides before writing variables or reviewing plans."""
-    supported = {512: {1024, 2048, 3072, 4096}, 1024: {2048, 3072, 4096, 5120, 6144, 7168, 8192}}
+    supported = {512: {1024, 2048, 3072, 4096}, 1024: {2048, 3072, 4096, 5120, 6144, 7168, 8192},
+                 2048: set(range(4096, 16385, 1024))}
     if set(resources) != {"collector", "analyzer"}:
         raise RuntimeError("Worker sizing requires collector and analyzer only")
     for stage, minimum in [("collector", 6144), ("analyzer", 4096)]:
@@ -2612,8 +2616,15 @@ def deployment_expectations(data, plan):
                         PREVIOUS_WORKFLOW_RUNTIME_SHA256, CURRENT_WORKFLOW_RUNTIME_SHA256}
                     or name == "ai_runtime.tf" and current_digest == CURRENT_AI_RUNTIME_SHA256):
             continue
-        if name == "variables.tf" and current_digest == RUNTIME_LIMITS_CURRENT_SHA256:
+        if name == "variables.tf" and current_digest in {RUNTIME_LIMITS_CURRENT_SHA256, WORKER_SIZING_CURRENT_SHA256}:
             restored = (INFRA / name).read_bytes()
+            if current_digest == WORKER_SIZING_CURRENT_SHA256:
+                for successor, predecessor in WORKER_SIZING_REVERSE:
+                    if restored.count(successor) != 1:
+                        raise RuntimeError("Worker sizing differs from its reviewed extension")
+                    restored = restored.replace(successor, predecessor, 1)
+                if hashlib.sha256(restored).hexdigest() != RUNTIME_LIMITS_CURRENT_SHA256:
+                    raise RuntimeError("Worker sizing does not reconstruct reviewed runtime limits")
             for before, after in RUNTIME_LIMITS_EXACT_REPLACEMENTS:
                 if restored.count(after) != 1:
                     raise RuntimeError("Runtime limit successor differs from its exact reviewed change")

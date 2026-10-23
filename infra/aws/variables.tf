@@ -52,9 +52,10 @@ variable "worker_resources" {
     condition = toset(keys(var.worker_resources)) == toset(["collector", "analyzer"]) && alltrue([
       for resource in values(var.worker_resources) :
       (resource.cpu == 512 && contains([1024, 2048, 3072, 4096], resource.memory)) ||
-      (resource.cpu == 1024 && contains([2048, 3072, 4096, 5120, 6144, 7168, 8192], resource.memory))
+      (resource.cpu == 1024 && contains([2048, 3072, 4096, 5120, 6144, 7168, 8192], resource.memory)) ||
+      (resource.cpu == 2048 && resource.memory >= 4096 && resource.memory <= 16384 && resource.memory % 1024 == 0)
     ]) && try(var.worker_resources.collector.memory >= 6144 && var.worker_resources.analyzer.memory >= 4096, false)
-    error_message = "Specify collector and analyzer only, with supported 0.5/1 vCPU Fargate sizes; prospective collection needs at least 6 GiB and analysis at least 4 GiB."
+    error_message = "Specify collector and analyzer only, with supported 0.5/1/2 vCPU Fargate sizes; prospective collection needs at least 6 GiB and analysis at least 4 GiB."
   }
 }
 variable "scan_runtime_limits" {
