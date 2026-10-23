@@ -77,6 +77,17 @@ def snapshot(root):
     return {p.relative_to(root).as_posix(): p.read_bytes() for p in sorted(root.rglob('*')) if p.is_file()}
 
 
+def test_current_effective_manifest_matches_catalog_files():
+    manifest = json.loads((ROOT / 'risk_rules/hacktricks-privesc-source.json').read_text())
+    files = ROOT / 'peaso/privesc/catalog'
+    actual = {path.relative_to(files).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in files.rglob('*.yaml')}
+    assert manifest['sha256'] == actual
+    assert manifest['effective']['local_ahead_files'] == sorted(
+        name for name, digest in actual.items()
+        if digest != manifest['canonical_sha256'].get(name))
+
+
 @pytest.fixture
 def synced(tmp_path):
     """Repo + book after an initial export and sync."""
