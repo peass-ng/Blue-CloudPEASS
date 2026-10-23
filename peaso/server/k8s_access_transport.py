@@ -24,6 +24,19 @@ class AccessReadError(Exception):
         self.status = status
 
 
+class _OriginPool:
+    """Send origin-form paths after the outer guard validates the pinned URL."""
+    def __init__(self, pool):
+        self.pool = pool
+
+    def request(self, method, url, **kwargs):
+        target = urlsplit(url)
+        path = target.path or "/"
+        if target.query:
+            path += "?" + target.query
+        return self.pool.request(method, path, **kwargs)
+
+
 class _Response:
     def __init__(self, response):
         self.response = response
@@ -85,7 +98,7 @@ class HostedAccessApi:
         self.headers = {"Host": origin.netloc, "Accept": "application/json"}
         if selected.get("token"):
             self.headers["Authorization"] = "Bearer " + selected["token"]
-        self.rest_client = SimpleNamespace(pool_manager=_BoundedPool(self.pool, pinned))
+        self.rest_client = SimpleNamespace(pool_manager=_BoundedPool(_OriginPool(self.pool), pinned))
         self.api_client = self
 
     def call_api(self, path, method, *, query_params=None, body=None, **kwargs):

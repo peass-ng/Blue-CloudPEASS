@@ -6,6 +6,19 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 import re
+from threading import RLock
+
+
+_COLLECTOR_IMPORT_LOCK = RLock()
+
+
+def _collector_module(provider):
+    # Providers publish a shared registry during import. Complete that parent
+    # import once before concurrent preflights request different child modules.
+    from importlib import import_module
+    with _COLLECTOR_IMPORT_LOCK:
+        import_module("peaso.collectors")
+        return import_module("peaso.collectors." + provider)
 
 
 def _probe_scopes(values, probe):
@@ -66,7 +79,7 @@ def _check_lifetime(auth, declared, issues):
             values.append((field.replace("_", " ").capitalize(), _jwt_exp(auth[field]) or declared))
     if auth.get("kubeconfig_data"):
         try:
-            from peaso.collectors.k8s import validate_inline_kubeconfig
+            validate_inline_kubeconfig = _collector_module("k8s").validate_inline_kubeconfig
             configured = validate_inline_kubeconfig(auth["kubeconfig_data"], auth.get("context"))
             if configured.get("token"):
                 values.append(("Kubeconfig token", _jwt_exp(configured["token"]) or declared))
@@ -88,7 +101,7 @@ def _check_lifetime(auth, declared, issues):
 
 
 def _aws(auth, scopes, options, issues, principals):
-    from peaso.collectors.aws import _session
+    _session = _collector_module("aws")._session
     from botocore.config import Config
     region = (options.get("regions") or ["us-east-1"])[0]
     hosted = (auth.get("method") in {"assume_role", "task_role"}
@@ -234,7 +247,7 @@ def _aws(auth, scopes, options, issues, principals):
 
 def _gcp(auth, scopes, options, issues, principals, settings):
     import requests
-    from peaso.collectors.gcp import Credentials
+    Credentials = _collector_module("gcp").Credentials
     from peaso.gcp_platform import PLATFORM_PROJECT, approved_project, load_service_account
     if auth.get("method") == "platform-service-account":
         if not scopes or "*" in scopes or any(options.get(key) for key in ("all_projects", "discover_projects", "all_hierarchy")):
@@ -349,7 +362,8 @@ def _gcp(auth, scopes, options, issues, principals, settings):
 
 
 def _azure(auth, scopes, issues, principals):
-    from peaso.collectors.azure import AzureTransport, ARM, GRAPH, _claims
+    provider = _collector_module("azure")
+    AzureTransport, ARM, GRAPH, _claims = provider.AzureTransport, provider.ARM, provider.GRAPH, provider._claims
     transport = AzureTransport(auth)
     try:
         selected = list(dict.fromkeys(scopes))
@@ -448,12 +462,12 @@ def _azure(auth, scopes, issues, principals):
 
 def _k8s(auth, issues, principals, scopes=()):
     from urllib.parse import quote, urlencode
+    provider = _collector_module("k8s")
     if auth.get('_hosted'):
         from .k8s_access_transport import HostedAccessApi
         api = HostedAccessApi(auth)
     else:
-        from peaso.collectors.k8s import _new_api
-        api = _new_api(auth)
+        api = provider._new_api(auth)
     client = api.api_client
     client.rest_client.pool_manager.allow_self_subject_access_review = True
     def request(path, method="GET", body=None):

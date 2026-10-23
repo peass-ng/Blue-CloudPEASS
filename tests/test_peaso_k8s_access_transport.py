@@ -24,6 +24,7 @@ def transport(monkeypatch):
             assert kwargs['assert_hostname'] == kwargs['server_hostname'] == 'cluster.example.test'
             assert kwargs['ssl_context'].verify_mode != 0
         def request(self, method, url, **kwargs):
+            assert url.startswith('/') and not url.startswith('//')
             requests.append((method, url, kwargs))
             assert kwargs['redirect'] is False and kwargs['retries'] is False
             assert kwargs['headers']['Authorization'] == 'Bearer synthetic-token'
@@ -91,3 +92,20 @@ def test_access_http_denial_does_not_read_or_disclose_response(transport, monkey
         assert error.value.status == 403
         assert str(error.value) == 'Kubernetes access check failed'
     finally: api.close()
+
+
+def test_cold_parallel_provider_imports_complete_without_partial_registry():
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    code = """
+from concurrent.futures import ThreadPoolExecutor
+from peaso.server.access_check import _collector_module
+with ThreadPoolExecutor(max_workers=4) as pool:
+    modules = list(pool.map(_collector_module, ('aws', 'gcp', 'azure', 'k8s')))
+assert [m.__name__ for m in modules] == ['peaso.collectors.' + p for p in ('aws', 'gcp', 'azure', 'k8s')]
+assert all(hasattr(m, 'collect') for m in modules)
+"""
+    result = subprocess.run([sys.executable, '-c', code], cwd=root,
+        capture_output=True, text=True, timeout=90)
+    assert result.returncode == 0, result.stderr
