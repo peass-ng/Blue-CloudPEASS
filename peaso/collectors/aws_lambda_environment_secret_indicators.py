@@ -224,17 +224,64 @@ def collect_selected(requests,session,region,caller,options,scopes):
         return ReadResult([],'not_collected',{'code':'lambda_environment_caller_unbound'})
     account=caller['Account'];partition=caller['Arn'].split(':')[1]
     with requests._lock:requests.lambda_environment_sessions[id(session)]={'account':account,'partition':partition}
-    items=[]
-    for arn in targets:
-        match=parse(arn)
-        if match[2]!=region or match[3]!=account:continue
+    selected=[arn for arn in targets if parse(arn)[2]==region and parse(arn)[3]==account]
+    cohort=None
+    workers=max(1,getattr(requests,'workers',1))
+    from peaso.secret_scanning_batch import _volatile_shm_available, prepared_content_member
+    try:
+        available=bool(selected) and (len(selected)==1 or workers>1) and _volatile_shm_available(MAX_SCAN_BYTES*len(selected))
+    except Exception:
+        available=False
+    if available:
         try:
             _remaining(requests)
-            item=requests.call(session,'lambda',region,'get_function_configuration',_metadata_profile=PROFILE,FunctionName=arn)
+            from peaso.secret_scanning import _trufflehog
+            _trufflehog()
+            from peaso.secret_scanning_cohort import ContentCohort
+            cohort=ContentCohort([identity(arn)+'.variables' for arn in selected],
+                min(requests.lambda_environment_state['deadline'],getattr(requests,'deadline',None) or requests.lambda_environment_state['deadline']),
+                max_bytes=MAX_SCAN_BYTES*len(selected),cancelled=getattr(requests,'cancel_event',None))
+        except Exception:
+            cohort=None
+    def read(arn):
+        member=identity(arn)+'.variables'
+        try:
+            _remaining(requests)
+            if cohort is None:
+                item=requests.call(session,'lambda',region,'get_function_configuration',_metadata_profile=PROFILE,FunctionName=arn)
+            else:
+                with prepared_content_member(cohort,member):
+                    item=requests.call(session,'lambda',region,'get_function_configuration',_metadata_profile=PROFILE,FunctionName=arn)
         except Exception as exc:
             from .workload_environment_discovery import record_denial
             record_denial(requests, exc, identity(arn), 'lambda', 'get_function_configuration')
             marker=_base(arn,requests)
             item={'id':identity(arn),MARKER:marker,'_provenance':{'scope':marker['scope'],'capture':marker['capture'],'request_locator':marker['request']['locator']}}
-        items.append(item)
+        finally:
+            if cohort is not None:cohort.finish(member)
+        return item
+    try:
+        if cohort is None or len(selected)<2:
+            items=[read(arn) for arn in selected]
+        else:
+            from concurrent.futures import ThreadPoolExecutor
+            pending=[];remaining=[]
+            with ThreadPoolExecutor(max_workers=min(len(selected),workers),thread_name_prefix='lambda-content') as pool:
+                try:
+                    for index,arn in enumerate(selected):
+                        try:pending.append(pool.submit(read,arn))
+                        except RuntimeError:
+                            remaining=selected[index:]
+                            for unsubmitted in remaining:cohort.finish(identity(unsubmitted)+'.variables')
+                            break
+                    items=[future.result() for future in pending]
+                except BaseException:
+                    cohort.close()
+                    raise
+            if remaining:
+                previous=cohort;cohort=None
+                try:items.extend(read(arn) for arn in remaining)
+                finally:cohort=previous
+    finally:
+        if cohort is not None:cohort.close()
     return ReadResult(items,'collected' if items else 'not_collected',None if items else {'code':'lambda_environment_scope_unselected'})

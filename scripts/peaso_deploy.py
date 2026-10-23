@@ -53,6 +53,9 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_content_cohort_source_admission_20261023.py',
+    'examples/benchmark_peaso_ecr_layer_pipeline.py',
+    'scripts/replay_native_lambda_cohort.py',
     'scripts/peaso_api_service_model_sources.json',
     'docs/api-sdk-model-prune.md',
     'scripts/peaso_api_service_model_gate.py',

@@ -1,7 +1,7 @@
 {
-  "annotation_successor_receipt_sha256": "7fbcbfbbb615c65a59635ad4f5c8ef235672d8f52acb7da915a11860eebc4327",
+  "annotation_successor_receipt_sha256": "5a99452c631b2edefc411ac5224b90a0a6b224e94806bf1ee83ac049ec0f296e",
   "annotation_successor_sha256": "2fffcd1809dfd128820a90e43adedc16a67a0fb941c316fc82f648cca5bc9b68",
-  "common_sha256": "b697982d0e68aa616c24cd178a42baec45ac7385be2acdb65cb3b29feae5a69e",
+  "common_sha256": "5589b5917c9912ff4905b0667950e684bd76d7088a3bb9457efbded85f8dbe01",
   "guard_receipt_sha256": "def38d9a116f4f89c200d084a4b927be0027a43eb31409c4cefb11a3d3aa901c",
   "guard_sha256": "20d7fd75606b72d8bb3db404e388d6bcedafca92658ee1100363ffa8c86d0c51",
   "producer_after_sha256": "c9c3923d34f35347097d1d7a9c4cc83d8755a0b3c7d7b7dfb059684c9cebd7e3",

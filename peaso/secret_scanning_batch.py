@@ -10,6 +10,7 @@ import tempfile
 MAX_BATCH_ITEMS = 128
 MAX_BATCH_BYTES = 64 * 1024 * 1024
 _PREPARED_BATCH = ContextVar('prepared_content_batch', default=None)
+_PREPARED_COHORT = ContextVar('prepared_content_cohort', default=None)
 
 
 def _after_fork():
@@ -17,6 +18,7 @@ def _after_fork():
     if inherited is not None:
         inherited.clear()
     _PREPARED_BATCH.set(None)
+    _PREPARED_COHORT.set(None)
 
 
 if hasattr(os, 'register_at_fork'):
@@ -26,7 +28,10 @@ if hasattr(os, 'register_at_fork'):
 def prepared_output(payload, path):
     """Return exact-source NDJSON, including b'' for clean, or None for serial."""
     prepared = _PREPARED_BATCH.get()
-    return None if prepared is None else prepared.get((payload, path))
+    if prepared is not None:
+        return prepared.get((payload, path))
+    cohort = _PREPARED_COHORT.get()
+    return None if cohort is None else cohort[0].output(cohort[1], payload, path)
 
 
 def _volatile_shm_available(total):
@@ -121,3 +126,13 @@ def prepared_content_batch(items, *, timeout=60):
         _PREPARED_BATCH.reset(token)
         if prepared is not None:
             prepared.clear()
+
+
+@contextmanager
+def prepared_content_member(cohort, member):
+    """Bind one admitted native caller; its private source context stays local."""
+    token = _PREPARED_COHORT.set((cohort, member))
+    try:
+        yield
+    finally:
+        _PREPARED_COHORT.reset(token)

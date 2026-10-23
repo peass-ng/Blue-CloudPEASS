@@ -18,8 +18,8 @@ import zlib
 
 from . import private_secret_source_epoch_20261021 as _epoch
 
-_RECEIPT_SHA256 = "824186dfa5517b722ff78c0fa834dbae2b6daa9006aac549c5ab3349b6bc3fbc"
-_SELF_SHA256 = "cd010f3e92d92c1469e45626cda2507ee1f65aac2dc131d958bf9e6cf8b3dd7f"
+_RECEIPT_SHA256 = "78fcc81653f1add0747afe525d147377075dc05e6f93feaea30f369735e86658"
+_SELF_SHA256 = "36735a05cc5c0a492d9ee85f82d1fd0c2335c22ecfd8245508ee7ee3d7c559ad"
 _ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -210,5 +210,3 @@ def previous_gcp_method_source(name: str, current_fragment: str,
     if fragment(current) != current_fragment:
         raise _epoch.AdmissionError("reviewed GCP method source changed")
     return fragment(previous)
-
-
