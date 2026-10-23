@@ -20,6 +20,10 @@ def main():
     tested_revision = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=args.tested_root, text=True).strip()
     assert len(tested_revision) == 40 and all(c in "0123456789abcdef" for c in tested_revision)
+    tracked_changes = subprocess.check_output(
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        cwd=args.tested_root, text=True).strip()
+    assert not tracked_changes, "tested source checkout has tracked changes"
     source = json.loads((args.tested_root / "risk_rules/hacktricks-privesc-source.json").read_text())
     hacktricks_revision = source["revision"]
     assert len(hacktricks_revision) == 40 and all(c in "0123456789abcdef" for c in hacktricks_revision)
