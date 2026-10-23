@@ -62,3 +62,27 @@ def test_page_indexes_do_not_retain_graphs_after_shared_cache_eviction(api, monk
     gc.collect()
     assert len(references) == 5 and references[0]() is None
     assert all(reference() is not None for reference in references[1:])
+
+
+def test_pages_do_not_build_unused_projection_and_expand_reuses_it(api, monkeypatch):
+    import peaso.analysis as analysis
+    client, artifacts, _, manifest = api
+    graph = {'nodes': [{'id': f'n-{i}', 'type': 'instance'} for i in range(240)], 'edges': []}
+    manifest['graphs'] = {'network': 'network-lazy'}
+    artifacts.items['network-lazy'] = graph
+    calls = []
+    original = analysis.project_graph
+    def project(value, limit):
+        calls.append(limit)
+        return original(value, limit)
+    monkeypatch.setattr(analysis, 'project_graph', project)
+    headers = {'Authorization': 'Bearer alice'}
+    for page in (0, 1):
+        response = client.get(route('graphs/network/page'), params={'page': page}, headers=headers)
+        assert response.status_code == 200
+    assert calls == []
+    for _ in range(2):
+        response = client.get(route('graphs/network/expand'), params={'node': 'n-0'}, headers=headers)
+        assert response.status_code == 200
+        assert any(node['id'] == 'n-0' for node in response.json()['nodes'])
+    assert calls == [500] and artifacts.reads['network-lazy'] == 1

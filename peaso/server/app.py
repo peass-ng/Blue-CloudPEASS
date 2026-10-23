@@ -1763,15 +1763,20 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         value = artifacts.get(tenant, reference)
 
         @lru_cache(maxsize=1)
+        def projection():
+            return project_graph(value, 500)
+
+        @lru_cache(maxsize=1)
         def pages(page_size):
             from peaso.analysis.projection import GraphPageIndex
             return GraphPageIndex(value, page_size)
 
-        return value, project_graph(value, 500), pages
+        return value, projection, pages
 
     def full_graph(tenant, bundle, kind):
         if bundle.get("bundle_version") == 1:
-            return graph_views(tenant, bundle["graphs"][kind])[:2]
+            value, projection, _ = graph_views(tenant, bundle["graphs"][kind])
+            return value, projection()
         from peaso.analysis import project_graph
         value = bundle.get("graphs", {}).get(kind, {"nodes": [], "edges": []})
         return value, project_graph(value, 500)
