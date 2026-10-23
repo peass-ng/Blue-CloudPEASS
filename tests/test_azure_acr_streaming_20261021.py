@@ -2,6 +2,8 @@
 import base64
 import json
 import os
+import hashlib
+import time
 import pytest
 
 @pytest.fixture
@@ -9,6 +11,72 @@ def proposal():
     from peaso.collectors import azure_acr_image_secret_indicators as source
     from peaso.checks import azure_acr_image_secret_review_20261020 as checks
     return source, checks
+
+
+def test_pinned_shared_blob_redirect_has_no_bearer_or_persisted_sas(monkeypatch):
+    from peaso.collectors import azure_acr_image_secret_indicators as source
+    from peaso.collectors import azure_acr_image_stream_inspection_20261021 as stream
+    payload=b'bounded image blob'
+    digest='sha256:'+hashlib.sha256(payload).hexdigest()
+    host='specificacct.blob.core.windows.net'
+    signed='https://'+host+'/acr/blob/data?sig=ephemeral'
+    sent=[]
+    class Response:
+        def __init__(self,status,body=b'',headers=None):
+            self.status=status;self.body=body;self.headers=headers or {};self.cursor=0
+        def getheader(self,key):return self.headers.get(key)
+        def read(self,n):
+            block=self.body[self.cursor:self.cursor+n];self.cursor+=len(block);return block
+        def close(self):pass
+    class Connection:
+        sock=None
+        def __init__(self,host,timeout):self.host=host
+        def set_debuglevel(self,level):assert level==0
+        def request(self,method,route,body=None,headers=None):
+            sent.append((self.host,route,dict(headers)))
+            if self.host=='reviewregistry.azurecr.io':
+                self.response=Response(307,headers={'Location':signed})
+            else:
+                assert self.host==host and route=='/acr/blob/data?sig=ephemeral'
+                assert 'Authorization' not in headers and 'Cookie' not in headers
+                self.response=Response(200,payload,{'Content-Length':str(len(payload))})
+        def getresponse(self):return self.response
+        def close(self):pass
+    monkeypatch.setattr(stream.http.client,'HTTPSConnection',Connection)
+    monkeypatch.setattr(stream,'_PublicPinnedHTTPSConnection',Connection)
+    class Outer:
+        def check_cancelled(self):pass
+        def call(self,fn,*args,**kwargs):return fn(*args,**kwargs)
+    target={'registry_id':'/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/review/providers/Microsoft.ContainerRegistry/registries/reviewregistry',
+            'repository':'review','digest':digest}
+    receipts=[];reader=source.Reader(Outer(),None,receipts,'/subscriptions/00000000-0000-0000-0000-000000000000',target,
+                                     {'deadline':time.monotonic()+20,'calls':0,'bytes':0})
+    reader.host='reviewregistry.azurecr.io';reader.data_hosts=[]
+    stream.enable_pinned_shared_data(reader)
+    assert reader.blob('blobs',digest,len(payload), 'registry-token',len(payload))==payload
+    assert [r['endpoint'] for r in receipts]==['registry','native_pinned_shared_data']
+    assert [r['status'] for r in receipts]==['redirect','collected']
+    assert len(sent)==2 and sent[0][2]['Authorization']=='Bearer registry-token'
+    assert 'sig=ephemeral' not in repr(receipts)
+
+
+def test_shared_location_and_dns_reject_nonpublic_destinations(monkeypatch):
+    from peaso.collectors import azure_acr_image_secret_indicators as source
+    from peaso.collectors import azure_acr_image_stream_inspection_20261021 as stream
+    valid='https://specificacct.blob.core.windows.net/acr/blob/data?sig=opaque'
+    assert stream._shared_location(valid)[0]=='specificacct.blob.core.windows.net'
+    assert stream._shared_location('https://specificacct.blob.core.windows.net/acr//blob/data?sig=opaque')[0]=='specificacct.blob.core.windows.net'
+    for bad in ('http://specificacct.blob.core.windows.net/acr/blob/data?sig=x',
+                'https://169.254.169.254/latest?sig=x',
+                'https://specificacct.blob.core.windows.net.evil.invalid/acr/blob/data?sig=x',
+                'https://user@specificacct.blob.core.windows.net/acr/blob/data?sig=x',
+                'https://specificacct.blob.core.windows.net:444/acr/blob/data?sig=x',
+                'https://specificacct.blob.core.windows.net//acr/blob/data?sig=x',
+                'https://specificacct.blob.core.windows.net/acr/../blob/data?sig=x'):
+        with pytest.raises(source.Incomplete):stream._shared_location(bad)
+    monkeypatch.setattr(stream.socket,'getaddrinfo',lambda *a,**k:[(2,1,6,'',('127.0.0.1',443))])
+    connection=stream._PublicPinnedHTTPSConnection('specificacct.blob.core.windows.net',timeout=1)
+    with pytest.raises(source.Incomplete):connection.connect()
 
 
 def test_raw_and_gzip_layers_above_old_cap(proposal,monkeypatch):

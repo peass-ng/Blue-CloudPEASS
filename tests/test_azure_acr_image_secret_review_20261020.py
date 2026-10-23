@@ -15,6 +15,7 @@ import pytest
 from peaso import engine,secret_scanning as scanning
 from peaso.collectors import azure
 from peaso.collectors import azure_acr_image_secret_indicators as source
+from peaso.collectors import azure_acr_image_stream_inspection_20261021 as stream
 from peaso.checks import azure_acr_image_secret_review_20261020 as checks
 
 SCOPE='/subscriptions/11111111-1111-1111-1111-111111111111'
@@ -166,6 +167,7 @@ def capture(monkeypatch,*,img=None,native=None,overrides=None,redirect=False,rea
         def getresponse(self):return self.response
         def close(self):self.closed=True
     monkeypatch.setattr(azure,'AzureTransport',Transport);monkeypatch.setattr(source.http.client,'HTTPSConnection',Connection)
+    monkeypatch.setattr(stream,'_PublicPinnedHTTPSConnection',Connection)
     trace.req=req;trace.img=img
     return (engine.collect_snapshot(req) if collect else req),trace
 

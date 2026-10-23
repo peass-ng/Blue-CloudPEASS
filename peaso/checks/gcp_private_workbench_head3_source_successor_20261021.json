@@ -1,8 +1,8 @@
 {
   "canonical_receipt_sha256": "2a9fac82c1097446f350ff92354882e25fbce5e98b52a5e21ba7fd0a4c462d9e",
   "canonical_source_sha256": "0ef9e6772d5f618b279da9204cb620a9484894460926eed6ea2e74d59059713d",
-  "common_receipt_sha256": "cc705c88e8950ea93dce27791907d53d4757a15931cffded91195743e3eb15ed",
-  "common_source_sha256": "eae01d8f57f41645b5e67fc75315da6c9fb9aeeb98a81d420f345c8d7553e86e",
+  "common_receipt_sha256": "3d9c72705f9a9708ae411345ee0c67a3850d85cc9d58c45c3ee302fc899bdaca",
+  "common_source_sha256": "912a649d6dfd8c0d1396cb1ebb61a9b9d26a1244180b5327a241500d49c8ca0d",
   "functions": [
     "_private_self",
     "_historical_source",
@@ -10,8 +10,8 @@
     "_verify_runtime",
     "reviewed_inputs"
   ],
-  "gcp_receipt_sha256": "8cec8af4075ebf72be8b7383d5bf6f1323de6c302ad6146a31d2a4bcb7bffcd5",
-  "gcp_source_sha256": "8202f8de2af70ba35b45ae864051336cbf2101b707c2d7673d846bb0ea9524df",
+  "gcp_receipt_sha256": "5d111e355b35d271fd2dfef96d06971310e7e187ebda04cf182b5330546306e5",
+  "gcp_source_sha256": "390e229ecea6b5f79b885d641118c74d9d9856a550ee7025be358a2e7ca4b16d",
   "normalized_source_sha256": "4e3064c0bdbc83ca4b7afedb4b2b28930cd0b2f10dfb989fc43acca19dd11975",
   "raw_receipt_sha256": "ea5d4a9057330e9f09e93322ebd8d27e9512946493d5a487d8590e998be7a332",
   "raw_source_sha256": "adb16873adf517a30c11a280c94c748b90ba405f46b5219630eef877a4aabf67",

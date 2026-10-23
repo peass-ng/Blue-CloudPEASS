@@ -1,9 +1,18 @@
 """Bounded private inspection of an exact ACR leaf or finite OCI index."""
 from copy import deepcopy
 from collections import Counter
+import hashlib
+import http.client
+import ipaddress
+import os
 from pathlib import Path
+import re
+import shutil
+import socket
 import tempfile
 import time
+from types import MethodType
+from urllib.parse import urlsplit
 
 from peaso import container_image_archive_20261020 as archive
 from peaso import oci_index_20261021 as oci_index
@@ -40,6 +49,165 @@ def complete_blob_receipts(rows, descriptor_groups):
     return all(observed[key] >= count for key, count in needed.items())
 
 
+def _shared_location(location):
+    """Bind one registry-issued redirect to one Azure Storage account host."""
+    parsed = urlsplit(location) if isinstance(location, str) else None
+    host = parsed.hostname if parsed is not None else None
+    path = parsed.path if parsed is not None else ''
+    if (not isinstance(location, str) or not 1 <= len(location) <= 8192
+            or any(ord(char) <= 32 or ord(char) > 126 or char == '\\' for char in location)
+            or host is None or not re.fullmatch(r'[a-z0-9]{3,24}\.blob\.core\.windows\.net', host)
+            or parsed.scheme != 'https' or parsed.netloc != host or parsed.port is not None
+            or parsed.username is not None or parsed.password is not None or parsed.fragment
+            or not parsed.query or not re.fullmatch(r'/[A-Za-z0-9_./%~+@=-]{1,2048}', path)
+            or path.startswith('//') or path.endswith('/')
+            or any(part in ('.','..') for part in path[1:].split('/'))
+            or re.search(r'%(?![0-9A-Fa-f]{2})|%2[fF]|%5[cC]|%2[eE]|%00', path)):
+        raise native.Incomplete('unsupported_data_location')
+    # Azure's signed storage path may contain an interior empty segment. Its
+    # exact spelling is retained for the SAS signature and never persisted.
+    return host, path+'?'+parsed.query
+
+
+class _PublicPinnedHTTPSConnection(http.client.HTTPSConnection):
+    """Resolve once, reject nonpublic answers, and retain the host for TLS SNI."""
+
+    def connect(self):
+        infos = socket.getaddrinfo(self.host, 443, type=socket.SOCK_STREAM)
+        if (not infos or any(not ipaddress.ip_address(info[4][0]).is_global for info in infos)):
+            raise native.Incomplete('nonpublic_data_address')
+        last_error = None
+        for family, socktype, protocol, _, address in infos:
+            raw = socket.socket(family, socktype, protocol)
+            try:
+                raw.settimeout(self.timeout)
+                raw.connect(address)
+                self.sock = self._context.wrap_socket(raw, server_hostname=self.host)
+                return
+            except OSError as exc:
+                last_error = exc
+                raw.close()
+        raise native.Incomplete('data_connection_unavailable') from last_error
+
+
+def _pinned_request(self, host, route, operation, cap, *, body=None,
+                    authorization=None, digest=None, size=None, redirect=False,
+                    destination=None, shared_host=None):
+    """Read a digest-bound blob with at most one credential-free redirect."""
+    if self.state['calls'] >= native.MAX_CALLS:
+        raise native.Incomplete('image_call_limit')
+    if shared_host is not None and (host != shared_host or operation != 'blob_data'
+            or body is not None or authorization is not None or redirect
+            or digest is None or size is None):
+        raise native.Incomplete('shared_data_binding')
+    self.check(); self.state['calls'] += 1
+    endpoint = ('arm' if host == native.ARM else 'registry' if host == self.host else
+                'native_pinned_shared_data' if shared_host is not None else 'native_dedicated_data')
+    receipt = {'id':'acr-read-'+str(len(self.receipts)+1), 'identity':self.ident,
+        'scope':self.scope, 'method':'POST' if body is not None else 'GET',
+        'operation':operation, 'endpoint':endpoint, 'status':'unavailable',
+        'http_status':0, 'bytes':0, 'digest':digest, 'verified':False, 'bound':False}
+    self.receipts.append(receipt)
+    connection = response = None
+    try:
+        connection = _PublicPinnedHTTPSConnection(host, timeout=self.timeout())
+        connection.set_debuglevel(0)
+        headers = {'Accept-Encoding':'identity',
+            'Accept':', '.join((native.OCI,native.DOCKER,native.oci_index.OCI_INDEX,
+                native.oci_index.DOCKER_LIST)) if operation == 'manifest' else 'application/octet-stream'}
+        if body is not None:
+            headers.update({'Content-Type':'application/x-www-form-urlencoded',
+                            'Content-Length':str(len(body))})
+        if authorization is not None:headers['Authorization'] = 'Bearer '+authorization
+        connection.request(receipt['method'], route, body=body, headers=headers)
+        response = connection.getresponse(); receipt['http_status'] = response.status
+        if response.status == 307 and redirect and shared_host is None:
+            location = response.getheader('Location')
+            if response.getheader('WWW-Authenticate') is not None:
+                raise native.Incomplete('auth_challenge')
+            try:
+                rh, rr = native._location(location, self.data_hosts)
+                pinned = None
+            except native.Incomplete:
+                if self.data_hosts:
+                    raise native.Incomplete('unsupported_data_location')
+                rh, rr = _shared_location(location)
+                pinned = rh
+            receipt.update(status='redirect', verified=True, bound=True)
+            # The signed query remains only in this call. No registry bearer,
+            # cookies, identity headers, or URL reach receipts or logs.
+            return self.get(rh, rr, 'blob_data', cap, digest=digest, size=size,
+                            destination=destination, shared_host=pinned)
+        if (type(response.status) is not int or response.status != 200
+                or response.getheader('WWW-Authenticate') is not None
+                or response.getheader('Location') is not None):
+            raise native.Incomplete('native_unavailable')
+        if response.getheader('Content-Encoding') not in (None, '', 'identity'):
+            raise native.Incomplete('encoded_response')
+        length = response.getheader('Content-Length'); expected = None
+        if length is not None:
+            if not isinstance(length, str) or not re.fullmatch(r'[0-9]{1,10}', length):
+                raise native.Incomplete('stream_length')
+            expected = int(length)
+            if expected > cap or size is not None and expected != size:
+                raise native.Incomplete('stream_length')
+        header_digest = response.getheader('Docker-Content-Digest')
+        if header_digest is not None and (digest is None or header_digest != digest):
+            raise native.Incomplete('digest_header')
+        output = None; created = False; raw = bytearray(); count = 0
+        checksum = hashlib.sha256()
+        try:
+            if destination is not None:
+                if (not isinstance(destination, Path) or not destination.is_absolute()
+                        or size is None or shutil.disk_usage(destination.parent).free < size + 256*1024*1024):
+                    raise native.Incomplete('scratch_disk_bound')
+                fd = os.open(destination, os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0), 0o600)
+                created = True; output = os.fdopen(fd, 'wb')
+            while True:
+                timeout = self.timeout()
+                if getattr(connection, 'sock', None) is not None:
+                    connection.sock.settimeout(timeout)
+                block = response.read(min(16384, cap+1-count))
+                if not isinstance(block, bytes):raise native.Incomplete('stream_type')
+                count += len(block); self.state['bytes'] += len(block); receipt['bytes'] += len(block)
+                if self.state['bytes'] > native.MAX_TOTAL or count > cap or size is not None and count > size:
+                    raise native.Incomplete('stream_bound')
+                if not block:break
+                checksum.update(block)
+                if output is None:raw.extend(block)
+                else:
+                    if shutil.disk_usage(destination.parent).free < len(block)+256*1024*1024:
+                        raise native.Incomplete('scratch_disk_bound')
+                    output.write(block)
+            self.check()
+            if (not count or expected is not None and count != expected
+                    or size is not None and count != size
+                    or digest is not None and 'sha256:'+checksum.hexdigest() != digest):
+                raise native.Incomplete('digest_or_truncation')
+            if output is not None:output.close(); output = None
+        except BaseException:
+            if output is not None:output.close()
+            if created:destination.unlink(missing_ok=True)
+            raise
+        receipt.update(status='collected', verified=True, bound=digest is not None)
+        return destination if destination is not None else bytes(raw)
+    except Exception as exc:
+        if (type(exc).__name__ == 'AzureReadError'
+                and getattr(exc, 'code', None) in ('collection_cancelled','deadline_exceeded')):
+            raise
+        raise native.Incomplete('native_image_read_unavailable') from None
+    finally:
+        if response is not None:response.close()
+        if connection is not None:connection.close()
+
+
+def enable_pinned_shared_data(reader):
+    """Install the current transport on this selected image reader only."""
+    if type(reader) is not native.Reader:
+        raise native.Incomplete('reader_binding')
+    reader.request = MethodType(_pinned_request, reader)
+
+
 def _abort_code(exc):
     code = getattr(exc, 'code', None)
     if code is None and isinstance(exc, native.Incomplete) and exc.args:
@@ -48,6 +216,7 @@ def _abort_code(exc):
 
 
 def inspect_image(reader):
+    enable_pinned_shared_data(reader)
     parent = reader.target['digest']
     marker = {'schema':native.SCHEMA,'kind':native.KIND,'identity':reader.ident,
         'scope':reader.scope,'complete':False,'verification':'not_attempted',

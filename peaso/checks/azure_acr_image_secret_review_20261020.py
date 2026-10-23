@@ -84,7 +84,10 @@ def evaluate(item,index):
             if r['status']=='redirect':
                 if r['http_status']!=307 or r['bytes']!=0:raise ValueError('redirect')
                 r=receipts[cursor];cursor+=1
-                if r['operation']!='blob_data' or r['endpoint']!='native_dedicated_data' or r['method']!='GET' or r['digest']!=d['digest']:raise ValueError('native data provenance')
+                if (r['operation']!='blob_data' or r['endpoint'] not in
+                        ('native_dedicated_data','native_pinned_shared_data')
+                        or r['method']!='GET' or r['digest']!=d['digest']):
+                    raise ValueError('native data provenance')
             if r['status']!='collected' or r['http_status']!=200 or r['bytes']!=d['size']:raise ValueError('blob completeness')
         if cursor!=len(receipts):raise ValueError('extra requests')
         if not complete_blob_receipts(receipts,[desc]):raise ValueError('blob occurrence receipts')

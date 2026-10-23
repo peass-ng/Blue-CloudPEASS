@@ -231,6 +231,7 @@ def _scan_target(outer, transport, receipts, scope, target, state, *, db_cache,
     scratch=None
     try:
         reader=acr.Reader(outer,transport,receipts,scope,target,state)
+        stream.enable_pinned_shared_data(reader)
         # Persisted CVE receipts must survive collector/evaluator process boundaries.
         # This identity contains resource selectors, never a credential value.
         reader.ident = row['id']
