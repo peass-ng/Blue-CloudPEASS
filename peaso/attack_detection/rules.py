@@ -287,6 +287,7 @@ from .aws_healthlake_bulk_delete_b431 import normalize as normalize_aws_healthla
 from .aws_healthlake_conditional_delete_b431 import normalize as normalize_aws_healthlake_conditional_delete_b431
 from .aws_healthlake_jobs_b432 import normalize as normalize_aws_healthlake_jobs_b432
 from .aws_healthlake_export_rest_b432 import normalize as normalize_aws_healthlake_export_rest_b432
+from .aws_ec2_role_launch_b433 import normalize as normalize_aws_ec2_role_launch_b433
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
@@ -340,8 +341,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "0aef6da4b7d33c6fd2cb4577d6fc22df9325daed"
-DEFAULT_RULE_PACK_SHA256 = "6b7de7c0e85e74f398e90d1f0a4e2235f24278415e74ecfc3f8a60de6687a664"
+DEFAULT_RULE_REF = "182759c18712b865ae09b47776c84ed9001f585e"
+DEFAULT_RULE_PACK_SHA256 = "5e07db7fb164ea902e118ba5e95f38fc5e84be42f26f96bb6c7740a8fda0580c"
 
 
 @dataclass(frozen=True)
@@ -736,6 +737,7 @@ def detect_aws_events(
         healthlake_conditional_delete_b431 = normalize_aws_healthlake_conditional_delete_b431(record)
         healthlake_jobs_b432 = normalize_aws_healthlake_jobs_b432(record)
         healthlake_export_rest_b432 = normalize_aws_healthlake_export_rest_b432(record)
+        ec2_role_launch_b433 = normalize_aws_ec2_role_launch_b433(record)
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
@@ -1014,6 +1016,7 @@ def detect_aws_events(
                 + ([healthlake_conditional_delete_b431] if healthlake_conditional_delete_b431 is not None else [])
                 + ([healthlake_jobs_b432] if healthlake_jobs_b432 is not None else [])
                 + ([healthlake_export_rest_b432] if healthlake_export_rest_b432 is not None else [])
+                + ([ec2_role_launch_b433] if ec2_role_launch_b433 is not None else [])
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
