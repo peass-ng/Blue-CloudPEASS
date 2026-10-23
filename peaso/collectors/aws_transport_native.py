@@ -88,7 +88,7 @@ def endpoints(requests, session, region, account):
                 identity = listener.get('ListenerArn') if isinstance(listener, dict) else None
                 protocol = listener.get('Protocol') if isinstance(listener, dict) else None
                 # L4 passthrough cannot prove the application's TLS behavior.
-                if protocol not in ('HTTP', 'HTTPS', 'TLS'):
+                if protocol not in ('HTTP', 'HTTPS', 'TLS', 'TCP', 'UDP', 'TCP_UDP'):
                     raise ValueError('transport_listener_protocol_unresolved')
                 if (not _arn(identity, partition, 'elasticloadbalancing', account, region)
                         or listener.get('LoadBalancerArn') != arn):

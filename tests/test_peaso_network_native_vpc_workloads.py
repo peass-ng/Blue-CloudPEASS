@@ -1,6 +1,7 @@
 """Regression evidence for independent SDK-audit additions, not name-only fixtures."""
 import json
 import pytest
+from types import SimpleNamespace
 from peaso.collectors.aws_network_inventory import PLANS, FETCHERS, READ_ACTIONS
 from peaso.collectors.aws import Requests
 from tests.test_peaso_network_managed_services import topology, node, linked
@@ -25,6 +26,15 @@ class Session:
         self.native = client
     def client(self, service, **kwargs):
         return self.native
+
+
+def test_agentcore_harness_unavailable_sdk_operation_is_not_collected():
+    client = NativeClient({})
+    client.meta = SimpleNamespace(service_model=SimpleNamespace(operation_names=[]))
+    read = FETCHERS['agentcore_harness'](Requests({}), Session(client), 'us-east-1', '111111111111')
+    assert read.status == 'not_collected' and read.items == []
+    assert read.error == {'code': 'sdk_operation_unavailable'}
+    assert client.calls == []
 
 
 @pytest.mark.parametrize('kind,responses,target_kind,target', [

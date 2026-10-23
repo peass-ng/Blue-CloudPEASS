@@ -38,6 +38,21 @@ def run(kind, session, requests=None):
     return ext.FETCHERS[kind](requests or aws.Requests({}), session, REGION, ACCOUNT)
 
 
+def test_organizations_access_validation_error_keeps_unknown(stub):
+    session, add = stub
+    add('cloudformation').add_client_error('describe_organizations_access', 'ValidationError', expected_params={})
+    read = run('cloudformation_organizations_access', session)
+    assert read.status == 'unknown' and read.items == []
+    assert read.error == {'code': 'ValidationError', 'cause_status': 'unknown'}
+
+
+def test_organizations_access_documented_disabled_state(stub):
+    session, add = stub
+    add('cloudformation').add_response('describe_organizations_access', {'Status': 'DISABLED'}, {})
+    read = run('cloudformation_organizations_access', session)
+    assert read.status == 'collected' and read.items == [{'id': f'{ACCOUNT}/{REGION}', 'Status': 'DISABLED'}]
+
+
 def test_extension_registers_read_only_kinds():
     for kind in ext.SPECS:
         assert kind in aws.AWS_TYPES and aws.FETCHERS[kind] is ext.FETCHERS[kind]

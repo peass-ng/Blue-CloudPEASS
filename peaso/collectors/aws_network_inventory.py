@@ -216,6 +216,11 @@ def collect(kind):
     plan = PLANS[kind]
     def fetch(requests, session, region, account):
         from .aws import ReadResult
+        if kind == 'agentcore_harness':
+            from botocore import xform_name
+            model = session.client(plan['service'], region_name=region).meta.service_model
+            if not any(xform_name(name) == plan['operation'] for name in model.operation_names):
+                return ReadResult([], 'not_collected', {'code': 'sdk_operation_unavailable'})
         session = MetadataSession(session)
         service = plan['service']
         failures, rows = [], []

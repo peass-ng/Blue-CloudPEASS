@@ -65,9 +65,10 @@ def setup_reads(sdk, mode):
             return session, (elb, api, cf)
         listener = {'ListenerArn': LISTENER, 'LoadBalancerArn': LB, 'Protocol': 'HTTP' if mode == 'http' else 'TCP' if mode == 'tcp' else 'HTTPS',
                     'Port': 443, 'SslPolicy': APPROVED[0]}
+        if mode == 'tcp': listener.pop('SslPolicy')
         if mode == 'foreign_listener': listener['LoadBalancerArn'] = LB.replace(ACCOUNT, '999999999999')
         elb.add_response('describe_listeners', {'Listeners': [listener]}, {'LoadBalancerArn': LB})
-        if mode in ('tcp', 'foreign_listener'):
+        if mode == 'foreign_listener':
             return session, (elb, api, cf)
     if mode == 'domain_denied':
         api.add_client_error('get_domain_names', 'AccessDeniedException', expected_params={})
@@ -101,6 +102,10 @@ def test_native_endpoint_joins_and_actual_published_decisions(sdk, mode):
         assert decisions(read, policy=False) == ['UNKNOWN', 'UNKNOWN']
         serialized = json.dumps(read.items)
         assert 'never-export-this' not in serialized and 'private-unrelated-description' not in serialized
+    elif mode == 'tcp':
+        assert read.status == 'collected'
+        assert any(row['Protocol'] == 'TCP' and row['TLSPolicy'] == '' for row in read.items)
+        assert decisions(read) == ['UNKNOWN', 'UNKNOWN']
     else:
         assert read.status not in ('collected', 'empty')
         assert not any(value in ('PASS', 'NOT_APPLICABLE') for value in decisions(read))

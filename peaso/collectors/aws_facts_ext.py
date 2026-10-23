@@ -600,7 +600,8 @@ def _stack_instances(requests, session, region, account):
 def _stackset_organizations_access(requests, session, region, account):
     response, failure = _raw(requests, session, "cloudformation", region, "describe_organizations_access")
     if failure:
-        return _finish([], failure)
+        status, code = failure
+        return _finish([], (status, {"code": code}))
     status = response.get("Status") if isinstance(response, dict) else None
     if status not in {"ENABLED", "DISABLED", "DISABLED_PERMANENTLY"}:
         return _finish([], ("malformed", {"code": "invalid_organizations_access_status"}))
