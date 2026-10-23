@@ -1074,7 +1074,8 @@ def test_eks_node_instance_role_is_the_node_identity(options, imds):
     k = _k8s_nodes("aws:///us-east-1a/i-1")
     result = real(k, *_NODE_IDS, related_snapshots=[_aws_node(options)])
     ident = f"cloud:eks_node:{EC2_ROLE}"
-    assert reached(result, "k8s:c1:node:n1")[ident] == "derived"
+    # The node identity is known, but API access to the node does not prove host control.
+    assert reached(result, "k8s:c1:node:n1")[ident] == "conditional"
     edge = next(e for e in result["graph"]["edges"] if e["source"] == "k8s:c1:sa:a:builder" and e["target"] == ident)
     assert {d["id"]: d["confidence"] for d in edge["technique_details"]}["k8s-cloud-pod-imds-node-identity"] == imds
 
