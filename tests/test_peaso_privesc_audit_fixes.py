@@ -1065,18 +1065,21 @@ def _aws_node(options):
     return aws([], [role("ec2-role")], [("instance", f"{ACCOUNT}/{REGION}", [inst], "collected")])
 
 
-@pytest.mark.parametrize("options,imds", [
-    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 2}, "derived"),
-    ({"HttpTokens": "optional", "HttpPutResponseHopLimit": 1}, "derived"),
-    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 1}, "conditional"),
+@pytest.mark.parametrize("options,pod_imds_route", [
+    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 2}, True),
+    ({"HttpTokens": "optional", "HttpPutResponseHopLimit": 1}, True),
+    ({"HttpTokens": "required", "HttpPutResponseHopLimit": 1}, False),
 ])
-def test_eks_node_instance_role_is_the_node_identity(options, imds):
+def test_eks_node_instance_role_is_the_node_identity(options, pod_imds_route):
     k = _k8s_nodes("aws:///us-east-1a/i-1")
     result = real(k, *_NODE_IDS, related_snapshots=[_aws_node(options)])
     ident = f"cloud:eks_node:{EC2_ROLE}"
-    assert reached(result, "k8s:c1:node:n1")[ident] == "derived"
+    # The node identity is known, but API access to the node does not prove host control.
+    assert reached(result, "k8s:c1:node:n1")[ident] == "conditional"
     edge = next(e for e in result["graph"]["edges"] if e["source"] == "k8s:c1:sa:a:builder" and e["target"] == ident)
-    assert {d["id"]: d["confidence"] for d in edge["technique_details"]}["k8s-cloud-pod-imds-node-identity"] == imds
+    details = {d["id"]: d["confidence"] for d in edge["technique_details"]}
+    assert details.get("k8s-cloud-pod-imds-node-identity") == ("conditional" if pod_imds_route else None)
+    assert details["k8s-cloud-hostnetwork-pod-node-identity"] == "conditional"
 
 
 def test_aks_kubelet_identity_is_the_node_identity():
