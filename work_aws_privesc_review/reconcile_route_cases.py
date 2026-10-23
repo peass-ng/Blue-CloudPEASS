@@ -34,6 +34,8 @@ def main():
     parser.add_argument("--cspm-revision", required=True)
     parser.add_argument("--hacktricks-revision", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--allow-incomplete-shards", action="store_true",
+                        help="write provisional per-case evidence from finished shards")
     args = parser.parse_args()
     for value in (args.cspm_revision, args.hacktricks_revision):
         if not re.fullmatch(r"[0-9a-f]{40}", value):
@@ -51,8 +53,11 @@ def main():
 
     files = [args.junit_dir / f"shard-{index:02d}.xml" for index in range(19)]
     missing = [str(path) for path in files if not path.is_file()]
-    if missing:
+    if missing and not args.allow_incomplete_shards:
         parser.error(f"all 19 shards must be complete; missing {missing}")
+    files = [path for path in files if path.is_file()]
+    if not files:
+        parser.error("no completed JUnit shard found")
 
     tests = {}
     junit_hashes = {}
@@ -107,6 +112,8 @@ def main():
         "cspm_revision": args.cspm_revision,
         "hacktricks_revision": args.hacktricks_revision,
         "case_ledger_sha256": hashlib.sha256(case_path.read_bytes()).hexdigest(),
+        "junit_set_complete": not missing,
+        "missing_shards": [Path(path).name for path in missing],
         "junit_sha256": junit_hashes,
         "partial_routes_audited": len(audit),
         "positive_negative_passed": sum(row["positive_negative_passed"] for row in audit.values()),
@@ -117,7 +124,9 @@ def main():
         "routes": audit,
     }
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
-    print(f"{len(audit)} partial routes audited; {result['positive_negative_passed']} have passing positive and negative nodes")
+    state = "complete" if not missing else f"provisional ({len(files)}/19 shards)"
+    print(f"{len(audit)} partial routes audited from {state}; "
+          f"{result['positive_negative_passed']} have passing positive and negative nodes")
 
 
 if __name__ == "__main__":
