@@ -63,6 +63,26 @@ def test_missing_archive_and_manifest_use_exact_pinned_pack(tmp_path, monkeypatc
     assert recovered == expected
 
 
+@pytest.mark.parametrize('missing', ['archive', 'manifest', 'both'])
+def test_precanonical_685_binding_recovers_only_exact_pinned_history(tmp_path, monkeypatch, missing):
+    row = next(item for item in declarations()
+               if item[1].name == 'prior-reviewed-685-99a-catalog.tar.gz')
+    manifest, archive, manifest_sha, archive_sha, tree, count, excluded = row
+    local_pack = tmp_path / catalog.RUNTIME_HISTORY_PACK.name
+    local_pack.write_bytes(catalog.RUNTIME_HISTORY_PACK.read_bytes())
+    monkeypatch.setattr(catalog, 'RUNTIME_HISTORY_PACK', local_pack)
+    local_manifest, local_archive = tmp_path / manifest.name, tmp_path / archive.name
+    if missing == 'archive':
+        local_manifest.write_bytes(manifest.read_bytes())
+    elif missing == 'manifest':
+        local_archive.write_bytes(archive.read_bytes())
+    recovered = catalog._verified_archived_current(
+        local_manifest, local_archive, manifest_sha, archive_sha, tree, count, excluded)
+    assert len(recovered) == 685
+    assert recovered['azure-apim-developer-portal-sso-external-principal']['source'].endswith(
+        '#microsoftapimanagementserviceuserstokenaction')
+
+
 @pytest.mark.parametrize('target', ['pack', 'archive', 'manifest'])
 def test_pack_and_changed_present_originals_fail_closed(tmp_path, monkeypatch, target):
     row = next(item for item in declarations()
