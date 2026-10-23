@@ -47,15 +47,17 @@ def _resume_prior(checkpoint_session, prior):
     if prior.get("metadata", {}).get("intentional_partial") is not True:
         checkpoint_session.restore_final(prior)
         return prior
-    from peaso.snapshot import make_snapshot
     metadata = dict(prior.get("metadata") or {})
     for key in ("intentional_partial", "scope_coverage", "incremental", "sections"):
         metadata.pop(key, None)
     rows = list(checkpoint_session.collections.values())
     if not rows:
         raise ValueError("No restored checkpoint batches")
-    return make_snapshot(prior["provider"], sorted({row["scope"] for row in rows}),
-                         rows, metadata=metadata)
+    # Do not copy a multi-account native inventory here: partition() validates
+    # the composed candidate once and the checkpoint session retains its rows.
+    return {"schema_version": prior["schema_version"], "provider": prior["provider"],
+            "scopes": sorted({row["scope"] for row in rows}),
+            "created_at": prior["created_at"], "collections": rows, "metadata": metadata}
 
 
 def _partial_reuse_allowed(connector, partial_metadata):

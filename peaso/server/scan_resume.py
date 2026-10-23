@@ -92,7 +92,7 @@ def compatible_connector(row, latest, cipher):
 
 def recoverable_sources(row, store, artifacts):
     """Prove saved objects belong to this scan before resetting its queue state."""
-    from peaso.snapshot import validate
+    from peaso.snapshot import digest, validate
     stage = resume_stage(row)
     if stage is None:
         raise StoreError(409, "This scan has no recoverable work")
@@ -115,12 +115,15 @@ def recoverable_sources(row, store, artifacts):
                              for ref in references):
         raise StoreError(409, "Saved scan results are unavailable")
     try:
-        for reference in dict.fromkeys(references):
-            snapshot = validate(artifacts.get(row["tenant"], reference))
-            if snapshot["provider"] != provider or not snapshot["collections"]:
-                raise ValueError("Saved scan provider mismatch")
+        if not partial:
+            for reference in dict.fromkeys(references):
+                snapshot = validate(artifacts.get(row["tenant"], reference))
+                if snapshot["provider"] != provider or not snapshot["collections"]:
+                    raise ValueError("Saved scan provider mismatch")
         if partial:
             saved = validate(artifacts.get(row["tenant"], row["partial_snapshot"]))
+            if saved["provider"] != provider or not saved["collections"]:
+                raise ValueError("Saved scan provider mismatch")
             metadata = saved.get("metadata") or {}
             incremental = metadata.get("incremental") or {}
             frozen = json.loads(row["connector"])["data"]
@@ -169,6 +172,8 @@ def recoverable_sources(row, store, artifacts):
             at_publication = {}
             for entry in entries:
                 batch = validate(artifacts.get(row["tenant"], entry["reference"]))
+                if batch["provider"] != provider or not batch["collections"]:
+                    raise ValueError("Saved batch provider mismatch")
                 mark = (batch.get("metadata") or {}).get("incremental") or {}
                 if (mark.get("sequence") != entry["sequence"] or mark.get("phase") != "collecting"
                         or batch.get("metadata", {}).get("requested_scopes") != scopes):
@@ -196,9 +201,9 @@ def recoverable_sources(row, store, artifacts):
                     if entry["sequence"] <= row["partial_report_sequence"]:
                         key = (envelope["type"], envelope["scope"])
                         if revision >= at_publication.get(key, (-1, None))[0]:
-                            at_publication[key] = (revision, envelope)
-            expected = {key: envelope for key, (_, envelope) in at_publication.items()}
-            observed = {(envelope["type"], envelope["scope"]): envelope
+                            at_publication[key] = (revision, digest(envelope))
+            expected = {key: value for key, (_, value) in at_publication.items()}
+            observed = {(envelope["type"], envelope["scope"]): digest(envelope)
                         for envelope in saved["collections"]}
             if not expected or expected != observed:
                 raise ValueError("Saved cumulative checkpoint mismatch")
