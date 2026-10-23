@@ -7,6 +7,9 @@ This is the single status file for the AWS privilege escalation work. Regenerate
 - Active catalog: 220 reviewed; 220 have at least one located test file. End-to-end suite states: {'pending_final_suite': 220}.
 - Final pytest run remains pending; no complete 19-shard result is recorded.
 - ID-specific graph test audit: 55 have a recorded passing exact case, 165 have a located but partial case, and 0 have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.
+- Among the 165 partial routes, 164 name a positive assertion, 156 name a negative assertion, and 41 name an unknown-result assertion. These are located assertions, not recorded passing exact graph cases.
+- Partial routes without a named positive assertion: aws-ec2-passrole-associate-instance-profile.
+- Partial routes without a named negative assertion: aws-eks-associateaccesspolicy-existing-entry, aws-gamelift-getcomputeaccess-shared-fleet-role, aws-iam-createaccesskey-other-user, aws-iam-putrolepermissionsboundary-self-admin, aws-mwaa-s3-putobject-dag, aws-sagemaker-passrole-createprocessingjob, aws-scheduler-passrole-updateschedule-self-grant, aws-ssm-sendcommand-hybrid-role, aws-ssm-startsession-hybrid-role.
 - External evidence: 58 active techniques reference `aws_privesc_challenge_evidence`; 55 require a trusted live-effect witness for a conditional edge and 3 Glue routes also have a native conditional path. The IAM and resource prerequisites still run automatically; missing live-effect proof remains UNKNOWN.
 - Retired cohort: 0 candidates unresolved, 333 exclusions verified, 29 restored or implemented.
 - Additional routes: 0 candidates unresolved, 19 exclusions verified, 0 implemented.

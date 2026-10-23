@@ -48,6 +48,9 @@ def main():
     page_counts = Counter(row["review_state"] for row in pages)
     suite_counts = Counter(row["end_to_end_suite"] for row in active)
     case_counts = Counter(row["status"] for row in route_cases)
+    partial_cases = [row for row in route_cases if row["status"] == "partial"]
+    missing_positive = [row["id"] for row in partial_cases if not row["positive_case"]]
+    missing_negative = [row["id"] for row in partial_cases if not row["negative_case"]]
     suite_result = ROOT / "final-suite-result.json"
     suite = json.loads(suite_result.read_text()) if suite_result.is_file() else None
     lines = [
@@ -59,6 +62,9 @@ def main():
          f"`{suite['hacktricks_source_revision']}`. Its result applies to those exact revisions; later changes need their own validation."
          if suite else "- Final pytest run remains pending; no complete 19-shard result is recorded."),
         f"- ID-specific graph test audit: {case_counts['exact_cases_verified']} have a recorded passing exact case, {case_counts['partial']} have a located but partial case, and {case_counts['no_exact_case']} have no ID-specific case located. The exact test evidence and remaining gaps for every ID are in `route-case-coverage.tsv`; these coverage states do not establish whether a route can be used in an account.",
+        f"- Among the {len(partial_cases)} partial routes, {sum(bool(row['positive_case']) for row in partial_cases)} name a positive assertion, {sum(bool(row['negative_case']) for row in partial_cases)} name a negative assertion, and {sum(bool(row['unknown_case']) for row in partial_cases)} name an unknown-result assertion. These are located assertions, not recorded passing exact graph cases.",
+        f"- Partial routes without a named positive assertion: {', '.join(missing_positive) or 'none'}.",
+        f"- Partial routes without a named negative assertion: {', '.join(missing_negative) or 'none'}.",
         f"- External evidence: {proof} active techniques reference `aws_privesc_challenge_evidence`; {proof_modes['external_proof_required_for_conditional']} require a trusted live-effect witness for a conditional edge and {proof_modes['native_conditional_or_external_proof']} Glue routes also have a native conditional path. The IAM and resource prerequisites still run automatically; missing live-effect proof remains UNKNOWN.",
         f"- Retired cohort: {retired_counts['candidate']} candidates unresolved, {retired_counts['excluded_verified']} exclusions verified, {retired_counts['implemented']} restored or implemented.",
         f"- Additional routes: {additional_counts['candidate']} candidates unresolved, {additional_counts['excluded_verified']} exclusions verified, {additional_counts['implemented']} implemented.",
