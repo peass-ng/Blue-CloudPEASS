@@ -1026,7 +1026,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     def finding_selection(tenant, ident, categories=None, framework=None, severity=None,
                           service=None, status=None, search=None, group_by="service", sort_by=None,
-                          status_count_aggregation=None, finding_type=None):
+                          status_count_aggregation=None, finding_type=None, build_sort_cards=True):
         row, bundle = owned_bundle(tenant, ident)
         bundle = finding_review_context(tenant, ident, bundle)
         summary = bundle.get("summary", bundle)
@@ -1161,7 +1161,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                         continue
                 elif not selected(value):
                     continue
-                selected_rows.append((value, sort_card(value)))
+                selected_rows.append((value, sort_card(value) if build_sort_cards else None))
         for check in facet_checks:
             facets["frameworks"].update(labels.get(check, []))
         status_filter_counts = None
@@ -1173,7 +1173,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, finding_type: str | None = None, group_by: Literal["service", "check_id", "resource_id", "finding_type"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle, selected_rows, facets, account_label, labels, meta, field, status_filter_counts, status_filter_total = finding_selection(
             user.tenant_id, ident, categories, framework, severity, service, status, search, group_by, sort_by,
-            status_count_aggregation=aggregation, finding_type=finding_type)
+            status_count_aggregation=aggregation, finding_type=finding_type, build_sort_cards=aggregation != "check")
         service_groups = None
         type_groups = None
         if aggregation == "check":
@@ -1241,7 +1241,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                       secret_offset: int = Query(default=0, ge=0, le=50000), user=Depends(identity)):
         from .finding_groups_static_20261021 import group_id, group_findings, placement, member_scopes, STATUS_ORDER
         row, bundle, selected, _, _, labels, meta, field, _, _ = finding_selection(
-            user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type)
+            user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type, build_sort_cards=False)
         provider = bundle.get("summary", bundle).get("provider", "")
         members = [dict(value, provider=value.get("provider") or provider,
                    severity=field(value, "severity") if isinstance(field(value, "severity"), str) else "info")
@@ -1373,7 +1373,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if aggregation == "check":
             from .finding_groups_static_20261021 import group_findings
             from collections import Counter
-            _, _, selected, _, _, _, _, field, _, _ = finding_selection(user.tenant_id, ident)
+            _, _, selected, _, _, _, _, field, _, _ = finding_selection(user.tenant_id, ident, build_sort_cards=False)
             provider = value.get("provider", "")
             groups = group_findings(dict(item, provider=item.get("provider") or provider,
                 severity=field(item, "severity") if isinstance(field(item, "severity"), str) else "info",
