@@ -80,6 +80,8 @@ def main():
                 "skipped" if case.find("skipped") is not None else "passed"
             )
             tests.setdefault(key, []).append(outcome)
+    if not tests:
+        parser.error("JUnit contains no test cases")
 
     case_path = HERE / "route-case-coverage.tsv"
     with case_path.open(newline="") as stream:
@@ -97,12 +99,14 @@ def main():
             if row[field] != tested[field]:
                 parser.error(f"{row['id']} {field} differs from the tested CSPM revision")
     audit = {}
+    named_nodes = set()
     for row in rows:
         if row["status"] != "partial":
             continue
         checks = {}
         for kind in ("positive", "negative", "unknown"):
             refs = case_refs(row[f"{kind}_case"])
+            named_nodes.update(refs)
             checks[kind] = [{
                 "node": f"{module}::{name}",
                 "outcomes": tests.get((module, name), []),
@@ -126,6 +130,9 @@ def main():
         "junit_set_complete": run_kind == "full_suite",
         "missing_shards": [Path(path).name for path in missing],
         "junit_sha256": junit_hashes,
+        "named_nodes_expected": len(named_nodes),
+        "named_nodes_observed": sum(key in tests for key in named_nodes),
+        "named_nodes_missing": sorted(f"{module}::{name}" for module, name in named_nodes if (module, name) not in tests),
         "partial_routes_audited": len(audit),
         "positive_negative_passed": sum(row["positive_negative_passed"] for row in audit.values()),
         "unknown_passed": sum(row["unknown_passed"] for row in audit.values()),
