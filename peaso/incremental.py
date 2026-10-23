@@ -133,6 +133,8 @@ class CheckpointSession:
                                     "completed_collections": len(envelopes),
                                     "completed_kinds": sorted({row["type"] for row in envelopes
                                         if row["status"] in {"collected", "empty"}})}}
+        if self.scope_plan is not None:
+            metadata["incremental"]["scope_plan"] = list(self.scope_plan)
         if self.provider == 'aws' and self.image_targets:
             from .collectors.aws_image_vulnerability_runtime_20261021 import attach_metadata
             attach_metadata(metadata, envelopes, self.image_targets)

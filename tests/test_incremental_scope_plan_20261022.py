@@ -95,6 +95,25 @@ def test_restored_facts_do_not_restore_discovery_authority(monkeypatch):
         session.close()
 
 
+def test_exact_scope_plan_is_persisted_only_after_native_discovery(monkeypatch):
+    checkpoints = []
+    session = session_for_test(monkeypatch, checkpoints)
+    try:
+        settle(session, 'vpc', SCOPE)
+        session.sections()
+        assert checkpoints and all('scope_plan' not in row[0]['metadata']['incremental']
+                                   for row in checkpoints)
+        plan = (B + '/ap-south-1', SCOPE)
+        session.on_scope_plan(plan)
+        assert checkpoints[-1][0]['metadata']['incremental']['scope_plan'] == sorted(plan)
+        settle(session, 'vpc', B + '/ap-south-1')
+        session.flush()
+        assert checkpoints[-1][0]['metadata']['incremental']['scope_plan'] == sorted(plan)
+        assert session.scope_plan == tuple(sorted(plan))
+    finally:
+        session.close()
+
+
 @pytest.mark.parametrize('plan', [[], (), ('*',), (A,), (A + '/global',), (SCOPE, SCOPE)])
 def test_scope_plan_rejects_non_exact_or_mutable_input(monkeypatch, plan):
     session = session_for_test(monkeypatch, [])
