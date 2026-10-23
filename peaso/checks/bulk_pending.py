@@ -39,6 +39,51 @@ def _reviewed_source_admitted(name, source, pin):
         return (source.count(dispatch_after) == source.count(dependency_after) == 1
                 and hashlib.sha256(source.replace(dispatch_after, dispatch_before, 1)
                                    .replace(dependency_after, dependency_before, 1)).hexdigest() == pin)
+    if (name == 'compliance_new_sw46'
+            and pin == '553fc35045130d729c20e1cec09fd1a6d897d9ae65c69257202b26cbf8b575be'
+            and actual == '317009684ec3e4b96a176de02803a85951e2f20969b5fb617c8cf9ed2319cad5'):
+        # The four exact source inverses restore the still-signed SW46 module.
+        # No manifest entry, predicate, or other bulk source is repinned.
+        changes = (
+            (b'from .facts import MemoIndex, Unavailable, complete_items, get, memoized\n',
+             b'from .facts import Unavailable, complete_items, get\n'),
+            (b'def _items(index, kind):\n'
+             b'    if type(index) is MemoIndex:\n'
+             b'        return list(memoized(index, ("sw46._items", kind), lambda: _validated_items(index, kind)))\n'
+             b'    return _validated_items(index, kind)\n\n\n'
+             b'def _validated_items(index, kind):\n',
+             b'def _items(index, kind):\n'),
+            (b'\n\ndef _resource_lookup(rows, key):\n'
+             b'    by_id, duplicate = {}, False\n'
+             b'    for row in rows:\n'
+             b'        value = get(row, key, str)\n'
+             b'        if not value:\n'
+             b'            raise Unavailable("empty inventory identity")\n'
+             b'        if value in by_id:\n'
+             b'            duplicate = True\n'
+             b'        else:\n'
+             b'            by_id[value] = row\n'
+             b'    return by_id, duplicate\n', b''),
+            (b'def _resource(item, index, kind):\n'
+             b'    if type(index) is MemoIndex:\n'
+             b'        rows = _items(index, kind)\n'
+             b'        key = _IDS[kind]\n'
+             b'        identity = get(item, key, str)\n'
+             b'        if not identity:\n'
+             b'            raise Unavailable("missing resource identity")\n'
+             b'        by_id, duplicate = memoized(index, ("sw46._resource", kind, key),\n'
+             b'            lambda: _resource_lookup(rows, key))\n'
+             b'        if duplicate or identity not in by_id or by_id[identity] != item:\n'
+             b'            raise Unavailable("ambiguous or foreign resource identity")\n'
+             b'        return identity\n',
+             b'def _resource(item, index, kind):\n'),
+        )
+        prior = source
+        for after, before in changes:
+            if prior.count(after) != 1:
+                return False
+            prior = prior.replace(after, before, 1)
+        return hashlib.sha256(prior).hexdigest() == pin
     if (name != 'compliance_new_sw52' or pin != '283625d80b768b1e4f96ebd0669ae0044787f8e56c47bac3b416b1e4b5f092bc'
             or actual != '28e4e029e4f1b0c2ca7c4dabef08f6e136767a74e1240157457f88a1f855ea9d'):
         return False

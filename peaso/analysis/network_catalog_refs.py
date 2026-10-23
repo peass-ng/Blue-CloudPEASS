@@ -3,9 +3,11 @@ import re
 from .network_services import project_network_data, walk, aws_scope, gcp_ref, azure_scope, azure_kind
 
 
-def references(resource):
+def references(resource, *, facts=None):
+    from . import network_facts
+    facts = network_facts.NetworkFacts(resource["data"]) if facts is None else facts
     provider, kind = resource["provider"], resource["type"]
-    data = project_network_data(resource["data"])
+    data = facts.projected()
     if provider == "aws":
         if kind == 'vpc_endpoint_connection' and isinstance(resource['data'].get('ServiceId'), str):
             yield 'ServiceId', 'vpc_endpoint_service', resource['data']['ServiceId'], resource['scope'], 'private_endpoint_service'
@@ -210,7 +212,7 @@ def references(resource):
                 parent = rid[:match.start()]
                 yield "id", target, parent, azure_scope(parent, resource["scope"]), "service_parent"
     elif provider == "gcp":
-        yield from _gcp_native_service_links(resource)
+        yield from _gcp_native_service_links(resource, facts=facts)
         if kind == 'cloudrun_revision':
             native = resource.get('native_id', '')
             if isinstance(native, str) and '/revisions/' in native:
@@ -276,10 +278,9 @@ def references(resource):
                 yield "name", "app_engine_service", name.rsplit("/versions/", 1)[0], None, "service_parent"
 
 
-def _gcp_native_service_links(resource):
+def _gcp_native_service_links(resource, *, facts=None):
     """Explicit API resource names, including nested private-service parents."""
     from .network_catalog import _GCP_PRIVATE_SERVICES as plans
-    from .network_observations import network_observations
     plan = plans.get(resource['type'])
     if not plan:
         return
@@ -299,7 +300,9 @@ def _gcp_native_service_links(resource):
         for parent in spec.get('parents', []):
             value += '/' + re.escape(parent['segment']) + r'/[^/?#%]+'
         return value + '/' + re.escape(spec['segment']) + r'/[^/?#%]+'
-    for fact in network_observations(resource['data']):
+    from . import network_facts
+    facts = network_facts.NetworkFacts(resource['data']) if facts is None else facts
+    for fact in facts.observations():
         values = fact['value'] if isinstance(fact['value'], list) else [fact['value']]
         for value in values:
             for target in fields.get(fact['name'], ()):

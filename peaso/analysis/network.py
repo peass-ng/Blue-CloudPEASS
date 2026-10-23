@@ -118,12 +118,14 @@ def exposure_findings(snapshot, resources):
     return findings
 
 
-def references(resource):
+def references(resource, *, prepared=None):
+    from . import network_facts
+    prepared = network_facts.NetworkFacts(resource["data"]) if prepared is None else prepared
     data, provider, kind = _object(resource.get("data")), resource["provider"], resource["type"]
     if provider == "aws" and kind in SERVICE_TYPES['aws'] and kind != "route53_zone":
-        from .network_observations import network_observations, aws_attachment
+        from .network_observations import aws_attachment
         from .network_services import aws_scope
-        for observation in network_observations(data):
+        for observation in prepared.observations() if isinstance(resource.get("data"), dict) else ():
             if observation['name'] in {'ResourceConfigurationArn', 'resourceConfigurationArn'} and isinstance(observation['value'], str):
                 yield observation.get('evidence_path', observation['path']), 'lattice_resource_configuration', observation['value'], aws_scope(observation['value'], resource['scope']), 'private_connection_target'
             for path, target, identity in aws_attachment(observation):
@@ -159,9 +161,8 @@ def references(resource):
                     'attached_interface' if target == 'network_interface' else 'service_reference')
                 yield path, target, native, aws_scope(identity, fallback), relation
     elif provider in {'azure', 'gcp'}:
-        from .network_observations import network_observations
         from .network_services import gcp_ref, azure_scope, azure_kind
-        for observation in network_observations(data):
+        for observation in prepared.observations() if isinstance(resource.get("data"), dict) else ():
             value = observation['value']
             for i, identity in enumerate(value if isinstance(value, list) else [value]):
                 if not isinstance(identity, str):
@@ -184,9 +185,9 @@ def references(resource):
                     if target != 'private_link_service_reference':
                         yield path, target, identity, azure_scope(identity, resource['scope']), 'associated_with'
     from .network_catalog_refs import references as catalog_references
-    yield from catalog_references(resource)
+    yield from catalog_references(resource, facts=prepared)
     if kind not in {"rds_instance", "rds_cluster", "lambda_function", "eks_cluster", "gke_cluster"}:
-        for path, target, rid, scope, relation in service_references(resource):
+        for path, target, rid, scope, relation in service_references(resource, facts=prepared):
             yield (f"data.{path}" if provider == "gcp" else path), target, rid, scope, relation
     if provider == "aws":
         if kind in {"rds_instance", "rds_cluster", "lambda_function", "eks_cluster"}:
@@ -752,22 +753,36 @@ def _ecs_service_tasks(snapshot, selected, edges):
 
 def build_network(snapshot, resources):
     selected = [r for r in resources if r["type"] in NETWORK_TYPES]
-    nodes = {node_id(r): node(r) for r in selected}
-    from .network_observations import network_observations
+    nodes, resource_node_ids = {}, []
     for resource in selected:
+        current_id = node_id(resource)
+        nodes[current_id] = node(resource)
+        resource_node_ids.append(current_id)
+    # IDs are pure functions of each resource's recorded identity. Reuse the
+    # initial IDs across topology passes, including inventories larger than
+    # the shared hash cache. Duplicate identities still retain every row.
+    from .network_observations import network_observations
+    from . import network_facts
+    # Unique nodes already retain these observations; only an extra reference
+    # per resource is needed. Duplicate node IDs retain the original readers.
+    recorded_observations = [] if len(nodes) == len(selected) else None
+    empty_observations = []
+    for position, resource in enumerate(selected):
         observations = network_observations(resource["data"])
+        if recorded_observations is not None:
+            recorded_observations.append(observations if observations else empty_observations)
         if observations:
-            nodes[node_id(resource)]["network_attributes"] = observations
+            nodes[resource_node_ids[position]]["network_attributes"] = observations
     lookup = {}
     azure_ids = {}
     endpoint_services = {}
     k8s_pods, k8s_owners, pod_context_gaps = {}, {}, set()
     pod_status = {c["scope"]: c["status"] for c in snapshot["collections"] if c["type"] == "pod"}
-    for resource in selected:
+    for position, resource in enumerate(selected):
         data = _object(resource["data"])
         if resource["type"] in {"rds_instance", "rds_cluster", "lambda_function", "eks_cluster", "gke_cluster"} and not _managed_network_facts(resource):
-            nodes[node_id(resource)]["evidence"]["placement_status"] = "unknown"
-            nodes[node_id(resource)]["evidence"]["placement_reason"] = "native_network_attachment_or_endpoint_facts_missing"
+            nodes[resource_node_ids[position]]["evidence"]["placement_status"] = "unknown"
+            nodes[resource_node_ids[position]]["evidence"]["placement_reason"] = "native_network_attachment_or_endpoint_facts_missing"
         if resource["provider"] == "k8s":
             cluster, namespace = _k8s_context(snapshot, resource)
             if resource["type"] == "pod" and cluster and namespace:
@@ -782,7 +797,7 @@ def build_network(snapshot, resources):
         if resource["provider"] == "aws":
             aliases += [data.get(key) for key in ("FileSystemId", "Id", "SubnetGroupName", "CacheSubnetGroupName", "ClusterSubnetGroupName", "DBSubnetGroupName", "EndpointConfigName", "ModelName", "Arn", "arn", "ARN")]
             if resource["type"] == "vpc_endpoint_service" and isinstance(data.get("ServiceName"), str):
-                endpoint_services.setdefault(data["ServiceName"], []).append(node_id(resource))
+                endpoint_services.setdefault(data["ServiceName"], []).append(resource_node_ids[position])
         if resource["provider"] == "gcp":
             for alias in list(aliases):
                 if normalized := gcp_ref(alias, resource["type"], resource):
@@ -790,13 +805,15 @@ def build_network(snapshot, resources):
         for alias in aliases:
             if alias:
                 if resource["provider"] == "azure" and isinstance(alias, str) and alias.startswith("/"):
-                    azure_ids.setdefault((resource["type"], alias.casefold()), set()).add(node_id(resource))
+                    azure_ids.setdefault((resource["type"], alias.casefold()), set()).add(resource_node_ids[position])
                 lookup[(resource["scope"].casefold() if resource["provider"] == "azure" else resource["scope"],
-                        resource["type"], str(alias).casefold() if resource["provider"] == "azure" else str(alias))] = node_id(resource)
+                        resource["type"], str(alias).casefold() if resource["provider"] == "azure" else str(alias))] = resource_node_ids[position]
     edges = []
     pod_index = _K8sPodIndex(k8s_pods)
-    for resource in selected:
-        src = node_id(resource)
+    for position, resource in enumerate(selected):
+        observations = recorded_observations[position] if recorded_observations is not None else None
+        facts = network_facts.NetworkFacts(resource["data"], observations=observations)
+        src = resource_node_ids[position]
         if resource["provider"] == "gcp" and resource["type"] == "instance":
             for i, interface in enumerate(as_list(resource["data"].get("networkInterfaces"))):
                 if not isinstance(interface, dict):
@@ -815,7 +832,7 @@ def build_network(snapshot, resources):
                     nodes.setdefault(target, {"id": target, "label": str(ref), "native_id": str(ref), "resource_id": None,
                         "type": kind, "provider": "gcp", "scope": scope, "evidence": {"inventory_status": "reference_only"}})
                     edges.append(relationship(dst, target, relation, source(snapshot, resource, f"networkInterfaces[{i}].{path}")))
-        for path, kind, rid, scope, relation in references(resource):
+        for path, kind, rid, scope, relation in references(resource, prepared=facts):
             scope = scope or resource["scope"]
             key = (scope.casefold() if resource["provider"] == "azure" else scope,
                    kind, str(rid).casefold() if resource["provider"] == "azure" else str(rid))

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from ipaddress import ip_address
 
 from . import CHECKS, register, result, unknown
-from .facts import Unavailable, complete_items, get
+from .facts import MemoIndex, Unavailable, complete_items, get, memoized
 
 SIGNED = {'aws.pci.cloudwatch.metric_alarm_settings': {'category': 'hardening',
                                               'provider': 'aws',
@@ -172,6 +172,12 @@ def _context(index):
 
 
 def _items(index, kind):
+    if type(index) is MemoIndex:
+        return list(memoized(index, ("sw46._items", kind), lambda: _validated_items(index, kind)))
+    return _validated_items(index, kind)
+
+
+def _validated_items(index, kind):
     scope, _, _ = _context(index)
     envelopes = get(index, "collections", dict).get(kind)
     if (not isinstance(envelopes, list) or len(envelopes) != 1 or
@@ -190,7 +196,31 @@ def _items(index, kind):
     return rows
 
 
+def _resource_lookup(rows, key):
+    by_id, duplicate = {}, False
+    for row in rows:
+        value = get(row, key, str)
+        if not value:
+            raise Unavailable("empty inventory identity")
+        if value in by_id:
+            duplicate = True
+        else:
+            by_id[value] = row
+    return by_id, duplicate
+
+
 def _resource(item, index, kind):
+    if type(index) is MemoIndex:
+        rows = _items(index, kind)
+        key = _IDS[kind]
+        identity = get(item, key, str)
+        if not identity:
+            raise Unavailable("missing resource identity")
+        by_id, duplicate = memoized(index, ("sw46._resource", kind, key),
+            lambda: _resource_lookup(rows, key))
+        if duplicate or identity not in by_id or by_id[identity] != item:
+            raise Unavailable("ambiguous or foreign resource identity")
+        return identity
     rows = _items(index, kind)
     key = _IDS[kind]
     identity = get(item, key, str)

@@ -909,6 +909,62 @@ def _finding(check, provider, scope, rid, service, status, evidence, frameworks=
     return current
 
 
+def _finding_factory(check, provider, frameworks=None):
+    """Reuse immutable check metadata within one evaluation of that check.
+
+    Preserve per-row service fallback, identifiers, framework-list ownership,
+    evidence and contextual priority. Commit cached values only after a row
+    completes; no native facts or errors are retained in the factory.
+    """
+    missing = object()
+    finding_type = baseline = missing
+    functions = aws_functions = azure_function = None
+    services = {}
+
+    def emit(scope, rid, service, status, evidence):
+        nonlocal finding_type, baseline, functions, aws_functions, azure_function
+        if functions is None:
+            from .finding_types import type_for
+            from .finding_priority import effective_priority
+            from .check_services import service_for_check
+            functions = (type_for, effective_priority, service_for_check)
+        type_for, effective_priority, service_for_check = functions
+        source_service = service
+        cache_service = type(source_service) is str
+        if cache_service and source_service in services:
+            service = services[source_service]
+        else:
+            service = service_for_check(check.id, provider, check.kind, source_service)
+        # Keep first-call failures in the predecessor order: service, ID,
+        # type, baseline priority, framework copy, contextual priority.
+        ident = digest([provider, scope, rid, check.id])
+        row_type = type_for(check.id) if finding_type is missing else finding_type
+        row_baseline = effective_priority(check.id, check.severity) if baseline is missing else baseline
+        current = {"id": ident, "category": check.category, "check_id": check.id,
+            "finding_type": row_type,
+            "title": check.title, "provider": provider, "service": service, "resource_id": rid, "scope": scope,
+            "severity": row_baseline, "status": status, "frameworks": list(check.frameworks if frameworks is None else frameworks),
+            "evidence": evidence, "remediation": check.remediation}
+        if provider == "aws":
+            if aws_functions is None:
+                from .checks.aws_finding_priority import contextual_severity as aws_priority
+                from .checks.aws_compute_storage_priority import contextual_severity as compute_priority
+                aws_functions = (aws_priority, compute_priority)
+            aws_priority, compute_priority = aws_functions
+            current["severity"] = compute_priority(current, aws_priority(current, current["severity"]))
+        if provider == "azure":
+            if azure_function is None:
+                from .checks.azure_finding_priority import contextual_severity
+                azure_function = contextual_severity
+            current["severity"] = azure_function(current, current["severity"])
+        finding_type, baseline = row_type, row_baseline
+        if cache_service and source_service not in services and len(services) < 64:
+            services[source_service] = service
+        return current
+
+    return emit
+
+
 def _unknown_coverage_reason(findings=(), *, collection_status=None):
     """Describe evidence gaps without copying SDK messages or native payloads."""
     states = {"denied": "Read access to required inventory was denied.",
@@ -1447,6 +1503,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         emit_progress(phase="evaluating", provider=provider, completed=settled_checks,
                       total=len(selected), resources=len(inventory), dynamic_total=False)
         check_frameworks = list(check.frameworks)
+        emit_finding = _finding_factory(check, provider, check_frameworks)
         if getattr(check, "target", "resource") == "scope":
             for scope in _scope_check_scopes(snapshot, check):
                 scoped = scoped_index(scope)
@@ -1486,7 +1543,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                             raise ValueError("invalid scoped check result")
                     except (KeyError, TypeError, ValueError, AttributeError, IndexError) as exc:
                         status, evidence = "UNKNOWN", {"reason": "missing or malformed scoped facts", "error_kind": type(exc).__name__}
-                findings.extend(collapse([_finding(check, provider, scope, "scope:" + scope, check.kind, status, evidence, check_frameworks)]))
+                findings.extend(collapse([emit_finding(scope, "scope:" + scope, check.kind, status, evidence)]))
                 coverage.append({"level": "check", "check_id": check.id, "type": check.kind, "scope": scope,
                     "target": "scope", "status": "unknown" if status in ("UNKNOWN", "DENIED") else "manual" if status == "MANUAL" else "evaluated",
                     "by_status": {status: 1}, "reason": _unknown_coverage_reason([{"status": status, "evidence": evidence}])
@@ -1534,7 +1591,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                         raise ValueError("invalid check result")
                 except (KeyError, TypeError, ValueError, AttributeError, IndexError) as exc:
                     status, evidence = "UNKNOWN", {"reason": "missing or malformed provider facts", "error_kind": type(exc).__name__}
-                scope_findings.append(_finding(check, provider, scope, resource["id"], resource["service"], status, evidence, check_frameworks))
+                scope_findings.append(emit_finding(scope, resource["id"], resource["service"], status, evidence))
             unavailable = (collection_status not in ("collected", "empty") and not psp_absence and not unsupported_region and not management_only) or bool(retirement and retirement[0] == "unknown")
             empty_evaluated = False
             if (not retirement and not scope_findings and collection_status == "empty"
@@ -1568,13 +1625,13 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                             "error_kind": type(exc).__name__, "evaluation_target": "scope", "empty_primary_inventory": check.kind}
                         empty_evaluated = True
                     if empty_evaluated:
-                        scope_findings.append(_finding(check, provider, scope, "scope:" + scope,
-                            collection.get("service", check.kind), status, evidence, check_frameworks))
+                        scope_findings.append(emit_finding(scope, "scope:" + scope,
+                            collection.get("service", check.kind), status, evidence))
             if unavailable or not scope_findings:
                 status = "UNKNOWN" if retirement and retirement[0] == "unknown" else "NOT_APPLICABLE" if retirement or psp_absence or unsupported_region or management_only else "DENIED" if collection_status == "denied" else "EMPTY" if collection_status == "empty" else "UNKNOWN"
-                scope_findings.append(_finding(check, provider, scope, "inventory:" + check.kind, collection.get("service", check.kind), status,
+                scope_findings.append(emit_finding(scope, "inventory:" + check.kind, collection.get("service", check.kind), status,
                     retirement[1] if retirement else psp_absence if psp_absence else _unsupported_aws_region_evidence(collection) if unsupported_region else management_only if management_only else {"collection_status": collection_status, "reason": collection.get("error", {}).get("code", "no collected resources"),
-                     "semantics": "Inventory coverage, not a resource security pass."}, check_frameworks))
+                     "semantics": "Inventory coverage, not a resource security pass."}))
             check_findings.extend(scope_findings)
             counts = dict(Counter(f["status"] for f in scope_findings))
             check_status = "not_applicable" if management_only or unsupported_region else "partial" if unavailable and collection_status == "partial" else "denied" if collection_status == "denied" else "unknown" if unavailable or counts.get("UNKNOWN") or counts.get("DENIED") else "empty" if collection_status == "empty" else "manual" if counts.get("MANUAL") else "evaluated"

@@ -67,7 +67,7 @@ from . import gcp_positive_conservation_shared_source_successor_20261020 as _pri
 _PRIVATE_SOURCE_RECORDS = (('peaso/collectors/aws_additional_secret_indicators.py', 'e2cfc9bcd839b1a7a803580b549b3d02d8a67757274551a0afc4130e5d184787', ('_scan', 'codebuild_indicator')), ('peaso/collectors/aws_code_log_content_indicators.py', '06fd10cdc45542e15e31d4e735256fa62b3733c805dc5eb1865b7e3923013355', ('project_response',)), ('peaso/collectors/aws_codebuild_buildspec_source_20261020.py', '4890d8a97cd86cdcee0df334956531432ae26ec2f6a1758f1ecb858e7f778bce', ('collect',)), ('peaso/collectors/aws_configuration_payload_secret_indicators.py', 'eef6d7241cc5f09f9560c427fa9f336a636d1996130f0eb5b05d17377883fdc9', ('marker', 'project_response')), ('peaso/collectors/aws_configuration_secret_indicators.py', 'cbeb631ac665dea0c221a3ad370d21000b8c458a33072b4f0d5c855bedbc147c', ('_indicators', 'lambda_indicators')), ('peaso/collectors/aws_lambda_environment_secret_indicators.py', '2fce27977e83ba4f9abc6baa6ac78d4ff5e0e4a2b8b27d52d333a0458e67f289', ('project_response',)), ('peaso/collectors/aws_package_content_indicators.py', 'ce459d4b5ed0ae991591f09f61b462f7841f0977d5935579e561409c0117e7e6', ('_image', '_lambda', '_layer', '_scan')), ('peaso/collectors/aws_s3_selected_source_secret_indicators.py', 'b040a3b23746561fe913b1bd985669a0820fdde72b12fd864c5f6b5b894e3053', ('_scan_part', 'collect_selected')), ('peaso/collectors/aws_selected_configuration_secret_indicators.py', 'c7a87afb1fc02740979a34efa2a03141d4e0daddbfdda1e45c604507c31c450f', ('collect_selected', 'project_response')), ('peaso/collectors/aws_user_data_secret_indicators.py', '077b5d258d6728c0b712935d34899c0feb27e3d11f758a81e793a6a240016205', ('project', 'scan_selected_content')), ('peaso/collectors/aws_workload_command_source_20261020.py', 'c5c5c24b7fbd4b696903d38b6e84a02ad3ebfa35616e6378a67afb97b8ae757e', ('collect',)), ('peaso/collectors/azure.py', 'd27a5f2b861fef622c20bff80bf5e8f559d7f5d70604606643eb9267254101e5', ('AzureTransport',)), ('peaso/collectors/azure_acr_image_secret_indicators.py', '8e9c55f0fcee045b9c283554e7e5908f8ef1aff5225bfd3eb6a4e037b1a0995d', ('_scan_bytes', '_scan_json', 'inspect_image')), ('peaso/collectors/azure_app_settings_secret_indicators.py', 'f7fed346ff359f463e72cff63f4de9e1971e2aeef2223ed8b338c91c7520248b', ('_scan',)), ('peaso/collectors/azure_databricks_notebook_secret_indicators.py', '6eed83bf1d6b6e8055dabb1c0cee052f1b7c636121c742e74b8727bc23b4b222', ('_scan',)), ('peaso/collectors/azure_devops_git_native.py', '7b01f9f26acae14414d33b42095caad14adaf4644b3706fde2120e170b4c2c63', ('collect', 'project_response')), ('peaso/collectors/azure_devops_selected_content_secret_indicators.py', '3def2355bfad985b1543022cc14443677dd6ed37928a4d1109eeffb741fb5434', ('_part', '_scan')), ('peaso/collectors/azure_ml_selected_asset_secret_indicators.py', 'e5d98f9692035b60342526497ca70076a06cdafd3dbf8bfc0aa706ea70f2486f', ('_one',)), ('peaso/collectors/azure_ml_selected_job_secret_indicators.py', 'a0644628612d680fea88a9dcedca7541f1560278fc5d4ea116710739035143c3', ('_scan',)), ('peaso/collectors/azure_selected_configuration_secret_indicators.py', '570bf399805ef12cd647007d43ea450f1138244d58c4326972842c42281d7604', ('_scan',)), ('peaso/collectors/azure_selected_declaration_secret_indicators.py', '31b9a452cc530f4ceee89b1ca5b6892217eeea82d1699b9c86126e3fd9bdc6f2', ('_scan',)), ('peaso/collectors/azure_selected_log_sample_secret_indicators.py', 'fd07ef51f86ef4ed6889c62c532de732f69f7c76e568c08db6d39271094718f8', ('_scan',)), ('peaso/collectors/azure_selected_storage_secret_indicators.py', '59db1280c49909db57368b7e4e61e846f5f2c8ee1b323c6b2204f2110646beda', ('_inspect', '_scan')), ('peaso/collectors/gcp.py', 'f7554a0e905d712242bfd2826866517bbc410b1a4aa9e3ef195c75c07df37e96', ('Transport',)), ('peaso/collectors/gcp_additional_literal_secret_indicators.py', '0bfb934509a3ae9cd00f826371bbc1d7a7999d755d62a2234f1da650cc9ca492', ('scan_row',)), ('peaso/collectors/gcp_appengine_source_secret_indicators.py', '5f0dc6ceb82d853f10f4af47858504ae09b266e50800f49ecf8724238385ad61', ('collect_sources',)), ('peaso/collectors/gcp_artifact_file_secret_indicators.py', 'da4edfdac77dda5c80891ac7d812c1859e536e4786360b8d5656f64af289d4ff', ('_inspect',)), ('peaso/collectors/gcp_batch_referenced_source_20261020.py', 'c0bb32c6b0f8aaa0975ec3ed28875b2618ab8c2a674e16b41173e21ba4082921', ('collect',)), ('peaso/collectors/gcp_cloudrun_v2_job_declared_images_20261020.py', '91e6118e969286fd577eea11c65f5f2129e4711604c45414f601fbeb71ed0f51', ('_inspect',)), ('peaso/collectors/gcp_composer_source_secret_indicators.py', '2b357152018fc33b6cf31bba99ac52c2bd5bd9390a9c9c60233c26b66915f903', ('collect_sources',)), ('peaso/collectors/gcp_configuration_secret_indicators.py', '8c573da30b8bf20c1dfa88d450e44caf0935aa68f831fef941ef58f832901549', ('project_response',)), ('peaso/collectors/gcp_dataflow_referenced_source_20261020.py', 'c638e6ad782b475e9d6bc2ee93aed1bc57da67281bbb53ffa364935f84c6ad59', ('inspect_payload',)), ('peaso/collectors/gcp_dataform_secret_indicators.py', 'ca02f4a3025442421b25433a7930f157cb9ffd01295c8a07b8dce1d8a9428a70', ('collect_selected_files',)), ('peaso/collectors/gcp_dataproc_referenced_source_secret_indicators.py', '75f3bb777dd00bb154f24de0f459994fefbced29262c91ec17967618f54801f0', ('collect_sources',)), ('peaso/collectors/gcp_function_secret_indicators.py', 'f0107e484b39ca361710b0c838c07eb861fe8701239f79e91b41230a211b58c3', ('_scan_function',)), ('peaso/collectors/gcp_function_secret_pairs_20261020.py', 'e6f344088f0fbbbb50ff782852495cc9c23a874448e9b732543027e01e068598', ('_scan_function',)), ('peaso/collectors/gcp_gke_literal_secret_indicators.py', '9939b98e6393d33fc105d9f1f6ece556f697d19a69f6064149fcbbc0b52a3def', ('project_resource',)), ('peaso/collectors/gcp_image_secret_indicators.py', '2022bbd2816bfe82679b160c12b90d674c12746e14d95138bb3bb236dc0514c3', ('_tar', 'inspect_image')), ('peaso/collectors/gcp_job_literal_secret_indicators.py', 'afe4305155c2350cab0faa3f00d8a2a1431de0d23f890fe3780075abd77c8055', ('project_row',)), ('peaso/collectors/gcp_log_secret_indicators.py', '7600114140eef746787981f73b18b47910c0d82797662050f2a6944306b7b161', ('project_page',)), ('peaso/collectors/gcp_notebook_airflow_secret_indicators.py', '70d808587cca4847f5979f7ed9eb6452b6f332c6996d68157c7af00cf3278118', ('project_response',)), ('peaso/collectors/gcp_selected_archive_secret_indicators.py', '4dc9fd5feb8b193f5a119ee7b2f2b387d5eaf9f3c04fe2502c5df7e7ed07a4d3', ('_parse', 'collect_selected_archives')), ('peaso/collectors/gcp_selected_object_secret_indicators.py', 'fb9d1c2837660501bd87ab9642519f4caadfc395eee3193d1ccefd1bb2517959', ('collect_selected_objects',)), ('peaso/collectors/gcp_selected_task_routine_secret_indicators.py', '393720df111585dfd41e586f548ce35140a01e86dd980564805552b1b085cc66', ('collect_sources',)), ('peaso/collectors/gcp_sourcerepo_secret_indicators.py', 'ba809b97f9e9b36674b2938c74a1f9ee874e3121cbef947008db66091dbaf9e4', ('collect_sources',)), ('peaso/collectors/gcp_workbench_referenced_source_20261020.py', '3c8a3b4dcaf51c6f1544dd1d4465d8a60c00ec1d605a3d808e7590b0ce219b73', ('collect_sources',)), ('peaso/collectors/k8s.py', '86eca83f116bc8fe4a2b28d5ced1ae6612507c5cc3f53968fe6ec28df14a15f1', ('_native',)), ('peaso/collectors/k8s_literal_secret_indicators.py', '1ee91c6b52cf142d30ef58f55dd11f8e1688d129791c869a1a6783e7a80aa47b', ('collect',)), ('peaso/collectors/k8s_selected_log_sample_secret_indicators.py', '0fe2d51cb83f4126994f1bfaf1eff50c96469c3b1e285c44d78825f48328e9c0', ('collect',)), ('peaso/secret_scanning.py', '3897b64c134f88e7ad17c3c1f31df2b5497d34df6c1340d04e536313652f94f6', ('_scan_kingfisher', '_scan_trufflehog', 'scan_content')))
 _PRIVATE_SOURCE_PATHS = frozenset(record[0] for record in _PRIVATE_SOURCE_RECORDS)
 _PRIVATE_RECEIPT = 'peaso/checks/private_secret_shared_source_successor_20261021.json'
-_PRIVATE_RECEIPT_SHA256 = '08acdad8af08ac90eb715e31f913bf709eb9c9d8511ef9bb03f858686422c177'
+_PRIVATE_RECEIPT_SHA256 = 'd943086ee05c6bac2a19c7b48f47005789999d2ba7b29c7432607497d1b1a096'
 
 
 def _private_binding_equal(actual, expected):
@@ -368,6 +368,154 @@ def _private_self():
             or hashlib.sha256(Path(_private_source_epoch.__file__).read_bytes()).hexdigest() != receipt['common_source_sha256']):
         raise RuntimeError('Private shared common attestor changed')
     _private_source_epoch.source_rows()
+    # Admit the one new engine-local factory through this existing finite
+    # owner. The file transition above still reconstructs its historical
+    # predecessor, and the live factory must match the signed current source.
+    engine_proof = receipt['engine_finding_factory_admission']
+    if set(engine_proof) != {'source_sha256', 'fragment_sha256', 'defaults',
+                             'kwdefaults', 'lazy_imports', 'original_finding_sha256',
+                             'factory_span', 'original_finding_span'}:
+        raise RuntimeError('Engine factory admission shape changed')
+    engine_path = (root / 'peaso/engine.py').resolve()
+    engine_raw = engine_path.read_bytes()
+    if (hashlib.sha256(engine_raw).hexdigest() != engine_proof['source_sha256']
+            or engine_proof['source_sha256'] !=
+            receipt['provider_group_files']['peaso/engine.py']['current_sha256']):
+        raise RuntimeError('Engine factory source changed')
+    engine_module = importlib.import_module('peaso.engine')
+    if (sys.modules.get('peaso.engine') is not engine_module
+            or Path(engine_module.__file__).resolve() != engine_path
+            or engine_module.digest is not importlib.import_module('peaso.snapshot').digest):
+        raise RuntimeError('Engine factory module or digest binding changed')
+    engine_lines = engine_raw.splitlines(keepends=True)
+    def engine_fragment(span):
+        if (type(span) is not list or len(span) != 2
+                or any(type(line) is not int for line in span)
+                or not 1 <= span[0] <= span[1] <= len(engine_lines)):
+            raise RuntimeError('Engine factory source span changed')
+        return b''.join(engine_lines[span[0] - 1:span[1]])
+    factory_fragment = engine_fragment(engine_proof['factory_span'])
+    original_fragment = engine_fragment(engine_proof['original_finding_span'])
+    factory_tree = ast.parse(factory_fragment, filename=str(engine_path))
+    factory = next((node for node in factory_tree.body
+                    if isinstance(node, ast.FunctionDef) and node.name == '_finding_factory'), None)
+    if factory is None or len(factory_tree.body) != 1 or not original_fragment.startswith(b'def _finding('):
+        raise RuntimeError('Engine factory or original finding missing')
+    lazy_imports = [[node.level, node.module,
+                     [[alias.name, alias.asname] for alias in node.names]]
+                    for node in ast.walk(factory) if isinstance(node, ast.ImportFrom)]
+    function = vars(engine_module).get('_finding_factory')
+    first = engine_proof['factory_span'][0]
+    expected_source = b'from __future__ import annotations\n' + b'\n' * (first - 2) + factory_fragment
+    try:
+        expected_code = _private_source_epoch._code_from(
+            _private_source_epoch._BOOTSTRAP_ARTIFACT(expected_source, str(engine_path), 0),
+            '_finding_factory')
+    except ValueError as exc:
+        raise RuntimeError('Engine factory cached source artifact changed') from exc
+    if (type(function) is not types.FunctionType
+            or function.__globals__ is not vars(engine_module)
+            or function.__module__ != 'peaso.engine'
+            or function.__qualname__ != '_finding_factory'
+            or function.__closure__ is not None
+            or function.__code__.co_filename != str(engine_path)
+            or not _private_source_epoch._code_equal(function.__code__, expected_code)
+            or hashlib.sha256(factory_fragment).hexdigest() != engine_proof['fragment_sha256']
+            or hashlib.sha256(original_fragment).hexdigest() !=
+                engine_proof['original_finding_sha256']
+            or inspect.getsource(function).encode() != factory_fragment
+            or repr(function.__defaults__) != engine_proof['defaults']
+            or repr(function.__kwdefaults__) != engine_proof['kwdefaults']
+            or lazy_imports != engine_proof['lazy_imports']):
+        raise RuntimeError('Engine factory executing source changed')
+    sw46_proof = receipt['sw46_join_admission']
+    if set(sw46_proof) != {'files', 'callables', 'ids'} or set(sw46_proof['files']) != {
+            'peaso/checks/bulk_pending.py', 'peaso/checks/compliance_new_sw46.py'} or (
+            set(sw46_proof['callables']) != set(sw46_proof['files'])
+            or set(sw46_proof['callables']['peaso/checks/bulk_pending.py']) !=
+                {'_reviewed_source_admitted'}
+            or set(sw46_proof['callables']['peaso/checks/compliance_new_sw46.py']) !=
+                {'_context', '_items', '_validated_items', '_resource_lookup', '_resource'}):
+        raise RuntimeError('SW46 finite admission shape changed')
+    for relative, transition in sw46_proof['files'].items():
+        source_path = (root / relative).resolve()
+        source = source_path.read_bytes()
+        if hashlib.sha256(source).hexdigest() != transition['current_sha256']:
+            raise RuntimeError('SW46 admitted source changed: ' + relative)
+        previous = _reverse(source.decode('utf-8'), transition).encode('utf-8')
+        if hashlib.sha256(previous).hexdigest() != transition['predecessor_sha256']:
+            raise RuntimeError('SW46 signed predecessor changed: ' + relative)
+    bulk_module = importlib.import_module('peaso.checks.bulk_pending')
+    sw46_module = sys.modules.get('peaso.checks._bulk_pending_compliance_new_sw46')
+    if sw46_module is None:
+        raise RuntimeError('SW46 registered module missing')
+    facts_module = importlib.import_module('peaso.checks.facts')
+    for module, relative in ((bulk_module, 'peaso/checks/bulk_pending.py'),
+                             (sw46_module, 'peaso/checks/compliance_new_sw46.py')):
+        source_path = (root / relative).resolve()
+        source = source_path.read_bytes()
+        if Path(module.__file__).resolve() != source_path or sys.modules.get(module.__name__) is not module:
+            raise RuntimeError('SW46 module location changed: ' + relative)
+        try:
+            compiled = _private_source_epoch._BOOTSTRAP_ARTIFACT(source, str(source_path), 0)
+        except ValueError as exc:
+            raise RuntimeError('SW46 cached source artifact changed: ' + relative) from exc
+        lines = source.splitlines(keepends=True)
+        expected_names = set(sw46_proof['callables'][relative])
+        if expected_names != ({'_reviewed_source_admitted'} if relative.endswith('bulk_pending.py')
+                              else {'_context', '_items', '_validated_items',
+                                    '_resource_lookup', '_resource'}):
+            raise RuntimeError('SW46 admitted helper roster changed: ' + relative)
+        for name, proof in sw46_proof['callables'][relative].items():
+            span = proof['span']
+            if (set(proof) != {'sha256', 'span', 'defaults', 'kwdefaults'}
+                    or type(span) is not list or len(span) != 2
+                    or any(type(line) is not int for line in span)
+                    or not 1 <= span[0] <= span[1] <= len(lines)):
+                raise RuntimeError('SW46 admitted helper source span changed: ' + name)
+            fragment = b''.join(lines[span[0] - 1:span[1]])
+            if not fragment.startswith(('def ' + name + '(').encode()):
+                raise RuntimeError('SW46 admitted helper definition changed: ' + name)
+            function = vars(module).get(name)
+            expected_code = _private_source_epoch._code_from(compiled, name)
+            if (type(function) is not types.FunctionType
+                    or function.__globals__ is not vars(module)
+                    or function.__module__ != module.__name__ or function.__qualname__ != name
+                    or function.__closure__ is not None
+                    or function.__code__.co_filename != str(source_path)
+                    or not _private_source_epoch._code_equal(function.__code__, expected_code)
+                    or hashlib.sha256(fragment).hexdigest() != proof['sha256']
+                    or inspect.getsource(function).encode() != fragment
+                    or repr(function.__defaults__) != proof['defaults']
+                    or repr(function.__kwdefaults__) != proof['kwdefaults']):
+                raise RuntimeError('SW46 executing helper changed: ' + name)
+    if (vars(sw46_module).get('MemoIndex') is not facts_module.MemoIndex
+            or vars(sw46_module).get('memoized') is not facts_module.memoized
+            or vars(sw46_module).get('Unavailable') is not facts_module.Unavailable
+            or vars(sw46_module).get('complete_items') is not facts_module.complete_items
+            or vars(sw46_module).get('get') is not facts_module.get
+            or vars(sw46_module).get('re') is not re
+            or vars(bulk_module).get('hashlib') is not hashlib
+            or vars(bulk_module).get('json') is not json
+            or vars(bulk_module).get('Path') is not Path):
+        raise RuntimeError('SW46 scan-local memo imports changed')
+    registry = importlib.import_module('peaso.checks')
+    if any(vars(sw46_module).get(name) is not getattr(registry, name)
+           for name in ('CHECKS', 'result', 'unknown')):
+        raise RuntimeError('SW46 registered imports changed')
+    if vars(sw46_module).get('_IDS') != sw46_proof['ids']:
+        raise RuntimeError('SW46 identity map changed')
+    registered = next((check for check in registry.CHECKS
+                       if check.id == 'aws_ec2_instance_time_offset_monitored'), None)
+    callback = None if registered is None else registered.evaluate
+    seen = set()
+    while callback is not None and id(callback) not in seen:
+        if getattr(callback, '__globals__', None) is vars(sw46_module):
+            break
+        seen.add(id(callback))
+        callback = getattr(callback, '__wrapped__', None)
+    if callback is None or getattr(callback, '__globals__', None) is not vars(sw46_module):
+        raise RuntimeError('SW46 registered callback is not the admitted module')
     lines = raw.splitlines(keepends=True)
     begin = [i for i, line in enumerate(lines) if line == b'# BEGIN PRIVATE SELF CODE CACHE FACTORY\n']
     end = [i for i, line in enumerate(lines) if line == b'# END PRIVATE SELF CODE CACHE FACTORY\n']

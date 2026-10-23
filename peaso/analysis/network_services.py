@@ -248,7 +248,9 @@ def azure_kind(rid):
     return "private_link_service_reference"
 
 
-def service_references(resource):
+def service_references(resource, *, facts=None):
+    from . import network_facts
+    facts = network_facts.NetworkFacts(resource["data"]) if facts is None else facts
     data, provider, kind = resource["data"], resource["provider"], resource["type"]
     if provider == "aws":
         if kind == "vpc_endpoint" and isinstance(data.get("ServiceName"), str) and data["ServiceName"]:
@@ -266,7 +268,7 @@ def service_references(resource):
                  "SecurityGroupIds": "security_group", "securityGroups": "security_group",
                  "securityGroupIds": "security_group", "SecurityGroups": "security_group"}
         # ECS lower-case configuration is native, including attachment details.
-        for path, key, val in walk(project_network_data(data)):
+        for path, key, val in walk(facts.projected()):
             if key in fields and isinstance(val, str) and val:
                 target = fields[key]
                 if key == "serviceArn" and kind.startswith("lattice_"):
@@ -316,7 +318,7 @@ def service_references(resource):
                    "vpcAccessConnector": "vpc_access_connector", "pscServiceAttachmentLink": "service_attachment",
                    "serviceAttachment": "service_attachment", "pscTargetService": "service_attachment",
                    "consumerNetwork": "network", "targetService": "forwarding_rule"}
-        for path, key, value in walk(project_network_data(data)):
+        for path, key, value in walk(facts.projected()):
             target = mapping.get(key)
             if key in {"network", "subnetwork"} and (kind not in SERVICE_TYPES["gcp"] or "peerings[" in path):
                 target = None
@@ -356,7 +358,7 @@ def service_references(resource):
                         rid = f"{resource['scope']}/locations/{region[1]}/{segment}/{service}"
                         yield f"{key}.{field}", target_kind, rid, resource["scope"], "serverless_backend"
     elif provider == "azure":
-        for path, key, val in walk(project_network_data(data)):
+        for path, key, val in walk(facts.projected()):
             if key == "id" and path.endswith(".subnet.id") and isinstance(val, str) and "/subnets/" in val.lower():
                 yield path, "subnet", val, azure_scope(val, resource["scope"]), "associated_with"
             if key == "id" and path.endswith(".virtualNetwork.id") and isinstance(val, str) and "/virtualnetworks/" in val.lower():

@@ -7,6 +7,7 @@ Application content and credential-bearing branches are never traversed.
 import re
 import json
 import ipaddress
+from functools import lru_cache
 from urllib.parse import urlsplit
 
 
@@ -46,6 +47,13 @@ assignpublicip associatepublicipaddress directinternetaccess enableprivateenviro
 """.split())
 
 
+@lru_cache(maxsize=4096)
+def _field_traits(key):
+    """Only bounded schema field names, never native values or evidence trees."""
+    normalized = key_name(key)
+    return normalized, bool(_CREDENTIAL.search(normalized)), bool(_LEAF.search(normalized)), bool(_CONTEXT.search(normalized))
+
+
 def safe_url(value):
     if not isinstance(value, str):
         return value
@@ -69,7 +77,8 @@ def network_observations(data, *, network_context=False):
             # Already-projected observations are validated below, not recursively
             # interpreted as user-selected field names or application payloads.
             for key, item in value.items():
-                normalized = key_name(key)
+                traits = _field_traits(key) if type(key) is str and len(key) <= 128 else None
+                normalized = traits[0] if traits is not None else key_name(key)
                 if normalized == 'metadata' and isinstance(item, dict):
                     for network in multus_networks({'metadata': item}):
                         native_path = f"{path}.metadata.annotations.{network['_annotation']}".lstrip('.')
@@ -78,7 +87,7 @@ def network_observations(data, *, network_context=False):
                         for field in ('interface', 'ips', 'mac', 'default', 'defaultRoute'):
                             if field in network:
                                 observations.append({'path': native_path, 'name': field, 'value': network[field]})
-                if key.startswith("_") or normalized in _OMIT or _CREDENTIAL.search(normalized):
+                if key.startswith("_") or normalized in _OMIT or (traits[1] if traits is not None else _CREDENTIAL.search(normalized)):
                     continue
                 if normalized == "environment":
                     if isinstance(item, dict) and isinstance(item.get("workerPools"), list):
@@ -99,10 +108,12 @@ def network_observations(data, *, network_context=False):
                                     "evidence_path": f"{path}.NetworkAttributes[{i}].value".lstrip(".")})
                     continue
                 current = f"{path}.{key}".lstrip(".")
-                interested = (bool(_LEAF.search(normalized)) or
-                              (context or bool(_CONTEXT.search(normalized))) and
+                leaf = traits[2] if traits is not None else bool(_LEAF.search(normalized))
+                contextual = traits[3] if traits is not None else bool(_CONTEXT.search(normalized))
+                interested = (leaf or
+                              (context or contextual) and
                               (normalized in _CONTEXT_LEAVES or isinstance(item, bool)))
-                nested = context or bool(_CONTEXT.search(normalized))
+                nested = context or contextual
                 if isinstance(item, (dict, list)):
                     if interested and isinstance(item, list) and all(isinstance(x, (str, bool, int, float)) for x in item):
                         observations.append({"path": current, "name": key, "value": [safe_url(x) for x in item]})
