@@ -65,6 +65,8 @@ The broad combined run produced **2,627 passed, 3 skipped, 18 subtests passed, 2
 
 After rebasing current main, **141 integration tests passed**, including the source gate, scheduled credentials, calendar schedules, worker diagnostics/control, privilege pages and least-privilege details. **39 focused checkpoint, DynamoDB index, artifact reuse and history tests passed**, including cipher-context rotation and custom-cipher fallback. Other focused runs passed 1,948 audit tests, 171 AI/storage tests and 37 historical tests. These counts overlap and must not be summed. Test fixture corrections separate cold-import startup from the network-overlap deadline and keep AWS live credential capture prohibited.
 
+The final affected-workflow run passed 283 cases and exposed four AI test fixtures using a literal `sealed` connector credential. Current main now decrypts those credentials for scheduling eligibility. Replacing the placeholders with valid encrypted renewable test credentials preserved the missing-AI-access assertions; the complete AI suite then passed **167 tests**. The other **120 cases** in that final run passed unchanged.
+
 Terraform 1.14.3 `fmt -check` and `validate` passed using an offline provider mirror; the older system Terraform 1.5.7 cannot parse this repository. No Terraform apply was run. Existing deprecated `hash_key` warnings remain.
 
 Run with the repository environment:

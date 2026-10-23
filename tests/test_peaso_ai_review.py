@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from peaso.ai import access, auth, pipeline
 from peaso.ai.contracts import validate_actions, validate_reviews, validate_network, Reviews, Recommendations, NetworkReview
 from peaso.ai.crypto import AICipher
-from peaso.auth import Identity
+from peaso.auth import CredentialCipher, Identity
 from peaso.server import create_app
 from peaso.server.config import Settings
 from peaso.server.models import ScanCreate
@@ -1080,7 +1080,8 @@ def test_local_launch_and_schedule_require_usable_codex_access(environment, monk
     monkeypatch.delenv('CODEX_TOKEN_SECRET_ARN', raising=False)
     monkeypatch.delenv('PEASO_AUTH_MODE', raising=False)
     monkeypatch.setenv('CODEX_ACCESS_TOKEN', token(time.time() - 600) if configured == 'expired' else configured)
-    connector = store.add_connector('alice', {'name': 'AWS', 'provider': 'aws'}, 'sealed')['id']
+    private = CredentialCipher(settings.identity_dir).encrypt({'auth': {'method': 'container'}, 'options': {}})
+    connector = store.add_connector('alice', {'name': 'AWS', 'provider': 'aws'}, private)['id']
     with TestClient(create_app(settings, store=store, artifacts=artifacts, authenticator=Identities()), base_url='http://127.0.0.1') as client:
         assert client.get('/api/ai/codex').json()['available'] is False
         for path in ('/api/scans', '/api/schedules'):
@@ -1117,7 +1118,8 @@ def test_local_personal_token_is_required_per_launching_user(environment, monkey
 def test_local_scheduler_does_not_launch_after_codex_access_is_removed(environment, monkeypatch):
     from peaso.worker import Worker
     settings, store, artifacts = environment
-    connector = store.add_connector('alice', {'name': 'AWS', 'provider': 'aws'}, 'sealed')['id']
+    private = CredentialCipher(settings.identity_dir).encrypt({'auth': {'method': 'container'}, 'options': {}})
+    connector = store.add_connector('alice', {'name': 'AWS', 'provider': 'aws'}, private)['id']
     store.add_schedule('alice', {'connector_id': connector, 'ai_enabled': True, 'ai_user_id': 'alice', 'interval_hours': 24}, time.time() - 10)
     monkeypatch.setattr(auth, 'default_token', lambda: (_ for _ in ()).throw(RuntimeError('no_token')))
     monkeypatch.setattr(store, 'trigger_schedule', lambda *a, **kw: pytest.fail('An AI-enabled schedule without Codex must not enqueue'))

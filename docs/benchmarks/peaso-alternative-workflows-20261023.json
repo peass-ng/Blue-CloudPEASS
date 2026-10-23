@@ -349,6 +349,15 @@
     "final_edge_cases": {
       "passed": 39
     },
-    "terraform": "fmt and validate passed with 1.14.3; no apply"
+    "terraform": "fmt and validate passed with 1.14.3; no apply",
+    "final_changed_workflows": {
+      "initial_passed": 283,
+      "initial_failed": 4,
+      "failure_cause": "Newly merged scheduling eligibility decrypts connector credentials; AI fixtures used literal sealed placeholders. Replaced with valid encrypted renewable test credentials.",
+      "ai_suite_after_fixture_fix": {
+        "passed": 167
+      },
+      "unaffected_non_ai_cases_passed": 120
+    }
   }
 }
