@@ -21,27 +21,32 @@ class API:
             return {'data': [], 'resultTruncated': False}
         assert urlsplit(url).path == SCOPE + '/providers/Microsoft.Insights/eventtypes/management/values'
         query = parse_qs(urlsplit(url).query)
-        if self.mode == 'denied' or 'page' in query:
+        if self.mode == 'denied' or ('page' in query and self.mode not in ('overlap', 'changed_overlap')):
             raise azure.AzureReadError('fixture_denied', 403)
+        assert ' le ' in query['$filter'][0] and ' lt ' not in query['$filter'][0]
         start, end = re.findall("'([^']+)'", query['$filter'][0])
         self.window = start, end
         row = {'eventDataId': 'event-1', 'eventTimestamp': start,
             'resourceId': SCOPE + '/resourceGroups/rg/providers/Microsoft.Web/sites/app',
             'operationName': {'value': 'Microsoft.Web/sites/write'},
             'status': {'value': 'Succeeded'}, 'correlationId': 'corr'}
+        if 'page' in query:
+            changed = dict(row)
+            if self.mode == 'changed_overlap':changed['correlationId'] = 'changed'
+            return {'value': [changed, {**row, 'eventDataId': 'event-2'}]}
         if self.mode == 'foreign': row['resourceId'] = row['resourceId'].replace('11111111', '33333333')
         if self.mode == 'outside': row['eventTimestamp'] = end
         rows = [] if self.mode == 'empty' else [row]
         if self.mode == 'duplicate': rows.append(dict(row))
         result = {'value': rows}
-        if self.mode == 'partial': result['nextLink'] = url + '&page=2'
+        if self.mode in ('partial', 'overlap', 'changed_overlap'): result['nextLink'] = url + '&page=2'
         return result
 
 
 @pytest.mark.parametrize('mode,expected', [
     ('complete', 'collected'), ('empty', 'collected'), ('denied', 'denied'),
     ('partial', 'partial'), ('duplicate', 'malformed'), ('foreign', 'malformed'),
-    ('outside', 'malformed'), ('retention', 'malformed')])
+    ('outside', 'collected'), ('overlap', 'collected'), ('changed_overlap', 'partial'), ('retention', 'malformed')])
 def test_normal_native_activity_coverage_pipeline(monkeypatch, mode, expected):
     api = API(mode); monkeypatch.setattr(azure, 'AzureTransport', lambda auth: api)
     connector = {'provider': 'azure', 'scopes': [SCOPE],
@@ -57,12 +62,15 @@ def test_normal_native_activity_coverage_pipeline(monkeypatch, mode, expected):
         assert row['id'] == SCOPE
         assert (row['retainedFrom'], row['collectedThrough']) == api.window
         assert row['_provenance']['basis'].startswith('complete native query window')
-        assert row['_provenance']['event_count'] == int(mode != 'empty')
+        assert row['_provenance']['event_count'] == (2 if mode == 'overlap' else int(mode not in ('empty', 'outside')))
         assert datetime.fromisoformat(row['_provenance']['captured_at']) <= datetime.fromisoformat(snapshot['created_at'])
     else:
         assert sources[0]['items'] == []
     assert api.closed
-    assert sum(body is None for url, body in api.calls) == (2 if mode == 'partial' else 1)
+    assert sum(body is None for url, body in api.calls) == (2 if mode in ('partial','overlap','changed_overlap') else 1)
+    if mode == 'outside':
+        source = next(c for c in snapshot['collections'] if c['type'] == 'activity_log')
+        assert source['status'] == 'empty' and source['items'] == []
     report = evaluate_snapshot(snapshot, checks=[CHECK])
     assert report['findings'] and all(f['status'] not in ('PASS', 'FAIL') for f in report['findings'])
     assert all(not c['items'] for c in snapshot['collections'] if c['type'] == 'change_approval_record')

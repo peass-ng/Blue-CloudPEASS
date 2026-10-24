@@ -212,16 +212,33 @@ def resolve(reader,request,native,scope,base_binding):
                 binding=base_binding(resource,kind,scope,ips);policies=[]
                 if kind=='application_gateway'and binding['public']:policies=_gateway(resource,binding,scope)
                 if kind=='public_ip'and resource['properties'].get('ddosSettings',{}).get('protectionMode')=='VirtualNetworkInherited':
-                    vnets=set()
+                    vnets={}
                     for gateway in native['application_gateway']:
                         front=list(_children(gateway,'frontendIPConfigurations').values())
                         if not any(str(f['properties'].get('publicIPAddress',{}).get('id','')).casefold()==rid for f in front):continue
                         for conf in _children(gateway,'gatewayIPConfigurations').values():
                             subnet=conf['properties'].get('subnet',{}).get('id')
                             if not isinstance(subnet,str)or re.fullmatch(re.escape(scope)+'/resourceGroups/'+SEG+'/providers/Microsoft.Network/virtualNetworks/'+SEG+'/subnets/'+SEG,subnet,re.I)is None:raise ValueError('inherited gateway VNet identity unresolved')
-                            vnets.add(subnet.rsplit('/',2)[0].casefold())
-                    if len(vnets)!=1:raise ValueError('public IP inherited VNet association missing or ambiguous')
-                    vid=next(iter(vnets));vnet=read(vid,'Microsoft.Network/virtualNetworks','2023-09-01','Microsoft.Network/virtualNetworks:GET');supports['vnet'][vid]=vnet
+                            parent=subnet.rsplit('/',2)[0];vnets[parent.casefold()]=parent
+                    ip_config=_reference(resource['properties'],'ipConfiguration',scope,'Microsoft.Network/networkInterfaces/ipConfigurations')
+                    if ip_config:
+                        nic_id=re.split('/ipConfigurations/',resource['properties']['ipConfiguration']['id'],flags=re.I)[0]
+                        nic=read(nic_id,'Microsoft.Network/networkInterfaces','2023-09-01','Microsoft.Network/networkInterfaces:GET')
+                        config=_children(nic,'ipConfigurations').get(ip_config)
+                        if config is None:
+                            from .azure import AzureReadError
+                            raise AzureReadError('inherited_vnet_join_unavailable')
+                        attached=_reference(config['properties'],'publicIPAddress',scope,'Microsoft.Network/publicIPAddresses')
+                        if attached is not None and attached!=rid:raise ValueError('inherited NIC public IP identity mismatch')
+                        subnet=_reference(config['properties'],'subnet',scope,'Microsoft.Network/virtualNetworks/subnets')
+                        if subnet:
+                            parent=re.split('/subnets/',config['properties']['subnet']['id'],flags=re.I)[0]
+                            vnets[parent.casefold()]=parent
+                    if not vnets:
+                        from .azure import AzureReadError
+                        raise AzureReadError('inherited_vnet_join_unavailable')
+                    if len(vnets)!=1:raise ValueError('public IP inherited VNet association ambiguous')
+                    vid=next(iter(vnets));vnet=read(vnets[vid],'Microsoft.Network/virtualNetworks','2023-09-01','Microsoft.Network/virtualNetworks:GET');supports['vnet'][vid]=vnet
                     plan=_reference(vnet['properties'],'ddosProtectionPlan',scope,'Microsoft.Network/ddosProtectionPlans')
                     if plan:supports['ddos_plan'][plan]=read(plan,'Microsoft.Network/ddosProtectionPlans','2023-09-01','Microsoft.Network/ddosProtectionPlans:GET')
                     binding.update(inherited_vnet_id=vid,vnet_association_evidence_ref=resource['id']+'@'+resource['etag']);binding['_coverage']['inherited_vnet']={'status':'collected','parent_id':rid}

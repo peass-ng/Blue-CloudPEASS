@@ -125,6 +125,12 @@ def test_normal_hosted_native_compute_pipeline(monkeypatch, mode, expected):
     arg = [(url, body) for url, body in api.calls
            if body is not None and 'patchinstallationresources' in body['query']]
     assert bool(arg) == (mode != 'unapproved')
+    result = next(c for c in snapshot['collections'] if c['type'] == 'vm_patch_installation_result')
+    if mode == 'unapproved':
+        assert result['status'] == 'unknown'
+        assert result['error']['code'] == 'actual_installation_policy_not_approved'
+    elif mode == 'complete':
+        assert result['status'] == 'collected'
     assert sum('/instanceView?' in url for url, body in api.calls) == 1
     assert api.closed
     if mode == 'complete':

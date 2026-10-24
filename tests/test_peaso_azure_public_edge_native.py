@@ -7,13 +7,15 @@ from peaso.engine import collect_snapshot,evaluate_snapshot
 from tests.test_peaso_azure_bulk_native import Transport,SUB,SCOPE,BASE,parent,envelope
 CHECK='azure_application_gateway_11_5_1_1_1_f56bdc2'
 IP=BASE+'Microsoft.Network/publicIPAddresses/ip';LB=BASE+'Microsoft.Network/loadBalancers/lb';GW=BASE+'Microsoft.Network/applicationGateways/gw';FD=BASE+'Microsoft.Network/frontDoors/fd';PROFILE=BASE+'Microsoft.Cdn/profiles/profile'
+NIC=BASE+'Microsoft.Network/networkInterfaces/nic';VNET=BASE+'Microsoft.Network/virtualNetworks/vnet'
 
 def capture(mode='good',**limits):
     ip=parent(IP,edge.TYPES['public_ip'],{'ddosSettings':{'protectionMode':'Enabled'}});ip['etag']='W/"ip-v2"';ip['properties']['password']='PRIVATE_NATIVE_VALUE'
     lb=parent(LB,edge.TYPES['load_balancer'],{'frontendIPConfigurations':[{'id':LB+'/frontendIPConfigurations/public','properties':{'publicIPAddress':{'id':IP}}}]});lb['etag']='W/"lb-v3"'
     rows={'public_ip':[ip],'load_balancer':[lb],'application_gateway':[],'frontdoor':[]};profiles=[]
     if mode=='disabled':ip['properties']['ddosSettings']['protectionMode']='Disabled'
-    if mode=='inherited':ip['properties']['ddosSettings']['protectionMode']='VirtualNetworkInherited'
+    if mode in {'inherited','inherited_nic','inherited_nic_mismatch'}:ip['properties']['ddosSettings']['protectionMode']='VirtualNetworkInherited'
+    if mode in {'inherited_nic','inherited_nic_mismatch'}:ip['properties']['ipConfiguration']={'id':NIC+'/ipConfigurations/ipconfig'}
     if mode=='missing_settings':ip['properties'].pop('ddosSettings')
     if mode=='missing_etag':ip.pop('etag')
     if mode=='missing_ip_reference':lb['properties']['frontendIPConfigurations'][0]['properties']['publicIPAddress']['id']=IP+'-foreign'
@@ -35,6 +37,11 @@ def capture(mode='good',**limits):
         for row in values:routes[row['id']]=copy.deepcopy(row)
     routes[SCOPE+'/providers/Microsoft.Cdn/profiles']={'value':copy.deepcopy(profiles)}
     for row in profiles:routes[row['id']]=copy.deepcopy(row)
+    if mode in {'inherited_nic','inherited_nic_mismatch'}:
+        attached=IP+'-other'if mode=='inherited_nic_mismatch'else IP
+        nic=parent(NIC,'Microsoft.Network/networkInterfaces',{'ipConfigurations':[{'id':NIC+'/ipConfigurations/ipconfig','properties':{'publicIPAddress':{'id':attached},'subnet':{'id':VNET+'/subnets/default'}}}]})
+        vnet=parent(VNET,'Microsoft.Network/virtualNetworks',{'enableDdosProtection':True})
+        routes[NIC]=nic;routes[VNET]=vnet
     if mode=='denied_profiles':routes[SCOPE+'/providers/Microsoft.Cdn/profiles']=azure.AzureReadError('forbidden',403)
     if mode=='partial_profiles':routes[SCOPE+'/providers/Microsoft.Cdn/profiles']={'value':[],'nextLink':azure.ARM+SCOPE+'/providers/Microsoft.Cdn/profiles?api-version=2025-04-15&page=2'};routes[SCOPE+'/providers/Microsoft.Cdn/profiles']=lambda q: (_ for _ in ()).throw(azure.AzureReadError('forbidden',403)) if 'page'in q else {'value':[],'nextLink':azure.ARM+SCOPE+'/providers/Microsoft.Cdn/profiles?api-version=2025-04-15&page=2'}
     if mode=='get_id_changed':routes[IP]['id']=IP+'-changed'
@@ -48,7 +55,7 @@ def capture(mode='good',**limits):
 
 @pytest.mark.parametrize('mode,expected',[
  ('good','PASS'),('disabled','FAIL'),('empty','NOT_APPLICABLE'),('private_lb','NOT_APPLICABLE'),
- ('get_etag_changed','PASS'),('inherited','UNKNOWN'),('missing_settings','UNKNOWN'),('missing_etag','UNKNOWN'),
+ ('get_etag_changed','PASS'),('inherited','UNKNOWN'),('inherited_nic','UNKNOWN'),('inherited_nic_mismatch','UNKNOWN'),('missing_settings','UNKNOWN'),('missing_etag','UNKNOWN'),
  ('missing_ip_reference','UNKNOWN'),('duplicate_ip','UNKNOWN'),('duplicate_frontend','UNKNOWN'),
  ('foreign_frontend','UNKNOWN'),('foreign_parent','UNKNOWN'),('public_gateway','UNKNOWN'),('frontdoor','PASS'),
  ('profile','PASS'),('get_id_changed','UNKNOWN'),('denied_profiles','DENIED'),('partial_profiles','DENIED')])
@@ -61,6 +68,29 @@ def test_native_collection_signed_result(mode,expected):
         assert binding['_provenance']['source_operation']=='Azure.publicEdgeProtection:resolve'
         assert binding['public_frontend_ids']==[IP]
         assert all('api-version='in call for call in api.calls)
+
+
+def test_empty_profile_remains_proven_when_inherited_nic_join_unavailable():
+    snap,_,_=capture('inherited')
+    assert envelope(snap,'frontdoor_profile')['status']=='empty'
+    binding=envelope(snap,'public_edge_binding')
+    assert binding['status']=='unknown'
+    assert binding['error']['code']=='inherited_vnet_join_unavailable'
+
+
+def test_exact_nic_subnet_vnet_join_uses_authoritative_references():
+    snap,_,api=capture('inherited_nic')
+    binding=next(row for row in envelope(snap,'public_edge_binding')['items']if row['resource_kind']=='public_ip')
+    assert binding['inherited_vnet_id']==VNET.casefold()
+    assert any(NIC in call for call in api.calls)
+    assert any(VNET in call for call in api.calls)
+    assert envelope(snap,'frontdoor_profile')['status']=='empty'
+
+
+def test_malformed_native_get_is_distinct_from_missing_inherited_join():
+    snap,_,_=capture('missing_etag')
+    assert envelope(snap,'public_edge_binding')['status']=='malformed'
+    assert envelope(snap,'frontdoor_profile')['status']=='malformed'
 
 
 @pytest.mark.parametrize('limits',[{'max_calls':1},{'max_resources':1}])

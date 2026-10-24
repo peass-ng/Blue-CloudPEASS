@@ -147,7 +147,11 @@ def collect(reader, request, scopes, wanted, options):
     jobs = []
     for scope in scopes:
         if not _approved(options, scope):
-            reader.unavailable(KIND, scope, "Microsoft.ResourceGraph", ValueError("actual-installation policy not approved for scope"))
+            envelope = {"type": KIND, "scope": scope, "service": "Microsoft.ResourceGraph",
+                        "status": "unknown", "items": [],
+                        "error": {"code": "actual_installation_policy_not_approved"}}
+            reader.collections.append(envelope)
+            reader.progress(scope=scope, settled=envelope)
             continue
 
         def fetch(scope=scope):

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import math
 import re
@@ -2446,19 +2447,41 @@ def collect(connector, requirements=None, *, transport=None):
                         raise incomplete
                 jobs.append((kind, scope, endpoint.split("/")[0], detail))
             if "activity_log" in wanted:
-                url = ARM + scope + "/providers/Microsoft.Insights/eventtypes/management/values?" + urlencode({"api-version": "2015-04-01", "$filter": f"eventTimestamp ge '{start}' and eventTimestamp lt '{end}'", "$select": ACTIVITY_SELECT})
+                # ActivityLogs_List accepts an inclusive upper comparator.
+                # Filter its boundary event locally to retain our half-open window.
+                url = ARM + scope + "/providers/Microsoft.Insights/eventtypes/management/values?" + urlencode({"api-version": "2015-04-01", "$filter": f"eventTimestamp ge '{start}' and eventTimestamp le '{end}'", "$select": ACTIVITY_SELECT})
                 def activities(url=url, scope=scope):
-                    seen_events = set()
-                    for page in reader.pages(request, url):
+                    seen_events = {}
+                    upper_bound = datetime.fromisoformat(end)
+                    for page_number, page in enumerate(reader.pages(request, url)):
+                        retained = []
                         for item in page:
+                            timestamp = item.get("eventTimestamp") if isinstance(item, dict) else None
+                            if isinstance(timestamp, str):
+                                try:
+                                    observed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                                except ValueError:
+                                    observed = None  # Existing coverage validation rejects malformed timestamps.
+                                if observed is not None and observed.tzinfo is not None and observed.utcoffset() is not None:
+                                    if observed > upper_bound:
+                                        raise ValueError("Activity Log event beyond native query window")
+                                    if observed == upper_bound:
+                                        continue
                             if isinstance(item, dict) and not item.get("id") and item.get("eventDataId"):
                                 item["id"] = "azure-activity://" + quote(scope, safe="") + "/" + quote(item["eventDataId"], safe="")
                             if "activity_log_coverage" in wanted and isinstance(item, dict):
                                 event_id = item.get('id')
-                                if not isinstance(event_id, str) or event_id in seen_events:
-                                    raise ValueError('missing or duplicate native Activity Log identity')
-                                seen_events.add(event_id)
-                        yield page
+                                if not isinstance(event_id, str):
+                                    raise ValueError('missing native Activity Log identity')
+                                digest = hashlib.sha256(json.dumps(item, sort_keys=True, separators=(',', ':')).encode()).digest()
+                                previous = seen_events.get(event_id)
+                                if previous is not None:
+                                    if previous[0] == digest and previous[1] != page_number:
+                                        continue  # Exact overlap across native continuation pages.
+                                    raise ValueError('conflicting or duplicate native Activity Log identity')
+                                seen_events[event_id] = (digest, page_number)
+                            retained.append(item)
+                        yield retained
                 jobs.append(("activity_log", scope, "Microsoft.Insights", activities))
         reader.run(jobs)
         for collection in reader.collections:
