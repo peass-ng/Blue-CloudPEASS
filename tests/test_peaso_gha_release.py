@@ -170,6 +170,10 @@ def test_api_producer_enforces_shared_expanded_budget_before_zip_write(tmp_path,
     # Isolate only dependency installation: this test exercises package_api's
     # real copy, permissions, member stat and pre-ZIP byte guard.
     monkeypatch.setattr(deploy,'run',lambda *args,**kwargs:None)
+    # SDK closure has its own exact-source tests; this synthetic sparse tree
+    # deliberately isolates the later byte-budget guard.
+    from scripts import peaso_api_service_model_gate as sdk
+    monkeypatch.setattr(sdk, 'prune_api_service_models', lambda target: {'allowed_services': [], 'removed_models': 0})
     monkeypatch.setattr(deploy,'CURRENT_API_UNCOMPRESSED_LIMIT',1)
     with pytest.raises(RuntimeError,match='API uncompressed byte limit exceeded'):
         deploy.package_api()
@@ -188,3 +192,38 @@ def test_api_archive_upload_budget_accepts_exact_limit_and_rejects_one_byte_over
     monkeypatch.setattr(release.deploy, "CURRENT_API_ARCHIVE_LIMIT", measured - 1)
     with pytest.raises(ValueError, match="exceeds reviewed size"):
         release.verify_api_archive()
+
+
+def package_rotation(tmp_path, monkeypatch):
+    import hashlib,base64
+    monkeypatch.setattr(release.deploy, 'BUILD', tmp_path)
+    (tmp_path/'api.zip').write_bytes(b'exact reviewed API package')
+    digest=hashlib.sha256((tmp_path/'api.zip').read_bytes()).hexdigest()
+    candidate=plan()
+    bucket,key='private-cspm-artifacts','arn:aws:kms:us-east-1:111122223333:key/example'
+    candidate['prior_state']={'values':{'root_module':{'resources':[
+        {'address':'aws_s3_bucket.artifacts','values':{'bucket':bucket}},
+        {'address':'aws_kms_key.connectors','values':{'arn':key}}]}}}
+    before={'bucket':bucket,'key':'runtime-packages/'+('c'*64)+'.zip',
+        'server_side_encryption':'aws:kms','kms_key_id':key}
+    after={**before,'key':'runtime-packages/'+digest+'.zip','metadata':{'sha256':digest},
+        'source':str(tmp_path/'api.zip'),'source_hash':base64.b64encode(bytes.fromhex(digest)).decode()}
+    candidate['resource_changes'].append({'mode':'managed','address':'aws_s3_object.api_zip',
+        'change':{'actions':['delete','create'],'replace_paths':[['key']],'before':before,'after':after}})
+    return candidate
+
+
+def test_review_accepts_exact_content_addressed_api_rotation(tmp_path,monkeypatch):
+    candidate=package_rotation(tmp_path,monkeypatch)
+    result=release.review_plan(candidate,{'source_version':VERSION})
+    assert {'address':'aws_s3_object.api_zip','actions':['delete','create']} in result['changes']
+
+
+@pytest.mark.parametrize('field,value',[('bucket','foreign'),('kms_key_id','foreign'),
+    ('key','uploads/customer-data.zip'),('metadata',{'sha256':'d'*64}),
+    ('source_hash','wrong'),('acl','public-read'),('force_destroy',True)])
+def test_review_refuses_foreign_or_unbound_package_rotation(tmp_path,monkeypatch,field,value):
+    candidate=package_rotation(tmp_path,monkeypatch)
+    candidate['resource_changes'][-1]['change']['after'][field]=value
+    with pytest.raises(ValueError,match='Destructive or unsupported'):
+        release.review_plan(candidate,{'source_version':VERSION})

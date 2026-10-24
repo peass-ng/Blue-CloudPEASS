@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from peaso import deployment
 import argparse
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -66,6 +67,36 @@ def verify_api_archive() -> None:
             raise ValueError('API archive expands beyond reviewed size')
 
 
+def _api_package_replacement(row, prior):
+    """Permit only a hash-addressed API package rotation in existing storage."""
+    change = row.get('change') or {}
+    before, after = change.get('before') or {}, change.get('after') or {}
+    existing = {item.get('address'): item.get('values') or {}
+                for item in prior.get('resources', [])}
+    bucket = existing.get('aws_s3_bucket.artifacts', {}).get('bucket')
+    key = existing.get('aws_kms_key.connectors', {}).get('arn')
+    package = deploy.BUILD / 'api.zip'
+    if not package.is_file():
+        return False
+    digest = sha256(package.read_bytes())
+    return (row.get('address') == 'aws_s3_object.api_zip'
+            and change.get('replace_paths') == [['key']]
+            and isinstance(bucket, str) and bool(bucket)
+            and isinstance(key, str) and bool(key)
+            and before.get('bucket') == after.get('bucket') == bucket
+            and before.get('kms_key_id') == after.get('kms_key_id') == key
+            and before.get('server_side_encryption') == after.get('server_side_encryption') == 'aws:kms'
+            and re.fullmatch(r'runtime-packages/[0-9a-f]{64}\.zip', before.get('key', '')) is not None
+            and after.get('key') == 'runtime-packages/' + digest + '.zip'
+            and after.get('metadata') == {'sha256': digest}
+            and after.get('source') == str(package)
+            and after.get('source_hash') == base64.b64encode(bytes.fromhex(digest)).decode()
+            and after.get('acl') in (None, 'private')
+            and after.get('content') is None and after.get('content_base64') is None
+            and after.get('website_redirect') is None
+            and after.get('force_destroy') is not True)
+
+
 def review_plan(data: dict, release: dict) -> dict:
     """Return only nonsecret plan facts; reject an unrelated or destructive plan."""
     version = release.get('source_version')
@@ -103,7 +134,8 @@ def review_plan(data: dict, release: dict) -> dict:
         base = match.group(1)
         actions = (row.get('change') or {}).get('actions')
         if actions not in (['no-op'], ['create'], ['update']):
-            if base not in REPLACEABLE or actions not in (['delete', 'create'], ['create', 'delete']):
+            if (actions not in (['delete', 'create'], ['create', 'delete'])
+                    or (base not in REPLACEABLE and not _api_package_replacement(row, prior))):
                 raise ValueError(f'Destructive or unsupported Terraform change: {address}')
         if actions != ['no-op']:
             changes.append({'address': address, 'actions': actions})
