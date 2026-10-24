@@ -1007,12 +1007,30 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return artifacts.put_text(tenant, scan_id, "markdown", render_markdown(presented))
         return artifacts.put(tenant, scan_id, "report", presented)
 
+    @lru_cache(maxsize=8)
+    def staged_download_reference(tenant, scan_id, original_reference, overlay_json, publication_json, aggregation):
+        # Bind one immutable native checkpoint and exactly its completed AI
+        # revisions. Return only a private signed reference through the API.
+        original = artifacts.get(tenant, original_reference)
+        value = artifacts.get(tenant, original["report_json"]) if original.get("bundle_version") == 1 else original
+        value = dict(value, ai=json.loads(overlay_json), publication=json.loads(publication_json))
+        value['runtime'] = store.public_job(store.job(tenant, scan_id))['runtime']
+        if aggregation == "check":
+            from .finding_groups_static_20261021 import group_report
+            value = group_report(value)
+        return artifacts.put(tenant, scan_id, "report", value)
+
     @app.get("/api/scans/{ident}/report")
     def report(ident: str, format: Literal["json", "markdown"] = "json", aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         ext = "md" if format == "markdown" else "json"
         filename = f"hacktricks-cspm-{row['id']}.{ext}"
         if bundle.get("_stage_ai") and format == "json":
+            if hasattr(artifacts, "presign"):
+                reference = staged_download_reference(user.tenant_id, ident, row["report"],
+                    json.dumps(bundle["_stage_ai"], sort_keys=True, separators=(",", ":")),
+                    json.dumps(bundle.get("summary", bundle)["publication"], sort_keys=True, separators=(",", ":")), aggregation)
+                return signed_download(user.tenant_id, reference, format, filename)
             return Response(json.dumps(owned_report(user.tenant_id, ident)), media_type="application/json",
                 headers={"Content-Disposition": f'attachment; filename="{filename}"'})
         if aggregation == "check" and bundle.get("report_grouping") != "check-v1":
@@ -1438,7 +1456,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             from peaso.least_privilege_permissions import grant_groups
             summary = bundle.get('summary', bundle)
             candidates = grant_groups(projection['items'], summary.get('provider', ''),
-                resource_rows(artifacts, user.tenant_id, bundle), summary.get('created_at'))
+                resource_rows(artifacts, user.tenant_id, bundle, cards=projection['items']), summary.get('created_at'))
         else:
             candidates = projection["items"]
         if exposure:
@@ -1476,7 +1494,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         from peaso.least_privilege_permissions import grant_groups
         summary = bundle.get('summary', bundle)
         groups = grant_groups(projection['items'], summary.get('provider', ''),
-            resource_rows(artifacts, user.tenant_id, bundle), summary.get('created_at'))
+            resource_rows(artifacts, user.tenant_id, bundle, cards=projection['items']), summary.get('created_at'))
         group = next((item for item in groups if item['id'] == key), None)
         if group is None:
             raise HTTPException(404, 'Grant not found')

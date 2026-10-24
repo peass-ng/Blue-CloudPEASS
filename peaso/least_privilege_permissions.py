@@ -373,6 +373,16 @@ def enrich(card, provider, resources, observed_at, *, _rows=None, _usage=None):
         observed_at=observed_at, identity_last_used=identity_last_used)
 
 
+def permission_input_filter(provider, cards):
+    """Keep all AWS grant/usage records and exact exposure-label targets."""
+    if provider != 'aws' or cards is None:
+        return None
+    labels = {entry[field] for card in cards for entry in card.get('exposures', [])
+              for field in ('resource_id', 'workload_resource', 'endpoint_resource')
+              if isinstance(entry.get(field), str)}
+    return lambda row: row.get('type') in {'iam_user', 'iam_role', 'iam_group', 'iam_policy'} or row.get('id') in labels
+
+
 def grant_groups(cards, provider, resources, observed_at):
     """Build policy/role groups from the same resolved grants used by principal details."""
     groups = {}

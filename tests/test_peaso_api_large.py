@@ -112,3 +112,65 @@ def test_signed_large_finding_envelope_carries_only_bounded_defensive_template(t
         assert "<APPROVED_CIDR>" in detail["cli"][1]["code"]
         assert "<RULE_ID>" in detail["cli"][2]["code"]
         assert "Authorization" not in json.dumps(envelope)
+
+
+def test_staged_hosted_report_download_keeps_large_body_out_of_api(tmp_path, monkeypatch):
+    store = SQLiteStore(tmp_path / 'staged.db')
+    artifacts = SignedFiles(tmp_path / 'artifacts')
+    report = {'schema_version': '1.0', 'snapshot_id': 'snap', 'provider': 'aws',
+        'created_at': '2026-10-24T00:00:00Z', 'scopes': ['123456789012'],
+        'resources': [], 'coverage': [], 'graphs': {}, 'findings': [],
+        'publication': {'state': 'partial', 'phase': 'collecting',
+            'sections': {'network': {'status': 'complete', 'data_revision': 1}}},
+        'large_native_evidence': 'x' * (7 * 1024 * 1024)}
+    ident, bundle = completed_job(store, artifacts, report)
+    original_job = store.job
+    def current_job(tenant, scan_id):
+        row = original_job(tenant, scan_id)
+        return dict(row, status='collecting', partial_report=row['report'])
+    monkeypatch.setattr(store, 'job', current_job)
+    ai = {'network': {'status': 'completed', 'summary': 'Exact checkpoint review', 'findings': []}}
+    reference = artifacts.put('alice', ident, 'ai-review', {'stage': 'network', 'data_revision': 1, 'result': ai})
+    monkeypatch.setattr(store, 'stage_results', lambda tenant, scan_id: {
+        'network': {'data_revision': 1, 'result_ref': reference}})
+    app = create_app(Settings(auth_mode='local', state_dir=tmp_path / 'state', identity_dir=tmp_path / 'identity'), store=store, artifacts=artifacts, authenticator=Identities())
+    with TestClient(app, base_url="http://127.0.0.1") as client:
+        response = client.get(f'/api/scans/{ident}/report', headers={'Authorization': 'Bearer alice'})
+        assert response.status_code == 200 and len(response.content) < 2000
+        data = response.json()
+        target = data['download_url'].split('private.example.invalid/', 1)[1].split('?', 1)[0]
+        downloaded = artifacts.get('alice', target)
+        assert downloaded['large_native_evidence'] == report['large_native_evidence']
+        assert downloaded['ai']['network']['summary'] == 'Exact checkpoint review'
+        assert downloaded['publication']['ai_stages'] == {'network': 1}
+        again = client.get(f'/api/scans/{ident}/report', headers={'Authorization': 'Bearer alice'}).json()
+        assert again['download_url'] == data['download_url']
+        assert client.get(f'/api/scans/{ident}/report', headers={'Authorization': 'Bearer bob'}).status_code == 404
+
+
+def test_publication_keeps_compact_aws_permission_evidence_complete(tmp_path):
+    from peaso.snapshot import make_snapshot, resources
+    from peaso.server.least_privilege_details import resource_rows
+    from peaso.least_privilege_permissions import grant_groups
+    scope = '123456789012/global'
+    arn = 'arn:aws:iam::123456789012:role/Worker'
+    snapshot = make_snapshot('aws', [scope], [
+        {'type': 'iam_role', 'scope': scope, 'status': 'collected', 'items': [
+            {'Arn': arn, 'RoleName': 'Worker', 'RolePolicyList': [
+                {'PolicyName': 'Operations', 'PolicyDocument': {'Statement': [
+                    {'Effect': 'Allow', 'Action': 'iam:PassRole', 'Resource': '*'}]}}]}]},
+        {'type': 'metric', 'scope': scope, 'status': 'collected', 'items': [
+            {'MetricName': f'unrelated-{i}'} for i in range(1000)]}])
+    inventory = resources(snapshot)
+    report = {'schema_version': '1.1', 'snapshot_id': snapshot['snapshot_id'], 'provider': 'aws',
+        'created_at': snapshot['created_at'], 'scopes': [scope], 'resources': inventory,
+        'coverage': [], 'graphs': {}, 'findings': [], 'stats': {}}
+    artifacts = SignedFiles(tmp_path / 'artifacts')
+    reference = publish_report(artifacts, 'alice', 'a' * 32, report, snapshot)
+    bundle = artifacts.get('alice', reference)
+    projection = artifacts.get('alice', bundle['least_privilege'])
+    selected = resource_rows(artifacts, 'alice', bundle, cards=projection['items'])
+    assert len(inventory) == 1001 and len(selected) == 1
+    assert selected[0]['data']['Arn'] == arn
+    assert grant_groups(projection['items'], 'aws', selected, report['created_at']) == grant_groups(
+        projection['items'], 'aws', inventory, report['created_at'])

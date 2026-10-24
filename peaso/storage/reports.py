@@ -230,6 +230,12 @@ def _publish_report(artifacts, tenant, ident, report, snapshot=None):
         inventory = snapshot_resources(snapshot)
         manifest["resource_chunks"] = resource_chunks(artifacts, tenant, ident, report, snapshot, _inventory=inventory)
         projection = project_least_privilege(report["provider"], inventory, snapshot=snapshot)
+        if report['provider'] == 'aws':
+            from peaso.least_privilege_permissions import permission_input_filter
+            selected = permission_input_filter('aws', projection['items'])
+            manifest['least_privilege_permission_inputs'] = artifacts.put(tenant, ident, 'least-privilege', {
+                'snapshot_id': report['snapshot_id'], 'provider': 'aws',
+                'items': [row for row in inventory if selected(row)]})
         del inventory
         manifest["least_privilege"] = artifacts.put(tenant, ident, "least-privilege", projection)
     for kind in ("network", "iam"):

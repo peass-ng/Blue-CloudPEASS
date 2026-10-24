@@ -56,6 +56,8 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_iam_usage_extensions.py',
+    'tests/test_report_artifact_batch_reuse.py',
     'tests/test_gcp_discoveryengine_collection_projection.py',
     'docs/api-lambda-s3-delivery.md',
     'examples/benchmark_peaso_final_collector_release.py',

@@ -297,3 +297,46 @@ def test_grouping_builds_usage_index_once_for_all_principals(monkeypatch):
     cards = [card(), dict(card(), id='other', principal=f'arn:aws:iam::{ACCOUNT}:user/Bob')]
     grant_groups(cards, 'aws', rows, NOW)
     assert calls == [('aws', 1)]
+
+
+def test_chunked_aws_permission_inputs_discard_unrelated_inventory_without_losing_grants_or_labels():
+    from peaso.server.least_privilege_details import resource_rows
+    from types import SimpleNamespace
+    iam = row('iam_user', {'Arn': ARN, 'UserName': 'Alice', 'UserPolicyList': [
+        {'PolicyDocument': {'Statement': [{'Effect': 'Allow', 'Action': 'iam:PassRole', 'Resource': '*'}]}}]}, id='iam')
+    endpoint = row('lambda_function', {'FunctionName': 'public-handler'}, id='endpoint')
+    unrelated = [row('cloudwatch_metric', {'metric': str(i)}, id=f'metric-{i}') for i in range(2000)]
+    value = card(exposures=[{'kind': 'internet_workload', 'endpoint_resource': 'endpoint'}])
+    chunks = [dict(reference=str(i)) for i in range(10)]
+    def get(tenant, reference):
+        assert tenant == 'alice'
+        return {'items': ([iam, endpoint] if reference == '0' else []) + unrelated}
+    bundle = {'summary': {'provider': 'aws'}, 'resource_chunks': chunks}
+    selected = resource_rows(SimpleNamespace(get=get), 'alice', bundle, cards=[value])
+    assert selected == [iam, endpoint]
+    assert enrich(value, 'aws', selected, NOW) == enrich(value, 'aws', [iam, endpoint, *unrelated], NOW)
+    assert grant_groups([value], 'aws', selected, NOW) == grant_groups([value], 'aws', [iam, endpoint, *unrelated], NOW)
+
+
+def test_compact_permission_input_is_snapshot_bound_and_never_reads_native_chunks():
+    from peaso.server.least_privilege_details import resource_rows
+    from types import SimpleNamespace
+    import pytest
+    value = card()
+    iam = row('iam_user', {'Arn': ARN}, id='identity')
+    payload = {'provider': 'aws', 'snapshot_id': 'native-one', 'items': [iam]}
+    bundle = {'summary': {'provider': 'aws', 'snapshot_id': 'native-one'},
+        'least_privilege': 'tenant/scan/cards.json',
+        'least_privilege_permission_inputs': 'tenant/scan/inputs.json',
+        'resource_chunks': [{'reference': 'must-not-load'}]}
+    def get(tenant, ref):
+        assert tenant == 'alice' and ref == 'tenant/scan/inputs.json'
+        return payload
+    artifacts = SimpleNamespace(get=get)
+    assert resource_rows(artifacts, 'alice', bundle, cards=[value]) == [iam]
+    payload['snapshot_id'] = 'different-native'
+    with pytest.raises(ValueError, match='match snapshot'):
+        resource_rows(artifacts, 'alice', bundle, cards=[value])
+    bundle['least_privilege_permission_inputs'] = 'tenant/other-scan/inputs.json'
+    with pytest.raises(ValueError, match='escaped scan'):
+        resource_rows(artifacts, 'alice', bundle, cards=[value])

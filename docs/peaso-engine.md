@@ -130,3 +130,11 @@ The API also builds the 500-node expansion view only when an expansion requests 
 
 
 The checkpoint replay benchmark runs the normal native evaluator, redaction, local durable writes and report publication. Use `python -m examples.benchmark_peaso_checkpoint_cadence snapshot.json --baseline /path/to/predecessor/incremental.py --candidate peaso/incremental.py --arrival-gap 8`; `--candidate-first` reverses comparison order. The optional gap uses a controlled arrival clock without sleeping. It measures replay CPU and writes, not live collection latency or S3 traffic. In a retained-workload comparison, four raw batches stayed durable and final report bytes matched while cumulative publications fell from four to two. Reverse-order CPU fell from 48.3 to 28.1 seconds; the first order measured 65.1 to 25.7 seconds. First-use caches and host load affect the timings. The worker can separately reuse unchanged artifact references, which this local writer benchmark does not model.
+
+### Multicloud IAM usage and permission detail reads
+
+AWS usage enrichment overlaps at most two independent account sessions, while keeping each account's report deadline, principal/job binding and evidence intact. Explicit call, page or item caps and shared sessions retain serial admission. Results remain in the original account and native-item order.
+
+AWS report publication also stores a compact, snapshot-bound permission-input artifact containing all IAM user, role, group and policy records plus workload and endpoint records needed to label principal exposures. Permission detail and grant-group endpoints use this input instead of loading unrelated metrics or other inventory. Historical reports remain supported with bounded native-chunk reads. High-risk permission rows, usage evidence and unresolved grants are unchanged.
+
+Hosted JSON exports with completed progressive AI reviews are materialized as private artifacts and returned through signed download URLs. This preserves the exact native checkpoint and its eligible AI revisions without sending the full report through Lambda's response body.
