@@ -566,7 +566,7 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
         marker['complete'] = bool(secret_enabled and not secret_gaps and parts and all(p.get('complete') is True for p in parts))
         marker['reason'] = sorted(secret_gaps)[0] if secret_gaps else 'complete' if marker['complete'] else 'partial'
     except Exception as exc:
-        if isinstance(exc, TimeoutError) or getattr(exc, 'code', None) in ('collection_cancelled', 'intentional_scan_deadline', 'deadline_exceeded'):
+        if getattr(exc, 'code', None) in ('collection_cancelled', 'intentional_scan_deadline', 'deadline_exceeded'):
             raise
         marker['reason'] = str(exc) if type(exc) is Incomplete else 'inspection_unavailable'
         marker['complete'] = False

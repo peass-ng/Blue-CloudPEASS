@@ -48,6 +48,16 @@ def _exercise(store):
     assert store_after_restart["checkpoint_sequence"] == 1
     assert not store.record_checkpoint(TENANT, SCAN, OWNER, 2, cumulative,
                                        report_ref=partial, now=1100)
+    # A raw batch can finish while an older cumulative report is uploading.
+    # Its report may publish afterward without regressing raw durability.
+    later_delta = reference_for(TENANT, SCAN, "snapshot")
+    later_report = reference_for(TENANT, SCAN, "report")
+    assert store.record_checkpoint(TENANT, SCAN, OWNER, 3, later_delta,
+                                   kind="route_table", scope="123456789012/us-east-1", now=1100)
+    assert store.record_checkpoint(TENANT, SCAN, OWNER, 2, cumulative,
+                                   report_ref=later_report, now=1100)
+    assert store.job(TENANT, SCAN)["checkpoint_sequence"] == 3
+    assert store.job(TENANT, SCAN)["partial_report_sequence"] == 2
     if isinstance(store, SQLiteStore):
         with store.transaction() as db:
             db.execute("UPDATE jobs SET status='analyzing' WHERE tenant=? AND id=?", (TENANT, SCAN))
@@ -56,9 +66,9 @@ def _exercise(store):
                                  UpdateExpression="SET #status=:analyzing",
                                  ExpressionAttributeNames={"#status": "status"},
                                  ExpressionAttributeValues=attrs({":analyzing": "analyzing"}))
-    assert store.record_checkpoint(TENANT, SCAN, OWNER, 2, cumulative,
+    assert store.record_checkpoint(TENANT, SCAN, OWNER, 4, cumulative,
                                    report_ref=partial, stage="analyzer_native", now=1100)
-    assert store.job(TENANT, SCAN)["checkpoint_sequence"] == 2
+    assert store.job(TENANT, SCAN)["checkpoint_sequence"] == 4
     assert not store.record_checkpoint(TENANT, SCAN, OWNER, 1, delta,
                                        kind="bucket", scope="123456789012/us-east-1", now=1100)
     final = reference_for(TENANT, SCAN, "manifest")

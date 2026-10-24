@@ -125,3 +125,15 @@ def test_failed_batch_preparation_reverts_to_serial(monkeypatch):
     serial = run(target, pod, blobs, scanner=lambda *a, **kw: image._scan(*a, **kw))
     batched = run(target, pod, blobs)
     assert attempts == [4] and batched == serial
+
+
+def test_ordinary_batch_timeout_retains_original_unknown_behavior(monkeypatch):
+    @contextmanager
+    def timed_out(items, *, timeout):
+        raise TimeoutError('ordinary_optional_detector_timeout')
+        yield
+    monkeypatch.setattr(image, 'scan_content', clean)
+    monkeypatch.setattr(image, 'prepared_content_batch', timed_out)
+    marker = run(*two_files())
+    assert marker['status'] == 'UNKNOWN' and marker['complete'] is False
+    assert marker['reason'] == 'inspection_unavailable'

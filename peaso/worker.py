@@ -238,6 +238,50 @@ def _safe_failure_details(exc):
     return details
 
 
+def _collector_checkpoint_publisher(artifacts, publication_artifacts, tenant, ident,
+                                    secret_capture, private_checkpoint, connection):
+    """Durable raw batches must not wait for cumulative report rendering.
+
+    Private-document writes and pipe exchanges remain serialized. Expensive
+    public serialization/uploads run outside that lock; a full report refreshes
+    private evidence again before its reference becomes visible.
+    """
+    from peaso.secret_evidence import without_private_values, _lock as private_evidence_lock
+    handoff_lock = threading.Lock()
+
+    def commit_private():
+        with private_evidence_lock:
+            document = private_checkpoint.document(secret_capture)
+        artifacts.put_secret_evidence(tenant, ident, document)
+
+    def checkpoint(snapshot, report, sequence):
+        with handoff_lock:
+            commit_private()
+        snapshot_ref = artifacts.put(tenant, ident, "snapshot", snapshot)
+        if report is not None:
+            from peaso.storage.reports import publish_report
+            report_ref = publish_report(publication_artifacts, tenant, ident,
+                                        without_private_values(redact_report(report)), snapshot)
+        else:
+            report_ref = None
+        batch = (report is None and 'batch_revisions' in
+                 snapshot.get('metadata', {}).get('incremental', {}))
+        envelope = snapshot["collections"][0] if report is None and not batch else None
+        with handoff_lock:
+            if report is not None:
+                # Capture may advance while the public report is built. Never
+                # overwrite a newer private document with an older publisher.
+                commit_private()
+            connection.send(("__checkpoint__", {"sequence": sequence, "stage": "collector",
+                "snapshot_ref": snapshot_ref, "report_ref": report_ref,
+                "kind": '__checkpoint_batch__' if batch else envelope["type"] if envelope else None,
+                "scope": str(sequence) if batch else envelope["scope"] if envelope else None}))
+            if connection.recv() != ("__checkpoint_ack__", sequence, True):
+                raise RuntimeError("checkpoint lease or publication rejected")
+
+    return checkpoint
+
+
 def _process(role, request, connection):
     connection = _SynchronizedPipe(connection)
     # Provider exceptions and third-party libraries must never log credentials.
@@ -301,33 +345,8 @@ def _process(role, request, connection):
                             public.setdefault("metadata", {})["ai_access_status"] = "unavailable"
                     return seal(public)
 
-                checkpoint_lock = threading.Lock()
-
-                def checkpoint(snapshot, report, sequence):
-                    # Commit private evidence before the supervisor can expose
-                    # any public checkpoint from this native read. The entire
-                    # handoff is serialized so an older publisher cannot
-                    # overwrite the latest encrypted private document.
-                    with checkpoint_lock:
-                        with private_evidence_lock:
-                            document = private_checkpoint.document(secret_capture)
-                        artifacts.put_secret_evidence(tenant, ident, document)
-                        snapshot_ref = artifacts.put(tenant, ident, "snapshot", snapshot)
-                        if report is not None:
-                            from peaso.storage.reports import publish_report
-                            report_ref = publish_report(publication_artifacts, tenant, ident,
-                                                        without_private_values(redact_report(report)), snapshot)
-                        else:
-                            report_ref = None
-                        batch = (report is None and 'batch_revisions' in
-                                 snapshot.get('metadata', {}).get('incremental', {}))
-                        envelope = snapshot["collections"][0] if report is None and not batch else None
-                        connection.send(("__checkpoint__", {"sequence": sequence, "stage": "collector",
-                            "snapshot_ref": snapshot_ref, "report_ref": report_ref,
-                            "kind": '__checkpoint_batch__' if batch else envelope["type"] if envelope else None,
-                            "scope": str(sequence) if batch else envelope["scope"] if envelope else None}))
-                        if connection.recv() != ("__checkpoint_ack__", sequence, True):
-                            raise RuntimeError("checkpoint lease or publication rejected")
+                checkpoint = _collector_checkpoint_publisher(artifacts, publication_artifacts,
+                    tenant, ident, secret_capture, private_checkpoint, connection)
 
                 checkpoint_session = CheckpointSession(request, checkpoint, public_checkpoint)
                 restored = [artifacts.get(tenant, reference) for reference in
@@ -381,7 +400,7 @@ def _process(role, request, connection):
                             snapshot = merge(snapshot, saved_rows, prior)
                         from peaso.collectors.iam_usage_finalize import enrich_snapshot as enrich_iam_usage
                         snapshot = enrich_iam_usage(snapshot, connector, request, aws_usage_contexts)
-                    checkpoint_session.finish_collection()
+                    checkpoint_session.finish_collection(final_metadata=snapshot.get("metadata", {}))
                     snapshot.setdefault("metadata", {})["sections"] = checkpoint_session.sections()
                 finally:
                     checkpoint_session.close()

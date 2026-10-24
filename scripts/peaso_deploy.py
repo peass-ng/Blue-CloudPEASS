@@ -304,6 +304,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_k8s_pinned_reference_native_20261021.py',
     'tests/test_k8s_registry_consumer_boundaries_20261021.py',
     'tests/test_k8s_registry_image.py',
+    'tests/test_k8s_selected_image_batch_20261024.py',
     'tests/test_k8s_seccomp_ephemeral_native_20261021.py',
     'tests/test_k8s_selected_artifact_redaction_20261021.py',
     'tests/test_k8s_selected_text_content_portable.py',
