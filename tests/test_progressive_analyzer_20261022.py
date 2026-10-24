@@ -123,7 +123,7 @@ class FakeStageProcess:
 def test_network_starts_while_images_blocked_and_no_stage_starts_early(monkeypatch, tmp_path):
     store, artifacts = FakeStore(), FakeArtifacts()
     store.row["status"] = "queued"
-    network_started, release_network, final_called = (threading.Event() for _ in range(3))
+    network_started, release_network, native_published, final_called = (threading.Event() for _ in range(4))
     calls = []
 
     def review(report, snapshot, selectors, **kwargs):
@@ -141,7 +141,12 @@ def test_network_starts_while_images_blocked_and_no_stage_starts_early(monkeypat
         settings=SimpleNamespace(state_dir=tmp_path, identity_dir=tmp_path, lease_seconds=30),
         stopping=threading.Event())
 
-    def final(tenant, ident):
+    def final(tenant, ident, *, stage_poll=None):
+        with store.lock:
+            store.row["status"] = "analyzing"
+        native_published.set()
+        while stage_poll is not None and not stage_poll(store.job(tenant, ident)):
+            assert not worker.stopping.wait(.01)
         assert store.stage_results(tenant, ident)["network"]["data_revision"] == 1
         final_called.set()
         with store.lock:
@@ -162,6 +167,8 @@ def test_network_starts_while_images_blocked_and_no_stage_starts_early(monkeypat
         assert calls == ["network"]
         with store.lock:
             store.row["status"] = "collected"
+        assert native_published.wait(2), "Native publication must not wait for the AI stage"
+        assert not final_called.is_set()
         release_network.set()
         assert final_called.wait(2)
     finally:

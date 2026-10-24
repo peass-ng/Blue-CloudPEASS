@@ -242,6 +242,31 @@ def run_progressive(worker, tenant, ident, *, poll_seconds=0.25):
         max_workers = max(1, min(2, review_concurrency()))
     except (ValueError, OSError):
         max_workers = 1
+    def poll_active(job):
+        nonlocal next_heartbeat
+        for stage, (revision, task) in tuple(active.items()):
+            result_ref = task.poll()
+            if result_ref is _PENDING:
+                continue
+            task.close()
+            del active[stage]
+            if isinstance(result_ref, str) and job["status"] in {"collecting", "collected", "analyzing"}:
+                worker.store.finish_stage(tenant, ident, stage, revision, owner, result_ref)
+        if active and time.time() >= next_heartbeat:
+            lost = {}
+            for stage, (revision, task) in active.items():
+                if not worker.store.heartbeat_stage(tenant, ident, stage, revision,
+                                                    owner, lease_seconds):
+                    LOGGER.warning("Progressive AI stage lease lost for %s", stage)
+                    lost[stage] = (revision, task)
+            if lost:
+                lost_names = tuple(lost)
+                _stop_active(lost)
+                for stage in lost_names:
+                    active.pop(stage, None)
+            next_heartbeat = time.time() + lease_seconds / 3
+        return not active
+
     try:
         while not worker.stopping.is_set():
             job = worker.store.job(tenant, ident)
@@ -250,32 +275,15 @@ def run_progressive(worker, tenant, ident, *, poll_seconds=0.25):
             if time.time() >= job["deadline"]:
                 worker.store.expire_job(tenant, ident)
                 break
-            for stage, (revision, task) in tuple(active.items()):
-                result_ref = task.poll()
-                if result_ref is _PENDING:
-                    continue
-                task.close()
-                del active[stage]
-                if isinstance(result_ref, str) and job["status"] in {"collecting", "collected"}:
-                    worker.store.finish_stage(tenant, ident, stage, revision, owner, result_ref)
-            if active and time.time() >= next_heartbeat:
-                lost = {}
-                for stage, (revision, task) in active.items():
-                    if not worker.store.heartbeat_stage(tenant, ident, stage, revision,
-                                                        owner, lease_seconds):
-                        LOGGER.warning("Progressive AI stage lease lost for %s", stage)
-                        lost[stage] = (revision, task)
-                if lost:
-                    lost_names = tuple(lost)
-                    _stop_active(lost)
-                    for stage in lost_names:
-                        active.pop(stage, None)
-                next_heartbeat = time.time() + lease_seconds / 3
+            poll_active(job)
             if job["status"] == "collected":
                 if active:
-                    worker.stopping.wait(poll_seconds)
-                    continue
-                worker.run_once(tenant, ident)
+                    # Publish final native data immediately. The worker keeps
+                    # polling these stages while its child publishes, then
+                    # supplies their durable results before final AI review.
+                    worker.run_once(tenant, ident, stage_poll=poll_active)
+                else:
+                    worker.run_once(tenant, ident)
                 break
             if job["status"] == "queued":
                 worker.stopping.wait(poll_seconds)

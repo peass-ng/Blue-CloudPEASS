@@ -452,6 +452,13 @@ def _process(role, request, connection):
             if connection.recv() != ("__checkpoint_ack__", native_sequence, True):
                 raise RuntimeError("native analysis checkpoint rejected")
             from peaso.ai.pipeline import review_scan
+            if request.get("refresh_stage_results"):
+                connection.send(("__stage_results__", None))
+                reply = connection.recv()
+                if (not isinstance(reply, tuple) or len(reply) != 2
+                        or reply[0] != "__stage_results__" or not isinstance(reply[1], dict)):
+                    raise RuntimeError("progressive stage result handoff rejected")
+                request["stage_results"] = reply[1]
             reused_stages = _reusable_stages(artifacts, tenant, sections, request.get("stage_results"))
             value["ai"] = review_scan(value, snapshot, selectors, tenant=tenant, artifacts=artifacts,
                                       deadline=request.get("deadline"), context=request.get("ai_context"),
@@ -576,7 +583,7 @@ class Worker:
                 WorkflowDispatcher().dispatch(row["tenant"], result)
         return results
 
-    def run_once(self, tenant=None, ident=None):
+    def run_once(self, tenant=None, ident=None, *, stage_poll=None):
         job = self.store.claim(self.role, self.settings.lease_seconds, tenant=tenant, ident=ident)
         if not job:
             return False
@@ -611,6 +618,8 @@ class Worker:
                 request = {"snapshot_ref": job["snapshot"], "selectors": selectors,
                            "related": related_snapshot_refs(self.store, job),
                            "stage_results": self.store.stage_results(job["tenant"], job["id"])}
+            if self.role == "analyzer" and stage_poll is not None:
+                request["refresh_stage_results"] = True
             request["checkpoint_sequence"] = int(job.get("checkpoint_sequence") or 0)
             if self.role == "collector":
                 checkpoint_rows = sorted(self.store.checkpoint_collections(job["tenant"], job["id"]),
@@ -641,6 +650,7 @@ class Worker:
             next_heartbeat = 0
             result = None
             control_read = getattr(self.store, "job_control", self.store.job)
+            stage_results_pending = False
             while not self.stopping.is_set():
                 now = time.time()
                 if now >= job["deadline"]:
@@ -651,11 +661,23 @@ class Worker:
                         return True
                     next_heartbeat = now + max(0.2, self.settings.lease_seconds / 3)
                 # Cancellation is checked independently of the heartbeat interval.
-                if control_read(job["tenant"], job["id"])["status"] not in {"collecting", "analyzing"}:
+                control = control_read(job["tenant"], job["id"])
+                if control["status"] not in {"collecting", "analyzing"}:
                     return True
+                stages_settled = stage_poll(control) if stage_poll is not None else True
+                if stage_results_pending and stages_settled:
+                    parent.send(("__stage_results__", self.store.stage_results(job["tenant"], job["id"])))
+                    stage_results_pending = False
                 if parent.poll(0.2):
                     try:
                         result = parent.recv()
+                        if (isinstance(result, tuple) and len(result) == 2
+                                and result[0] == "__stage_results__"):
+                            if self.role != "analyzer" or stage_poll is None or stage_results_pending:
+                                raise RuntimeError("unexpected progressive stage result request")
+                            stage_results_pending = True
+                            result = None
+                            continue
                         if isinstance(result, tuple) and len(result) == 2 and result[0] == "__progress__":
                             from peaso.worker_progress import record_progress
                             record_progress(self.store, job, result[1], LOGGER)
