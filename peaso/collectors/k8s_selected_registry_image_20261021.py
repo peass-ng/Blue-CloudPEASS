@@ -19,6 +19,7 @@ from peaso import container_image_archive_20261020 as archive
 from peaso import oci_index_20261021 as oci_index
 from peaso.secret_evidence import scan_with_source, source_context
 from peaso.secret_scanning import scan_content, merge_leaks
+from peaso.secret_scanning_batch import prepared_content_batch, MAX_BATCH_ITEMS, MAX_BATCH_BYTES
 from peaso import k8s_image_source_association_20261020 as association
 from peaso import k8s_image_source_association_current_20261023 as current_association
 
@@ -380,6 +381,7 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
     is_index = False
     scanned = [0]
     secret_gaps = set()
+    pending, pending_bytes = [], 0
     def scan(raw, path, source):
         reader.check()
         if len(parts) >= 8192:
@@ -393,6 +395,30 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
             if str(exc) != 'detectors_incomplete':
                 raise
             secret_gaps.add('detectors_incomplete')
+    def flush():
+        nonlocal pending, pending_bytes
+        if not pending:
+            return
+        reader.check()
+        timeout = min(60, max(.001, reader.end - time.monotonic() - 1))
+        with prepared_content_batch([(raw, path) for raw, path, _ in pending], timeout=timeout):
+            for raw, path, source in pending:
+                scan(raw, path, source)
+        pending, pending_bytes = [], 0
+    def queue(raw, path, source):
+        nonlocal pending_bytes
+        if scanner is not _scan:
+            scan(raw, path, source)
+            return
+        reader.check()
+        if pending and (len(parts) + len(pending) >= 8192
+                        or len(pending) >= MAX_BATCH_ITEMS
+                        or pending_bytes + len(raw) > MAX_BATCH_BYTES):
+            flush()
+        if len(parts) >= 8192:
+            raise Incomplete('detector_part_bound')
+        pending.append((raw, path, source))
+        pending_bytes += len(raw)
     def bind_again():
         current = bind_pod(target, pod_get(target))
         if (current['pod'] != before['pod'] or current.get('status_image_id') != before.get('status_image_id')
@@ -455,10 +481,10 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
                 def visit(name, stream, length, layer):
                     if length > MAX_FILE_SCAN or scanned[0] + length > MAX_SCAN:
                         raise Incomplete('file_scan_bound')
-                    path = prefix + '.layer-' + str(layer + 1) + '.file-' + str(len(parts) + 1)
+                    path = prefix + '.layer-' + str(layer + 1) + '.file-' + str(len(parts) + len(pending) + 1)
                     origin = {**parent_source, 'source': digest, 'layer': descriptors[layer]['digest'],
                               'path': name}
-                    scan(name.encode('utf-8'), path + '.name', origin)
+                    queue(name.encode('utf-8'), path + '.name', origin)
                     offset, overlap = 0, b''
                     while offset < length:
                         chunk = stream.read(min(WINDOW, length - offset))
@@ -469,7 +495,7 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
                             secret_gaps.add('nested_archive_uninspected')
                             return
                         offset += len(chunk); scanned[0] += len(chunk)
-                        scan(overlap + chunk, path + '.chunk-' + str(offset), origin)
+                        queue(overlap + chunk, path + '.chunk-' + str(offset), origin)
                         try:
                             text = chunk.decode('utf-8')
                         except UnicodeError:
@@ -504,8 +530,17 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
                         scan(b'\n'.join(config_strings), prefix + '.config-strings',
                              {**parent_source, 'source': digest, 'layer': conf['digest'],
                               'location_kind': 'configuration'})
-                    archive.visit_files(image_identity, manifest, config, layers,
-                                        lambda *_: None, reader.check, partial_callback=visit)
+                    try:
+                        archive.visit_files(image_identity, manifest, config, layers,
+                                            lambda *_: None, reader.check, partial_callback=visit)
+                    except Exception as exc:
+                        if isinstance(exc, TimeoutError) or getattr(exc, 'code', None) in (
+                                'collection_cancelled', 'intentional_scan_deadline', 'deadline_exceeded') or (
+                                type(exc) is Incomplete and str(exc) == 'registry_deadline'):
+                            raise
+                        flush()  # Retain earlier verified positives before an ordinary archive error.
+                        raise
+                    flush()
                 else:
                     archive.validate(image_identity, manifest, config, layers, reader.check)
                 if trivy_enabled:
@@ -531,7 +566,7 @@ def inspect(target, pod_get, *, allowed_hosts=(), credentials=None, registry_fac
         marker['complete'] = bool(secret_enabled and not secret_gaps and parts and all(p.get('complete') is True for p in parts))
         marker['reason'] = sorted(secret_gaps)[0] if secret_gaps else 'complete' if marker['complete'] else 'partial'
     except Exception as exc:
-        if getattr(exc, 'code', None) in ('collection_cancelled', 'intentional_scan_deadline', 'deadline_exceeded'):
+        if isinstance(exc, TimeoutError) or getattr(exc, 'code', None) in ('collection_cancelled', 'intentional_scan_deadline', 'deadline_exceeded'):
             raise
         marker['reason'] = str(exc) if type(exc) is Incomplete else 'inspection_unavailable'
         marker['complete'] = False
