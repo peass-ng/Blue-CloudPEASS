@@ -107,7 +107,21 @@ def test_denied_native_route_prerequisite_stays_denied():
     assert child['status'] == 'denied'
     assert child['error']['code'] == '403'
     assert child['items'] == []
-    assert finding(source.collections)['status'] == 'UNKNOWN'
+    findings = evaluate_snapshot(make_snapshot('azure', [VNET], source.collections), checks=[CHECK])['findings']
+    assert findings and all(row['status'] == 'UNKNOWN' for row in findings)
+
+
+def test_partial_subnet_parent_stays_unavailable_before_route_join():
+    source = reader()
+    parent = next(c for c in source.collections if c['type'] == 'subnet')
+    parent.update(status='partial', error={'code':'read_failed'})
+    native.collect(source, [SCOPE], {'subnet_effective_route'})
+    child = source.collections[-1]
+    assert child['status'] == 'unknown'
+    assert child['error']['code'] == 'route_subnet_parent_unavailable'
+    assert child['items'] == []
+    findings = evaluate_snapshot(make_snapshot('azure', [VNET], source.collections), checks=[CHECK])['findings']
+    assert findings and all(row['status'] == 'UNKNOWN' for row in findings)
 
 
 def test_nonreciprocal_vm_attachment_is_unavailable():

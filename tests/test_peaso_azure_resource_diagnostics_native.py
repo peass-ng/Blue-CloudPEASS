@@ -41,6 +41,9 @@ def fixture(mode):
  if mode=='malformed_groups':cat['properties']['categoryGroups']='audit'
  if mode=='unresolved_storage_children':resources[0]=parent(BASE+'Microsoft.Storage/storageAccounts/store','Microsoft.Storage/storageAccounts',{})
  if mode=='unmapped_resource':resources[0]=parent(BASE+'Microsoft.Network/networkWatchers/watcher','Microsoft.Network/networkWatchers',{})
+ if mode in ('unmapped_nested','nested_type_id_mismatch'):
+  resources[0]=parent(BASE+'Microsoft.Compute/virtualMachines/vm/extensions/ext','Microsoft.Compute/virtualMachines/extensions',{})
+  if mode=='nested_type_id_mismatch':resources[0]['type']='Microsoft.Compute/virtualMachines/runCommands'
  if mode=='resource_type_id_mismatch':resources[0]['type']='Microsoft.OperationalInsights/workspaces'
  if mode=='foreign_resource':resources[0]['id']=RESOURCE.replace(SUB,'99999999-9999-9999-9999-999999999999')
  if mode=='foreign_category':cat['id']=CATS.replace('/vault/','/foreign/')+'/AuditEvent'
@@ -83,7 +86,7 @@ def capture(mode):
  ('good','PASS'),('group','PASS'),('no_groups','PASS'),('disabled','FAIL'),('missing_settings','FAIL'),('missing_workspace','FAIL'),('workspace_not_found','UNKNOWN'),
  ('empty_resources','NOT_APPLICABLE'),('no_categories','NOT_APPLICABLE'),('metrics_only','NOT_APPLICABLE'),
  ('resource_second_page','PASS'),('category_second_page','PASS'),('settings_second_page','PASS'),
- ('unresolved_storage_children','UNKNOWN'),('unmapped_resource','UNKNOWN'),('resource_type_id_mismatch','UNKNOWN'),('foreign_resource','UNKNOWN'),('foreign_category','UNKNOWN'),('foreign_setting','UNKNOWN'),('foreign_workspace','UNKNOWN'),('wrong_workspace_type','UNKNOWN'),('foreign_workspace_scope','UNKNOWN'),('traversal_workspace','UNKNOWN'),('query_workspace','UNKNOWN'),('unsupported_sink','UNKNOWN'),
+ ('unresolved_storage_children','UNKNOWN'),('unmapped_resource','UNKNOWN'),('unmapped_nested','UNKNOWN'),('nested_type_id_mismatch','UNKNOWN'),('resource_type_id_mismatch','UNKNOWN'),('foreign_resource','UNKNOWN'),('foreign_category','UNKNOWN'),('foreign_setting','UNKNOWN'),('foreign_workspace','UNKNOWN'),('wrong_workspace_type','UNKNOWN'),('foreign_workspace_scope','UNKNOWN'),('traversal_workspace','UNKNOWN'),('query_workspace','UNKNOWN'),('unsupported_sink','UNKNOWN'),
  ('duplicate_resource','UNKNOWN'),('duplicate_category','UNKNOWN'),('duplicate_setting','UNKNOWN'),('category_id_name_mismatch','UNKNOWN'),('category_duplicate_page','UNKNOWN'),('settings_duplicate_page','UNKNOWN'),
  ('missing_logs','UNKNOWN'),('unknown_group','UNKNOWN'),('unknown_category','UNKNOWN'),('malformed_enabled','UNKNOWN'),('malformed_groups','UNKNOWN'),('foreign_continuation','UNKNOWN'),('unsupported_discovery','UNKNOWN'),('workspace_unknown404','UNKNOWN'),
  ('resource_denied','DENIED'),('categories_denied','DENIED'),('settings_denied','DENIED'),('workspace_denied','DENIED'),('resource_partial','DENIED'),('category_partial','DENIED'),('settings_partial','DENIED'),('resource_page_limit','UNKNOWN'),('resource_limit','UNKNOWN')])
@@ -97,9 +100,16 @@ def test_collect_live_registry_dispatch(monkeypatch):
  snapshot=collect_live(connector,requirements=['resource_diagnostic_setting'])
  assert evaluate_snapshot(snapshot,checks=[CHECK])['findings'][0]['status']=='PASS'
 
-def test_valid_unmapped_resource_is_unknown_not_malformed():
- _,snapshot,_=capture('unmapped_resource')
+@pytest.mark.parametrize('mode',['unmapped_resource','unmapped_nested'])
+def test_valid_unmapped_resource_is_unknown_not_malformed(mode):
+ _,snapshot,_=capture(mode)
  collection=next(c for c in snapshot['collections']if c['type']=='resource_diagnostic_setting')
  assert collection['status']=='unknown'
  assert collection['error']['code']=='diagnostic_resource_type_unmapped'
+ assert collection['items']==[]
+
+def test_divergent_nested_type_and_identity_remains_malformed():
+ _,snapshot,_=capture('nested_type_id_mismatch')
+ collection=next(c for c in snapshot['collections']if c['type']=='resource_diagnostic_setting')
+ assert collection['status']=='malformed'
  assert collection['items']==[]
