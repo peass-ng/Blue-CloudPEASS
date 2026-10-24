@@ -8,6 +8,7 @@ import re
 from peaso import container_image_archive_20261020 as archive
 from peaso import oci_index_20261021 as oci_index
 from peaso.image_findings import build_report
+from peaso.snapshot import FrozenDict, FrozenList
 from peaso.collectors import azure_acr_image_vulnerabilities_20261021 as source
 
 DECLARATION={'id':source.CHECK,'provider':'azure','category':'hardening',
@@ -40,9 +41,24 @@ def _observed(status, marker=None):
             'Its HIGH or CRITICAL package state remains unclear.')
 
 
+def _trusted_json_copy(value):
+    """Copy only plain JSON and the snapshot's sealed, read-only containers."""
+    kind = type(value)
+    if kind in (dict, FrozenDict):
+        if any(type(key) is not str for key in value):
+            raise ValueError('unsupported_json_key')
+        return {key: _trusted_json_copy(item) for key, item in value.items()}
+    if kind in (list, FrozenList):
+        return [_trusted_json_copy(item) for item in value]
+    if kind in (str, int, float, bool, type(None)):
+        return value
+    raise ValueError('unsupported_json_type')
+
+
 def evaluate(item,index):
     try:
-        ctx=index['context'];scope=ctx['scope'];meta=ctx['metadata']
+        item = _trusted_json_copy(item)
+        ctx=index['context'];scope=ctx['scope'];meta=_trusted_json_copy(ctx['metadata'])
         if (ctx['provider']!='azure' or type(scope) is not str or not source.acr._SCOPE.fullmatch(scope)
                 or meta.get(source.KIND+'_authorized') is not True
                 or meta.get('context_binding')!='scan_local'):
@@ -50,6 +66,7 @@ def evaluate(item,index):
         selected=meta[source.KIND+'_selection'][scope]
         digests=meta[source.KIND+'_digests']
         collection,=[c for c in index['collections'][source.KIND] if c.get('scope')==scope]
+        collection = _trusted_json_copy(collection)
         if (collection.get('status') not in ('collected','partial')
                 or type(selected) is not list or not 1<=len(selected)<=source.acr.MAX_IMAGES
                 or type(collection.get('items')) is not list

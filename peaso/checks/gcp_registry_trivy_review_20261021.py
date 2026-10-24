@@ -1,5 +1,6 @@
 """Selected standalone immutable registry image vulnerability evidence."""
 from copy import deepcopy
+from peaso.snapshot import FrozenDict, FrozenList
 
 from peaso import container_image_archive_20261020 as archive
 from peaso import trivy_container_runner_20261020 as trivy
@@ -266,8 +267,23 @@ REFERENCES=('https://docs.cloud.google.com/artifact-registry/docs/reference/rest
             'https://docs.cloud.google.com/artifact-registry/docs/access-control')
 
 
+def _trusted_json_copy(value):
+    """Admit only exact JSON and the engine's sealed snapshot containers."""
+    kind = type(value)
+    if kind in (dict, FrozenDict):
+        if any(type(key) is not str for key in value):
+            raise ValueError('unsupported_json_key')
+        return {key: _trusted_json_copy(member) for key, member in value.items()}
+    if kind in (list, FrozenList):
+        return [_trusted_json_copy(member) for member in value]
+    if kind in (str, int, float, bool, type(None)):
+        return value
+    raise ValueError('unsupported_json_type')
+
+
 def evaluate_item(item,index):
     try:
+        item = _trusted_json_copy(item)
         context=index['context'];scope=context['scope'];metadata=context['metadata']
         if context['provider']!='gcp':raise ValueError('foreign_provider')
         collection,=[r for r in index['collections'][KIND] if r['scope']==scope]
@@ -281,7 +297,7 @@ def evaluate_item(item,index):
             return 'UNKNOWN',{'Observed':'The selected image has no recorded package scan. Its vulnerability state is unclear.'}
         if record['selection']!=reference or set(record['source_requests'])!=set(marker['source_requests']):
             raise ValueError('source_binding_mismatch')
-        status,evidence=evaluate(record,{'scope':scope,'selections':metadata[OPTION],
+        status,evidence=evaluate(record,{'scope':scope,'selections':_trusted_json_copy(metadata[OPTION]),
                                         'source_requests':marker['source_ledger']})
         if status=='FAIL':
             evidence['Observed']='The selected immutable image contains HIGH or CRITICAL package vulnerabilities.'

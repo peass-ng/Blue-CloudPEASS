@@ -326,7 +326,11 @@ def scan_captured(reference, scope, before, after, captured, metadata_reader, *,
     image_ledger = {r.get('id'): r for r in captured.transport.evidence}
     image_records = {rid:deepcopy(image_ledger[rid]) for rid in ids}
     archive.require(all(r.get('scope') == scope and r.get('http_status') == 200
-                        and r.get('http_attempts') == 1 for r in image_records.values()), 'image_native_receipts_required')
+                        and type(r.get('http_attempts')) is int and (
+                            r['http_attempts'] == 1 and 'same_origin_blob_redirect' not in r
+                            or r['http_attempts'] == 2 and r.get('category') == 'blobs'
+                            and r.get('same_origin_blob_redirect') is True)
+                        for r in image_records.values()), 'image_native_receipts_required')
     expected_state = _fingerprint([before, after, records, captures, captured._reads])
     byte_state = tuple((key, sha256(value, captured.check).digest()) for key, value in captured._blobs.items())
 

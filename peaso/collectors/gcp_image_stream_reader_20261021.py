@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import re
 import shutil
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from . import gcp_image_secret_indicators as native
 from peaso import oci_index_20261021 as oci_index
@@ -69,7 +69,7 @@ class Reader(native.Reader):
 
     def _download(self, uri, category, digest, cap, size, destination):
         self.check()
-        canonical, _, _, _ = native.parse_image_uri(uri)
+        canonical, repo, _, _ = native.parse_image_uri(uri)
         parsed = urlsplit(canonical)
         if (any(part in ('', '.', '..') for part in parsed.path.lstrip('/').split('/'))
                 or category not in ('manifests', 'blobs') or type(digest) is not str
@@ -103,6 +103,51 @@ class Reader(native.Reader):
             status = response.status_code
             if type(status) is int and 100 <= status <= 599:
                 self.current_receipt['http_status'] = status
+            if status == 302:
+                if (category != 'blobs' or response.url != url or response.history
+                        or response.headers.get('Content-Encoding', 'identity') != 'identity'
+                        or response.headers.get('WWW-Authenticate') is not None):
+                    raise ValueError('untrusted registry blob redirect')
+                _, project, _, _, _, repository = repo.split('/')
+                prefix = '/artifacts-downloads/namespaces/' + project + '/repositories/' + repository + '/downloads/'
+                location = response.headers.get('Location')
+                if (type(location) is not str or not prefix or not location.startswith(prefix)
+                        or len(location) > 2048 or '\\' in location
+                        or any(ord(c) < 33 or ord(c) > 126 for c in location)):
+                    raise ValueError('unsupported registry blob redirect')
+                target = urlsplit(location)
+                if (target.scheme or target.netloc or target.query or target.fragment
+                        or target.path != location):
+                    raise ValueError('foreign or malformed registry blob redirect')
+                try:
+                    decoded = unquote(location, errors='strict')
+                except UnicodeError as exc:
+                    raise ValueError('malformed registry blob redirect encoding') from exc
+                if (not decoded.startswith(prefix) or decoded.count('/') != location.count('/')
+                        or '\\' in decoded or any(c in decoded for c in ('%', '?', '#'))
+                        or any(ord(c) < 33 or ord(c) > 126 for c in decoded)
+                        or any(part in ('', '.', '..') for part in decoded[1:].split('/'))):
+                    raise ValueError('unsafe registry blob redirect path')
+                response.close()
+                self.check()
+                if self.calls >= MAX_CALLS:
+                    raise ValueError('registry call bound')
+                with self.transport.lock:
+                    self.transport.check_cancelled()
+                    if self.transport.max_calls is not None and self.transport.calls >= self.transport.max_calls:
+                        raise ValueError('native call budget')
+                    self.transport.calls += 1
+                self.calls += 1
+                if hasattr(self.session, 'cookies'):
+                    self.session.cookies.clear()
+                url = 'https://' + parsed.netloc + location
+                self.current_receipt['http_attempts'] = 2
+                response = self.session.request('GET', url, headers=headers, stream=True,
+                    allow_redirects=False, timeout=min(10, self.transport.timeout,
+                        max(.001, self.end - native.time.monotonic())))
+                status = response.status_code
+                if type(status) is int and 100 <= status <= 599:
+                    self.current_receipt['http_status'] = status
             if (status != 200 or response.url != url or response.history
                     or response.headers.get('Content-Encoding', 'identity') != 'identity'
                     or response.headers.get('WWW-Authenticate') is not None):
@@ -142,6 +187,8 @@ class Reader(native.Reader):
             if (size is not None and count != size or length is not None and count != int(length)
                     or 'sha256:' + checksum.hexdigest() != digest):
                 raise ValueError('registry descriptor digest/size differs')
+            if self.current_receipt['http_attempts'] == 2:
+                self.current_receipt['same_origin_blob_redirect'] = True
             if output is not None:
                 output.close()
                 output = None

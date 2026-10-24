@@ -256,3 +256,75 @@ def test_real_pinned_trivy_stale_db_cannot_pass(tmp_path):
     assert scan is not None and scan['database']['fresh'] is False
     assert scan['invocation']['command']=='trivy image --input <owned archive>'
     assert scan['owned_scratch_removed'] is True
+
+
+def test_validated_same_origin_blob_redirect_reaches_native_cve_verifier(tmp_path):
+    ref, metadata, images, wire = setup()
+    original = images.request
+    pending = {}
+    def request(method, url, **kwargs):
+        if '/artifacts-downloads/' in url:
+            response = pending.pop(url)
+            response.url = url
+            return response
+        response = original(method, url, **kwargs)
+        if '/blobs/' in url:
+            hop = '/artifacts-downloads/namespaces/review/repositories/images/downloads/' + str(len(images.calls))
+            from types import SimpleNamespace
+            target = 'https://us-central1-docker.pkg.dev' + hop
+            pending[target] = response
+            return SimpleNamespace(status_code=302, url=url, history=[], headers={'Location':hop}, close=lambda:None)
+        return response
+    images.request = request
+    result = collect(ref, metadata, images, wire, runner=clean)
+    assert result['status'] == 'PASS' and result['complete'] is True, result
+    redirected = [r for r in wire.evidence if r.get('same_origin_blob_redirect') is True]
+    assert len(redirected) == 2 and all(r['http_attempts'] == 2 for r in redirected)
+    assert not pending and list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize('damage', ['missing_proof','extra_attempt','manifest_redirect','bool_attempts'])
+def test_unproven_or_incoherent_blob_receipt_does_not_reach_cve_scanner(damage):
+    ref, metadata, images, wire = setup()
+    original = metadata.request
+    def request(*args, **kwargs):
+        response = original(*args, **kwargs)
+        if len(metadata.calls) == 4:
+            receipts = [r for r in wire.evidence if r.get('operation') == 'artifactregistry.registry_content_get']
+            target = receipts[-1] if damage != 'manifest_redirect' else receipts[0]
+            target['http_attempts'] = True if damage == 'bool_attempts' else 3 if damage == 'extra_attempt' else 2
+            if damage in ('extra_attempt','manifest_redirect'):target['same_origin_blob_redirect'] = True
+        return response
+    metadata.request = request
+    reached = []
+    result = collect(ref, metadata, images, wire, runner=lambda *a, **kw: reached.append(True))
+    assert result['status'] == 'UNKNOWN' and not reached
+
+
+@pytest.mark.parametrize(('mode','expected'), [('clean','PASS'), ('positive','FAIL'), ('missing','UNKNOWN')])
+def test_full_engine_sealed_native_record_preserves_cve_status(mode, expected):
+    from peaso import engine
+    from peaso.snapshot import make_snapshot
+    ref, metadata, images, wire = setup()
+    result = runtime.collect_selected(wire, scope=fixture.SCOPE, targets=[ref],
+        metadata_session=metadata, image_session=images,
+        runner=full_positive if mode == 'positive' else clean)
+    marker = result['rows'][0]
+    if mode == 'missing':marker['vulnerability_record'] = None
+    item = {'name':ref,'_resource_id':ref,'native_id':ref,'RegistryImageVulnerabilityReview':marker}
+    snapshot = make_snapshot('gcp', [fixture.SCOPE], [{'type':runtime.KIND,'scope':fixture.SCOPE,
+        'service':'artifactregistry','status':'collected','items':[item]}], metadata={runtime.OPTION:[ref]})
+    report = engine.evaluate_snapshot(snapshot, checks=[review.CHECK_ID])
+    assert [f['status'] for f in report['findings']] == [expected]
+
+
+def test_engine_boundary_still_rejects_arbitrary_container_subclasses():
+    ref, metadata, images, wire = setup()
+    marker = runtime.collect_selected(wire, scope=fixture.SCOPE, targets=[ref],
+        metadata_session=metadata, image_session=images, runner=clean)['rows'][0]
+    class ForeignList(list):pass
+    marker['source_ledger'] = ForeignList(marker['source_ledger'])
+    item = {'name':ref,'_resource_id':ref,'native_id':ref,'RegistryImageVulnerabilityReview':marker}
+    index = {'context':{'provider':'gcp','scope':fixture.SCOPE,'metadata':{runtime.OPTION:[ref]}},
+        'collections':{runtime.KIND:[{'scope':fixture.SCOPE,'status':'collected','items':[item]}]}}
+    assert review.evaluate_item(item, index)[0] == 'UNKNOWN'
