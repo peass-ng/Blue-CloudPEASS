@@ -28,11 +28,13 @@ def _text_digest(value):
 class ReusableReportArtifacts:
     """Publish through the normal adapter, reusing identical durable objects.
 
+    The reference-only default holds large report working sets (over 2,000
+    chunks) without sequential LRU thrashing; payloads remain uncached.
     Own one instance per active worker/scan. Raw checkpoint batches and private
     evidence use the original adapter. The existing backend writes, encryption,
     compression and reference format remain authoritative.
     """
-    def __init__(self, artifacts, tenant, ident, *, max_entries=2048):
+    def __init__(self, artifacts, tenant, ident, *, max_entries=8192):
         job_prefix(tenant, ident)
         self.artifacts, self.tenant, self.ident = artifacts, tenant, ident
         self.max_entries = max(0, int(max_entries))

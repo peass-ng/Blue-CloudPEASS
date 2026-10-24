@@ -1632,7 +1632,7 @@
     "peaso/storage/attack_history_sqlite.py": "a73f6ac13b56e7112e1787b4e59ccde6c0b1fc1a6c81f699d6a4d25980def262",
     "peaso/storage/cost.py": "ee83070f3f0843432b55d071979f3ba5b93b84533c9e780f498bf17a0e964922",
     "peaso/storage/dynamodb.py": "111f5275f49e0207255b0b3077cc85da7c5b2f2dd915b88b4925970b28fc9e19",
-    "peaso/storage/report_reuse.py": "c03611bc0119521d609249456b3eea2ba3dbde9c52591c8bc985f24fc1ab0be0",
+    "peaso/storage/report_reuse.py": "d5365017de7a3b9e4b6676965b1367858b74df227f3921007205a1d911fd6dc8",
     "peaso/storage/reports.py": "b835d541263693e47a6a0205f8850abe9a3b45f6445d71c7a7952546afdd064d",
     "peaso/storage/runtime.py": "d879d3526723a8d7920ccb7f7706c026c08c5723829d8f239e6701095198d0fb",
     "peaso/storage/sqlite.py": "fb74627188bbd518f508f417f7c808d99429076e8b14f37d7acfbd27b19201e1",
@@ -1770,7 +1770,7 @@
     "top20_performance_review": "Five runtime files reviewed: fresh tenant-bound status/TTL reads use existing DynamoDB GetItem; privilege query generators retain original traversal and ordering, bounded heap selection changes response paging only.30 client construction sites, credential factories and API service roster unchanged. Native admission sources unchanged."
   },
   "python_source_count": 1665,
-  "python_source_sha256": "66092b6a966fb7cf2adf515f9002af1ea495d852fab2f13f9a572d6c94cfa4ec",
-  "review_context": "Reviewed exact ten runtime deltas: directed graph identity/legacy briefing; trusted frozen selected-image positives; Azure unsupported/denied/nested route prerequisites; bounded image batches; KMS pending-replica state through existing finite owner. Thirty direct API SDK calls and fifteen services unchanged. Historical epoch files and source proofs retained.",
+  "python_source_sha256": "2c4d25febcbb7326c8adf40f387b883da765ebd70b32e712b4b89538c00fa793",
+  "review_context": "Reviewed exact ten runtime deltas: directed graph identity/legacy briefing; trusted frozen selected-image positives; Azure unsupported/denied/nested route prerequisites; bounded image batches; KMS pending-replica state through existing finite owner. Thirty direct API SDK calls and fifteen services unchanged. Historical epoch files and source proofs retained. Added one reviewed storage-only change: bounded reference cache8192 to hold measured2148-object large report working set; exact-byte/same-tenant/durable-write barriers unchanged. No SDK calls added.",
   "source_commit": "23874e2b0f10bed9536ae16e0208b2619f60abe4"
 }

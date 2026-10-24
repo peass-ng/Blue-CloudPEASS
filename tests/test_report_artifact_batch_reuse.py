@@ -223,3 +223,25 @@ def test_file_and_custom_batch_policy_are_preserved(tmp_path):
         assert writer.artifacts is custom
         writer.put(TENANT, JOB, 'resources', {})
     assert not wrapped.entries
+
+
+def test_large_report_working_set_reuses_every_durable_chunk_next_checkpoint():
+    # Captured large scans publish 1,421 resource chunks and 726 finding/index
+    # chunks. A 2,048-entry LRU evicts the next cycle's first items and misses
+    # every sequential lookup, despite all native bytes being unchanged.
+    cached, client = store()
+    chunks = [('resources', i) for i in range(1421)]
+    chunks += [('findings', i) for i in range(363)]
+    chunks += [('finding-index', i) for i in range(363)]
+    references = []
+    for cycle in range(2):
+        with cached.batch() as writer:
+            current = [writer.put(TENANT, JOB, kind, {'items': [i]})
+                       for kind, i in chunks]
+            current.append(writer.put(TENANT, JOB, 'manifest', {'chunks': current}))
+        references.append(current)
+    assert references[0] == references[1]
+    assert len(client.requests) == len(chunks) + 1
+    assert len(cached.entries) <= cached.max_entries
+    assert all(type(key[2]) is bytes and len(key[2]) == 32
+               and type(reference) is str for key, reference in cached.entries.items())
