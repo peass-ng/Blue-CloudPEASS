@@ -292,6 +292,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_gcp_registry_cve_index_functional_20261021.py',
     'tests/test_gcp_registry_trivy_portable.py',
     'tests/test_gcp_selected_private_source_association_20261021.py',
+    'tests/test_gcp_image_scan_batch_20261024.py',
     'tests/test_gcp_stream_file_continuation_20261021.py',
     'tests/test_gcp_stream_index_functional_20261021.py',
     'tests/test_gcp_workerpool_native_content_20261021.py',

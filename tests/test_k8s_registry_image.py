@@ -197,8 +197,10 @@ for check,kind in ((module.namespace["SECRET_CHECK"],module.namespace["SECRET_KI
             target=index["context"]["metadata"][module.namespace["OPTION"]][0]
             assert module.namespace["identity"](target)==item["id"]
 print("8 serialized case branches replayed")'''
+        # This is a cold functional source replay; full admission under CPU
+        # emulation exceeds 60s. Runtime latency is measured separately.
         completed = subprocess.run([sys.executable, '-I', '-c', script, str(ROOT)],
-                                   text=True, capture_output=True, timeout=60)
+                                   text=True, capture_output=True, timeout=180)
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn('8 serialized case branches replayed', completed.stdout)
 
