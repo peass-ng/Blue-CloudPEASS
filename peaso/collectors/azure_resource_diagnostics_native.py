@@ -53,9 +53,11 @@ def collect(reader, request, scopes, wanted):
                     if not rid.casefold().startswith(scope.casefold()+'/') or rid.casefold() in seen:
                         raise ValueError('duplicate or foreign diagnostic resource')
                     resource_type = raw.get('type')
-                    if (not isinstance(resource_type, str) or resource_type.casefold() not in OWN_RESOURCE_LOG_TYPES | {'microsoft.storage/storageaccounts'}
-                            or not re.fullmatch(re.escape(scope)+r'/resourceGroups/'+SEGMENT+r'/providers/'+re.escape(resource_type)+r'/'+SEGMENT, rid, re.I)):
-                        raise ValueError('logging child/proxy universe unresolved for resource type')
+                    if (not isinstance(resource_type, str) or
+                            not re.fullmatch(re.escape(scope)+r'/resourceGroups/'+SEGMENT+r'/providers/'+re.escape(resource_type)+r'/'+SEGMENT, rid, re.I)):
+                        raise ValueError('diagnostic resource identity/type mismatch')
+                    if resource_type.casefold() not in OWN_RESOURCE_LOG_TYPES | {'microsoft.storage/storageaccounts'}:
+                        raise AzureReadError('diagnostic_resource_type_unmapped')
                     seen.add(rid.casefold())
                     if reader.budget.max_items is not None and len(resources) >= reader.budget.max_items:
                         raise AzureReadError('resource_limit')

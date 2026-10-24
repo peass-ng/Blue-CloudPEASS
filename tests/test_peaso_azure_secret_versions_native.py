@@ -87,7 +87,7 @@ def capture(monkeypatch,mode='recent',*,policy=None,requirements=None,**limits):
  assert len(statuses)==1
  return statuses[0],snapshot,transport
 
-@pytest.mark.parametrize('mode,expected', [('arm_id_case','PASS'),('recent','PASS'),('old','FAIL'),('newer_disabled','FAIL'),('disabled','NOT_APPLICABLE'),('foreign_version','UNKNOWN'),('duplicate_versions','UNKNOWN'),('case_duplicate_versions','UNKNOWN'),('foreign_arm_id','UNKNOWN'),('foreign_parent','UNKNOWN'),('foreign_name','UNKNOWN'),('foreign_type','UNKNOWN'),('foreign_base','UNKNOWN'),('version_for_other_name','UNKNOWN'),('version_for_other_vault','UNKNOWN'),('version_case_differs','UNKNOWN'),('version_trailing','UNKNOWN'),('version_query','UNKNOWN'),('missing_pointer','UNKNOWN'),('missing_created','UNKNOWN'),('conflicting_created','UNKNOWN'),('conflicting_enabled','UNKNOWN'),('unexpected_value','UNKNOWN'),('vault_denied','UNKNOWN'),('versions_denied','UNKNOWN'),('versions_partial','UNKNOWN'),('versions_empty','UNKNOWN'),('arm_denied','UNKNOWN'),('changed_current','UNKNOWN'),('changed_attributes','UNKNOWN'),('missing_policy','UNKNOWN'),('foreign_policy','REJECTED_INPUT')])
+@pytest.mark.parametrize('mode,expected', [('arm_id_case','PASS'),('recent','PASS'),('old','FAIL'),('newer_disabled','FAIL'),('disabled','NOT_APPLICABLE'),('foreign_version','UNKNOWN'),('duplicate_versions','UNKNOWN'),('case_duplicate_versions','UNKNOWN'),('foreign_arm_id','UNKNOWN'),('foreign_parent','UNKNOWN'),('foreign_name','UNKNOWN'),('foreign_type','UNKNOWN'),('foreign_base','UNKNOWN'),('version_for_other_name','UNKNOWN'),('version_for_other_vault','UNKNOWN'),('version_case_differs','UNKNOWN'),('version_trailing','UNKNOWN'),('version_query','UNKNOWN'),('missing_pointer','UNKNOWN'),('missing_created','UNKNOWN'),('conflicting_created','UNKNOWN'),('conflicting_enabled','UNKNOWN'),('unexpected_value','UNKNOWN'),('vault_denied','DENIED'),('versions_denied','UNKNOWN'),('versions_partial','UNKNOWN'),('versions_empty','UNKNOWN'),('arm_denied','UNKNOWN'),('changed_current','UNKNOWN'),('changed_attributes','UNKNOWN'),('missing_policy','UNKNOWN'),('foreign_policy','REJECTED_INPUT')])
 def test_native_current_version_to_engine(monkeypatch,mode,expected):
  if expected=='REJECTED_INPUT':
   with pytest.raises(ValueError):capture(monkeypatch,mode)
@@ -126,6 +126,15 @@ def test_shared_secret_family_reads_current_only_twice(monkeypatch):
  status,snapshot,transport=capture(monkeypatch,requirements=['key_vault_secret','vault_secret'])
  assert status=='PASS'and transport.arm_gets==2
  assert {'key_vault_secret','vault_secret'}<={c['type']for c in snapshot['collections']}
+
+def test_denied_secret_metadata_parent_propagates_to_both_current_secret_kinds(monkeypatch):
+ status,snapshot,_=capture(monkeypatch,'vault_denied',requirements=['key_vault_secret','vault_secret'])
+ assert status=='DENIED'
+ for kind in ('key_vault_secret','vault_secret'):
+  collection=next(c for c in snapshot['collections']if c['type']==kind)
+  assert collection['status']=='denied'
+  assert collection['error']['code']=='403'
+  assert collection['items']==[]
 
 def test_explicit_budget_stays_unknown(monkeypatch):
  status,_,_=capture(monkeypatch,max_resources=2);assert status=='UNKNOWN'

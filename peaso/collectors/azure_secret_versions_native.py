@@ -23,9 +23,14 @@ def required_types(wanted):
 
 
 def complete(reader, kind, scope):
+    from .azure import AzureReadError
     matches = [c for c in reader.collections if c['type'] == kind and c['scope'].casefold() == scope.casefold()]
-    if len(matches) != 1 or matches[0]['status'] not in ('collected', 'empty'):
-        raise ValueError('native secret parent inventory incomplete')
+    if len(matches) != 1:
+        raise AzureReadError('native_secret_parent_unavailable')
+    if matches[0]['status'] == 'denied':
+        raise AzureReadError('native_secret_parent_denied', 403)
+    if matches[0]['status'] not in ('collected', 'empty'):
+        raise AzureReadError('native_secret_parent_unavailable')
     rows = matches[0]['items']
     if not isinstance(rows, list) or (matches[0]['status'] == 'empty') != (not rows):
         raise ValueError('native secret inventory contradictory')

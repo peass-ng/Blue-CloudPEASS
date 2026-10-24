@@ -162,10 +162,15 @@ def direct_internet_witness(routes: list[dict]) -> dict | None:
 
 
 def _collection(reader, kind, scope):
+    from .azure import AzureReadError
     matches = [row for row in reader.collections if row.get('type') == kind and
                isinstance(row.get('scope'), str) and row['scope'].casefold() == scope.casefold()]
-    if len(matches) != 1 or matches[0].get('status') not in ('collected', 'empty'):
-        raise RouteEvidenceUnavailable(kind + ' inventory incomplete or ambiguous')
+    if len(matches) != 1:
+        raise AzureReadError('route_prerequisite_unavailable')
+    if matches[0].get('status') == 'denied':
+        raise AzureReadError('route_prerequisite_denied', 403)
+    if matches[0].get('status') not in ('collected', 'empty'):
+        raise AzureReadError('route_prerequisite_unavailable')
     rows = matches[0].get('items')
     if not isinstance(rows, list) or (matches[0]['status'] == 'empty' and rows):
         raise RouteEvidenceUnavailable(kind + ' inventory malformed')

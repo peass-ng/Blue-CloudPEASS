@@ -98,6 +98,18 @@ def test_unproven_native_page_is_unavailable_not_a_counterexample():
     assert 'dependency incomplete or unavailable: subnet_effective_route' == observed['evidence'].get('reason')
 
 
+def test_denied_native_route_prerequisite_stays_denied():
+    source = reader()
+    parent = next(c for c in source.collections if c['type'] == 'effective_route')
+    parent.update(status='denied', items=[], error={'code':'403'})
+    native.collect(source, [SCOPE], {'subnet_effective_route'})
+    child = source.collections[-1]
+    assert child['status'] == 'denied'
+    assert child['error']['code'] == '403'
+    assert child['items'] == []
+    assert finding(source.collections)['status'] == 'UNKNOWN'
+
+
 def test_nonreciprocal_vm_attachment_is_unavailable():
     collections = project(reciprocal=False)
     assert collections[-1]['status'] not in ('collected', 'empty')
