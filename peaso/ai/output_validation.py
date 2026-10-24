@@ -23,10 +23,11 @@ def context(stage, root):
     with closing(sqlite3.connect((root/'context.sqlite').as_uri() + '?mode=ro', uri=True)) as db:
         def rows(domain, detail=False):
             columns = 'id,detail' if detail else 'id'
-            values = db.execute(f'SELECT {columns} FROM records WHERE domain=? LIMIT ?', (domain, MAX_ROWS + 1)).fetchall()
-            if len(values) > MAX_ROWS:
-                raise InvalidAgentOutput('agent_context_limit')
-            return values
+            values = db.execute(f'SELECT {columns} FROM records WHERE domain=? LIMIT ?', (domain, MAX_ROWS + 1))
+            for position, value in enumerate(values):
+                if position >= MAX_ROWS:
+                    raise InvalidAgentOutput('agent_context_limit')
+                yield value
         if stage == 'network':
             inventory = []
             for ident, detail in rows('resources', True):
@@ -44,7 +45,10 @@ def context(stage, root):
             findings.append({key: row[key] for key in ('id', 'status', 'category', 'resource_id') if key in row})
             if value.get('review'):
                 reviews.append(value['review'])
-        return {'report': {'findings': findings, 'resources': [{'id': row[0]} for row in rows('resources')]}, 'reviews': reviews}
+        # The current action contract accepts finding references only. Resource
+        # records remain available to the agent in SQLite, but are not needed
+        # to validate its output and must not impose an unrelated row cap.
+        return {'report': {'findings': findings}, 'reviews': reviews}
 
 
 def validate(stage, data, original):

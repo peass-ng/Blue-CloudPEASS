@@ -97,6 +97,25 @@ def test_context_capture_accepts_qualified_native_manual_paths_and_rejects_forei
         output_validation.validate('priorities', {'actions':[action|{'finding_ids':['foreign']}],'limitations':[]}, original)
 
 
+def test_priorities_unused_resources_do_not_apply_a_foreign_row_limit(tmp_path, monkeypatch):
+    monkeypatch.setattr(output_validation, 'MAX_ROWS', 2)
+    with sqlite3.connect(tmp_path/'context.sqlite') as db:
+        db.execute('CREATE TABLE records(domain TEXT,id TEXT,detail TEXT)')
+        db.executemany('INSERT INTO records VALUES(?,?,?)',
+            [('resources', 'r'+str(i), '{}') for i in range(3)])
+        db.execute('INSERT INTO records VALUES(?,?,?)', ('findings','f1',json.dumps({'finding':{
+            'id':'f1','category':'hardening','status':'FAIL'},'review':None})))
+    original = output_validation.context('priorities', tmp_path)
+    assert original == {'report': {'findings': [{'id':'f1','category':'hardening','status':'FAIL'}]}, 'reviews': []}
+    with pytest.raises(output_validation.InvalidAgentOutput, match='agent_context_limit'):
+        output_validation.context('network', tmp_path)
+    with sqlite3.connect(tmp_path/'context.sqlite') as db:
+        db.executemany('INSERT INTO records VALUES(?,?,?)', [('findings','f'+str(i),json.dumps({
+            'finding':{'id':'f'+str(i),'category':'hardening','status':'FAIL'},'review':None})) for i in (2,3)])
+    with pytest.raises(output_validation.InvalidAgentOutput, match='agent_context_limit'):
+        output_validation.context('priorities', tmp_path)
+
+
 def test_network_output_binds_resource_and_graph_references(tmp_path):
     with sqlite3.connect(tmp_path/'context.sqlite') as db:
         db.execute('CREATE TABLE records(domain TEXT,id TEXT,detail TEXT)')
