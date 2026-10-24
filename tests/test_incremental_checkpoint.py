@@ -126,6 +126,44 @@ def test_cumulative_snapshot_includes_sections_with_original_digest(monkeypatch,
         session.close()
 
 
+def test_final_collector_metadata_reaches_last_public_checkpoint_with_partial_fences(monkeypatch, tmp_path):
+    session, artifacts, refs, _ = _session(monkeypatch, tmp_path)
+    envelope = {"type": "bucket", "scope": SCOPE, "status": "empty", "items": []}
+    final = {"cluster_id": "validated-cluster", "selected_targets": [{"id": "validated"}],
+             "note": "PRIVATE", "intentional_partial": False,
+             "scope_coverage": {"status": "complete"}, "requested_scopes": ["foreign"],
+             "incremental": {"phase": "complete", "sequence": 999},
+             "sections": {"foreign": {"status": "complete"}}}
+    original = json.loads(json.dumps(final))
+    try:
+        session.on_collection(envelope)
+        assert "cluster_id" not in session._snapshot([envelope])["metadata"]
+        session.finish_collection(final_metadata=final)
+        assert final == original
+        final["selected_targets"][0]["id"] = "changed-after-finish"
+        session.flush()
+        published = artifacts.get(TENANT, refs[-1][1])
+        metadata = published["metadata"]
+        assert metadata["cluster_id"] == "validated-cluster"
+        assert metadata["selected_targets"] == [{"id": "validated"}]
+        assert metadata["note"] == "[REDACTED]"
+        assert metadata["intentional_partial"] is True
+        assert metadata["scope_coverage"]["status"] == "partial"
+        assert metadata["requested_scopes"] == [SCOPE]
+        assert metadata["incremental"]["phase"] == "collecting"
+        assert metadata["incremental"]["sequence"] != 999
+        assert "foreign" not in metadata["sections"]
+    finally:
+        session.close()
+
+    other, _, _, _ = _session(monkeypatch, tmp_path / "other")
+    try:
+        assert "cluster_id" not in other._snapshot([envelope])["metadata"]
+        assert "selected_targets" not in other._snapshot([envelope])["metadata"]
+    finally:
+        other.close()
+
+
 def test_interrupted_later_analysis_keeps_earlier_category(monkeypatch, tmp_path):
     session, artifacts, refs, published = _session(monkeypatch, tmp_path, second=True,
                                                    fail_second=True)

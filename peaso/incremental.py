@@ -69,6 +69,7 @@ class CheckpointSession:
             self.privesc_requirements if self.privesc is not None else None, plan_collection(request))
         self.collection_revisions = {}
         self.collection_finished = False
+        self.final_metadata = None
         self.image_targets = []
         self.global_types = set()
         self.global_scope = None
@@ -126,13 +127,18 @@ class CheckpointSession:
         # Only observed, exact native scopes enter this partial view. The
         # explicit scope boundary is retained separately for coverage.
         scopes = sorted({row["scope"] for row in envelopes}) or self.requested_scopes
-        metadata = {"intentional_partial": True,
+        # Only the completed collector can supply final, validated context.
+        # Keep the checkpoint's partial/section fences authoritative even if
+        # collector metadata happens to contain keys with the same names.
+        metadata = copy.deepcopy(self.final_metadata) if self.collection_finished and self.final_metadata is not None else {}
+        metadata.update({"intentional_partial": True,
                     "scope_coverage": {"status": "partial", "reason": "Collection is still in progress"},
                     "requested_scopes": self.requested_scopes,
                     "incremental": {"sequence": self.sequence if sequence is None else sequence, "phase": "collecting",
                                     "completed_collections": len(envelopes),
                                     "completed_kinds": sorted({row["type"] for row in envelopes
-                                        if row["status"] in {"collected", "empty"}})}}
+                                        if row["status"] in {"collected", "empty"}})}})
+        metadata.pop('sections', None)
         if self.scope_plan is not None:
             metadata["incremental"]["scope_plan"] = list(self.scope_plan)
         if self.provider == 'aws' and self.image_targets:
@@ -485,11 +491,14 @@ class CheckpointSession:
                 self.collections, self.collection_revisions, finished=self.collection_finished,
                 global_types=self.global_types, global_scope=self.global_scope)
 
-    def finish_collection(self):
+    def finish_collection(self, final_metadata=None):
         """Seal section batches after the provider finalizers have all settled."""
         with self.lock:
             if self.collection_finished:
                 return
+            if final_metadata is not None and type(final_metadata) is not dict:
+                raise ValueError("Final collector metadata must be an object")
+            self.final_metadata = copy.deepcopy(final_metadata)
             self._flush_pending()
             self.collection_finished = True
             self._advance_watermark()
