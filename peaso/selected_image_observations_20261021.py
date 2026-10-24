@@ -7,7 +7,7 @@ from copy import deepcopy
 import re
 
 from peaso.image_findings import MAX_OBSERVATIONS, _asset, _scan, _vulnerability
-from peaso.snapshot import digest, resource_id
+from peaso.snapshot import FrozenDict, digest, resource_id, thaw
 
 
 # kind: provider, evaluated check, marker path, scan path within that marker
@@ -265,6 +265,10 @@ def metadata_for_report(snapshot, report):
                 if accepted[key] not in ('PASS', 'FAIL'):
                     raise ValueError('unresolved_native_association')
                 marker = _at(item, marker_path)
+                # Report storage receives the engine's immutable native view;
+                # retain the existing exact child/scan validators on plain JSON.
+                if type(marker) is FrozenDict:
+                    marker = thaw(marker)
                 if (collection['type'] == 'acr_selected_image_vulnerabilities' and
                         marker.get('status') != accepted[key]):
                     raise ValueError('acr_marker_evaluation_mismatch')

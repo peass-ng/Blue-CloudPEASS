@@ -316,5 +316,64 @@ print("8 serialized case branches replayed")'''
         self.assertEqual(evaluate(namespace['VULN_KIND']), 'FAIL')
         self.assertEqual(result['vulnerability']['findings'], [finding])
 
+    def test_frozen_incomplete_positive_reaches_image_rows_without_clean_coverage(self):
+        from peaso.image_findings import build_report
+        from peaso.selected_image_observations_20261021 import metadata_for_report
+        from peaso.snapshot import digest as snapshot_digest, freeze, resource_id
+
+        target, pod, blobs = fixture(b'\x00binary image file')
+        image_digest = target['image'].rsplit('@', 1)[1]
+        finding = {'vulnerability_id': 'CVE-2026-1001', 'severity': 'HIGH',
+            'package_types': ['debian'], 'package': 'openssl', 'version': '1.0',
+            'fixed_in': ['1.1'], 'fix_status': 'fixed', 'classes': ['os-pkgs'],
+            'image_digest': image_digest}
+        def runner(image, manifest, config, layers, **kwargs):
+            self.assertEqual(kwargs['native_verifier'](), image)
+            return {'image': image, 'status': 'FAIL', 'complete': False,
+                'scan_complete': False, 'coverage_status': 'UNKNOWN',
+                'database': {'fresh': True}, 'findings': [finding]}
+        marker = namespace['inspect'](target, lambda _: deepcopy(pod), allowed_hosts=['ghcr.io'],
+            registry_factory=lambda h, r, c, **kw: namespace['RegistryReader'](h, r, c,
+                open_https=FakeWire(blobs), **kw), scanner=scanner,
+            trivy_enabled=True, trivy_runner=runner)
+        self.assertEqual(marker['reason'], 'binary_file_uninspected')
+        kind, check = namespace['VULN_KIND'], namespace['VULN_CHECK']
+        plain_item = {'id': namespace['identity'](target), 'name': namespace['identity'](target),
+            'SelectedRegistryImage': marker}
+        item = freeze(plain_item)
+        collection = {'type': kind, 'scope': 'default', 'status': 'partial', 'items': [item]}
+        context = {'provider': 'k8s', 'scope': 'default', 'metadata': freeze({
+            kind + '_authorized': True, namespace['OPTION']: [target]})}
+        self.assertEqual(review['evaluate'](item,
+            {'context': context, 'collections': {kind: [collection]}}, kind)[0], 'FAIL')
+        native_id = resource_id('k8s', kind, 'default', item)
+        report_id = snapshot_digest(['k8s', 'default', kind, native_id])
+        report = {'provider': 'k8s', 'findings': [
+            {'provider': 'k8s', 'check_id': check, 'scope': 'default',
+             'resource_id': report_id, 'status': 'FAIL'},
+            {'provider': 'k8s', 'check_id': check, 'scope': 'default',
+             'resource_id': 'inventory:' + kind, 'status': 'UNKNOWN'}]}
+        snapshot = {'provider': 'k8s', 'scopes': ['default'], 'collections': [collection],
+                    'metadata': {}}
+        image = build_report(metadata_for_report(snapshot, report)['observations'], selected=True)
+        self.assertEqual((len(image['rows']), image['coverage'], image['invalid_observations']),
+                         (1, 'UNKNOWN', 1))
+        self.assertEqual(image['rows'][0]['vulnerability_id'], finding['vulnerability_id'])
+        self.assertEqual(image['rows'][0]['affected_assets'][0]['resource_id'], report_id)
+        self.assertEqual(image['rows'][0]['coverage'], 'UNKNOWN')
+
+        # Native drift cannot become a positive check; a forged evaluated FAIL
+        # still cannot pass the adapter's child image identity validator.
+        drifted = deepcopy(plain_item)
+        drifted['SelectedRegistryImage']['native_after']['uid'] = 'foreign-uid'
+        self.assertEqual(review['evaluate'](freeze(drifted),
+            {'context': context, 'collections': {kind: [{**collection, 'items': [freeze(drifted)]}]}}, kind)[0],
+            'UNKNOWN')
+        foreign = deepcopy(plain_item)
+        foreign['SelectedRegistryImage']['child_vulnerability_scans'][0]['image']['manifest_digest'] = 'sha256:' + 'f' * 64
+        foreign_collection = {**collection, 'items': [freeze(foreign)]}
+        withheld = build_report(metadata_for_report({**snapshot, 'collections': [foreign_collection]}, report)['observations'], selected=True)
+        self.assertEqual((len(withheld['rows']), withheld['invalid_observations']), (0, 2))
+
 
 if __name__ == '__main__': unittest.main()

@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import re
 from peaso.collectors import k8s_selected_registry_image_20261021 as source
+from peaso.snapshot import FrozenDict, thaw
 
 DECLARATIONS = (
     {'id': source.SECRET_CHECK, 'kind': source.SECRET_KIND, 'category': 'exposure',
@@ -31,6 +32,10 @@ def evaluate(item, index, kind):
         if collection.get('status') not in ('collected', 'partial'):
             return unknown
         marker = item['SelectedRegistryImage']
+        # Engine snapshots expose native JSON as immutable views. Convert only
+        # that trusted view before the exact schema and receipt checks below.
+        if type(marker) is FrozenDict:
+            marker = thaw(marker)
         missing = {
             'registry_denied': 'The selected registry denied a manifest or layer byte read.',
             'registry_truncated_or_digest': 'A selected manifest or layer has a missing or mismatched SHA-256 byte receipt.',
