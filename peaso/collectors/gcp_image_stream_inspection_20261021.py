@@ -7,11 +7,13 @@ enricher, while replacing only image download and layer parsing.
 from copy import deepcopy
 from pathlib import Path
 import tempfile
+import time
 
 from . import gcp_image_secret_indicators as native
 from .gcp_image_stream_reader_20261021 import Reader, MAX_IMAGE, MAX_LAYER
 from peaso.container_image_archive_20261020 import visit_files, MAX_LAYERS, MAX_EXPANDED, MAX_MEMBERS
 from peaso import oci_index_20261021 as oci_index
+from peaso.secret_scanning_batch import prepared_content_batch, MAX_BATCH_ITEMS, MAX_BATCH_BYTES
 
 WINDOW = 1024 * 1024
 OVERLAP = 4096
@@ -146,6 +148,33 @@ def _inspect_leaf(uri, repo, digest, raw, scope, reader, source_resource_id,
         if config_strings:
             scan(config_strings, 'image-config-decoded.txt', config['digest'], document=decoded)
         files, scanned_bytes = 0, 0
+        pending, pending_bytes = [], 0
+
+        def flush():
+            nonlocal pending, pending_bytes
+            if not pending:
+                return
+            native.Deadline(reader).check_deadline()
+            timeout = min(60, reader.end - time.monotonic() - 31)
+            if timeout <= 0:
+                raise TimeoutError('insufficient remaining dual-detector time')
+            items = [(payload, path) for payload, path, _, _ in pending]
+            # The helper uses volatile local storage only on supported Linux
+            # hosts and falls back to the original serial detector on error.
+            with prepared_content_batch(items, timeout=timeout):
+                for payload, path, layer, line_offset in pending:
+                    reader.check()
+                    scan(payload, path, layer, line_offset)
+            pending, pending_bytes = [], 0
+
+        def queue(payload, path, layer, line_offset=0):
+            nonlocal pending_bytes
+            reader.check()
+            if pending and (len(pending) == MAX_BATCH_ITEMS
+                            or pending_bytes + len(payload) > MAX_BATCH_BYTES):
+                flush()
+            pending.append((payload, path, layer, line_offset))
+            pending_bytes += len(payload)
 
         def observe(name, stream, size, layer_index):
             nonlocal files, scanned_bytes, complete, inspected, scanned, partial_bytes
@@ -161,7 +190,7 @@ def _inspect_leaf(uri, repo, digest, raw, scope, reader, source_resource_id,
                                        image_digest=digest, source=uri,
                                        layer=layer):
                 native.alias_path(path, name)
-                scan(name.encode('utf-8'), path + '-name', layer)
+                queue(name.encode('utf-8'), path + '-name', layer)
             if size > MAX_FILE or scanned_bytes + size > MAX_SCANNED:
                 complete = False
                 return
@@ -180,11 +209,11 @@ def _inspect_leaf(uri, repo, digest, raw, scope, reader, source_resource_id,
                     return
                 consumed += len(chunk)
                 scanned_bytes += len(chunk)
-                scan(overlap + chunk, path, layer, prior_lines - overlap.count(b'\n'))
+                queue(overlap + chunk, path, layer, prior_lines - overlap.count(b'\n'))
                 prior_lines += chunk.count(b'\n')
                 overlap = (overlap + chunk)[-OVERLAP:]
             if size == 0:
-                scan(b'', path, layer)
+                queue(b'', path, layer)
 
         image_identity = {'provider': 'gcp', 'scope': scope,
             'immutable_reference': uri.removeprefix('https://').rsplit('@', 1)[0] + '@' + digest,
@@ -196,8 +225,15 @@ def _inspect_leaf(uri, repo, digest, raw, scope, reader, source_resource_id,
                 path = root / ('blob-' + str(index))
                 reader.get_layer(uri, descriptor, path)
                 paths.append(path)
-            result = visit_files(image_identity, raw, config_raw, paths, lambda *args: None,
-                                 check=reader.check, partial_callback=observe)
+            try:
+                result = visit_files(image_identity, raw, config_raw, paths, lambda *args: None,
+                                     check=reader.check, partial_callback=observe)
+            except Exception as exc:
+                if _interrupt(exc):
+                    raise
+                flush()
+                raise
+            flush()
         reader.check()
         if result.get('links_skipped', 0):
             complete = False
