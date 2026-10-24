@@ -511,3 +511,20 @@ def test_unknown_privesc_findings_always_carry_a_reason():
     # Proven and conditional findings keep their evidence shape (no reason key added).
     derived = run(aws_snapshot([aws_user("bob", *PASS_RUN)], [aws_role("ec2-role", "ec2.amazonaws.com")], scp_status="empty"))
     assert all("reason" not in f["evidence"] for f in derived["findings"] if f["status"] != "UNKNOWN")
+
+
+def test_reciprocal_edges_have_distinct_stable_directed_ids():
+    from types import SimpleNamespace
+    from peaso.privesc.graph import GraphBuilder
+    model = SimpleNamespace(provider='gcp')
+    grant = SimpleNamespace(confidence='conditional', refs=[], conditions=[], permission_refs=[])
+    graph = GraphBuilder(model)
+    forward = graph.edge('principal-a', 'principal-b', 'first', grant, 'finding-forward')
+    reverse = graph.edge('principal-b', 'principal-a', 'reverse', grant, 'finding-reverse')
+    assert forward != reverse
+    assert graph.edge('principal-a', 'principal-b', 'second', grant, 'finding-extra') == forward
+    assert len(graph.edges) == 2
+    assert graph.edges['principal-a', 'principal-b']['techniques'] == ['first', 'second']
+    other = GraphBuilder(SimpleNamespace(provider='gcp'))
+    assert other.edge('principal-b', 'principal-a', 'reverse', grant, None) == reverse
+    assert other.edge('principal-a', 'principal-b', 'first', grant, None) == forward

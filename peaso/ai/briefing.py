@@ -171,7 +171,21 @@ def build(root, platform, assigned, reviews, write_json):
             put('metadata', name, compact({key: value for key, value in graph.items() if key not in ('nodes', 'edges')}),
                 {key: value for key, value in graph.items() if key not in ('nodes', 'edges')})
             for kind in ('nodes', 'edges'):
-                for index, row in enumerate(graph.get(kind, [])):
+                records = graph.get(kind, [])
+                original_ids = Counter(str(row.get('id', index)) for index, row in enumerate(records))
+                seen_records = set()
+                for index, row in enumerate(records):
+                    original_id = str(row.get('id', index))
+                    record_id = original_id
+                    if original_ids[original_id] > 1:
+                        # Historical maps used an unordered edge hash: opposite
+                        # directions could share an ID. Keep every distinct row,
+                        # with ambiguous original aliases linked to neither one.
+                        signature = encode(row, canonical=True)
+                        record_id += ':' + hashlib.sha256(signature.encode()).hexdigest()
+                        if record_id in seen_records:
+                            continue
+                    seen_records.add(record_id)
                     summary = {key: row[key] if key in ('source', 'target', 'resource_id', 'native_id') else compact(row[key]) for key in ('source', 'target', 'type', 'label', 'scope', 'provider',
                         'resource_id', 'native_id', 'confidence', 'layer', 'techniques', 'findings', 'risk_annotations',
                         'underlying_count', 'unresolved', 'unresolved_reason', 'facts_needed', 'exposures') if key in row}
@@ -194,8 +208,8 @@ def build(root, platform, assigned, reviews, write_json):
                     severity = min((item.get('severity', 'info') or 'info' for item in details), key=lambda value: RISK.get(value, 4), default='info')
                     if risk and severity == 'info':
                         severity = 'high' if name == 'privesc' and row.get('confidence') == 'derived' else 'medium'
-                    put(name + '_' + kind, row.get('id', str(index)), summary, row, severity=severity, candidate=risk,
-                        names=(row.get('resource_id'), row.get('native_id')),
+                    put(name + '_' + kind, record_id, summary, row, severity=severity, candidate=risk,
+                        names=(original_id, row.get('resource_id'), row.get('native_id')),
                         identities=((row.get('attrs') or {}).get('email'), (row.get('attrs') or {}).get('upn')))
 
         put('metadata', 'least_privilege_coverage', compact(least.get('coverage', {})), least.get('coverage', {}))

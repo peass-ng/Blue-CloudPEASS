@@ -316,3 +316,18 @@ def test_network_grouping_preserves_target_restrictions_and_ignores_json_key_ord
     build(tmp_path, platform, rows, reviews, private_json)
     cases = json.loads((tmp_path/'platform.json').read_text())['sections']['network']
     assert len(cases) == 2 and sorted(case['count'] for case in cases) == [1, 2]
+
+
+def test_historical_reciprocal_edge_ids_keep_both_directions_in_priorities(tmp_path):
+    platform, rows, reviews = fixture()
+    edges = [
+        {'id': 'old-unordered-id', 'source': 'a', 'target': 'b', 'confidence': 'conditional', 'techniques': ['forward']},
+        {'id': 'old-unordered-id', 'source': 'b', 'target': 'a', 'confidence': 'conditional', 'techniques': ['reverse']}]
+    platform['report']['graphs']['privesc']['edges'] = edges
+    build(tmp_path, platform, rows, reviews, private_json)
+    with sqlite3.connect(tmp_path / 'context.sqlite') as db:
+        stored = db.execute("SELECT id,detail FROM records WHERE domain='privesc_edges'").fetchall()
+    assert len(stored) == 2 and len({key for key, _ in stored}) == 2
+    assert {(json.loads(detail)['source'], json.loads(detail)['target']) for _, detail in stored} == {('a','b'),('b','a')}
+    assert all(json.loads(detail)['id'] == 'old-unordered-id' for _, detail in stored)
+    assert [edge['id'] for edge in edges] == ['old-unordered-id','old-unordered-id']

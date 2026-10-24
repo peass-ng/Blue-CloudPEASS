@@ -17,6 +17,7 @@ are pruned to the top-most scope per technique and source.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 
 from .effective_permissions import CONF_RANK, Grant, downgrade
@@ -133,7 +134,7 @@ class GraphBuilder:
         key = (source_id, target_id)
         edge = self.edges.get(key)
         if edge is None:
-            edge = self.edges[key] = {"id": f"e:{_hash([source_id, target_id])}", "source": source_id, "target": target_id,
+            edge = self.edges[key] = {"id": f"e:{hashlib.sha1(json.dumps([source_id, target_id], ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()[:12]}", "source": source_id, "target": target_id,
                                       "techniques": [], "confidence": grant.confidence, "evidence_refs": [], "findings": [],
                                       "technique_details": []}
         if technique not in edge["techniques"]:
