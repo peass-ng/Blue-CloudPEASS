@@ -12,6 +12,7 @@ from .facts import get, Unavailable
 POLICY_USE = {'aws.claude_a.iam.policy_in_use', 'aws.claude_a.iam.custom_policy_in_use'}
 BOUNDARY_APPLICABILITY = {'aws.claude_a.iam.custom_policy_attached_to_role', 'aws.pci.iam.policy_attached_to_active_principal'}
 IDS = POLICY_USE | BOUNDARY_APPLICABILITY | {
+    'aws_kms_key_expiry',
     'aws.b.rds.engine_log_exports', 'aws.claude_a.ec2.instance_ebs_optimized',
     'aws.cb.sns.failure_feedback_role', 'aws.cb.sqs.dead_letter_queue',
     'aws.cb.secretsmanager.rotation_rules_present', 'aws.cb.secretsmanager.rotated_as_scheduled', 'aws.claude_a.ebs.volume_in_backup_selection', 'aws.c2b.apigateway.rest_api_policy_not_public',
@@ -73,6 +74,29 @@ def _override(check, original, item, index):
     from . import result
     if not isinstance(item, dict):
         return original(item, index)
+    if check.id == 'aws_kms_key_expiry':
+        envelope = item.get('Metadata')
+        metadata = envelope.get('KeyMetadata') if isinstance(envelope, dict) else None
+        if isinstance(metadata, dict) and metadata.get('KeyState') == 'PendingReplicaDeletion':
+            # AWS reports this state while a multi-Region primary waits for
+            # replicas to be deleted. The source predicate already handles
+            # PendingDeletion; retain its identity, Enabled and tag guards.
+            from inspect import unwrap
+            unwrap(original).__globals__['_inventory'](item, index, 'kms_key')
+            normalized = dict(item, Metadata=dict(envelope, KeyMetadata=dict(
+                metadata, KeyState='PendingDeletion')))
+            projected = dict(index)
+            collections = dict(index['collections'])
+            collections['kms_key'] = [dict(index['collections']['kms_key'][0], items=[
+                normalized if row == item else row
+                for row in index['collections']['kms_key'][0]['items']])]
+            projected['collections'] = collections
+            projected['kms_key'] = [dict(wrapper, data=normalized if wrapper['data'] == item else wrapper['data'])
+                                    for wrapper in index['kms_key']]
+            status, evidence = original(normalized, projected)
+            if status in ('PASS', 'FAIL') and isinstance(evidence, dict):
+                evidence = dict(evidence, key_state='PendingReplicaDeletion')
+            return status, evidence
     engine = item.get('Engine')
     expected = {'docdb_cluster': 'docdb', 'docdb_instance': 'docdb', 'neptune_cluster': 'neptune'}.get(check.kind)
     if ((expected and isinstance(engine, str) and engine != expected) or

@@ -56,3 +56,19 @@ def test_unread_expiration_model_is_not_default_or_nonexpiring():
             if present:metadata['ExpirationModel']='KEY_MATERIAL_DOES_NOT_EXPIRE'
             row={'KeyId':'key-1','Metadata':{'KeyMetadata':metadata},'Tags':[]}
             assert evaluate(row)=='UNKNOWN'
+
+
+def test_pending_replica_deletion_uses_native_retirement_evidence():
+    row = {'KeyId': 'key-1', 'Metadata': {'KeyMetadata': {'KeyId': 'key-1',
+        'Origin': 'AWS_KMS', 'KeyState': 'PendingReplicaDeletion', 'Enabled': False}}, 'Tags': []}
+    assert evaluate(row) == 'PASS'
+    retired = deepcopy(row)
+    retired['Tags'] = [{'TagKey': 'Retired', 'TagValue': 'true'}]
+    assert evaluate(retired) == 'FAIL'
+    unread = deepcopy(row)
+    unread.pop('Tags')
+    unread['_coverage'] = {'Tags': {'status': 'denied'}}
+    assert evaluate(unread) == 'UNKNOWN'
+    contradictory = deepcopy(row)
+    contradictory['Metadata']['KeyMetadata']['Enabled'] = True
+    assert evaluate(contradictory) == 'UNKNOWN'
