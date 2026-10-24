@@ -1,7 +1,9 @@
 """One-pass cloud usage reads and honest incomplete coverage."""
-from threading import RLock
+from threading import Barrier, Event, RLock, get_ident
+from contextvars import ContextVar
 from types import SimpleNamespace
 from datetime import datetime, timezone
+import pytest
 
 from peaso.snapshot import make_snapshot, validate
 from peaso.collectors import aws_iam_usage_extension as aws_usage
@@ -64,6 +66,97 @@ def test_aws_one_report_per_missing_arn_with_same_session(monkeypatch):
     assert role_row["ServicesLastAccessedStatus"]["collection_status"] == "collected"
     assert finalize(result, {"provider": "aws"}, {}, {account: (requests, session, "us-east-1")}) == result
     assert len(calls) == 1
+
+
+def test_aws_independent_accounts_overlap_and_match_serial_evidence(monkeypatch):
+    accounts = ("123456789012", "234567890123")
+    current = snapshot("aws", list(accounts), [
+        collection("iam_role", account, [{"Arn": f"arn:aws:iam::{account}:role/team"}])
+        for account in accounts], ["access_analyzer", "iam_role"])
+    requests = SimpleNamespace(_lock=RLock(), service_last_accessed_wait=120,
+        service_last_accessed_workers=4)
+    sessions = {account: object() for account in accounts}
+    contexts = {account: (requests, sessions[account], "us-east-1") for account in accounts}
+    marker = ContextVar("test_aws_iam_usage_marker")
+    barrier = Barrier(2)
+    calls = []
+
+    def reports(observed_requests, session, region, arns, *, granularity):
+        assert marker.get() == "bound"
+        assert observed_requests is requests and granularity == "ACTION_LEVEL"
+        account = next(account for account in accounts if sessions[account] is session)
+        calls.append((account, get_ident()))
+        if barrier is not None:
+            barrier.wait(timeout=3)
+        return {arn: ([{"ServiceNamespace": "iam", "LastAuthenticated": account}],
+                      {"collection_status": "collected", "granularity": granularity}) for arn in arns}
+
+    monkeypatch.setattr("peaso.collectors.aws_iam_report_native.service_reports", reports)
+    token = marker.set("bound")
+    try:
+        parallel = aws_usage.enrich_snapshot(current, contexts)
+        assert {account for account, _ in calls} == set(accounts)
+        assert len({thread for _, thread in calls}) == 2
+        calls.clear()
+        barrier = None
+        requests.max_calls = 100
+        serial = aws_usage.enrich_snapshot(current, contexts)
+    finally:
+        marker.reset(token)
+    assert parallel == serial
+    assert [account for account, _ in calls] == list(accounts)
+    assert len({thread for _, thread in calls}) == 1
+
+
+def test_aws_account_usage_keeps_serial_admission_for_global_limits_or_shared_session(monkeypatch):
+    accounts = ("123456789012", "234567890123")
+    current = snapshot("aws", list(accounts), [
+        collection("iam_user", account, [{"Arn": f"arn:aws:iam::{account}:user/alice"}])
+        for account in accounts], ["access_analyzer", "iam_user"])
+    calls = []
+
+    def reports(requests, session, region, arns, *, granularity):
+        calls.append((next(iter(arns)).split(":")[4], get_ident()))
+        return {arn: ([], {"collection_status": "collected", "granularity": granularity}) for arn in arns}
+
+    monkeypatch.setattr("peaso.collectors.aws_iam_report_native.service_reports", reports)
+    for cap in ("max_calls", "max_pages", "max_items", "shared_session"):
+        calls.clear()
+        requests = SimpleNamespace(_lock=RLock(), service_last_accessed_wait=120,
+            service_last_accessed_workers=4)
+        if cap != "shared_session":
+            setattr(requests, cap, 2)
+        shared = object()
+        contexts = {account: (requests, shared if cap == "shared_session" else object(), "us-east-1")
+                    for account in accounts}
+        result = aws_usage.enrich_snapshot(current, contexts)
+        assert validate(result) == result
+        assert [account for account, _ in calls] == list(accounts)
+        assert len({thread for _, thread in calls}) == 1
+
+
+def test_aws_account_usage_joins_other_account_before_propagating_error(monkeypatch):
+    accounts = ("123456789012", "234567890123")
+    current = snapshot("aws", list(accounts), [
+        collection("iam_role", account, [{"Arn": f"arn:aws:iam::{account}:role/team"}])
+        for account in accounts], ["access_analyzer", "iam_role"])
+    requests = SimpleNamespace(_lock=RLock(), service_last_accessed_wait=120,
+        service_last_accessed_workers=4)
+    contexts = {account: (requests, object(), "us-east-1") for account in accounts}
+    barrier, completed = Barrier(2), Event()
+
+    def reports(requests, session, region, arns, *, granularity):
+        account = next(iter(arns)).split(":")[4]
+        barrier.wait(timeout=3)
+        if account == accounts[0]:
+            raise RuntimeError("report failed")
+        completed.set()
+        return {}
+
+    monkeypatch.setattr("peaso.collectors.aws_iam_report_native.service_reports", reports)
+    with pytest.raises(RuntimeError, match="report failed"):
+        aws_usage.enrich_snapshot(current, contexts)
+    assert completed.is_set()
 
 
 def test_aws_policy_service_report_accepts_same_account_and_completed_date():
