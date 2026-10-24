@@ -311,13 +311,14 @@ def collect(reader, scopes, wanted):
                 is_vnet = re.fullmatch(re.escape(scope) + r'/resourceGroups/' + SEGMENT +
                                        r'/providers/Microsoft\.Network/virtualNetworks/' + SEGMENT,
                                        parent_scope, re.I)
+                if (key in seen_parents or (key != scope.casefold() and not is_vnet) or
+                        parent.get('service') not in (None, 'Microsoft.Network')):
+                    raise RouteEvidenceUnavailable('subnet parent incomplete or ambiguous')
                 if parent.get('status') == 'denied':
                     raise AzureReadError('route_subnet_parent_denied', 403)
                 if parent.get('status') not in ('collected', 'empty'):
                     raise AzureReadError('route_subnet_parent_unavailable')
-                if (key in seen_parents or (key != scope.casefold() and not is_vnet) or
-                        parent.get('service') not in (None, 'Microsoft.Network') or
-                        not isinstance(parent.get('items'), list) or
+                if (not isinstance(parent.get('items'), list) or
                         (parent['status'] == 'empty' and parent['items']) or
                         (key == scope.casefold() and
                          (parent['status'] != 'empty' or parent['items']))):

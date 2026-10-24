@@ -10,7 +10,8 @@ NATIVE_TYPES = {'resource_diagnostic_setting', 'azure_diagnostic_eligible_resour
 OWN_RESOURCE_LOG_TYPES = {'microsoft.keyvault/vaults', 'microsoft.operationalinsights/workspaces'}
 CHECK = 'azure_log_analytics_workspace_monitor_diagnostic_setting_with_appropriate_categories_48f6b2b'
 SEGMENT = r'[^/?#%\s\\]+'
-RESOURCE = r'/subscriptions/'+SEGMENT+r'/resourceGroups/'+SEGMENT+r'/providers/'+SEGMENT+r'(?:/'+SEGMENT+r'/'+SEGMENT+r')+'
+RESOURCE = (r'/subscriptions/'+SEGMENT+r'/resourceGroups/'+SEGMENT+r'/providers/'+SEGMENT+
+            r'(?:/'+SEGMENT+r'/'+SEGMENT+r')+'+r'(?:/providers/'+SEGMENT+r'(?:/'+SEGMENT+r'/'+SEGMENT+r')+)*')
 STORAGE_VERSION = '2023-05-01'
 STORAGE_SERVICES = {'blobServices':'StorageBlobLogs','fileServices':'StorageFileLogs','queueServices':'StorageQueueLogs','tableServices':'StorageTableLogs'}
 RETENTION_CHECK = 'azure.cis.monitor_resource_logging_services_support_it'
@@ -53,7 +54,8 @@ def collect(reader, request, scopes, wanted):
                     if not rid.casefold().startswith(scope.casefold()+'/') or rid.casefold() in seen:
                         raise ValueError('duplicate or foreign diagnostic resource')
                     resource_type = raw.get('type')
-                    match = re.fullmatch(re.escape(scope)+r'/resourceGroups/'+SEGMENT+r'/providers/('+SEGMENT+r')((?:/'+SEGMENT+r'/'+SEGMENT+r')+)', rid, re.I)
+                    suffix = re.split('/providers/', rid, flags=re.I)[-1]
+                    match = re.fullmatch('('+SEGMENT+r')((?:/'+SEGMENT+r'/'+SEGMENT+r')+)', suffix, re.I)
                     if not isinstance(resource_type, str) or match is None:
                         raise ValueError('diagnostic resource identity/type mismatch')
                     parts = match.group(2).strip('/').split('/')

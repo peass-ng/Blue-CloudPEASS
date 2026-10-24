@@ -124,6 +124,17 @@ def test_partial_subnet_parent_stays_unavailable_before_route_join():
     assert findings and all(row['status'] == 'UNKNOWN' for row in findings)
 
 
+def test_denied_foreign_subnet_parent_remains_malformed():
+    source = reader()
+    parent = next(c for c in source.collections if c['type'] == 'subnet')
+    parent.update(scope=VNET+'/foreign', status='denied', items=[], error={'code':'403'})
+    native.collect(source, [SCOPE], {'subnet_effective_route'})
+    child = source.collections[-1]
+    assert child['status'] == 'malformed'
+    assert child['error']['kind'] == 'RouteEvidenceUnavailable'
+    assert child['items'] == []
+
+
 def test_nonreciprocal_vm_attachment_is_unavailable():
     collections = project(reciprocal=False)
     assert collections[-1]['status'] not in ('collected', 'empty')
