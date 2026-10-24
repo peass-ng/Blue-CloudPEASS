@@ -4,10 +4,14 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import gzip
+import stat
 from collections import Counter, defaultdict
 
 RISK = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3, 'info': 4}
 REJECTED = {'PASS', 'NOT_APPLICABLE', 'EMPTY'}
+CONTEXT_COMPRESS_THRESHOLD = 64 * 1024 * 1024
+MAX_CONTEXT_BYTES = 2 * 1024 * 1024 * 1024
 
 
 def encode(value, *, canonical=False):
@@ -256,3 +260,87 @@ def build(root, platform, assigned, reviews, write_json):
             stream.write(source)
     finally:
         db.close()
+    compress_context(root)
+def compress_context(root):
+    """Preserve large SQLite contexts within the existing bounded transport."""
+    root = Path(root)
+    database, packed = root / 'context.sqlite', root / 'context.sqlite.gz'
+    metadata = database.lstat()
+    if not stat.S_ISREG(metadata.st_mode):
+        raise ValueError('invalid_briefing_context_file')
+    if metadata.st_size > MAX_CONTEXT_BYTES:
+        raise ValueError('briefing_context_too_large')
+    if metadata.st_size < CONTEXT_COMPRESS_THRESHOLD:
+        return
+    source_fd = os.open(database, os.O_RDONLY | os.O_NOFOLLOW)
+    output_fd = None
+    created = False
+    try:
+        output_fd = os.open(packed, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        created = True
+        with os.fdopen(output_fd, 'wb') as output:
+            output_fd = None
+            with gzip.GzipFile(filename='', mode='wb', fileobj=output, compresslevel=1, mtime=0) as writer:
+                with os.fdopen(source_fd, 'rb') as source:
+                    source_fd = None
+                    total = 0
+                    while chunk := source.read(1024 * 1024):
+                        total += len(chunk)
+                        if total > MAX_CONTEXT_BYTES:
+                            raise ValueError('briefing_context_too_large')
+                        writer.write(chunk)
+        database.unlink()
+    except BaseException:
+        if output_fd is not None:
+            os.close(output_fd)
+        # Only remove the output created by this invocation.
+        if created:
+            packed.unlink(missing_ok=True)
+        raise
+    finally:
+        if source_fd is not None:
+            os.close(source_fd)
+
+
+def materialize_context(root):
+    """Expand a compressed context before starting an agent, with finite disk use."""
+    root = Path(root)
+    packed, database = root / 'context.sqlite.gz', root / 'context.sqlite'
+    try:
+        metadata = packed.lstat()
+    except FileNotFoundError:
+        return
+    from .fargate import MAX_INPUT
+    if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_INPUT:
+        raise ValueError('invalid_briefing_context_file')
+    source_fd = os.open(packed, os.O_RDONLY | os.O_NOFOLLOW)
+    output_fd = None
+    created = False
+    try:
+        output_fd = os.open(database, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        created = True
+        with os.fdopen(output_fd, 'wb') as output:
+            output_fd = None
+            with os.fdopen(source_fd, 'rb') as source:
+                source_fd = None
+                with gzip.GzipFile(fileobj=source, mode='rb') as reader:
+                    total = 0
+                    while chunk := reader.read(1024 * 1024):
+                        if not total and not chunk.startswith(b'SQLite format 3\x00'):
+                            raise ValueError('invalid_briefing_context_header')
+                        total += len(chunk)
+                        if total > MAX_CONTEXT_BYTES:
+                            raise ValueError('briefing_context_too_large')
+                        output.write(chunk)
+                    if not total:
+                        raise ValueError('invalid_briefing_context_header')
+        packed.unlink()
+    except BaseException:
+        if output_fd is not None:
+            os.close(output_fd)
+        if created:
+            database.unlink(missing_ok=True)
+        raise
+    finally:
+        if source_fd is not None:
+            os.close(source_fd)

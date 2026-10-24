@@ -12,7 +12,7 @@
     "peaso/ai/_vendor/chack/thinking_effort.py": "e8748007030fb976d2bb7db5a07663c47b7c604fd4e8e04e94148b7bd8a77d18",
     "peaso/ai/access.py": "e701adf3f9760759692d8bc125bcd7070f5ffa6625c1e6d27d5672c3967483bc",
     "peaso/ai/auth.py": "417d70fe80bf510b3482c679f9b547272be77379546b3183fe771fd42bc613cf",
-    "peaso/ai/briefing.py": "6b16be7788c94a2a1c55b55883518a63459c364420fcf361df9d29956798ba73",
+    "peaso/ai/briefing.py": "2652a087449419276a9ec0719a529ccd75a15a17ab7e7708f4536dd8898df4d3",
     "peaso/ai/codex_relay_cli.py": "a1e8c519b624ab30d131f1a4a070deb2eea8e780584a41b405f6212592539fb9",
     "peaso/ai/context_reader.py": "bd1a54bde21dc021b37c4bec688083fe5475baa4eee390ec678d47060e5b7010",
     "peaso/ai/contracts.py": "55a80c29defdf7b706e590087a2becc86b68f53395d37067d893c6fcb5a4cfda",
@@ -29,7 +29,7 @@
     "peaso/ai/prompting.py": "4e6c4f13dce2947dc23f037c5a95ebbf0d4efc6ba9a5ed97182a73ac3a2f2914",
     "peaso/ai/providers.py": "a33915979e16954365cd49a894dccba49a765ef1de060db5c15292a846e3f068",
     "peaso/ai/reconcile.py": "4770e78fe777d4cea46d0e9bc8f388e79b0b3cdc1f40a7d49eb638aae11081d4",
-    "peaso/ai/runner.py": "34283810a05c9f06cb4046a98fc8b2689c0e85c2beb019caa9e658132c4b0197",
+    "peaso/ai/runner.py": "f75c5726a4f9b9b4ae0a23ffe180f88033711317fa9e8ccea50e1791da1af478",
     "peaso/ai/smoke.py": "83fb2f3aca2c29f0a5a6f4eb753f1223cb6500f0e1a0f1c9ae8ec58d53cd0b13",
     "peaso/ai/task_runtime.py": "a63425f304b35e78806e415fc71dc913bfc3cd2611077d9d9ac1dd1bdcb155ae",
     "peaso/analysis/__init__.py": "6f35848987a58302f7947611aaec6d5ed00fc0fcf1ed2cc14c6fdb06133a7cf3",
@@ -1770,7 +1770,7 @@
     "top20_performance_review": "Five runtime files reviewed: fresh tenant-bound status/TTL reads use existing DynamoDB GetItem; privilege query generators retain original traversal and ordering, bounded heap selection changes response paging only.30 client construction sites, credential factories and API service roster unchanged. Native admission sources unchanged."
   },
   "python_source_count": 1665,
-  "python_source_sha256": "12b6468bb6c81054171bff817e0ea3aa1290e980d0f76dc91da692e4459058cf",
-  "review_context": "Reviewed exact ten runtime deltas: directed graph identity/legacy briefing; trusted frozen selected-image positives; Azure unsupported/denied/nested route prerequisites; bounded image batches; KMS pending-replica state through existing finite owner. Thirty direct API SDK calls and fifteen services unchanged. Historical epoch files and source proofs retained. Added one reviewed storage-only change: bounded reference cache8192 to hold measured2148-object large report working set; exact-byte/same-tenant/durable-write barriers unchanged. No SDK calls added. Follow-up review: four runtime deltas only: final native publication before waiting for active AI, fresh same-scan durable-stage IPC preserving lease/cancellation/fingerprint fences; completed-collector metadata in final cumulative checkpoint; bounded selected K8s image batching with exact source/path order and ordinary timeout semantics retained. SDK client services/callcount unchanged. Worker callback review additionally separates expensive public rendering/uploads from serialized private-document and supervisor exchanges; private evidence is committed before artifact creation and refreshed before public report ACK. No storage authorization/sequence or SDK service changes.",
-  "source_commit": "23874e2b0f10bed9536ae16e0208b2619f60abe4"
+  "python_source_sha256": "7459f9041b8ce38486ab3f4b9621bced42957cd239ce88c8d02effde101b0536",
+  "review_context": "Reviewed exact ten runtime deltas: directed graph identity/legacy briefing; trusted frozen selected-image positives; Azure unsupported/denied/nested route prerequisites; bounded image batches; KMS pending-replica state through existing finite owner. Thirty direct API SDK calls and fifteen services unchanged. Historical epoch files and source proofs retained. Added one reviewed storage-only change: bounded reference cache8192 to hold measured2148-object large report working set; exact-byte/same-tenant/durable-write barriers unchanged. No SDK calls added. Follow-up review: four runtime deltas only: final native publication before waiting for active AI, fresh same-scan durable-stage IPC preserving lease/cancellation/fingerprint fences; completed-collector metadata in final cumulative checkpoint; bounded selected K8s image batching with exact source/path order and ordinary timeout semantics retained. SDK client services/callcount unchanged. Worker callback review additionally separates expensive public rendering/uploads from serialized private-document and supervisor exchanges; private evidence is committed before artifact creation and refreshed before public report ACK. No storage authorization/sequence or SDK service changes. Priorities transport correction: only briefing.py and runner.py add deterministic gzip of large SQLite contexts and bounded streaming materialization before any agent runs; exact bytes/queries preserved. Existing256MiB transport bound unchanged;2GiB expansion cap, private exclusive no-follow files, corrupt/oversize cleanup. No SDK calls, services, credentials or historical guards change.",
+  "source_commit": "e50fc1a1b09892e7b92bb78cbb1200bb2244f954"
 }

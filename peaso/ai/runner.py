@@ -47,10 +47,13 @@ def output_text(result):
 
 def main():
     started = time.monotonic()
-    from chack_agent import Chack, load_config
-    from .prompting import access_instructions, agent_config_path
     stage = sys.argv[1]
     root = Path.cwd()
+    if stage == 'priorities':
+        from .briefing import materialize_context
+        materialize_context(root)
+    from chack_agent import Chack, load_config
+    from .prompting import access_instructions, agent_config_path
     auth_path = root / 'codex-auth.json'
     authentication = json.loads(auth_path.read_text())
     auth_path.unlink()
