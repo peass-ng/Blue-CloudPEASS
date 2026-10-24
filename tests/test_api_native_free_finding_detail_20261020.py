@@ -41,6 +41,12 @@ with tempfile.TemporaryDirectory(prefix='peaso-detail-proof-') as temporary:
         ('aws.a.iam.root_summary_no_keys', 'aws', {'account_access_keys_present': 0}),
         ('gcp.ports.compute_instance_ip_forwarding_disabled', 'gcp', {'canIpForward': True}),
         ('analysis.internet_exposure', 'aws', {'exposure_kind': 'network', 'exposed_ports': [443]}),
+        ('analysis.federated_trust', 'aws', {'federated_trusts': [{
+            'issuer': 'token.actions.githubusercontent.com',
+            'federated_principal': 'arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com',
+            'conditions': {'StringEquals': {'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com'}},
+            'problems': [{'code': 'no_sub_condition'}],
+        }]}),
     ]
     findings = []
     for index, (cid, provider, evidence) in enumerate(cases):
@@ -90,6 +96,8 @@ with tempfile.TemporaryDirectory(prefix='peaso-detail-proof-') as temporary:
             assert actual['id'] == expected['id']
             assert actual['status'] == expected['status']
             assert actual['evidence'] == expected['evidence']
+            if expected['check_id'] == 'analysis.federated_trust':
+                assert 'does not restrict which token subjects' in actual['evidence_summary']
             if expected['provider'] == 'aws':
                 assert actual['remediation_details']['cli'][0]['code'] == 'inspect 123456789012'
         client.headers['Authorization'] = 'Bearer bob'
